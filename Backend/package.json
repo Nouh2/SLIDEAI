@@ -1,0 +1,26 @@
+{
+  "name": "slideai-backend",
+  "private": true,
+  "workspaces": [
+    "apps/api",
+    "apps/worker"
+  ],
+  "scripts": {
+    "build": "npm -w apps/api run build && npm -w apps/worker run build",
+    "dev:api": "npm -w apps/api run start:dev",
+    "dev:worker": "npm -w apps/worker run start:dev",
+    "lint": "echo \"(lint désactivé temporairement)\"",
+    "format": "echo \"(prettier désactivé temporairement)\""
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.5",
+    "@types/multer": "^2.0.0",
+    "typescript": "^5.6.3"
+  },
+  "dependencies": {
+    "@nestjs/platform-express": "^10.4.7",
+    "multer": "^1.4.5-lts.1",
+    "openai": "^6.9.1",
+    "reflect-metadata": "^0.2.2"
+  }
+}

@@ -1,0 +1,5 @@
+docker run --name slideai-redis -p 6379:6379 -d redis:7-alpine
+docker run --name slideai-postgres -e POSTGRES_PASSWORD=postgres -p 5432:5432 -d postgres:15
+
+npm run dev:api
+npm run dev:worker

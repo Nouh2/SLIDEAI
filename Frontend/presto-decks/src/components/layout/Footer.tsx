@@ -18,7 +18,7 @@ export const Footer = () => {
 
   return (
     <footer className="border-t border-[var(--border)] bg-[var(--surface)]/30">
-      <div className="container py-8">
+      <div className="container py-6">
         <div className="grid grid-cols-1 gap-6 md:grid-cols-4">
           <div className="space-y-2">
             <Link to="/" className="flex items-center space-x-2">
@@ -71,7 +71,7 @@ export const Footer = () => {
           </div>
         </div>
 
-        <div className="mt-6 pt-4 border-t border-[var(--border)] text-center text-xs text-[var(--muted)]">
+        <div className="mt-4 pt-4 border-t border-[var(--border)] text-center text-xs text-[var(--muted)]">
           © {new Date().getFullYear()} SlideAI. Tous droits réservés.
         </div>
       </div>

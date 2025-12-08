@@ -5,30 +5,58 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { SlideThumbnail } from "@/components/slides/SlideThumbnail";
-import { examples } from "@/data/examples";
-import { Plus, Search, FolderOpen, Copy, Trash2, Calendar, Eye } from "lucide-react";
-
-type Project = {
-  id: string;
-  title: string;
-  prompt: string;
-  slides: any[];
-  theme: any;
-  createdAt: string;
-  usage: number;
-};
+import { Plus, Search, FolderOpen, Copy, Trash2, Calendar, Eye, Loader2 } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { projectService, Project } from "@/lib/projects";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 export default function Dashboard() {
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("all");
   const [sortBy, setSortBy] = useState("recent");
+  const { toast } = useToast();
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
-  // Mock projects using examples data
-  const projects: Project[] = [
-    { id: "deck-1", ...examples[0], createdAt: "2025-01-08", usage: 245 },
-    { id: "deck-2", ...examples[1], createdAt: "2025-01-07", usage: 189 },
-    { id: "deck-3", ...examples[2], createdAt: "2025-01-05", usage: 312 },
-  ];
+  // Load projects from local storage service
+  const [projects, setProjects] = useState<Project[]>(projectService.getAll());
+
+  const handleDelete = async (id: string) => {
+    try {
+      setDeletingId(id);
+
+      // Delete from local storage
+      projectService.delete(id);
+
+      // Simulate API delay for better UX
+      await new Promise(resolve => setTimeout(resolve, 500));
+
+      // Update local state
+      setProjects(prev => prev.filter(p => p.id !== id));
+
+      toast({
+        title: "Présentation supprimée",
+        description: "La présentation a été supprimée avec succès.",
+      });
+    } catch (error) {
+      toast({
+        title: "Erreur",
+        description: "Impossible de supprimer la présentation.",
+        variant: "destructive",
+      });
+    } finally {
+      setDeletingId(null);
+    }
+  };
 
   // Filtres + tri (client) pour coller aux contrôles UI
   const filtered = useMemo(() => {
@@ -170,14 +198,41 @@ export default function Dashboard() {
                   <Button size="sm" variant="outline" title="Duplicate">
                     <Copy className="h-4 w-4" />
                   </Button>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="hover:bg-[var(--danger)]/20 hover:border-[var(--danger)]"
-                    title="Delete"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
+
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="hover:bg-[var(--danger)]/20 hover:border-[var(--danger)] hover:text-[var(--danger)]"
+                        title="Delete"
+                        disabled={deletingId === project.id}
+                      >
+                        {deletingId === project.id ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <Trash2 className="h-4 w-4" />
+                        )}
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Êtes-vous sûr ?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          Cette action est irréversible. Cela supprimera définitivement la présentation "{project.title}".
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Annuler</AlertDialogCancel>
+                        <AlertDialogAction
+                          onClick={() => handleDelete(project.id)}
+                          className="bg-[var(--danger)] hover:bg-[var(--danger)]/90 text-white"
+                        >
+                          Supprimer
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
                 </div>
               </div>
             </CardContent>

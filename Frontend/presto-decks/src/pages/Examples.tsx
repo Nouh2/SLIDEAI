@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Copy, Check, Palette, ChevronLeft, ChevronRight, Sparkles } from "lucide-react";
 import { examples, type Example } from "@/data/examples";
 import { useToast } from "@/hooks/use-toast";
-import { SlideRenderer } from "@/components/slides/SlideRenderer";
+import { ModernSlideRenderer } from "@/components/slides/ModernSlideRenderer";
 import { SlideThumbnail } from "@/components/slides/SlideThumbnail";
 
 export default function Examples() {
@@ -76,8 +76,8 @@ export default function Examples() {
 
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8">
             {examples.map((example, idx) => (
-              <Card 
-                key={idx} 
+              <Card
+                key={idx}
                 className="card-premium cursor-pointer group/preview overflow-hidden"
                 onClick={() => handleOpenExample(example)}
               >
@@ -113,7 +113,7 @@ export default function Examples() {
           <DialogHeader className="px-4 md:px-6 pt-4 md:pt-6 pb-3 md:pb-4 border-b border-white/10">
             <div className="flex items-center justify-between gap-2">
               <DialogTitle className="text-xl md:text-3xl font-bold text-gradient truncate">{selectedExample?.title}</DialogTitle>
-              <Button 
+              <Button
                 onClick={handleChangeTheme}
                 variant="outline"
                 size="sm"
@@ -124,21 +124,21 @@ export default function Examples() {
               </Button>
             </div>
           </DialogHeader>
-          
+
           <div className="flex-1 overflow-y-auto flex flex-col lg:flex-row gap-4 md:gap-6 p-4 md:p-6">
             {/* Main slide viewer */}
             <div className="flex-1 flex flex-col gap-3 md:gap-4">
               <div className="flex-1 relative rounded-lg overflow-hidden shadow-2xl min-h-[300px] md:min-h-[400px]">
                 {selectedExample && selectedExample.slides[currentSlideIndex] && (
                   <div className="[&_*]:hover:translate-x-0 [&_*]:hover:translate-y-0 [&_*]:hover:scale-100 pointer-events-none select-none">
-                    <SlideRenderer 
-                      slide={selectedExample.slides[currentSlideIndex]} 
+                    <ModernSlideRenderer
+                      slide={selectedExample.slides[currentSlideIndex]}
                       theme={currentTheme}
                     />
                   </div>
                 )}
               </div>
-              
+
               {/* Navigation */}
               <div className="flex items-center justify-between gap-2 md:gap-4">
                 <Button
@@ -151,11 +151,11 @@ export default function Examples() {
                   <ChevronLeft className="h-4 w-4 sm:mr-1" />
                   <span className="hidden sm:inline">Précédent</span>
                 </Button>
-                
+
                 <span className="text-xs md:text-sm text-muted-foreground whitespace-nowrap">
                   {currentSlideIndex + 1} / {selectedExample?.slides.length}
                 </span>
-                
+
                 <Button
                   onClick={handleNextSlide}
                   disabled={!selectedExample || currentSlideIndex === selectedExample.slides.length - 1}
@@ -174,12 +174,11 @@ export default function Examples() {
                   <button
                     key={idx}
                     onClick={() => setCurrentSlideIndex(idx)}
-                    className={`flex-shrink-0 w-24 h-16 md:w-32 md:h-20 rounded border-2 overflow-hidden ${
-                      idx === currentSlideIndex ? 'border-primary shadow-lg' : 'border-border opacity-60'
-                    }`}
+                    className={`flex-shrink-0 w-24 h-16 md:w-32 md:h-20 rounded border-2 overflow-hidden ${idx === currentSlideIndex ? 'border-primary shadow-lg' : 'border-border opacity-60'
+                      }`}
                   >
                     <div className="scale-[0.25] origin-top-left w-[400%] h-[400%]">
-                      <SlideRenderer slide={slide} theme={currentTheme} />
+                      <ModernSlideRenderer slide={slide} theme={currentTheme} />
                     </div>
                   </button>
                 ))}
@@ -198,8 +197,8 @@ export default function Examples() {
                     <p className="text-xs md:text-sm text-foreground/80 mb-3 md:mb-4 p-3 md:p-4 bg-black/30 rounded-2xl leading-relaxed border border-white/10">
                       {selectedExample?.prompt}
                     </p>
-                    <Button 
-                      onClick={handleCopyPrompt} 
+                    <Button
+                      onClick={handleCopyPrompt}
                       className="w-full gradient-aurora shadow-glow"
                       variant="default"
                       size="sm"

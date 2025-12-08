@@ -1,95 +1,157 @@
 // apps/worker/src/worker.ts
-import { Worker, QueueEvents } from 'bullmq';
+// SlideAI Worker - Professional Presentation Generation Engine
+// Modular architecture with support for rich content types
+
+import 'dotenv/config';
+import { Worker } from 'bullmq';
 import IORedis from 'ioredis';
 import { ulid } from 'ulid';
 import AWS from 'aws-sdk';
 import OpenAI from 'openai';
+import PptxGenJS from 'pptxgenjs';
 
-// Redis (Upstash ou local)
+// Local modules
+import { THEMES, normalizeTheme, type ThemeConfig } from './config/themes';
+import { DECK_ARCHITECT_PROMPT, buildUserPrompt } from './prompts/deck-architect';
+import { getUnsplashImage } from './utils/unsplash';
+import { sanitizeDeck, type Deck, type Slide } from './utils/sanitize';
+import { renderSlide, defineThemeMasters } from './renderers';
+
+// ============================================
+// INITIALIZATION
+// ============================================
+
+const PptxGen = (PptxGenJS as any).default || PptxGenJS;
+
+// Redis connections
 const connection = new IORedis(process.env.REDIS_URL ?? 'redis://localhost:6379', {
   maxRetriesPerRequest: null,
 });
-
-// Redis client direct pour status
 const redis = new IORedis(process.env.REDIS_URL ?? 'redis://localhost:6379', {
   maxRetriesPerRequest: null,
 });
 
-// R2 config (S3-compatible via AWS SDK v2)
-const hasR2 =
-  !!process.env.R2_ACCOUNT_ID &&
-  !!process.env.R2_ACCESS_KEY_ID &&
-  !!process.env.R2_SECRET_ACCESS_KEY &&
-  !!process.env.R2_BUCKET;
-
+// R2/S3 Storage
+const hasR2 = !!process.env.R2_ACCOUNT_ID && !!process.env.R2_ACCESS_KEY_ID;
 const r2 = hasR2
   ? new AWS.S3({
-      accessKeyId: process.env.R2_ACCESS_KEY_ID,
-      secretAccessKey: process.env.R2_SECRET_ACCESS_KEY,
-      endpoint: `https://${process.env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
-      signatureVersion: 'v4',
-      s3ForcePathStyle: true,
-    })
+    accessKeyId: process.env.R2_ACCESS_KEY_ID,
+    secretAccessKey: process.env.R2_SECRET_ACCESS_KEY,
+    endpoint: `https://${process.env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
+    signatureVersion: 'v4',
+    s3ForcePathStyle: true,
+  })
   : null;
-
 const bucket = process.env.R2_BUCKET ?? 'slideai-exports';
 
-const setJob = async (traceId: string, value: any, ttlSec = 3600) => {
-  await redis.set(`job:${traceId}`, JSON.stringify(value), 'EX', ttlSec);
-};
-
-// ---------- IA (OpenAI) ----------
-
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
-
+// OpenAI client
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 const model = process.env.OPENAI_MODEL || 'gpt-4o-mini';
 
-// Prompt système pour structurer le JSON renvoyé
-const DECK_SYSTEM_PROMPT = `
-Tu es SlideAI, un assistant expert en création de présentations modernes.
+// ============================================
+// HELPERS
+// ============================================
 
-Tu dois renvoyer EXCLUSIVEMENT un JSON strict, sans texte autour.
-Ce JSON doit respecter exactement le schéma suivant :
-
-{
-  "title": "string",
-  "theme": "Modern-01" | "Minimal-Grid" | "Bold-Contrast",
-  "prompt": "string",
-  "slides": [
-    {
-      "title": "string",
-      "bullets": ["string"],
-      "layout": "title-left-bullets-right-illustration" |
-                "title-top-bullets-bottom" |
-                "title-top-columns" |
-                "title-left-metrics-right",
-      "illustration": {
-        "type": "icon" | "image",
-        "name": "string",
-        "url": "string"
-      }
-    }
-  ]
+/**
+ * Store job status in Redis
+ */
+async function setJob(traceId: string, value: any, ttlSec = 3600) {
+  await redis.set(`job:${traceId}`, JSON.stringify(value), 'EX', ttlSec);
 }
 
-Règles :
-- 6 à 10 slides maximum
-- Titres courts, clairs, orientés message
-- Bullets concises (5–12 mots), actionnables, sans blabla
-- Utilise plusieurs layouts différents dans le deck
-- "theme" doit être l’une des valeurs : "Modern-01", "Minimal-Grid", "Bold-Contrast"
-- Le JSON doit être valide, sans commentaires ni texte supplémentaire.
-`;
+/**
+ * Determine theme based on prompt keywords if not specified
+ */
+function inferThemeFromPrompt(prompt: string, explicitTheme?: string): string {
+  if (explicitTheme) return explicitTheme;
 
-// ----------------- Worker "generate" (IA réelle) -----------------
+  const lowerPrompt = prompt.toLowerCase();
+
+  // Keyword-based theme inference
+  const themeKeywords: Record<string, string[]> = {
+    'tech-modern': ['cyber', 'ai', 'tech', 'hacker', 'digital', 'neon', 'matrix', 'dark', 'future'],
+    'startup-pitch': ['startup', 'pitch', 'investor', 'funding', 'series', 'venture'],
+    'corporate-report': ['report', 'quarterly', 'annual', 'business', 'corporate', 'finance'],
+    'creative-portfolio': ['portfolio', 'creative', 'design', 'artistic', 'visual'],
+    'product-launch': ['launch', 'product', 'release', 'announcement', 'new'],
+    'educational': ['course', 'training', 'education', 'tutorial', 'learn', 'school'],
+    'health-medical': ['health', 'medical', 'healthcare', 'clinic', 'hospital'],
+    'sustainability': ['green', 'eco', 'sustainable', 'climate', 'environment'],
+    'marketing-campaign': ['marketing', 'campaign', 'ads', 'social', 'brand'],
+    'consulting': ['consulting', 'strategy', 'advisory', 'management'],
+  };
+
+  for (const [themeId, keywords] of Object.entries(themeKeywords)) {
+    if (keywords.some((kw) => lowerPrompt.includes(kw))) {
+      console.log(`[Theme] Inferred "${themeId}" from prompt keywords`);
+      return themeId;
+    }
+  }
+
+  return 'startup-pitch'; // Default
+}
+
+// ============================================
+// PPTX GENERATION
+// ============================================
+
+/**
+ * Generate a PowerPoint file from a deck
+ */
+async function generatePPTX(deck: Deck): Promise<Buffer> {
+  const pptx = new PptxGen();
+  const theme = deck.themeConfig || normalizeTheme(deck.theme);
+
+  // Set presentation properties
+  pptx.layout = 'LAYOUT_16x9';
+  pptx.title = deck.title || 'Presentation';
+  pptx.author = 'SlideAI';
+  pptx.company = 'SlideAI';
+
+  // Define slide masters
+  defineThemeMasters(pptx, theme);
+
+  // Render each slide
+  for (let i = 0; i < deck.slides.length; i++) {
+    const slide = deck.slides[i];
+    const layout = (slide.layout || '').toLowerCase();
+    const masterName = layout.includes('cover') || i === 0 ? 'MASTER_COVER' : 'MASTER_CONTENT';
+
+    try {
+      renderSlide(pptx, slide, theme, i, masterName);
+    } catch (error) {
+      console.error(`[PPTX] Error rendering slide ${i}:`, error);
+      // Add a fallback slide
+      const fallbackSlide = pptx.addSlide({ masterName });
+      fallbackSlide.addText(slide.title || `Slide ${i + 1}`, {
+        x: 0.5,
+        y: 3,
+        w: 12.5,
+        h: 1,
+        fontSize: 36,
+        bold: true,
+        color: theme.colors.text.replace('#', ''),
+        align: 'center',
+      });
+    }
+  }
+
+  return (await pptx.write({ outputType: 'nodebuffer' })) as Buffer;
+}
+
+// ============================================
+// WORKER: GENERATE
+// ============================================
 
 const generateWorker = new Worker(
   'generate',
   async (job) => {
     const { traceId, data } = job.data as any;
-    const { prompt, language, tone, length } = data ?? {};
+    let { prompt, slideCount, theme, language } = data ?? {};
+
+    console.log(`\n========== GENERATE JOB: ${traceId} ==========`);
+    console.log(`[Generate] Prompt: "${prompt?.slice(0, 100)}..."`);
+    console.log(`[Generate] Requested slides: ${slideCount}, Theme: ${theme}`);
 
     await setJob(traceId, {
       status: 'processing',
@@ -97,67 +159,97 @@ const generateWorker = new Worker(
       startedAt: Date.now(),
     });
 
-    console.log(
-      JSON.stringify({
-        traceId,
-        event: 'generate.start',
-        prompt,
-        language,
-        tone,
-        length,
-      }),
-    );
-
     try {
-      const userPrompt = `
-Sujet : ${prompt}
-Langue : ${language ?? 'fr'}
-Ton : ${tone ?? 'pro'}
-Longueur : ${length ?? 'medium'}
+      // 1. Infer theme if not provided
+      const inferredTheme = inferThemeFromPrompt(prompt, theme);
+      const themeConfig = normalizeTheme(inferredTheme);
 
-Contexte : Génère un deck de présentation structuré pour un outil de génération de slides.
-Chaque slide doit être pertinente par rapport au sujet et à l'objectif implicite du prompt.
-`;
+      console.log(`[Generate] Theme resolved: "${inferredTheme}" -> "${themeConfig.id}"`);
+
+      // 2. Call OpenAI with the Deck Architect prompt
+      const userMessage = buildUserPrompt(prompt, slideCount, themeConfig.id, language);
 
       const response = await openai.chat.completions.create({
         model,
         messages: [
-          { role: 'system', content: DECK_SYSTEM_PROMPT },
-          { role: 'user', content: userPrompt },
+          { role: 'system', content: DECK_ARCHITECT_PROMPT },
+          { role: 'user', content: userMessage },
         ],
         response_format: { type: 'json_object' },
+        temperature: 0.7,
+        max_tokens: 4000,
       });
 
       const raw = response.choices[0]?.message?.content;
+      if (!raw) throw new Error('Empty AI response');
 
-      if (!raw) {
-        throw new Error('Réponse OpenAI vide');
-      }
+      console.log(`[Generate] AI response length: ${raw.length} chars`);
+      console.log('\n========== RAW AI RESPONSE (ChatGPT) ==========');
+      console.log(raw);
+      console.log('========== END RAW AI RESPONSE ==========\n');
 
-      console.log('[worker.generate] Réponse IA brute (début) :', raw.slice(0, 200), '...');
-
-      let deck: any;
+      // 3. Parse and sanitize the deck
+      let deck: Deck;
       try {
         deck = JSON.parse(raw);
-      } catch (e) {
-        console.error('[worker.generate] JSON.parse a échoué :', e);
-        throw new Error('JSON IA invalide (parse)');
+      } catch (parseError) {
+        console.error('[Generate] JSON parse error:', parseError);
+        throw new Error('Invalid JSON from AI');
       }
 
-      // Petit garde-fou minimum (on pourrait utiliser Zod plus tard)
-      if (!deck.title || !Array.isArray(deck.slides)) {
-        console.error('[worker.generate] Deck IA incomplet, structure reçue :', deck);
-        throw new Error('Deck IA incomplet ou mal formé');
-      }
+      // Log parsed deck before sanitization
+      console.log('\n========== PARSED DECK (Before Sanitization) ==========');
+      console.log(JSON.stringify(deck, null, 2));
+      console.log('========== END PARSED DECK ==========\n');
 
-      console.log(
-        JSON.stringify({
-          traceId,
-          event: 'generate.done',
-          slides: deck.slides.length,
-          title: deck.title,
-        }),
+      deck = sanitizeDeck(deck, prompt);
+      deck.theme = themeConfig.id;
+      deck.themeConfig = themeConfig;
+
+      console.log(`[Generate] Deck has ${deck.slides.length} slides`);
+
+      // Log each slide's layout and content types
+      console.log('\n========== SLIDE LAYOUTS & CONTENT ==========');
+      deck.slides.forEach((slide, i) => {
+        const contentKeys = Object.keys(slide.content || {});
+        console.log(`Slide ${i + 1}: layout="${slide.layout}" | content keys: [${contentKeys.join(', ')}]`);
+
+        // Log chart details if present
+        if (slide.content?.chart) {
+          console.log(`  └─ Chart: type="${slide.content.chart.type}" | categories=[${slide.content.chart.categories?.join(', ')}] | series count=${slide.content.chart.series?.length}`);
+        }
+        // Log infographic details if present
+        if (slide.content?.infographic) {
+          console.log(`  └─ Infographic: type="${slide.content.infographic.type}" | steps count=${slide.content.infographic.steps?.length}`);
+        }
+        // Log timeline details if present
+        if (slide.content?.timeline) {
+          console.log(`  └─ Timeline: items count=${slide.content.timeline.items?.length}`);
+        }
+      });
+      console.log('========== END SLIDE LAYOUTS ==========\n');
+
+      // 4. Fetch images for each slide
+      console.log('[Generate] Fetching images from Unsplash...');
+      deck.slides = await Promise.all(
+        deck.slides.map(async (slide: Slide) => {
+          let backgroundImage = '';
+          if (slide.imageSearchQuery) {
+            backgroundImage = await getUnsplashImage(
+              slide.imageSearchQuery,
+              themeConfig.imageKeywords
+            );
+          }
+          return { ...slide, backgroundImage };
+        })
       );
+
+      // Log FINAL deck being sent to frontend
+      console.log('\n========== FINAL DECK (Sent to Frontend) ==========');
+      console.log(JSON.stringify(deck, null, 2));
+      console.log('========== END FINAL DECK ==========\n');
+
+      console.log('[Generate] ✅ Generation complete');
 
       await setJob(traceId, {
         status: 'succeeded',
@@ -168,104 +260,130 @@ Chaque slide doit être pertinente par rapport au sujet et à l'objectif implici
 
       return { traceId, deck };
     } catch (err: any) {
-      console.error('[worker.generate] Erreur IA, fallback mock :', err);
-
-      const fallbackDeck = {
-        title: `Deck (fallback) - ${prompt?.slice(0, 30) ?? 'SlideAI'}`,
-        theme: 'Modern-01',
-        prompt: prompt ?? '',
-        slides: [
-          {
-            title: 'Erreur de génération',
-            bullets: [
-              "Une erreur est survenue lors de l'appel à l’IA.",
-              'Veuillez réessayer dans quelques instants.',
-            ],
-            layout: 'title-top-bullets-bottom',
-            illustration: { type: 'icon', name: 'AlertTriangle', url: '' },
-          },
-        ],
-      };
-
+      console.error('[Generate] ❌ Error:', err.message);
+      const fallbackConfig = normalizeTheme('startup-pitch');
       await setJob(traceId, {
-        status: 'succeeded',
+        status: 'failed',
         type: 'generate',
-        deck: fallbackDeck,
+        error: err.message,
+        deck: { themeConfig: fallbackConfig, slides: [] },
         finishedAt: Date.now(),
-        error: err?.message ?? String(err),
       });
-
-      return { traceId, deck: fallbackDeck };
+      throw err;
     }
   },
-  { connection },
+  { connection }
 );
 
-// ----------------- Worker "export" (mock + R2) -----------------
+// ============================================
+// WORKER: EXPORT
+// ============================================
 
 const exportWorker = new Worker(
   'export',
   async (job) => {
     const { traceId, data } = job.data as any;
-    await setJob(traceId, { status: 'processing', type: 'export', startedAt: Date.now() });
 
-    // Si R2 est configuré → export vers R2 + URL signée
-    if (hasR2 && r2) {
-      const key = `exports/${data.projectId}/${ulid()}-${data.format}.txt`;
-      const body = Buffer.from(
-        `Mock export ${data.format} for project ${data.projectId} (traceId=${traceId}) at ${new Date().toISOString()}`,
-        'utf-8',
-      );
-      await r2
-        .putObject({
-          Bucket: bucket,
-          Key: key,
-          Body: body,
-          ContentType: 'text/plain',
-        })
-        .promise();
+    console.log(`\n========== EXPORT JOB: ${traceId} ==========`);
 
-      const url = r2.getSignedUrl('getObject', {
-        Bucket: bucket,
-        Key: key,
-        Expires: 60 * 10, // 10 minutes
-      });
-
-      console.log(JSON.stringify({ traceId, event: 'export.done', url }));
-      await setJob(traceId, { status: 'succeeded', type: 'export', url, finishedAt: Date.now() });
-      return { traceId, url };
-    }
-
-    // Sinon → mode safe (dev) : renvoyer le contenu mock dans le statut
-    const mock = {
-      filename: `export-${data.projectId}-${data.format}.txt`,
-      mime: 'text/plain',
-      bytes: Buffer.from(
-        `Mock export ${data.format} (no R2 configured) for project ${data.projectId} at ${new Date().toISOString()}`,
-        'utf-8',
-      ).byteLength,
-      note: 'R2 non configuré : résultat retourné inline',
-    };
-
-    console.log(JSON.stringify({ traceId, event: 'export.done', inline: true }));
     await setJob(traceId, {
-      status: 'succeeded',
+      status: 'processing',
       type: 'export',
-      inline: true,
-      meta: mock,
-      finishedAt: Date.now(),
+      startedAt: Date.now(),
     });
-    return { traceId, inline: true, meta: mock };
+
+    try {
+      // Ensure themeConfig exists
+      if (data.deck && !data.deck.themeConfig) {
+        console.log('[Export] Restoring themeConfig...');
+        const themeId = data.deck.theme || 'startup-pitch';
+        data.deck.themeConfig = normalizeTheme(themeId);
+      }
+
+      // Sanitize the deck before export
+      const deck = sanitizeDeck(data.deck, data.deck?.title);
+      deck.themeConfig = data.deck.themeConfig;
+
+      console.log(`[Export] Generating PPTX for "${deck.title}" with ${deck.slides.length} slides`);
+
+      // Generate PPTX
+      const buffer = await generatePPTX(deck);
+
+      console.log(`[Export] PPTX generated: ${buffer.length} bytes`);
+
+      // Upload to R2 or save locally
+      if (hasR2 && r2) {
+        const key = `exports/${ulid()}.pptx`;
+        await r2.putObject({ Bucket: bucket, Key: key, Body: buffer }).promise();
+        const url = r2.getSignedUrl('getObject', { Bucket: bucket, Key: key, Expires: 3600 });
+
+        console.log('[Export] ✅ Uploaded to R2');
+
+        await setJob(traceId, {
+          status: 'succeeded',
+          type: 'export',
+          url,
+          finishedAt: Date.now(),
+        });
+        return { traceId, url };
+      }
+
+      // Local file fallback
+      const fs = await import('fs/promises');
+      const path = await import('path');
+
+      // Sanitize filename
+      const sanitizedTitle = (deck.title || 'presentation')
+        .replace(/[^a-zA-Z0-9-_]/g, '_')
+        .slice(0, 50);
+      const filename = `${sanitizedTitle}-${ulid()}.pptx`;
+      const exportsDir = path.join(process.cwd(), '../../exports');
+
+      await fs.mkdir(exportsDir, { recursive: true });
+      await fs.writeFile(path.join(exportsDir, filename), buffer);
+
+      console.log(`[Export] ✅ Saved locally: ${filename}`);
+
+      await setJob(traceId, {
+        status: 'succeeded',
+        type: 'export',
+        url: `/exports/${filename}`,
+        finishedAt: Date.now(),
+      });
+      return { traceId, url: `/exports/${filename}` };
+    } catch (e: any) {
+      console.error('[Export] ❌ Error:', e.message);
+      await setJob(traceId, {
+        status: 'failed',
+        type: 'export',
+        error: e.message,
+        finishedAt: Date.now(),
+      });
+      throw e;
+    }
   },
-  { connection },
+  { connection }
 );
 
-// Events (logging simple)
-new QueueEvents('generate', { connection }).on('completed', ({ jobId }) =>
-  console.log(JSON.stringify({ jobId, queue: 'generate', status: 'completed' })),
-);
-new QueueEvents('export', { connection }).on('completed', ({ jobId }) =>
-  console.log(JSON.stringify({ jobId, queue: 'export', status: 'completed' })),
-);
+// ============================================
+// STARTUP
+// ============================================
 
-console.log('Worker started');
+console.log('');
+console.log('╔═══════════════════════════════════════════════════════════╗');
+console.log('║                                                           ║');
+console.log('║   🚀 SlideAI Worker v2.0 - Professional Edition          ║');
+console.log('║                                                           ║');
+console.log('║   Features:                                               ║');
+console.log('║   • 10 Rich Themes                                        ║');
+console.log('║   • 12 Layout Types                                       ║');
+console.log('║   • Charts, Tables, Infographics                          ║');
+console.log('║   • Timelines, Comparisons, Quotes                        ║');
+console.log('║   • Modular Rendering Engine                              ║');
+console.log('║                                                           ║');
+console.log('╚═══════════════════════════════════════════════════════════╝');
+console.log('');
+console.log(`[Worker] OpenAI Model: ${model}`);
+console.log(`[Worker] R2 Storage: ${hasR2 ? 'Enabled' : 'Disabled (local)'}`);
+console.log(`[Worker] Available themes: ${Object.keys(THEMES).join(', ')}`);
+console.log('');

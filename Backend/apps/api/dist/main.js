@@ -1,4 +1,3 @@
-// apps/api/src/main.ts
 import 'reflect-metadata';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module.js';
@@ -34,6 +33,17 @@ async function bootstrap() {
         max: 100,
         timeWindow: '1 minute',
         keyGenerator: (req) => `${req.headers['x-forwarded-for'] ?? req.ip}`,
+    });
+    // Serve static files from exports folder (dev mode)
+    const fastifyStatic = (await import('@fastify/static')).default;
+    const path = await import('path');
+    console.log('[DEBUG API] process.cwd():', process.cwd());
+    const exportsPath = path.join(process.cwd(), '../../exports'); // From apps/api to Backend/exports
+    console.log('[DEBUG API] exportsPath:', exportsPath);
+    await app.register(fastifyStatic, {
+        root: exportsPath,
+        prefix: '/exports/',
+        decorateReply: false,
     });
     const port = parseInt(config.get('PORT') ?? '3000', 10);
     await app.listen({ port, host: '0.0.0.0' });

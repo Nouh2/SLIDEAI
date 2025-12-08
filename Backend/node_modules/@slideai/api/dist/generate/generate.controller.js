@@ -19,9 +19,23 @@ import { ulid } from 'ulid';
 import IORedis from 'ioredis';
 const generateSchema = z.object({
     prompt: z.string().min(3),
-    language: z.enum(['fr', 'en']).default('fr'),
+    language: z.enum(['fr', 'en', 'es']).default('en'),
     tone: z.enum(['pro', 'casual']).default('pro'),
     length: z.enum(['short', 'medium', 'long']).default('medium'),
+    slideCount: z.number().int().min(3).max(20).default(8),
+    theme: z.enum([
+        'startup-pitch',
+        'product-launch',
+        'corporate-report',
+        'creative-portfolio',
+        'educational',
+        'marketing-campaign',
+        'minimal-elegant',
+        'tech-modern',
+        'consulting',
+        'health-medical',
+        'sustainability'
+    ]).default('startup-pitch'),
 });
 let GenerateController = class GenerateController {
     queues;
@@ -33,11 +47,14 @@ let GenerateController = class GenerateController {
         });
     }
     async generate(req, body) {
+        console.log('[DEBUG] Received /v1/generate request:', { body, user: req.user });
         const data = generateSchema.parse(body);
         const traceId = ulid();
         // Optionnel: état initial "accepted"
         await this.redis.set(`job:${traceId}`, JSON.stringify({ status: 'accepted', type: 'generate', createdAt: Date.now() }), 'EX', 3600);
+        console.log('[DEBUG] Adding job to queue:', traceId);
         await this.queues.addGenerate({ traceId, user: { sub: req.user.sub, org: req.user.org_id }, data });
+        console.log('[DEBUG] Job added successfully:', traceId);
         return { traceId, status: 'accepted' };
     }
     // Suivi de job (lecture Redis)

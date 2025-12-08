@@ -9,13 +9,13 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)] text-white shadow-glow hover:shadow-glow-hover hover:scale-105",
+        default: "bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)] text-foreground shadow-glow hover:shadow-glow-hover hover:scale-105",
         destructive: "bg-[var(--danger)] text-white hover:opacity-90 hover:scale-105",
         outline: "border border-[var(--border)] bg-transparent text-[var(--text)] hover:bg-[var(--surface)] hover:border-[var(--primary)] hover:scale-105",
         secondary: "bg-[var(--surface)] text-[var(--text)] border border-[var(--border)] hover:bg-[var(--surface)]/80 hover:scale-105",
         ghost: "text-[var(--text)] hover:bg-[var(--surface)] hover:scale-105",
         link: "text-[var(--primary)] underline-offset-4 hover:underline hover:text-[var(--secondary)]",
-        solid: "bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)] text-white shadow-glow hover:shadow-glow-hover hover:scale-105 font-semibold",
+        solid: "bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)] text-foreground shadow-glow hover:shadow-glow-hover hover:scale-105 font-semibold",
       },
       size: {
         default: "h-11 px-6 py-2",
@@ -33,7 +33,7 @@ const buttonVariants = cva(
 
 export interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement>,
-    VariantProps<typeof buttonVariants> {
+  VariantProps<typeof buttonVariants> {
   asChild?: boolean;
 }
 

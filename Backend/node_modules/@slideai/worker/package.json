@@ -12,7 +12,9 @@
   "dependencies": {
     "aws-sdk": "^2.1631.0",
     "bullmq": "^5.7.8",
+    "dotenv": "^17.2.3",
     "ioredis": "^5.4.1",
+    "pptxgenjs": "^4.0.1",
     "ulid": "^2.3.0"
   },
   "devDependencies": {

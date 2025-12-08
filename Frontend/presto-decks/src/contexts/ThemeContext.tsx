@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 
-type Theme = 'dark-carbon';
-type Mode = 'dark' | 'light';
+type Theme = 'light';
+type Mode = 'light';
 
 interface ThemeContextType {
   theme: Theme;
@@ -13,26 +13,23 @@ interface ThemeContextType {
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [theme] = useState<Theme>('dark-carbon');
-  const [mode, setMode] = useState<Mode>(() => {
-    // Load mode from localStorage or default to dark
-    const savedMode = localStorage.getItem('slideai-mode');
-    return (savedMode === 'light' || savedMode === 'dark') ? savedMode : 'dark';
-  });
+  const [theme] = useState<Theme>('light');
+  const [mode] = useState<Mode>('light'); // Always light mode
 
   useEffect(() => {
     const root = document.documentElement;
-    root.setAttribute('data-theme', 'dark-carbon');
-    root.setAttribute('data-mode', mode);
-    localStorage.setItem('slideai-mode', mode);
-  }, [mode]);
+    // Force light mode always
+    root.setAttribute('data-mode', 'light');
+    root.removeAttribute('data-theme'); // Remove any dark theme attribute
+    localStorage.setItem('slideai-mode', 'light');
+  }, []);
 
   const setThemeFunc = () => {
-    // Theme switching disabled for now (only dark-carbon available)
+    // Theme switching disabled - always light
   };
 
   const toggleMode = () => {
-    setMode(prev => prev === 'dark' ? 'light' : 'dark');
+    // Mode toggling disabled - always light
   };
 
   return (

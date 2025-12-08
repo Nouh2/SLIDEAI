@@ -1,0 +1,11 @@
+{
+    "name": "scripts",
+    "type": "module",
+    "scripts": {
+        "debug:unsplash": "tsx debug-keys.ts"
+    },
+    "devDependencies": {
+        "dotenv": "^17.2.3",
+        "tsx": "^4.19.2"
+    }
+}

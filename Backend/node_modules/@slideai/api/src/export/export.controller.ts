@@ -6,14 +6,25 @@ import { QueueService } from '../queues/queue.service.js';
 import { ulid } from 'ulid';
 
 const exportSchema = z.object({
-  projectId: z.string().min(1),
+  projectId: z.string().min(1).optional(),
   format: z.enum(['pptx', 'pdf']).default('pptx'),
+  deck: z.object({
+    title: z.string(),
+    subtitle: z.string().optional(),
+    theme: z.string().optional(),
+    colorScheme: z.object({
+      primary: z.string().optional(),
+      secondary: z.string().optional(),
+      accent: z.string().optional(),
+    }).optional(),
+    slides: z.array(z.any()),
+  }),
 });
 
 @Controller('/v1')
 @UseGuards(SupabaseGuard)
 export class ExportController {
-  constructor(private queues: QueueService) {}
+  constructor(private queues: QueueService) { }
 
   @Post('/export')
   async export(@Req() req: any, @Body() body: any) {

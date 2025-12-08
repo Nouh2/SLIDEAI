@@ -12,8 +12,19 @@ export interface GenerateRequest {
 }
 
 export interface ExportRequest {
-  projectId: string;
+  projectId?: string;
   format: "pptx" | "pdf";
+  deck: {
+    title: string;
+    subtitle?: string;
+    theme?: string;
+    colorScheme?: {
+      primary?: string;
+      secondary?: string;
+      accent?: string;
+    };
+    slides: any[];
+  };
 }
 
 // ========== RESPONSE TYPES ==========
@@ -175,6 +186,25 @@ export const api = {
       return data;
     } catch (error) {
       console.error("API Error (listProjects):", error);
+      throw error;
+    }
+  },
+
+  /**
+   * 6️⃣ Delete a project by ID
+   * DELETE /projects/:id
+   */
+  async deleteProject(id: string): Promise<void> {
+    try {
+      const response = await fetch(`${API_BASE_URL.replace("/v1", "")}/projects/${id}`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) {
+        throw new Error("Impossible de supprimer le projet");
+      }
+    } catch (error) {
+      console.error("API Error (deleteProject):", error);
       throw error;
     }
   },

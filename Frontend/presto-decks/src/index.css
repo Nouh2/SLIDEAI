@@ -4,7 +4,6 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-/* stylelint-enable at-rule-no-unknown */
 
 /* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
 All colors MUST be HSL.
@@ -12,71 +11,8 @@ All colors MUST be HSL.
 
 @layer base {
 
-  /* Dark Carbon - Premium Theme */
-  :root[data-theme="dark-carbon"],
+  /* Light Mode - Clean & Modern (Default) */
   :root {
-    /* Base Colors - Deeper, richer background */
-    --bg: 240 10% 3.9%;
-    /* #09090b - Zinc 950 */
-    --surface: 240 6% 10%;
-    /* #18181b - Zinc 900 */
-    --surface-highlight: 240 5% 16%;
-    /* #27272a - Zinc 800 */
-
-    --text: 0 0% 98%;
-    /* #fafafa - Zinc 50 */
-    --text-muted: 240 5% 65%;
-    /* #a1a1aa - Zinc 400 */
-
-    --border: 240 4% 16%;
-    /* #27272a */
-    --border-highlight: 240 4% 25%;
-
-    /* Brand Colors - Electric Purple & Blue */
-    --primary: 262 83% 58%;
-    /* #8b5cf6 - Violet 500 */
-    --primary-foreground: 210 40% 98%;
-
-    --secondary: 199 89% 48%;
-    /* #0ea5e9 - Sky 500 */
-    --secondary-foreground: 210 40% 98%;
-
-    --accent: 316 70% 50%;
-    /* #d946ef - Fuchsia 500 */
-    --accent-foreground: 210 40% 98%;
-
-    /* Status Colors */
-    --success: 142 71% 45%;
-    /* #22c55e */
-    --warning: 45 93% 47%;
-    /* #f59e0b */
-    --danger: 0 84% 60%;
-    /* #ef4444 */
-
-    /* Semantic Mapping */
-    --background: var(--bg);
-    --foreground: var(--text);
-
-    --card: var(--surface);
-    --card-foreground: var(--text);
-
-    --popover: var(--surface);
-    --popover-foreground: var(--text);
-
-    --muted: var(--surface-highlight);
-    --muted-foreground: var(--text-muted);
-
-    --destructive: var(--danger);
-    --destructive-foreground: 0 0% 98%;
-
-    --input: var(--surface-highlight);
-    --ring: var(--primary);
-
-    --radius: 0.75rem;
-  }
-
-  /* Light Mode - Clean \u0026 Modern */
-  :root[data-mode="light"] {
     /* Base Colors - Clean whites and subtle grays */
     --bg: 0 0% 100%;
     /* #ffffff - Pure white */
@@ -94,17 +30,17 @@ All colors MUST be HSL.
     /* #e4e4e7 - Zinc 200 */
     --border-highlight: 240 5% 85%;
 
-    /* Brand Colors - Same vibrant colors */
-    --primary: 262 83% 58%;
-    /* #8b5cf6 - Violet 500 */
+    /* Brand Colors - Cyan Blue like "intelligents" */
+    --primary: 199 100% 56%;
+    /* #1fb6ff - Cyan blue */
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 199 89% 48%;
-    /* #0ea5e9 - Sky 500 */
+    --secondary: 199 100% 56%;
+    /* #1fb6ff - Same cyan blue */
     --secondary-foreground: 0 0% 100%;
 
-    --accent: 316 70% 50%;
-    /* #d946ef - Fuchsia 500 */
+    --accent: 199 100% 56%;
+    /* #1fb6ff - Same cyan blue for consistency */
     --accent-foreground: 0 0% 100%;
 
     /* Status Colors */
@@ -189,12 +125,20 @@ All colors MUST be HSL.
 
 @layer utilities {
 
-  /* Text Gradients */
+  /* Text Gradients - Now using solid cyan blue like "intelligents" */
   .text-gradient {
-    background-clip: text;
-    -webkit-background-clip: text;
-    color: transparent;
-    background-image: linear-gradient(to right, hsl(var(--primary)), hsl(var(--secondary)), hsl(var(--accent)));
+    color: #1fb6ff;
+    /* Solid cyan blue - no gradient */
+  }
+
+  .text-gradient-secondary {
+    color: #1fb6ff;
+    /* Same cyan blue */
+  }
+
+  .text-gradient-animated {
+    color: #1fb6ff;
+    /* Same cyan blue - animation removed */
   }
 
   .text-gradient-subtle {
@@ -203,6 +147,8 @@ All colors MUST be HSL.
     color: transparent;
     background-image: linear-gradient(to bottom right, white, rgba(255, 255, 255, 0.6));
   }
+
+
 
   /* Glassmorphism */
   .glass-premium {
@@ -266,6 +212,19 @@ All colors MUST be HSL.
     box-shadow: 0 0 30px hsl(var(--primary) / 0.4);
   }
 }
+
+@keyframes gradient-shift {
+
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
 
 /* ========== LIGHT MODE ENHANCEMENTS ========== */
 /* Override styles for better contrast in light mode */
@@ -384,13 +343,16 @@ All colors MUST be HSL.
     color: hsl(var(--text)) !important;
   }
 
-  /* Button text on gradient backgrounds */
+  /* Button text on gradient backgrounds - REMOVED to allow black text */
+  /* Commented out to allow text-foreground (black) on buttons */
+  /*
   button.bg-gradient-primary,
   button[class*="bg-gradient"],
   .bg-gradient-primary,
   [class*="bg-gradient"] {
     color: white !important;
   }
+  */
 
   /* Specific utility classes */
   .text-foreground\/60,
@@ -414,8 +376,11 @@ All colors MUST be HSL.
     color: hsl(var(--text)) !important;
   }
 
-  /* Links */
+  /* Links - REMOVED to allow custom colors on nav links */
+  /* Commented out to allow navigation links to be black */
+  /*
   a:not(.btn):not(button) {
     color: hsl(var(--primary)) !important;
   }
+  */
 }

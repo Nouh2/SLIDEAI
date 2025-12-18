@@ -3,6 +3,7 @@ import { AnimatePresence } from "framer-motion";
 import { PageTransition } from "@/components/layout/PageTransition";
 import { Suspense, lazy } from "react";
 import { Loader2 } from "lucide-react";
+import { ProtectedRoute, GuestRoute } from "@/components/auth/RouteGuards";
 
 // Lazy load pages for better performance
 const Home = lazy(() => import("@/pages/Home"));
@@ -30,24 +31,64 @@ export const AnimatedRoutes = () => {
         <AnimatePresence mode="wait">
             <Suspense fallback={<PageLoader />}>
                 <Routes location={location} key={location.pathname}>
-                    <Route path="/" element={<PageTransition><Home /></PageTransition>} />
-                    <Route path="/create" element={<PageTransition><Create /></PageTransition>} />
-                    <Route path="/dashboard" element={<PageTransition><Dashboard /></PageTransition>} />
+                    {/* PUBLIC ROUTES - Accessible to everyone */}
+                    <Route path="/pricing" element={<PageTransition><Pricing /></PageTransition>} />
+                    <Route path="/brand" element={<PageTransition><Brand /></PageTransition>} />
+                    <Route path="/privacy" element={<PageTransition><Privacy /></PageTransition>} />
 
-                    {/* Nouvelle route pour génération IA */}
-                    <Route path="/editor" element={<PageTransition><Editor /></PageTransition>} />
-                    <Route path="/editor/:traceId" element={<PageTransition><Editor /></PageTransition>} />
+                    {/* GUEST ONLY ROUTES - Redirect to dashboard if logged in */}
+                    <Route path="/" element={
+                        <GuestRoute>
+                            <PageTransition><Home /></PageTransition>
+                        </GuestRoute>
+                    } />
+                    <Route path="/auth" element={
+                        <GuestRoute>
+                            <PageTransition><Auth /></PageTransition>
+                        </GuestRoute>
+                    } />
+                    <Route path="/examples" element={
+                        <GuestRoute>
+                            <PageTransition><Examples /></PageTransition>
+                        </GuestRoute>
+                    } />
+
+                    {/* PROTECTED ROUTES - Require authentication */}
+                    <Route path="/dashboard" element={
+                        <ProtectedRoute>
+                            <PageTransition><Dashboard /></PageTransition>
+                        </ProtectedRoute>
+                    } />
+                    <Route path="/create" element={
+                        <ProtectedRoute>
+                            <PageTransition><Create /></PageTransition>
+                        </ProtectedRoute>
+                    } />
+                    <Route path="/editor" element={
+                        <ProtectedRoute>
+                            <PageTransition><Editor /></PageTransition>
+                        </ProtectedRoute>
+                    } />
+                    <Route path="/editor/:traceId" element={
+                        <ProtectedRoute>
+                            <PageTransition><Editor /></PageTransition>
+                        </ProtectedRoute>
+                    } />
+                    <Route path="/account" element={
+                        <ProtectedRoute>
+                            <PageTransition><Account /></PageTransition>
+                        </ProtectedRoute>
+                    } />
 
                     {/* Compat Lovable */}
                     <Route path="/app" element={<Navigate to="/editor" replace />} />
-                    <Route path="/app/:traceId" element={<PageTransition><Editor /></PageTransition>} />
+                    <Route path="/app/:traceId" element={
+                        <ProtectedRoute>
+                            <PageTransition><Editor /></PageTransition>
+                        </ProtectedRoute>
+                    } />
 
-                    <Route path="/pricing" element={<PageTransition><Pricing /></PageTransition>} />
-                    <Route path="/examples" element={<PageTransition><Examples /></PageTransition>} />
-                    <Route path="/account" element={<PageTransition><Account /></PageTransition>} />
-                    <Route path="/auth" element={<PageTransition><Auth /></PageTransition>} />
-                    <Route path="/brand" element={<PageTransition><Brand /></PageTransition>} />
-                    <Route path="/privacy" element={<PageTransition><Privacy /></PageTransition>} />
+                    {/* 404 */}
                     <Route path="*" element={<PageTransition><NotFound /></PageTransition>} />
                 </Routes>
             </Suspense>

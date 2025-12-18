@@ -259,6 +259,15 @@ Respond ONLY with valid JSON:
 5. **DATA must be realistic** - Charts and stats should have plausible values
 6. **INTERNAL CONSISTENCY** - Numbers should make sense together
 7. **Match the theme** - Vocabulary and tone should fit the visual style
+8. **PRIORITIZE SOURCE MATERIAL** - IF source document text is provided, base your content PRIMARILY on that material. Extract real data, metrics, quotes, and structure from the document. Only supplement with general knowledge where necessary.
+9. **CITE SPECIFICS** - When using source material, include specific numbers, percentages, names, and facts directly from the document.
+10. **HIGH-DENSITY DOCUMENT MODE** - When source document text is provided:
+   - IGNORE the requested slide count. Generate 15-30 slides to cover ALL chapters and sections
+   - Use VERBOSE bullet points (2-3 full sentences each, not single phrases)
+   - Include complete definitions, technical explanations, and exact figures from the document
+   - NO surface-level summaries - extract and present ALL key information systematically
+   - Structure slides by document chapters/sections for clear navigation
+   - This is a CONSULTING REPORT style, not a stage presentation - density is expected
 
 ═══════════════════════════════════════════════════
 🎯 OBJECTIVE
@@ -277,21 +286,28 @@ Respond with JSON only. No commentary.
 
 /**
  * Generate the user message for the AI
+ * @param prompt - User's prompt/instruction
+ * @param slideCount - Requested number of slides
+ * @param theme - Selected visual theme
+ * @param language - Response language (en, fr, es)
+ * @param documentText - Optional extracted document text for RAG
  */
 export function buildUserPrompt(
-    prompt: string,
-    slideCount: number | undefined,
-    theme: string | undefined,
-    language: string = 'en'
+  prompt: string,
+  slideCount: number | undefined,
+  theme: string | undefined,
+  language: string = 'en',
+  documentText?: string
 ): string {
-    const langInstruction =
-        language === 'fr'
-            ? 'Réponds en français.'
-            : language === 'es'
-                ? 'Responde en español.'
-                : 'Respond in English.';
+  const langInstruction =
+    language === 'fr'
+      ? 'Réponds en français.'
+      : language === 'es'
+        ? 'Responde en español.'
+        : 'Respond in English.';
 
-    return `
+  // Base prompt structure
+  let userPrompt = `
 Topic: ${prompt}
 
 Requested slides: ${slideCount || 8}
@@ -301,4 +317,29 @@ ${langInstruction}
 
 Generate a professional, rich presentation following the exact JSON schema.
 `;
+
+  // If document text is provided, activate HIGH-DENSITY MODE
+  if (documentText && documentText.trim().length > 0) {
+    userPrompt += `
+═══════════════════════════════════════════════════
+⚠️ HIGH-DENSITY DOCUMENT MODE ACTIVATED
+═══════════════════════════════════════════════════
+
+CRITICAL OVERRIDE INSTRUCTIONS:
+1. IGNORE the slide count above. Generate 15-30 slides to FULLY cover this document.
+2. Be VERBOSE - use long bullet points (2-3 sentences each, not single phrases).
+3. Extract ALL chapters, key figures, definitions, statistics, and technical details.
+4. This is for a CONSULTING REPORT / study document, NOT a stage presentation.
+5. Fill the slides with dense, actionable content. No empty spaces.
+
+📄 SOURCE DOCUMENT MATERIAL:
+${documentText}
+
+═══════════════════════════════════════════════════
+END OF DOCUMENT - Generate comprehensive coverage above.
+═══════════════════════════════════════════════════
+`;
+  }
+
+  return userPrompt;
 }

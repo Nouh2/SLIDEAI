@@ -34,6 +34,13 @@ async function bootstrap() {
         timeWindow: '1 minute',
         keyGenerator: (req) => `${req.headers['x-forwarded-for'] ?? req.ip}`,
     });
+    // Register multipart for file uploads
+    const multipart = (await import('@fastify/multipart')).default;
+    await app.register(multipart, {
+        limits: {
+            fileSize: 10 * 1024 * 1024, // 10MB max
+        },
+    });
     // Serve static files from exports folder (dev mode)
     const fastifyStatic = (await import('@fastify/static')).default;
     const path = await import('path');

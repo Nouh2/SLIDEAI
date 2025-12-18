@@ -3,3 +3,11 @@ docker run --name slideai-postgres -e POSTGRES_PASSWORD=postgres -p 5432:5432 -d
 
 npm run dev:api
 npm run dev:worker
+
+supabase p : [REDACTED_SUPABASE_DB_PASSWORD]
+public key : sb_publishable_XJBE_yQXtj92KauSqvLVVQ_oTrHJ0ZE
+private key : [REDACTED_SUPABASE_SECRET_KEY]
+anon : eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRudGNkaGFidGN0ZmJ5bHlubGNyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjYwNDg1NTUsImV4cCI6MjA4MTYyNDU1NX0.9mtNdCOyR7qiEXjS0n7uC5Dq8hSS8s5gZ3wtxbre-R8
+service_role : [REDACTED_SUPABASE_SERVICE_ROLE_KEY]
+
+url : https://dntcdhabtctfbylynlcr.supabase.co

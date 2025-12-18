@@ -1,0 +1,45 @@
+# Dependencies
+node_modules/
+
+# Environment files (CRITICAL - contains all secrets)
+**/.env
+**/.env.local
+**/.env.*.local
+
+# Build outputs
+**/dist/
+**/build/
+
+# Logs
+*.log
+**/logs/
+worker-debug.log
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Redis dump
+dump.rdb
+
+# Turbo
+.turbo/
+
+# Testing
+coverage/
+.nyc_output/
+
+# Misc
+*.tgz
+.npm
+.eslintcache
+*.tsbuildinfo

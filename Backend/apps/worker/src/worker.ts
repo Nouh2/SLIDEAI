@@ -9,6 +9,9 @@ import { ulid } from 'ulid';
 import AWS from 'aws-sdk';
 import OpenAI from 'openai';
 import PptxGenJS from 'pptxgenjs';
+import * as fs from 'fs';
+import * as path from 'path';
+import { createClient } from '@supabase/supabase-js';
 
 // Local modules
 import { THEMES, normalizeTheme, type ThemeConfig } from './config/themes';
@@ -16,6 +19,39 @@ import { DECK_ARCHITECT_PROMPT, buildUserPrompt } from './prompts/deck-architect
 import { getUnsplashImage } from './utils/unsplash';
 import { sanitizeDeck, type Deck, type Slide } from './utils/sanitize';
 import { renderSlide, defineThemeMasters } from './renderers';
+
+// ============================================
+// FILE-BASED LOGGING
+// ============================================
+const LOG_FILE = path.join(process.cwd(), 'worker-debug.log');
+
+function logToFile(message: string, data?: any) {
+  const timestamp = new Date().toISOString();
+  let logEntry = `[${timestamp}] ${message}\n`;
+  if (data !== undefined) {
+    logEntry += typeof data === 'string' ? data + '\n' : JSON.stringify(data, null, 2) + '\n';
+  }
+  logEntry += '\n';
+
+  // Also log to console
+  console.log(message);
+  if (data) console.log(typeof data === 'string' ? data : JSON.stringify(data, null, 2));
+
+  // Append to file
+  try {
+    fs.appendFileSync(LOG_FILE, logEntry);
+  } catch (err) {
+    console.error('[Log] Error writing to log file:', err);
+  }
+}
+
+// Clear log file on startup
+try {
+  fs.writeFileSync(LOG_FILE, `=== SlideAI Worker Log Started: ${new Date().toISOString()} ===\n\n`);
+  console.log(`[Log] Writing detailed logs to: ${LOG_FILE}`);
+} catch (err) {
+  console.error('[Log] Could not create log file:', err);
+}
 
 // ============================================
 // INITIALIZATION
@@ -47,6 +83,19 @@ const bucket = process.env.R2_BUCKET ?? 'slideai-exports';
 // OpenAI client
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 const model = process.env.OPENAI_MODEL || 'gpt-4o-mini';
+
+// Supabase Client
+const supabaseUrl = process.env.SUPABASE_URL;
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const supabase = (supabaseUrl && supabaseKey)
+  ? createClient(supabaseUrl, supabaseKey)
+  : null;
+
+if (!supabase) {
+  console.warn('[Worker] ⚠️ Supabase credentials missing. Data saving disabled.');
+} else {
+  console.log('[Worker] ✅ Supabase client initialized');
+}
 
 // ============================================
 // HELPERS
@@ -146,17 +195,22 @@ async function generatePPTX(deck: Deck): Promise<Buffer> {
 const generateWorker = new Worker(
   'generate',
   async (job) => {
-    const { traceId, data } = job.data as any;
-    let { prompt, slideCount, theme, language } = data ?? {};
+    const { traceId, data, user } = job.data as any;
+    let { prompt, slideCount, theme, language, documentText } = data ?? {};
+    const userId = user?.sub || 'anonymous'; // Extract user ID from JWT
 
     console.log(`\n========== GENERATE JOB: ${traceId} ==========`);
+    console.log(`[Generate] User ID: ${userId}`);
     console.log(`[Generate] Prompt: "${prompt?.slice(0, 100)}..."`);
     console.log(`[Generate] Requested slides: ${slideCount}, Theme: ${theme}`);
+    console.log(`[Generate] Document text provided: ${documentText ? `Yes (${documentText.length} chars)` : 'No'}`);
 
     await setJob(traceId, {
       status: 'processing',
       type: 'generate',
       startedAt: Date.now(),
+      hasDocument: !!documentText,
+      userId,
     });
 
     try {
@@ -166,8 +220,14 @@ const generateWorker = new Worker(
 
       console.log(`[Generate] Theme resolved: "${inferredTheme}" -> "${themeConfig.id}"`);
 
-      // 2. Call OpenAI with the Deck Architect prompt
-      const userMessage = buildUserPrompt(prompt, slideCount, themeConfig.id, language);
+      // 2. Call OpenAI with the Deck Architect prompt (with optional document context)
+      const userMessage = buildUserPrompt(prompt, slideCount, themeConfig.id, language, documentText);
+
+      // Use higher token limit for document mode (needs more slides)
+      const isHighDensityMode = !!documentText && documentText.length > 0;
+      const tokenLimit = isHighDensityMode ? 8000 : 4000;
+
+      console.log(`[Generate] Mode: ${isHighDensityMode ? 'HIGH-DENSITY (document)' : 'Standard'}, max_tokens: ${tokenLimit}`);
 
       const response = await openai.chat.completions.create({
         model,
@@ -177,16 +237,14 @@ const generateWorker = new Worker(
         ],
         response_format: { type: 'json_object' },
         temperature: 0.7,
-        max_tokens: 4000,
+        max_tokens: tokenLimit,
       });
 
       const raw = response.choices[0]?.message?.content;
       if (!raw) throw new Error('Empty AI response');
 
-      console.log(`[Generate] AI response length: ${raw.length} chars`);
-      console.log('\n========== RAW AI RESPONSE (ChatGPT) ==========');
-      console.log(raw);
-      console.log('========== END RAW AI RESPONSE ==========\n');
+      logToFile(`[Generate] AI response length: ${raw.length} chars`);
+      logToFile('======== RAW AI RESPONSE (ChatGPT) ========', raw);
 
       // 3. Parse and sanitize the deck
       let deck: Deck;
@@ -197,10 +255,32 @@ const generateWorker = new Worker(
         throw new Error('Invalid JSON from AI');
       }
 
-      // Log parsed deck before sanitization
-      console.log('\n========== PARSED DECK (Before Sanitization) ==========');
-      console.log(JSON.stringify(deck, null, 2));
-      console.log('========== END PARSED DECK ==========\n');
+      logToFile('======== PARSED DECK (Before Sanitization) ========', deck);
+
+      // SAVE TO SUPABASE with real user ID
+      if (supabase) {
+        try {
+          const { data: savedDeck, error: saveError } = await supabase
+            .from('presentations')
+            .insert({
+              user_id: userId, // Use real user ID from JWT
+              title: deck.title || 'Untitled Presentation',
+              slides: deck,
+              theme: themeConfig.id,
+              status: 'ready'
+            })
+            .select()
+            .single();
+
+          if (saveError) {
+            console.error('[Generate] ❌ Failed to save to Supabase:', saveError.message);
+          } else {
+            console.log('[Generate] ✅ Saved to Supabase ID:', savedDeck.id);
+          }
+        } catch (err: any) {
+          console.error('[Generate] ❌ Supabase Save Exception:', err.message);
+        }
+      }
 
       deck = sanitizeDeck(deck, prompt);
       deck.theme = themeConfig.id;
@@ -209,25 +289,24 @@ const generateWorker = new Worker(
       console.log(`[Generate] Deck has ${deck.slides.length} slides`);
 
       // Log each slide's layout and content types
-      console.log('\n========== SLIDE LAYOUTS & CONTENT ==========');
+      logToFile('======== SLIDE LAYOUTS & CONTENT ========');
       deck.slides.forEach((slide, i) => {
         const contentKeys = Object.keys(slide.content || {});
-        console.log(`Slide ${i + 1}: layout="${slide.layout}" | content keys: [${contentKeys.join(', ')}]`);
+        logToFile(`Slide ${i + 1}: layout="${slide.layout}" | content keys: [${contentKeys.join(', ')}]`);
 
         // Log chart details if present
         if (slide.content?.chart) {
-          console.log(`  └─ Chart: type="${slide.content.chart.type}" | categories=[${slide.content.chart.categories?.join(', ')}] | series count=${slide.content.chart.series?.length}`);
+          logToFile(`  └─ Chart: type="${slide.content.chart.type}" | categories=[${slide.content.chart.categories?.join(', ')}] | series count=${slide.content.chart.series?.length}`);
         }
         // Log infographic details if present
         if (slide.content?.infographic) {
-          console.log(`  └─ Infographic: type="${slide.content.infographic.type}" | steps count=${slide.content.infographic.steps?.length}`);
+          logToFile(`  └─ Infographic: type="${slide.content.infographic.type}" | steps count=${slide.content.infographic.steps?.length}`);
         }
         // Log timeline details if present
         if (slide.content?.timeline) {
-          console.log(`  └─ Timeline: items count=${slide.content.timeline.items?.length}`);
+          logToFile(`  └─ Timeline: items count=${slide.content.timeline.items?.length}`);
         }
       });
-      console.log('========== END SLIDE LAYOUTS ==========\n');
 
       // 4. Fetch images for each slide
       console.log('[Generate] Fetching images from Unsplash...');
@@ -245,9 +324,7 @@ const generateWorker = new Worker(
       );
 
       // Log FINAL deck being sent to frontend
-      console.log('\n========== FINAL DECK (Sent to Frontend) ==========');
-      console.log(JSON.stringify(deck, null, 2));
-      console.log('========== END FINAL DECK ==========\n');
+      logToFile('======== FINAL DECK (Sent to Frontend) ========', deck);
 
       console.log('[Generate] ✅ Generation complete');
 
@@ -329,18 +406,18 @@ const exportWorker = new Worker(
       }
 
       // Local file fallback
-      const fs = await import('fs/promises');
-      const path = await import('path');
+      const fsPromises = await import('fs/promises');
+      const pathModule = await import('path');
 
       // Sanitize filename
       const sanitizedTitle = (deck.title || 'presentation')
         .replace(/[^a-zA-Z0-9-_]/g, '_')
         .slice(0, 50);
       const filename = `${sanitizedTitle}-${ulid()}.pptx`;
-      const exportsDir = path.join(process.cwd(), '../../exports');
+      const exportsDir = pathModule.join(process.cwd(), '../../exports');
 
-      await fs.mkdir(exportsDir, { recursive: true });
-      await fs.writeFile(path.join(exportsDir, filename), buffer);
+      await fsPromises.mkdir(exportsDir, { recursive: true });
+      await fsPromises.writeFile(pathModule.join(exportsDir, filename), buffer);
 
       console.log(`[Export] ✅ Saved locally: ${filename}`);
 
@@ -380,10 +457,44 @@ console.log('║   • 12 Layout Types                                       ║
 console.log('║   • Charts, Tables, Infographics                          ║');
 console.log('║   • Timelines, Comparisons, Quotes                        ║');
 console.log('║   • Modular Rendering Engine                              ║');
+console.log('║   • Supabase Data Persistence                             ║');
 console.log('║                                                           ║');
 console.log('╚═══════════════════════════════════════════════════════════╝');
 console.log('');
 console.log(`[Worker] OpenAI Model: ${model}`);
 console.log(`[Worker] R2 Storage: ${hasR2 ? 'Enabled' : 'Disabled (local)'}`);
+console.log(`[Worker] Supabase: ${supabase ? 'Enabled' : 'Disabled'}`);
 console.log(`[Worker] Available themes: ${Object.keys(THEMES).join(', ')}`);
+console.log(`[Worker] Redis URL: ${process.env.REDIS_URL || 'redis://localhost:6379'}`);
 console.log('');
+
+// Worker event listeners for debugging
+generateWorker.on('ready', () => {
+  console.log('✅ [Generate Worker] READY - Connected to Redis and listening for jobs');
+});
+
+generateWorker.on('active', (job) => {
+  console.log(`🔄 [Generate Worker] ACTIVE - Processing job: ${job.id}`);
+});
+
+generateWorker.on('completed', (job) => {
+  console.log(`✅ [Generate Worker] COMPLETED - Job ${job.id} finished successfully`);
+});
+
+generateWorker.on('failed', (job, err) => {
+  console.error(`❌ [Generate Worker] FAILED - Job ${job?.id} failed:`, err.message);
+});
+
+generateWorker.on('error', (err) => {
+  console.error('❌ [Generate Worker] ERROR:', err);
+});
+
+exportWorker.on('ready', () => {
+  console.log('✅ [Export Worker] READY - Connected and listening');
+});
+
+exportWorker.on('error', (err) => {
+  console.error('❌ [Export Worker] ERROR:', err);
+});
+
+console.log('[Worker] Waiting for jobs...');

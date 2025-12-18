@@ -14,8 +14,24 @@ export class QueueService {
   readonly generateEvents = new QueueEvents('generate', { connection });
   readonly exportEvents = new QueueEvents('export', { connection });
 
-  addGenerate(payload: any, opts: JobsOptions = {}) {
-    return this.generateQueue.add('generate', payload, { attempts: 3, removeOnComplete: 1000, ...opts });
+  async addGenerate(payload: any, opts: JobsOptions = {}) {
+    console.log('[QueueService] Adding job to generate queue...');
+    console.log('[QueueService] Redis URL:', process.env.REDIS_URL ?? 'redis://localhost:6379');
+    try {
+      const job = await this.generateQueue.add('generate', payload, { attempts: 3, removeOnComplete: 1000, ...opts });
+      console.log('[QueueService] Job added successfully:', job.id, 'Queue:', this.generateQueue.name);
+
+      // Check queue status
+      const waiting = await this.generateQueue.getWaitingCount();
+      const active = await this.generateQueue.getActiveCount();
+      const completed = await this.generateQueue.getCompletedCount();
+      console.log(`[QueueService] Queue stats - Waiting: ${waiting}, Active: ${active}, Completed: ${completed}`);
+
+      return job;
+    } catch (error: any) {
+      console.error('[QueueService] Error adding job:', error.message);
+      throw error;
+    }
   }
 
   addExport(payload: any, opts: JobsOptions = {}) {

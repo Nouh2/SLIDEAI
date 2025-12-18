@@ -9,6 +9,10 @@ export interface GenerateRequest {
   language?: string;
   tone?: string;
   length?: string;
+  theme?: string;
+  slideCount?: number;
+  file?: File; // Optional document upload for RAG
+  accessToken?: string; // Supabase auth token
 }
 
 export interface ExportRequest {
@@ -25,6 +29,7 @@ export interface ExportRequest {
     };
     slides: any[];
   };
+  accessToken?: string; // Supabase auth token
 }
 
 // ========== RESPONSE TYPES ==========
@@ -70,6 +75,14 @@ export interface ProjectListResponse {
 // ========== API BASE URL ==========
 const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:3000/v1";
 
+// Helper to build headers with optional auth
+const buildHeaders = (accessToken?: string, contentType?: string): HeadersInit => {
+  const headers: HeadersInit = {};
+  if (contentType) headers['Content-Type'] = contentType;
+  if (accessToken) headers['Authorization'] = `Bearer ${accessToken}`;
+  return headers;
+};
+
 // ========== API CLIENT ==========
 export const api = {
   /**
@@ -78,25 +91,52 @@ export const api = {
    */
   async generate(request: GenerateRequest): Promise<GenerateResponse> {
     try {
-      const response = await fetch(`${API_BASE_URL}/generate`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(request),
-      });
+      let response: Response;
+
+      if (request.file) {
+        // Use FormData for file upload (multipart/form-data)
+        const formData = new FormData();
+        formData.append('prompt', request.prompt);
+        if (request.language) formData.append('language', request.language);
+        if (request.tone) formData.append('tone', request.tone);
+        if (request.length) formData.append('length', request.length);
+        if (request.theme) formData.append('theme', request.theme);
+        if (request.slideCount) formData.append('slideCount', String(request.slideCount));
+        formData.append('file', request.file);
+
+        response = await fetch(`${API_BASE_URL}/generate`, {
+          method: 'POST',
+          headers: request.accessToken ? { 'Authorization': `Bearer ${request.accessToken}` } : {},
+          body: formData,
+          // Note: Don't set Content-Type header - browser sets it with boundary
+        });
+      } else {
+        // Use JSON for simple requests (backward compatible)
+        response = await fetch(`${API_BASE_URL}/generate`, {
+          method: 'POST',
+          headers: buildHeaders(request.accessToken, 'application/json'),
+          body: JSON.stringify({
+            prompt: request.prompt,
+            language: request.language,
+            tone: request.tone,
+            length: request.length,
+            theme: request.theme,
+            slideCount: request.slideCount,
+          }),
+        });
+      }
 
       if (!response.ok) {
         const error = await response.json().catch(() => ({
-          message: "Une erreur est survenue lors de la génération",
+          message: 'Une erreur est survenue lors de la génération',
         }));
-        throw new Error(error.message || "Erreur API");
+        throw new Error(error.message || 'Erreur API');
       }
 
       const data = await response.json();
       return data;
     } catch (error) {
-      console.error("API Error (generate):", error);
+      console.error('API Error (generate):', error);
       throw error;
     }
   },

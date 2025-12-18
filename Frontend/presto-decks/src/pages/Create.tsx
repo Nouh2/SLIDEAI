@@ -11,6 +11,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { TemplateSelector } from "@/components/create/TemplateSelector";
 import { getTemplateById } from "@/data/slideTemplates";
 import { projectService } from "@/lib/projects";
+import { supabase } from "@/contexts/AuthContext";
 
 const purposes = [
     "Business Pitch",
@@ -30,12 +31,12 @@ export default function Create() {
     const [slides, setSlides] = useState([10]);
     const [isGenerating, setIsGenerating] = useState(false);
     const [isUploading, setIsUploading] = useState(false);
-    const [attachedFile, setAttachedFile] = useState<{ name: string; url: string } | null>(null);
+    const [attachedFile, setAttachedFile] = useState<File | null>(null);
 
 
     const fileInputRef = useRef<HTMLInputElement>(null);
-    const { toast } = useToast();
     const navigate = useNavigate();
+    const { toast } = useToast();
 
     const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -51,24 +52,14 @@ export default function Create() {
             return;
         }
 
-        try {
-            setIsUploading(true);
-            const response = await api.uploadFile(file);
-            setAttachedFile({ name: file.name, url: response.url });
-            toast({
-                title: "Document ajouté",
-                description: "Le fichier sera utilisé pour enrichir la présentation",
-            });
-        } catch (error) {
-            toast({
-                title: "Erreur d'upload",
-                description: "Impossible de charger le fichier",
-                variant: "destructive",
-            });
-        } finally {
-            setIsUploading(false);
-            if (fileInputRef.current) fileInputRef.current.value = "";
-        }
+        // Store file directly (will be sent with generate request)
+        setAttachedFile(file);
+        toast({
+            title: "Document ajouté",
+            description: "Le fichier sera utilisé pour enrichir la présentation",
+        });
+
+        if (fileInputRef.current) fileInputRef.current.value = "";
     };
 
     const handleGenerate = async () => {
@@ -84,6 +75,18 @@ export default function Create() {
         try {
             setIsGenerating(true);
 
+            // Get current session for auth token
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!session) {
+                toast({
+                    title: "Session expirée",
+                    description: "Veuillez vous reconnecter",
+                    variant: "destructive",
+                });
+                navigate("/auth");
+                return;
+            }
+
             const template = selectedTemplate ? getTemplateById(selectedTemplate) : null;
 
             let finalPrompt = vision;
@@ -93,15 +96,15 @@ export default function Create() {
                 finalPrompt += `\n\n[STYLE: Utiliser le template "${template.name}" (${template.description}). Cas d'usage: ${template.useCases.join(', ')}]`;
             }
 
-            if (attachedFile) {
-                finalPrompt += `\n\n[CONTEXTE: Utiliser le document joint "${attachedFile.name}" (${attachedFile.url}) pour générer le contenu]`;
-            }
-
             const data = await api.generate({
-                prompt: `${finalPrompt}. Objectif: ${purpose}. Nombre de slides: ${slides[0]}. ${template ? `Theme suggéré: ${template.id}` : ''}`,
+                prompt: `${finalPrompt}. Objectif: ${purpose}. ${template ? `Theme suggéré: ${template.id}` : ''}`,
                 language: "fr",
                 tone: "pro",
                 length: "medium",
+                slideCount: slides[0],
+                theme: template?.id,
+                file: attachedFile || undefined, // Pass file for RAG extraction
+                accessToken: session.access_token, // Pass auth token
             });
 
             const traceId = data.traceId;

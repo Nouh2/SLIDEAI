@@ -284,24 +284,41 @@ const ChartLayout = ({ slide, colors }: { slide: any; colors: any }) => {
     console.log('[ChartLayout] Slide:', slide.title);
     console.log('[ChartLayout] Chart data:', chart);
 
-    // Calculate pie chart segments as conic-gradient
-    const getPieGradient = () => {
-        if (!chart?.series?.[0]?.data) return `conic-gradient(${colors.primary} 100%)`;
+    // Helper to safely extract data array from various formats
+    const getDataArray = (): number[] => {
+        if (!chart?.series) return [];
 
-        const data = chart.series[0].data;
-
-        // Ensure data is an array
-        if (!Array.isArray(data) || data.length === 0) {
-            console.warn('[ChartLayout] Chart data is not an array:', data);
-            return `conic-gradient(${colors.primary} 100%)`;
+        // If series is an array of numbers directly
+        if (Array.isArray(chart.series) && typeof chart.series[0] === 'number') {
+            return chart.series;
         }
 
-        const total = data.reduce((a: number, b: number) => a + b, 0);
+        // If series[0].data is an array of numbers
+        if (chart.series[0]?.data && Array.isArray(chart.series[0].data)) {
+            return chart.series[0].data;
+        }
+
+        // If series is an array of objects with value property
+        if (Array.isArray(chart.series) && typeof chart.series[0] === 'object' && chart.series[0]?.value !== undefined) {
+            return chart.series.map((s: any) => s.value || 0);
+        }
+
+        console.warn('[ChartLayout] Unable to extract data array from series:', chart.series);
+        return [];
+    };
+
+    const dataArray = getDataArray();
+
+    // Calculate pie chart segments as conic-gradient
+    const getPieGradient = () => {
+        if (dataArray.length === 0) return `conic-gradient(${colors.primary} 100%)`;
+
+        const total = dataArray.reduce((a: number, b: number) => a + b, 0);
         if (total === 0) return `conic-gradient(${colors.primary} 100%)`;
 
         let currentAngle = 0;
 
-        const segments = data.map((value: number, i: number) => {
+        const segments = dataArray.map((value: number, i: number) => {
             const startAngle = currentAngle;
             const percentage = (value / total) * 360;
             currentAngle += percentage;
@@ -362,8 +379,8 @@ const ChartLayout = ({ slide, colors }: { slide: any; colors: any }) => {
                                 </div>
                                 <div className="space-y-4">
                                     {chart.categories?.map((cat: string, i: number) => {
-                                        const value = chart.series?.[0]?.data?.[i] || 0;
-                                        const total = chart.series?.[0]?.data?.reduce((a: number, b: number) => a + b, 0) || 1;
+                                        const value = dataArray[i] || 0;
+                                        const total = dataArray.reduce((a: number, b: number) => a + b, 0) || 1;
                                         const percentage = Math.round((value / total) * 100);
                                         return (
                                             <div key={i} className="flex items-center gap-3">

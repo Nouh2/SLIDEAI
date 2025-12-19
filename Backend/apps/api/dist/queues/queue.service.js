@@ -8,7 +8,22 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 import { Injectable } from '@nestjs/common';
 import { Queue, QueueEvents } from 'bullmq';
 import IORedis from 'ioredis';
-const connection = new IORedis(process.env.REDIS_URL ?? 'redis://localhost:6379', {
+// Build Redis URL from separate env vars if REDIS_URL not provided
+function getRedisUrl() {
+    if (process.env.REDIS_URL) {
+        return process.env.REDIS_URL;
+    }
+    const host = process.env.REDIS_HOST || 'localhost';
+    const port = process.env.REDIS_PORT || '6379';
+    const password = process.env.REDIS_PASSWORD;
+    if (password) {
+        return `redis://:${password}@${host}:${port}`;
+    }
+    return `redis://${host}:${port}`;
+}
+const redisUrl = getRedisUrl();
+console.log('[QueueService] Connecting to Redis:', redisUrl.replace(/:[^:@]+@/, ':***@')); // Hide password in logs
+const connection = new IORedis(redisUrl, {
     maxRetriesPerRequest: null,
 });
 let QueueService = class QueueService {

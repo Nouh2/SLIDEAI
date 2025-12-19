@@ -59,11 +59,23 @@ try {
 
 const PptxGen = (PptxGenJS as any).default || PptxGenJS;
 
+// Helper to get Redis URL (supports REDIS_URL or REDIS_HOST/PORT/PASSWORD)
+function getRedisUrl(): string {
+  if (process.env.REDIS_URL) return process.env.REDIS_URL;
+  const host = process.env.REDIS_HOST || 'localhost';
+  const port = process.env.REDIS_PORT || '6379';
+  const password = process.env.REDIS_PASSWORD;
+  return password ? `redis://:${password}@${host}:${port}` : `redis://${host}:${port}`;
+}
+
+const redisUrl = getRedisUrl();
+console.log('[Worker] Connecting to Redis:', redisUrl.replace(/:[^:@]+@/, ':***@'));
+
 // Redis connections
-const connection = new IORedis(process.env.REDIS_URL ?? 'redis://localhost:6379', {
+const connection = new IORedis(redisUrl, {
   maxRetriesPerRequest: null,
 });
-const redis = new IORedis(process.env.REDIS_URL ?? 'redis://localhost:6379', {
+const redis = new IORedis(redisUrl, {
   maxRetriesPerRequest: null,
 });
 

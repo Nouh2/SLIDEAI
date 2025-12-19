@@ -1,9 +1,33 @@
 // apps/api/src/queues/queue.service.ts
+import 'dotenv/config'; // Load env vars FIRST
 import { Injectable } from '@nestjs/common';
 import { Queue, QueueEvents, Worker, JobsOptions } from 'bullmq';
 import IORedis from 'ioredis';
+import * as path from 'path';
+import * as dotenv from 'dotenv';
 
-const connection = new IORedis(process.env.REDIS_URL ?? 'redis://localhost:6379', {
+// Also try to load from apps/api/.env specifically
+dotenv.config({ path: path.resolve(process.cwd(), 'apps/api/.env') });
+dotenv.config({ path: path.resolve(process.cwd(), '.env') });
+
+// Build Redis URL from separate env vars if REDIS_URL not provided
+function getRedisUrl(): string {
+  if (process.env.REDIS_URL) {
+    return process.env.REDIS_URL;
+  }
+  const host = process.env.REDIS_HOST || 'localhost';
+  const port = process.env.REDIS_PORT || '6379';
+  const password = process.env.REDIS_PASSWORD;
+  if (password) {
+    return `redis://:${password}@${host}:${port}`;
+  }
+  return `redis://${host}:${port}`;
+}
+
+const redisUrl = getRedisUrl();
+console.log('[QueueService] Connecting to Redis:', redisUrl.replace(/:[^:@]+@/, ':***@')); // Hide password in logs
+
+const connection = new IORedis(redisUrl, {
   maxRetriesPerRequest: null,
 });
 

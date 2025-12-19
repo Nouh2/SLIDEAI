@@ -179,12 +179,21 @@ const generateSchema = z.object({
 // CONTROLLER
 // ============================================
 
+// Helper to get Redis URL (supports REDIS_URL or REDIS_HOST/PORT/PASSWORD)
+function getRedisUrl(): string {
+  if (process.env.REDIS_URL) return process.env.REDIS_URL;
+  const host = process.env.REDIS_HOST || 'localhost';
+  const port = process.env.REDIS_PORT || '6379';
+  const password = process.env.REDIS_PASSWORD;
+  return password ? `redis://:${password}@${host}:${port}` : `redis://${host}:${port}`;
+}
+
 @Controller('/v1')
 export class GenerateController {
   private redis: IORedis;
 
   constructor(private queues: QueueService) {
-    this.redis = new IORedis(process.env.REDIS_URL ?? 'redis://localhost:6379', {
+    this.redis = new IORedis(getRedisUrl(), {
       maxRetriesPerRequest: null,
     });
   }

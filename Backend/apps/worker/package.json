@@ -5,22 +5,24 @@
   "license": "MIT",
   "main": "dist/worker.js",
   "scripts": {
-    "start": "node dist/worker.js",
+    "start": "tsx src/worker.ts",
     "start:dev": "cross-env NODE_ENV=development tsx src/worker.ts",
     "build": "tsc -p tsconfig.json"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.88.0",
     "aws-sdk": "^2.1631.0",
     "bullmq": "^5.7.8",
     "dotenv": "^17.2.3",
     "ioredis": "^5.4.1",
+    "openai": "^4.0.0",
     "pptxgenjs": "^4.0.1",
+    "tsx": "^4.19.2",
+    "typescript": "^5.6.3",
     "ulid": "^2.3.0"
   },
   "devDependencies": {
     "@types/node": "^20.16.10",
-    "cross-env": "^7.0.3",
-    "tsx": "^4.19.2",
-    "typescript": "^5.6.3"
+    "cross-env": "^7.0.3"
   }
 }

@@ -73,7 +73,7 @@ export interface ProjectListResponse {
 }
 
 // ========== API BASE URL ==========
-const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:3000/v1";
+const API_BASE_URL = import.meta.env.VITE_API_URL || import.meta.env.NEXT_PUBLIC_API_URL || "http://localhost:3000/v1";
 
 // Helper to build headers with optional auth
 const buildHeaders = (accessToken?: string, contentType?: string): HeadersInit => {

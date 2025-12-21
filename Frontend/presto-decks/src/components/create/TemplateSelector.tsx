@@ -1,10 +1,10 @@
 // src/components/create/TemplateSelector.tsx
 import { useState } from 'react';
-import { slideTemplates, SlideTemplate } from '@/data/slideTemplates';
+import { slideTemplates } from '@/data/slideTemplates';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Check, Sparkles } from 'lucide-react';
+import { Sparkles, ArrowRight, CheckCircle2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface TemplateSelectorProps {
@@ -14,6 +14,7 @@ interface TemplateSelectorProps {
 
 export function TemplateSelector({ selectedTemplate, onSelectTemplate }: TemplateSelectorProps) {
     const [filter, setFilter] = useState<string>('all');
+    const [hoveredTemplate, setHoveredTemplate] = useState<string | null>(null);
 
     const categories = ['all', 'business', 'creative', 'educational', 'marketing', 'corporate'];
 
@@ -22,124 +23,157 @@ export function TemplateSelector({ selectedTemplate, onSelectTemplate }: Templat
         : slideTemplates.filter(t => t.category === filter);
 
     return (
-        <div className="space-y-6">
-            {/* Header */}
-            <div className="text-center space-y-2">
-                <h2 className="text-2xl font-bold flex items-center justify-center gap-2">
-                    <Sparkles className="h-6 w-6 text-primary" />
-                    Choose Your Style
-                </h2>
-                <p className="text-muted-foreground">
-                    Select a template that matches your presentation goal
-                </p>
+        <div className="space-y-8 w-full max-w-6xl mx-auto">
+            {/* Header Section */}
+            <div className="text-center space-y-4 mb-12">
+                <motion.div
+                    initial={{ opacity: 0, y: -20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 text-primary text-sm font-medium mb-4"
+                >
+                    <Sparkles className="w-4 h-4" />
+                    <span>Premium Collection</span>
+                </motion.div>
+                <motion.h2
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.1 }}
+                    className="text-4xl md:text-5xl font-bold tracking-tight"
+                >
+                    Choose your <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary">style</span>
+                </motion.h2>
+                <motion.p
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.2 }}
+                    className="text-lg text-muted-foreground max-w-2xl mx-auto"
+                >
+                    Select a visual identity that matches your story. Each theme comes with unique layouts and typography.
+                </motion.p>
             </div>
 
-            {/* Category Filters */}
-            <div className="flex flex-wrap justify-center gap-2">
-                {categories.map((cat) => (
-                    <Button
-                        key={cat}
-                        variant={filter === cat ? 'default' : 'outline'}
-                        size="sm"
-                        onClick={() => setFilter(cat)}
-                        className="capitalize"
-                    >
-                        {cat}
-                    </Button>
-                ))}
+            {/* Category Tabs */}
+            <div className="flex justify-center mb-8 overflow-x-auto pb-4 no-scrollbar">
+                <div className="flex bg-muted/30 p-1 rounded-full backdrop-blur-sm border border-border/50">
+                    {categories.map((cat) => (
+                        <button
+                            key={cat}
+                            onClick={() => setFilter(cat)}
+                            className={`relative px-6 py-2 rounded-full text-sm font-medium transition-colors duration-200 capitalize ${filter === cat ? "text-primary-foreground" : "text-muted-foreground hover:text-foreground"
+                                }`}
+                        >
+                            {filter === cat && (
+                                <motion.div
+                                    layoutId="activeTab"
+                                    className="absolute inset-0 bg-primary rounded-full shadow-lg shadow-primary/25"
+                                    transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                                />
+                            )}
+                            <span className="relative z-10">{cat}</span>
+                        </button>
+                    ))}
+                </div>
             </div>
 
-            {/* Templates Grid */}
+            {/* Templates Grid - Fluid & Modern */}
             <motion.div
                 layout
-                className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"
+                className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8 px-4"
             >
                 <AnimatePresence mode="popLayout">
-                    {filteredTemplates.map((template) => (
+                    {filteredTemplates.map((template, index) => (
                         <motion.div
                             key={template.id}
                             layout
-                            initial={{ opacity: 0, scale: 0.9 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            exit={{ opacity: 0, scale: 0.9 }}
-                            transition={{ duration: 0.2 }}
+                            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.2 } }}
+                            transition={{ duration: 0.3, delay: index * 0.05 }}
+                            onHoverStart={() => setHoveredTemplate(template.id)}
+                            onHoverEnd={() => setHoveredTemplate(null)}
+                            className="group relative"
                         >
-                            <Card
+                            <div
                                 onClick={() => onSelectTemplate(template.id)}
-                                className={`cursor-pointer transition-all hover:shadow-lg hover:-translate-y-1 ${selectedTemplate === template.id
-                                        ? 'ring-2 ring-primary shadow-xl'
-                                        : 'hover:ring-1 hover:ring-primary/30'
-                                    }`}
+                                className={`
+                                    relative overflow-hidden rounded-2xl cursor-pointer transition-all duration-300
+                                    border border-border/50 bg-card hover:border-primary/50
+                                    ${selectedTemplate === template.id ? 'ring-2 ring-primary ring-offset-2 ring-offset-background shadow-2xl shadow-primary/20 scale-[1.02]' : 'hover:-translate-y-2 hover:shadow-xl'}
+                                `}
                             >
-                                <CardContent className="p-0">
-                                    {/* Preview Image */}
-                                    <div className="relative aspect-video overflow-hidden rounded-t-lg">
-                                        <img
-                                            src={template.preview}
-                                            alt={template.name}
-                                            className="w-full h-full object-cover"
-                                        />
+                                {/* Image Container */}
+                                <div className="aspect-[16/9] overflow-hidden relative">
+                                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent z-10 opacity-60 group-hover:opacity-40 transition-opacity" />
 
-                                        {/* Overlay with color scheme */}
-                                        <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/80 to-transparent">
-                                            <div className="flex gap-1">
-                                                <div
-                                                    className="w-3 h-3 rounded-full border border-white/20"
-                                                    style={{ backgroundColor: template.colors.primary }}
-                                                />
-                                                <div
-                                                    className="w-3 h-3 rounded-full border border-white/20"
-                                                    style={{ backgroundColor: template.colors.secondary }}
-                                                />
-                                                <div
-                                                    className="w-3 h-3 rounded-full border border-white/20"
-                                                    style={{ backgroundColor: template.colors.accent }}
-                                                />
-                                            </div>
-                                        </div>
+                                    <img
+                                        src={template.preview}
+                                        alt={template.name}
+                                        className={`
+                                            w-full h-full object-cover transition-transform duration-700
+                                            ${hoveredTemplate === template.id ? 'scale-110' : 'scale-100'}
+                                        `}
+                                    />
 
-                                        {/* Selected Check */}
-                                        {selectedTemplate === template.id && (
+                                    {/* Color Palette Preview (Floating) */}
+                                    <div className="absolute top-4 right-4 z-20 flex -space-x-2">
+                                        {[template.colors.primary, template.colors.secondary, template.colors.accent].map((color, i) => (
+                                            <div
+                                                key={i}
+                                                className="w-6 h-6 rounded-full border-2 border-white shadow-sm"
+                                                style={{ backgroundColor: color }}
+                                            />
+                                        ))}
+                                    </div>
+
+                                    {/* Selected Indicator */}
+                                    {selectedTemplate === template.id && (
+                                        <div className="absolute inset-0 z-20 bg-primary/20 backdrop-blur-[2px] flex items-center justify-center">
                                             <motion.div
                                                 initial={{ scale: 0 }}
                                                 animate={{ scale: 1 }}
-                                                className="absolute top-2 right-2 w-8 h-8 rounded-full bg-primary flex items-center justify-center shadow-lg"
+                                                className="bg-primary text-primary-foreground rounded-full p-3 shadow-lg"
                                             >
-                                                <Check className="h-5 w-5 text-white" />
+                                                <CheckCircle2 className="w-8 h-8" />
                                             </motion.div>
-                                        )}
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Content */}
+                                <CardContent className="p-5 space-y-3">
+                                    <div className="flex justify-between items-start">
+                                        <div>
+                                            <h3 className="font-bold text-lg leading-none mb-1 group-hover:text-primary transition-colors">
+                                                {template.name}
+                                            </h3>
+                                            <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">
+                                                {template.category}
+                                            </p>
+                                        </div>
                                     </div>
 
-                                    {/* Info */}
-                                    <div className="p-4 space-y-2">
-                                        <div className="flex items-start justify-between gap-2">
-                                            <h3 className="font-semibold text-sm">{template.name}</h3>
-                                            <Badge variant="outline" className="capitalize text-[10px]">
-                                                {template.category}
+                                    <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed">
+                                        {template.description}
+                                    </p>
+
+                                    {/* Footer / Action hint */}
+                                    <div className="pt-3 flex items-center justify-between text-xs text-muted-foreground border-t border-border/50 group-hover:border-border transition-colors">
+                                        <div className="flex gap-2">
+                                            <Badge variant="secondary" className="text-[10px] h-5 font-normal bg-secondary/10 text-secondary-foreground hover:bg-secondary/20">
+                                                {template.fonts.heading}
                                             </Badge>
                                         </div>
-                                        <p className="text-xs text-muted-foreground line-clamp-2">
-                                            {template.description}
-                                        </p>
-
-                                        {/* Fonts info */}
-                                        <div className="flex items-center gap-2 text-[10px] text-muted-foreground pt-1 border-t">
-                                            <span className="font-medium">Fonts:</span>
-                                            <span className="truncate">{template.fonts.heading}</span>
+                                        <div className={`flex items-center gap-1 transition-all duration-300 ${hoveredTemplate === template.id || selectedTemplate === template.id ? 'text-primary translate-x-0 opacity-100' : 'translate-x-4 opacity-0'}`}>
+                                            <span className="font-medium">Select</span>
+                                            <ArrowRight className="w-3 h-3" />
                                         </div>
                                     </div>
                                 </CardContent>
-                            </Card>
+                            </div>
                         </motion.div>
                     ))}
                 </AnimatePresence>
             </motion.div>
-
-            {filteredTemplates.length === 0 && (
-                <div className="text-center py-12">
-                    <p className="text-muted-foreground">No templates found in this category</p>
-                </div>
-            )}
         </div>
     );
 }

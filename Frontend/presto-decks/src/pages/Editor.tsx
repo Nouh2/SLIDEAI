@@ -16,6 +16,7 @@ import {
   Play,
   AlertCircle
 } from "lucide-react";
+import { PresentationBuilderLoader } from "@/components/layout/PresentationBuilderLoader";
 
 // Supabase client (using anon key for read-only)
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || "https://dntcdhabtctfbylynlcr.supabase.co";
@@ -385,35 +386,28 @@ export default function Editor() {
 
   // Loading Screen
   if (isLoading || !currentProject) {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-background">
-        <div className="text-center space-y-6 p-12 rounded-[2rem] bg-surface/50 backdrop-blur-xl border border-border shadow-2xl">
-          {error ? (
-            <>
-              <div className="relative inline-block">
-                <AlertCircle className="h-16 w-16 text-destructive relative z-10" />
-              </div>
-              <div className="space-y-2">
-                <h2 className="text-2xl font-bold text-foreground tracking-tight">Oops!</h2>
-                <p className="text-muted-foreground">{error}</p>
-                <Link to="/" className="inline-block mt-4 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors">
-                  Retour à l'accueil
-                </Link>
-              </div>
-            </>
-          ) : (
-            <>
-              <div className="relative inline-block">
-                <div className="absolute inset-0 bg-accent blur-3xl rounded-full animate-pulse"></div>
-                <Loader2 className="h-16 w-16 animate-spin text-primary relative z-10" />
-              </div>
-              <div className="space-y-2">
-                <h2 className="text-2xl font-bold text-foreground tracking-tight">Generating Magic...</h2>
-                <p className="text-muted-foreground">Creating your presentation ({status})...</p>
-              </div>
-            </>
-          )}
+    if (error) {
+      return (
+        <div className="min-h-screen flex flex-col items-center justify-center bg-background">
+          <div className="text-center space-y-6 p-12 rounded-[2rem] bg-surface/50 backdrop-blur-xl border border-border shadow-2xl">
+            <div className="relative inline-block">
+              <AlertCircle className="h-16 w-16 text-destructive relative z-10" />
+            </div>
+            <div className="space-y-2">
+              <h2 className="text-2xl font-bold text-foreground tracking-tight">Oops!</h2>
+              <p className="text-muted-foreground">{error}</p>
+              <Link to="/" className="inline-block mt-4 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors">
+                Retour à l'accueil
+              </Link>
+            </div>
+          </div>
         </div>
+      );
+    }
+
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background overflow-hidden">
+        <PresentationBuilderLoader status={status} />
       </div>
     );
   }

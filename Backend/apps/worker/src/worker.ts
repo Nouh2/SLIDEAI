@@ -7,7 +7,7 @@ import { Worker } from 'bullmq';
 import IORedis from 'ioredis';
 import { ulid } from 'ulid';
 import AWS from 'aws-sdk';
-import OpenAI from 'openai';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 import PptxGenJS from 'pptxgenjs';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -79,6 +79,14 @@ const redis = new IORedis(redisUrl, {
   maxRetriesPerRequest: null,
 });
 
+// Log Redis connection status
+connection.on('connect', () => {
+  console.log('[Worker] ✅ Redis connected successfully');
+});
+connection.on('error', (err) => {
+  console.error('[Worker] ❌ Redis connection error:', err.message);
+});
+
 // R2/S3 Storage
 const hasR2 = !!process.env.R2_ACCOUNT_ID && !!process.env.R2_ACCESS_KEY_ID;
 const r2 = hasR2
@@ -92,9 +100,9 @@ const r2 = hasR2
   : null;
 const bucket = process.env.R2_BUCKET ?? 'slideai-exports';
 
-// OpenAI client
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-const model = process.env.OPENAI_MODEL || 'gpt-4o-mini';
+// Gemini AI client
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
+const model = process.env.GEMINI_MODEL || 'gemini-3-flash-preview';
 
 // Supabase Client
 const supabaseUrl = process.env.SUPABASE_URL;
@@ -236,27 +244,43 @@ const generateWorker = new Worker(
       const userMessage = buildUserPrompt(prompt, slideCount, themeConfig.id, language, documentText);
 
       // Use higher token limit for document mode (needs more slides)
+      // Gemini 3 Flash supports up to 64K output tokens
       const isHighDensityMode = !!documentText && documentText.length > 0;
-      const tokenLimit = isHighDensityMode ? 8000 : 4000;
+      const tokenLimit = isHighDensityMode ? 16000 : 8000;
 
       console.log(`[Generate] Mode: ${isHighDensityMode ? 'HIGH-DENSITY (document)' : 'Standard'}, max_tokens: ${tokenLimit}`);
 
-      const response = await openai.chat.completions.create({
+      // Create Gemini model with JSON response mode
+      const geminiModel = genAI.getGenerativeModel({
         model,
-        messages: [
-          { role: 'system', content: DECK_ARCHITECT_PROMPT },
-          { role: 'user', content: userMessage },
-        ],
-        response_format: { type: 'json_object' },
-        temperature: 0.7,
-        max_tokens: tokenLimit,
+        generationConfig: {
+          temperature: 0.7,
+          maxOutputTokens: tokenLimit,
+          responseMimeType: 'application/json',
+        },
       });
 
-      const raw = response.choices[0]?.message?.content;
-      if (!raw) throw new Error('Empty AI response');
+      // Combine system and user prompts for Gemini
+      const fullPrompt = `${DECK_ARCHITECT_PROMPT}\n\n---\n\nUser Request:\n${userMessage}`;
 
-      logToFile(`[Generate] AI response length: ${raw.length} chars`);
-      logToFile('======== RAW AI RESPONSE (ChatGPT) ========', raw);
+      const response = await geminiModel.generateContent(fullPrompt);
+      const raw = response.response.text();
+
+      // Get token usage from response
+      const usageMetadata = response.response.usageMetadata;
+      const inputTokens = usageMetadata?.promptTokenCount || 0;
+      const outputTokens = usageMetadata?.candidatesTokenCount || 0;
+      const totalTokens = inputTokens + outputTokens;
+
+      // Calculate cost (Gemini 3 Flash: $0.50/1M input, $3.00/1M output)
+      const inputCost = (inputTokens / 1_000_000) * 0.50;
+      const outputCost = (outputTokens / 1_000_000) * 3.00;
+      const totalCost = inputCost + outputCost;
+
+      console.log(`[Generate] 📊 Tokens: ${inputTokens} in / ${outputTokens} out (${totalTokens} total)`);
+      console.log(`[Generate] 💰 Cost: $${totalCost.toFixed(6)} ($${inputCost.toFixed(6)} in + $${outputCost.toFixed(6)} out)`);
+
+      if (!raw) throw new Error('Empty AI response');
 
       // 3. Parse and sanitize the deck
       let deck: Deck;
@@ -267,7 +291,7 @@ const generateWorker = new Worker(
         throw new Error('Invalid JSON from AI');
       }
 
-      logToFile('======== PARSED DECK (Before Sanitization) ========', deck);
+      // Deck parsed successfully
 
       // SAVE TO SUPABASE with real user ID
       if (supabase) {
@@ -300,28 +324,10 @@ const generateWorker = new Worker(
 
       console.log(`[Generate] Deck has ${deck.slides.length} slides`);
 
-      // Log each slide's layout and content types
-      logToFile('======== SLIDE LAYOUTS & CONTENT ========');
-      deck.slides.forEach((slide, i) => {
-        const contentKeys = Object.keys(slide.content || {});
-        logToFile(`Slide ${i + 1}: layout="${slide.layout}" | content keys: [${contentKeys.join(', ')}]`);
-
-        // Log chart details if present
-        if (slide.content?.chart) {
-          logToFile(`  └─ Chart: type="${slide.content.chart.type}" | categories=[${slide.content.chart.categories?.join(', ')}] | series count=${slide.content.chart.series?.length}`);
-        }
-        // Log infographic details if present
-        if (slide.content?.infographic) {
-          logToFile(`  └─ Infographic: type="${slide.content.infographic.type}" | steps count=${slide.content.infographic.steps?.length}`);
-        }
-        // Log timeline details if present
-        if (slide.content?.timeline) {
-          logToFile(`  └─ Timeline: items count=${slide.content.timeline.items?.length}`);
-        }
-      });
+      // Slides processed
 
       // 4. Fetch images for each slide
-      console.log('[Generate] Fetching images from Unsplash...');
+      // Fetch Unsplash images silently
       deck.slides = await Promise.all(
         deck.slides.map(async (slide: Slide) => {
           let backgroundImage = '';
@@ -335,8 +341,7 @@ const generateWorker = new Worker(
         })
       );
 
-      // Log FINAL deck being sent to frontend
-      logToFile('======== FINAL DECK (Sent to Frontend) ========', deck);
+      // Generation complete
 
       console.log('[Generate] ✅ Generation complete');
 

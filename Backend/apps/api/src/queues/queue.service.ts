@@ -31,6 +31,14 @@ const connection = new IORedis(redisUrl, {
   maxRetriesPerRequest: null,
 });
 
+// Log Redis connection status
+connection.on('connect', () => {
+  console.log('[QueueService] ✅ Redis connected successfully');
+});
+connection.on('error', (err) => {
+  console.error('[QueueService] ❌ Redis connection error:', err.message);
+});
+
 @Injectable()
 export class QueueService {
   readonly generateQueue = new Queue('generate', { connection });

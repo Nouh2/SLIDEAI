@@ -5,9 +5,15 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
 // apps/api/src/queues/queue.service.ts
+import 'dotenv/config'; // Load env vars FIRST
 import { Injectable } from '@nestjs/common';
 import { Queue, QueueEvents } from 'bullmq';
 import IORedis from 'ioredis';
+import * as path from 'path';
+import * as dotenv from 'dotenv';
+// Also try to load from apps/api/.env specifically
+dotenv.config({ path: path.resolve(process.cwd(), 'apps/api/.env') });
+dotenv.config({ path: path.resolve(process.cwd(), '.env') });
 // Build Redis URL from separate env vars if REDIS_URL not provided
 function getRedisUrl() {
     if (process.env.REDIS_URL) {
@@ -25,6 +31,13 @@ const redisUrl = getRedisUrl();
 console.log('[QueueService] Connecting to Redis:', redisUrl.replace(/:[^:@]+@/, ':***@')); // Hide password in logs
 const connection = new IORedis(redisUrl, {
     maxRetriesPerRequest: null,
+});
+// Log Redis connection status
+connection.on('connect', () => {
+    console.log('[QueueService] ✅ Redis connected successfully');
+});
+connection.on('error', (err) => {
+    console.error('[QueueService] ❌ Redis connection error:', err.message);
 });
 let QueueService = class QueueService {
     generateQueue = new Queue('generate', { connection });

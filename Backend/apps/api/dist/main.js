@@ -7,7 +7,7 @@ import cors from '@fastify/cors';
 import rateLimit from '@fastify/rate-limit';
 import { ConfigService } from '@nestjs/config';
 async function bootstrap() {
-    const app = await NestFactory.create(AppModule, new FastifyAdapter({ logger: true }), { snapshot: true });
+    const app = await NestFactory.create(AppModule, new FastifyAdapter({ logger: false }), { snapshot: true });
     const config = app.get(ConfigService);
     await app.register(fastifyHelmet, {
         contentSecurityPolicy: {

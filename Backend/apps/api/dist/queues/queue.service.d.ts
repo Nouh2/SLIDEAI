@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import { Queue, QueueEvents, JobsOptions } from 'bullmq';
 export declare class QueueService {
     readonly generateQueue: Queue<any, any, string, any, any, string>;

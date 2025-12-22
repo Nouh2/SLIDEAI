@@ -23,9 +23,11 @@ export async function getUnsplashImage(
     try {
         // Combine query with theme-specific keywords
         const fullQuery = `${query} ${styleKeywords}`.trim();
+        console.log(`[Unsplash] Searching for: "${fullQuery}"`);
+
         const url = `https://api.unsplash.com/photos/random?query=${encodeURIComponent(
             fullQuery
-        )}&orientation=landscape`;
+        )}&orientation=landscape&content_filter=high`;
 
         const response = await fetch(url, {
             headers: {
@@ -53,7 +55,10 @@ export async function getUnsplashImage(
         const data: any = await response.json();
 
         // Return the regular size URL (good balance of quality and size)
-        return data.urls?.regular || data.urls?.full || fallback;
+        const imageUrl = data.urls?.regular || data.urls?.full || fallback;
+        console.log(`[Unsplash] ✅ Found image: ${imageUrl.slice(0, 50)}...`);
+        return imageUrl;
+
     } catch (error) {
         console.error('[Unsplash] Exception:', error);
         return fallback;

@@ -328,40 +328,36 @@ All colors MUST be HSL.
   }
 
   /* ========== TEXT COLOR OVERRIDES FOR LIGHT MODE ========== */
-  /* Ensure all white/light text becomes dark in light mode */
-
+  /* DISABLED: These overrides break presentation slides that need light text on dark backgrounds even in light mode */
+  
   /* All white text variations */
+  /*
   .text-white,
   [class*="text-white"] {
     color: hsl(var(--text)) !important;
   }
+  */
 
   /* Foreground colors that should be dark */
+  /*
   .text-primary-foreground,
   .text-secondary-foreground,
   .text-accent-foreground {
     color: hsl(var(--text)) !important;
   }
-
-  /* Button text on gradient backgrounds - REMOVED to allow black text */
-  /* Commented out to allow text-foreground (black) on buttons */
-  /*
-  button.bg-gradient-primary,
-  button[class*="bg-gradient"],
-  .bg-gradient-primary,
-  [class*="bg-gradient"] {
-    color: white !important;
-  }
   */
 
   /* Specific utility classes */
+  /*
   .text-foreground\/60,
   .text-foreground\/80,
   .text-foreground\/90 {
     color: hsl(var(--text) / 0.7) !important;
   }
+  */
 
   /* Headings and important text */
+  /*
   h1,
   h2,
   h3,
@@ -370,17 +366,12 @@ All colors MUST be HSL.
   h6 {
     color: hsl(var(--text)) !important;
   }
+  */
 
   /* Paragraph text */
+  /*
   p {
     color: hsl(var(--text)) !important;
-  }
-
-  /* Links - REMOVED to allow custom colors on nav links */
-  /* Commented out to allow navigation links to be black */
-  /*
-  a:not(.btn):not(button) {
-    color: hsl(var(--primary)) !important;
   }
   */
 }

@@ -7,6 +7,13 @@ interface SlideRendererProps {
     slide: any;
     theme: string;
     className?: string;
+    colorPalette?: {
+        primary: string;
+        secondary: string;
+        accent: string;
+        bg: string;
+        text: string;
+    };
 }
 
 // ============================================
@@ -148,14 +155,14 @@ const CoverHeroLayout = ({ slide, colors }: { slide: any; colors: any }) => (
                         word.toLowerCase().includes(kw)
                     );
                     return isKeyword ?
-                        <span key={i} className="text-gradient">{word} </span> :
-                        <span key={i} className="text-foreground">{word} </span>;
+                        <span key={i} style={{ color: colors.primary }}>{word} </span> :
+                        <span key={i} style={{ color: colors.text }}>{word} </span>;
                 })}
             </h1>
 
             {(slide.subtitle || slide.content?.subtitle) && (
                 <div className="inline-block px-12 py-6 rounded-full bg-surface border border-border shadow-md">
-                    <p className="text-3xl text-foreground/80">{slide.subtitle || slide.content?.subtitle}</p>
+                    <p className="text-3xl opacity-80" style={{ color: colors.text }}>{slide.subtitle || slide.content?.subtitle}</p>
                 </div>
             )}
 
@@ -164,8 +171,8 @@ const CoverHeroLayout = ({ slide, colors }: { slide: any; colors: any }) => (
                 <ul className="mt-10 space-y-3 text-left">
                     {(slide.bullets || slide.content?.bullets || []).slice(0, 4).map((bullet: string, i: number) => (
                         <li key={i} className="flex items-center gap-4">
-                            <span className="w-3 h-3 rounded-full bg-primary" />
-                            <span className="text-2xl text-foreground/80">{bullet}</span>
+                            <span className="w-3 h-3 rounded-full" style={{ backgroundColor: colors.primary }} />
+                            <span className="text-2xl opacity-80" style={{ color: colors.text }}>{bullet}</span>
                         </li>
                     ))}
                 </ul>
@@ -182,7 +189,7 @@ const SectionDividerLayout = ({ slide, colors }: { slide: any; colors: any }) =>
         <AbstractShapes colors={colors} />
 
         <div className="relative z-10 flex items-center justify-center h-full px-20 pb-32">
-            <h2 className="text-7xl md:text-8xl font-bold text-gradient text-center">
+            <h2 className="text-7xl md:text-8xl font-bold text-center" style={{ color: colors.primary }}>
                 {slide.title}
             </h2>
         </div>
@@ -201,22 +208,22 @@ const ContentBulletsLayout = ({ slide, colors }: { slide: any; colors: any }) =>
             <AbstractShapes colors={colors} />
 
             <div className="relative z-10 flex flex-col px-20 pt-16 pb-24 h-full">
-                <h2 className="text-6xl md:text-7xl font-bold text-foreground mb-16">
+                <h2 className="text-6xl md:text-7xl font-bold mb-16" style={{ color: colors.text }}>
                     {slide.title}
                 </h2>
 
                 <div className="flex-1 flex flex-col md:flex-row gap-16">
                     <div className="flex-1 space-y-8">
                         {subtitle && (
-                            <p className="text-3xl text-foreground/70 mb-8">{subtitle}</p>
+                            <p className="text-3xl mb-8 opacity-70" style={{ color: colors.text }}>{subtitle}</p>
                         )}
 
                         {bullets.length > 0 && (
                             <ul className="space-y-6">
                                 {bullets.map((bullet: string, i: number) => (
                                     <li key={i} className="flex items-start gap-6">
-                                        <span className="w-3 h-3 rounded-full mt-3 flex-shrink-0 bg-primary" />
-                                        <span className="text-2xl text-foreground/90 leading-relaxed">{bullet}</span>
+                                        <span className="w-3 h-3 rounded-full mt-3 flex-shrink-0" style={{ backgroundColor: colors.primary }} />
+                                        <span className="text-2xl leading-relaxed opacity-90" style={{ color: colors.text }}>{bullet}</span>
                                     </li>
                                 ))}
                             </ul>
@@ -251,7 +258,7 @@ const StatsLayout = ({ slide, colors }: { slide: any; colors: any }) => {
             <AbstractShapes colors={colors} />
 
             <div className="relative z-10 flex flex-col px-20 pt-16 pb-24 h-full">
-                <h2 className="text-6xl md:text-7xl font-bold text-foreground mb-16 text-center">
+                <h2 className="text-6xl md:text-7xl font-bold mb-16 text-center" style={{ color: colors.text }}>
                     {slide.title}
                 </h2>
 
@@ -261,8 +268,8 @@ const StatsLayout = ({ slide, colors }: { slide: any; colors: any }) => {
                             key={i}
                             className="bg-surface/80 backdrop-blur-md rounded-3xl p-8 border border-border shadow-lg flex flex-col items-center justify-center text-center"
                         >
-                            <p className="text-5xl md:text-6xl font-bold text-gradient mb-4">{stat.value}</p>
-                            <p className="text-xl text-muted-foreground">{stat.label}</p>
+                            <p className="text-5xl md:text-6xl font-bold mb-4" style={{ color: colors.primary }}>{stat.value}</p>
+                            <p className="text-xl opacity-80" style={{ color: colors.text }}>{stat.label}</p>
                         </div>
                     ))}
                 </div>
@@ -277,8 +284,27 @@ const StatsLayout = ({ slide, colors }: { slide: any; colors: any }) => {
 const ChartLayout = ({ slide, colors }: { slide: any; colors: any }) => {
     const chart = slide.chart || slide.content?.chart;
 
-    // Chart colors palette
-    const chartColors = ['#2563EB', '#7C3AED', '#10B981', '#F59E0B', '#EF4444', '#EC4899'];
+    // Generate dynamic chart colors from theme palette
+    const generateChartColors = () => {
+        const baseColors = [colors.primary, colors.secondary, colors.accent];
+        const variations: string[] = [];
+
+        // Create variations by adjusting opacity/brightness
+        baseColors.forEach(color => {
+            variations.push(color);
+            // Add a lighter version
+            variations.push(color + 'CC'); // 80% opacity variant
+        });
+
+        // Fallback if we need more colors
+        while (variations.length < 10) {
+            variations.push(colors.primary);
+        }
+
+        return variations;
+    };
+
+    const chartColors = generateChartColors();
 
     // Debug logging
     console.log('[ChartLayout] Slide:', slide.title);
@@ -352,10 +378,11 @@ const ChartLayout = ({ slide, colors }: { slide: any; colors: any }) => {
                                             <div key={i} className="flex flex-col items-center gap-4 flex-1">
                                                 <span className="text-xl font-bold" style={{ color: chartColors[i % chartColors.length] }}>{value}</span>
                                                 <div
-                                                    className="w-full max-w-24 rounded-t-xl transition-all"
+                                                    className="w-full max-w-24 rounded-t-xl transition-all shadow-lg"
                                                     style={{
                                                         height: `${height * 3}px`,
                                                         backgroundColor: chartColors[i % chartColors.length],
+                                                        boxShadow: `0 4px 20px ${chartColors[i % chartColors.length]}40`
                                                     }}
                                                 />
                                                 <span className="text-lg" style={{ color: colors.text, opacity: 0.7 }}>{cat}</span>
@@ -370,11 +397,11 @@ const ChartLayout = ({ slide, colors }: { slide: any; colors: any }) => {
                         {(chart.type === 'pie' || chart.type === 'donut') && (
                             <div className="flex items-center gap-16">
                                 <div
-                                    className="w-80 h-80 rounded-full relative flex items-center justify-center"
+                                    className="w-80 h-80 rounded-full relative flex items-center justify-center shadow-2xl"
                                     style={{ background: getPieGradient() }}
                                 >
                                     {chart.type === 'donut' && (
-                                        <div className="w-40 h-40 rounded-full" style={{ backgroundColor: colors.bg }} />
+                                        <div className="w-40 h-40 rounded-full shadow-inner" style={{ backgroundColor: colors.bg }} />
                                     )}
                                 </div>
                                 <div className="space-y-4">
@@ -384,7 +411,7 @@ const ChartLayout = ({ slide, colors }: { slide: any; colors: any }) => {
                                         const percentage = Math.round((value / total) * 100);
                                         return (
                                             <div key={i} className="flex items-center gap-3">
-                                                <div className="w-5 h-5 rounded" style={{ backgroundColor: chartColors[i % chartColors.length] }} />
+                                                <div className="w-5 h-5 rounded shadow-sm" style={{ backgroundColor: chartColors[i % chartColors.length] }} />
                                                 <span className="text-xl" style={{ color: colors.text }}>
                                                     {cat}: <strong>{value}</strong> ({percentage}%)
                                                 </span>
@@ -448,7 +475,7 @@ const ChartLayout = ({ slide, colors }: { slide: any; colors: any }) => {
 };
 
 
-// Table layout - Structured data
+// Table layout - Modern glassmorphism design
 const TableLayout = ({ slide, colors }: { slide: any; colors: any }) => {
     const table = slide.table || slide.content?.table;
 
@@ -456,20 +483,26 @@ const TableLayout = ({ slide, colors }: { slide: any; colors: any }) => {
         <div className="relative w-full h-full overflow-hidden" style={{ backgroundColor: colors.bg }}>
             <AbstractShapes colors={colors} />
 
-            <div className="relative z-10 flex flex-col px-20 pt-16 pb-24 h-full">
-                <h2 className="text-5xl md:text-6xl font-bold text-foreground mb-12">
+            <div className="relative z-10 flex flex-col items-center justify-center px-16 py-12 h-full">
+                <h2 className="text-5xl md:text-6xl font-bold mb-12 text-center" style={{ color: colors.text }}>
                     {slide.title}
                 </h2>
 
                 {table ? (
-                    <div className="flex-1 overflow-auto">
-                        <table className="w-full border-collapse">
+                    <div className="w-full max-w-5xl backdrop-blur-md rounded-3xl overflow-hidden shadow-2xl border"
+                        style={{
+                            backgroundColor: `${colors.bg}90`,
+                            borderColor: `${colors.primary}30`,
+                            boxShadow: `0 25px 50px -12px ${colors.primary}20`
+                        }}>
+                        <table className="w-full">
                             <thead>
-                                <tr>
+                                <tr style={{ backgroundColor: colors.primary }}>
                                     {table.columns?.map((col: string, i: number) => (
                                         <th
                                             key={i}
-                                            className="px-8 py-6 text-left text-xl font-bold text-white bg-primary rounded-t-lg first:rounded-tl-2xl last:rounded-tr-2xl"
+                                            className="px-8 py-6 text-left text-lg font-bold uppercase tracking-wider"
+                                            style={{ color: '#ffffff' }}
                                         >
                                             {col}
                                         </th>
@@ -478,11 +511,19 @@ const TableLayout = ({ slide, colors }: { slide: any; colors: any }) => {
                             </thead>
                             <tbody>
                                 {table.rows?.map((row: string[], rowIdx: number) => (
-                                    <tr key={rowIdx} style={{ backgroundColor: rowIdx % 2 === 0 ? `${colors.primary}10` : colors.bg }}>
+                                    <tr
+                                        key={rowIdx}
+                                        className="transition-colors hover:bg-white/10"
+                                        style={{
+                                            backgroundColor: rowIdx % 2 === 0 ? `${colors.primary}08` : 'transparent',
+                                            borderBottom: `1px solid ${colors.text}10`
+                                        }}
+                                    >
                                         {row.map((cell: string, cellIdx: number) => (
                                             <td
                                                 key={cellIdx}
-                                                className="px-8 py-5 text-lg text-foreground border-b border-border"
+                                                className="px-8 py-5 text-lg"
+                                                style={{ color: colors.text }}
                                             >
                                                 {cell}
                                             </td>
@@ -493,7 +534,7 @@ const TableLayout = ({ slide, colors }: { slide: any; colors: any }) => {
                         </table>
                     </div>
                 ) : (
-                    <div className="flex-1 flex items-center justify-center text-muted-foreground text-2xl">
+                    <div className="flex-1 flex items-center justify-center text-2xl" style={{ color: colors.text, opacity: 0.6 }}>
                         Table data not available
                     </div>
                 )}
@@ -503,6 +544,7 @@ const TableLayout = ({ slide, colors }: { slide: any; colors: any }) => {
         </div>
     );
 };
+
 
 // Timeline layout - Process steps
 const TimelineLayout = ({ slide, colors }: { slide: any; colors: any }) => {
@@ -514,30 +556,30 @@ const TimelineLayout = ({ slide, colors }: { slide: any; colors: any }) => {
             <AbstractShapes colors={colors} />
 
             <div className="relative z-10 flex flex-col px-20 pt-16 pb-24 h-full">
-                <h2 className="text-5xl md:text-6xl font-bold text-foreground mb-16">
+                <h2 className="text-5xl md:text-6xl font-bold mb-16" style={{ color: colors.text }}>
                     {slide.title}
                 </h2>
 
                 <div className="flex-1 flex items-center">
                     <div className="w-full relative">
                         {/* Timeline line */}
-                        <div className="absolute top-1/2 left-0 right-0 h-1 bg-primary/30 transform -translate-y-1/2" />
+                        <div className="absolute top-1/2 left-0 right-0 h-1 transform -translate-y-1/2" style={{ backgroundColor: `${colors.primary}40` }} />
 
                         {/* Timeline items */}
                         <div className="relative flex justify-between">
                             {items.slice(0, 5).map((item: any, i: number) => (
                                 <div key={i} className="flex flex-col items-center max-w-[200px]">
                                     {/* Date above */}
-                                    <span className="text-lg font-bold text-primary mb-4">{item.date}</span>
+                                    <span className="text-lg font-bold mb-4" style={{ color: colors.primary }}>{item.date}</span>
 
                                     {/* Circle node */}
-                                    <div className="w-8 h-8 rounded-full bg-primary border-4 border-background shadow-lg z-10" />
+                                    <div className="w-8 h-8 rounded-full border-4 shadow-lg z-10" style={{ backgroundColor: colors.primary, borderColor: colors.bg }} />
 
                                     {/* Title and description below */}
                                     <div className="mt-4 text-center">
-                                        <h4 className="text-xl font-bold text-foreground">{item.title}</h4>
+                                        <h4 className="text-xl font-bold" style={{ color: colors.text }}>{item.title}</h4>
                                         {item.description && (
-                                            <p className="text-base text-muted-foreground mt-2">{item.description}</p>
+                                            <p className="text-base mt-2" style={{ color: colors.text, opacity: 0.7 }}>{item.description}</p>
                                         )}
                                     </div>
                                 </div>
@@ -566,23 +608,23 @@ const ComparisonLayout = ({ slide, colors }: { slide: any; colors: any }) => {
             <AbstractShapes colors={colors} />
 
             <div className="relative z-10 flex flex-col px-20 pt-16 pb-24 h-full">
-                <h2 className="text-5xl md:text-6xl font-bold text-foreground mb-12 text-center">
+                <h2 className="text-5xl md:text-6xl font-bold mb-12 text-center" style={{ color: colors.text }}>
                     {slide.title}
                 </h2>
 
                 <div className="flex-1 grid grid-cols-2 gap-12">
                     {/* Left side */}
                     {left && (
-                        <div className="bg-surface/80 backdrop-blur-md rounded-3xl p-10 border border-border shadow-lg">
-                            <h3 className="text-3xl font-bold text-foreground mb-6">{left.title}</h3>
+                        <div className="backdrop-blur-md rounded-3xl p-10 border shadow-lg" style={{ backgroundColor: `${colors.bg}40`, borderColor: `${colors.text}20` }}>
+                            <h3 className="text-3xl font-bold mb-6" style={{ color: colors.text }}>{left.title}</h3>
                             {left.subtitle && (
-                                <p className="text-xl text-muted-foreground mb-6">{left.subtitle}</p>
+                                <p className="text-xl mb-6" style={{ color: colors.text, opacity: 0.8 }}>{left.subtitle}</p>
                             )}
                             <ul className="space-y-4">
                                 {(left.items || []).map((item: string, j: number) => (
                                     <li key={j} className="flex items-start gap-4">
-                                        <span className="w-3 h-3 rounded-full mt-2 bg-muted-foreground" />
-                                        <span className="text-xl text-foreground/90">{item}</span>
+                                        <span className="w-3 h-3 rounded-full mt-2" style={{ backgroundColor: colors.secondary }} />
+                                        <span className="text-xl" style={{ color: colors.text, opacity: 0.9 }}>{item}</span>
                                     </li>
                                 ))}
                             </ul>
@@ -591,16 +633,16 @@ const ComparisonLayout = ({ slide, colors }: { slide: any; colors: any }) => {
 
                     {/* Right side (highlighted) */}
                     {right && (
-                        <div className="bg-primary/5 backdrop-blur-md rounded-3xl p-10 border-2 border-primary shadow-lg">
-                            <h3 className="text-3xl font-bold text-primary mb-6">{right.title}</h3>
+                        <div className="backdrop-blur-md rounded-3xl p-10 border-2 shadow-lg" style={{ borderColor: colors.primary, backgroundColor: `${colors.primary}10` }}>
+                            <h3 className="text-3xl font-bold mb-6" style={{ color: colors.primary }}>{right.title}</h3>
                             {right.subtitle && (
-                                <p className="text-xl text-muted-foreground mb-6">{right.subtitle}</p>
+                                <p className="text-xl mb-6 opacity-80" style={{ color: colors.text }}>{right.subtitle}</p>
                             )}
                             <ul className="space-y-4">
                                 {(right.items || []).map((item: string, j: number) => (
                                     <li key={j} className="flex items-start gap-4">
-                                        <span className="w-3 h-3 rounded-full mt-2 bg-primary" />
-                                        <span className="text-xl text-foreground/90">{item}</span>
+                                        <span className="w-3 h-3 rounded-full mt-2" style={{ backgroundColor: colors.primary }} />
+                                        <span className="text-xl" style={{ color: colors.text, opacity: 0.9 }}>{item}</span>
                                     </li>
                                 ))}
                             </ul>
@@ -615,19 +657,31 @@ const ComparisonLayout = ({ slide, colors }: { slide: any; colors: any }) => {
 };
 
 // Infographic layout - Funnels, pyramids, processes
+// Infographic layout - Funnels, pyramids, processes
 const InfographicLayout = ({ slide, colors }: { slide: any; colors: any }) => {
     const infographic = slide.infographic || slide.content?.infographic;
     const steps = infographic?.steps || [];
     const type = infographic?.type || 'funnel';
 
-    const chartColors = ['#2563EB', '#7C3AED', '#10B981', '#F59E0B', '#EF4444'];
+    // Use theme chart colors or fallback to generated variations of primary/secondary
+    const themeCharts = colors.chartColors || [colors.primary, colors.secondary, colors.accent];
+
+    // Ensure we have enough colors by rotating/opacity if needed
+    const getStepColor = (index: number) => {
+        if (colors.chartColors && colors.chartColors.length > 0) {
+            return colors.chartColors[index % colors.chartColors.length];
+        }
+        // Fallback generation
+        const base = index % 2 === 0 ? colors.primary : colors.secondary;
+        return base;
+    };
 
     return (
         <div className="relative w-full h-full overflow-hidden" style={{ backgroundColor: colors.bg }}>
             <AbstractShapes colors={colors} />
 
             <div className="relative z-10 flex flex-col px-20 pt-16 pb-24 h-full">
-                <h2 className="text-5xl md:text-6xl font-bold text-foreground mb-12">
+                <h2 className="text-5xl md:text-6xl font-bold mb-12" style={{ color: colors.text }}>
                     {slide.title}
                 </h2>
 
@@ -639,13 +693,14 @@ const InfographicLayout = ({ slide, colors }: { slide: any; colors: any }) => {
                                 return (
                                     <div
                                         key={i}
-                                        className="h-20 rounded-lg flex items-center justify-center text-white font-bold text-xl transition-all"
+                                        className="h-20 rounded-lg flex items-center justify-center text-white font-bold text-xl transition-all shadow-lg backdrop-blur-sm bg-opacity-90"
                                         style={{
                                             width: `${widthPercent}%`,
-                                            backgroundColor: chartColors[i % chartColors.length],
+                                            backgroundColor: getStepColor(i),
+                                            color: '#ffffff' // Always white text on colored bars
                                         }}
                                     >
-                                        {step.label}: {step.value}
+                                        <span className="drop-shadow-md">{step.label}: {step.value}</span>
                                     </div>
                                 );
                             })}
@@ -657,14 +712,14 @@ const InfographicLayout = ({ slide, colors }: { slide: any; colors: any }) => {
                             {steps.slice(0, 5).map((step: any, i: number) => (
                                 <div key={i} className="flex items-center">
                                     <div
-                                        className="w-36 h-36 rounded-2xl flex flex-col items-center justify-center text-white p-4"
-                                        style={{ backgroundColor: chartColors[i % chartColors.length] }}
+                                        className="w-36 h-36 rounded-2xl flex flex-col items-center justify-center text-white p-4 shadow-xl"
+                                        style={{ backgroundColor: getStepColor(i) }}
                                     >
                                         <span className="text-4xl font-bold">{i + 1}</span>
-                                        <span className="text-sm text-center mt-2">{step.label}</span>
+                                        <span className="text-sm text-center mt-2 font-medium">{step.label}</span>
                                     </div>
                                     {i < steps.length - 1 && (
-                                        <div className="w-12 h-1 bg-muted-foreground mx-2" />
+                                        <div className="w-12 h-1 mx-2 opacity-30" style={{ backgroundColor: colors.text }} />
                                     )}
                                 </div>
                             ))}
@@ -678,10 +733,10 @@ const InfographicLayout = ({ slide, colors }: { slide: any; colors: any }) => {
                                 return (
                                     <div
                                         key={i}
-                                        className="h-16 rounded-lg flex items-center justify-center text-white font-bold text-lg"
+                                        className="h-16 rounded-lg flex items-center justify-center text-white font-bold text-lg shadow-md"
                                         style={{
                                             width: `${widthPercent}%`,
-                                            backgroundColor: chartColors[(steps.length - 1 - i) % chartColors.length],
+                                            backgroundColor: getStepColor(steps.length - 1 - i),
                                         }}
                                     >
                                         {step.label}
@@ -699,6 +754,7 @@ const InfographicLayout = ({ slide, colors }: { slide: any; colors: any }) => {
 };
 
 // Quote layout - Testimonial or key quote
+// Quote layout - Testimonial or key quote
 const QuoteLargeLayout = ({ slide, colors }: { slide: any; colors: any }) => {
     const quote = slide.quote || slide.content?.quote;
 
@@ -707,12 +763,12 @@ const QuoteLargeLayout = ({ slide, colors }: { slide: any; colors: any }) => {
             <AbstractShapes colors={colors} />
 
             <div className="relative z-10 flex flex-col items-center justify-center h-full px-32 pb-32 text-center">
-                <div className="text-9xl text-muted-foreground/20 mb-10">"</div>
-                <p className="text-5xl md:text-6xl font-medium text-foreground mb-12 leading-relaxed">
+                <div className="text-9xl mb-10 opacity-20" style={{ color: colors.text }}>"</div>
+                <p className="text-5xl md:text-6xl font-medium mb-12 leading-relaxed" style={{ color: colors.text }}>
                     {quote?.text || slide.title}
                 </p>
                 {quote?.author && (
-                    <p className="text-3xl text-muted-foreground">
+                    <p className="text-3xl opacity-80" style={{ color: colors.textSecondary || colors.text }}>
                         — {quote.author}{quote.role ? `, ${quote.role}` : ''}
                     </p>
                 )}
@@ -723,44 +779,7 @@ const QuoteLargeLayout = ({ slide, colors }: { slide: any; colors: any }) => {
     );
 };
 
-// Bento grid layout - Feature cards
-const BentoGridLayout = ({ slide, colors }: { slide: any; colors: any }) => {
-    const items = slide.items || slide.content?.items || [];
-    const bullets = slide.bullets || slide.content?.bullets || [];
 
-    // Convert bullets to items if no items exist
-    const displayItems = items.length > 0 ? items :
-        bullets.slice(0, 6).map((b: string, i: number) => ({ title: `Feature ${i + 1}`, value: b }));
-
-    return (
-        <div className="relative w-full h-full overflow-hidden" style={{ backgroundColor: colors.bg }}>
-            <AbstractShapes colors={colors} />
-
-            <div className="relative z-10 flex flex-col px-20 pt-16 pb-24 h-full">
-                <h2 className="text-5xl md:text-6xl font-bold text-foreground mb-12">
-                    {slide.title}
-                </h2>
-
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-6 flex-1">
-                    {displayItems.slice(0, 6).map((item: any, i: number) => (
-                        <div
-                            key={i}
-                            className="bg-surface/80 backdrop-blur-md rounded-3xl p-8 border border-border shadow-lg flex flex-col hover:shadow-xl hover:border-primary/30 transition-all"
-                        >
-                            <div className="w-14 h-14 rounded-full bg-primary/10 text-primary flex items-center justify-center text-2xl font-bold mb-4">
-                                {String(i + 1).padStart(2, '0')}
-                            </div>
-                            <h3 className="text-2xl font-bold text-foreground mb-2">{item.title}</h3>
-                            <p className="text-lg text-muted-foreground flex-1">{item.value || item.description}</p>
-                        </div>
-                    ))}
-                </div>
-            </div>
-
-            <SlideFooter title={slide.title} slideNumber={11} colors={colors} />
-        </div>
-    );
-};
 
 // Image focus layout - Hero image with overlay
 const ImageFocusLayout = ({ slide, colors }: { slide: any; colors: any }) => (
@@ -791,23 +810,493 @@ const ImageFocusLayout = ({ slide, colors }: { slide: any; colors: any }) => (
     </div>
 );
 
+// Bento Grid Layout - Modern CSS Grid features
+const BentoGridLayout = ({ slide, colors }: { slide: any; colors: any }) => {
+    const items = slide.content?.items || slide.items || [];
+    // Ensure we have at least 3 items to look good, max 5 for this specific layout
+    const displayItems = items.slice(0, 5);
+
+    return (
+        <div className="relative w-full h-full overflow-hidden" style={{ backgroundColor: colors.bg }}>
+            <AbstractShapes colors={colors} variant="bento" />
+
+            <div className="relative z-10 flex flex-col px-16 py-12 h-full">
+                <h2 className="text-5xl font-bold mb-8" style={{ color: colors.text }}>
+                    {slide.title}
+                </h2>
+
+                <div className="flex-1 grid grid-cols-6 grid-rows-2 gap-6">
+                    {displayItems.map((item: any, i: number) => {
+                        // Dynamic spanning logic for bento feel
+                        const isLarge = i === 0;
+                        const isWide = i === 3;
+                        const colSpan = isLarge ? "col-span-3" : isWide ? "col-span-3" : "col-span-2";
+                        const rowSpan = isLarge ? "row-span-2" : "row-span-1";
+
+                        return (
+                            <div
+                                key={i}
+                                className={`${colSpan} ${rowSpan} rounded-3xl p-8 flex flex-col justify-between transition-all hover:scale-[1.02] border backdrop-blur-sm bg-white/5`}
+                                style={{
+                                    borderColor: `${colors.text}20`,
+                                    boxShadow: `0 8px 32px 0 ${colors.text}05`
+                                }}
+                            >
+                                <div className="flex items-start justify-between mb-4">
+                                    <div className="w-10 h-10 rounded-full flex items-center justify-center opacity-80" style={{ backgroundColor: `${colors.secondary}20` }}>
+                                        <span className="text-xl" role="img" aria-label="icon">✨</span>
+                                    </div>
+                                    {item.value && (
+                                        <span className="text-2xl font-bold" style={{ color: colors.primary }}>{item.value}</span>
+                                    )}
+                                </div>
+                                <div>
+                                    <h3 className="text-2xl font-bold mb-2" style={{ color: colors.text }}>{item.title}</h3>
+                                    {item.description && (
+                                        <p className="text-lg opacity-70" style={{ color: colors.text }}>{item.description}</p>
+                                    )}
+                                </div>
+                            </div>
+                        );
+                    })}
+                </div>
+            </div>
+            <SlideFooter title={slide.title} slideNumber={8} colors={colors} />
+        </div>
+    );
+};
+
+// Product Showcase Layout - Tech focused
+const ProductShowcaseLayout = ({ slide, colors }: { slide: any; colors: any }) => {
+    const items = slide.content?.items || slide.items || [];
+    const mainImage = slide.backgroundImage || slide.imageSearchQuery ? `https://source.unsplash.com/1600x900/?${encodeURIComponent(slide.imageSearchQuery || 'technology')}` : null;
+
+    return (
+        <div className="relative w-full h-full overflow-hidden" style={{ backgroundColor: colors.bg }}>
+            {/* Dark technical grid background */}
+            <div className="absolute inset-0 opacity-10"
+                style={{
+                    backgroundImage: `linear-gradient(${colors.text} 1px, transparent 1px), linear-gradient(90deg, ${colors.text} 1px, transparent 1px)`,
+                    backgroundSize: '40px 40px'
+                }}
+            />
+
+            <div className="relative z-10 flex flex-col h-full px-16 py-12">
+                <div className="text-center mb-12">
+                    <h2 className="text-5xl font-bold uppercase tracking-widest mb-4" style={{ color: colors.primary }}>
+                        {slide.title}
+                    </h2>
+                    {slide.subtitle && (
+                        <p className="text-xl opacity-80" style={{ color: colors.text }}>{slide.subtitle}</p>
+                    )}
+                </div>
+
+                <div className="flex-1 relative flex items-center justify-center">
+                    {/* Central Product Placeholder / Image */}
+                    <div className="w-[600px] h-[400px] rounded-2xl relative z-20 shadow-2xl skew-x-12 border-2 group transition-all hover:skew-x-0 duration-700"
+                        style={{
+                            backgroundColor: colors.bg,
+                            borderColor: colors.primary,
+                            boxShadow: `0 0 50px ${colors.primary}40`
+                        }}>
+                        {mainImage && (
+                            <img src={mainImage} alt="Product" className="w-full h-full object-cover rounded-xl opacity-80 group-hover:opacity-100 transition-opacity" />
+                        )}
+                        <div className="absolute inset-0 flex items-center justify-center">
+                            {!mainImage && <span className="text-4xl font-mono" style={{ color: colors.primary }}>PRODUCT_VIEW_[01]</span>}
+                        </div>
+                    </div>
+
+                    {/* Floating Features */}
+                    <div className="absolute inset-0 z-30 pointer-events-none">
+                        {items.slice(0, 4).map((item: any, i: number) => {
+                            // Position features in corners
+                            const positions = [
+                                'top-0 left-20',
+                                'top-0 right-20',
+                                'bottom-10 left-20',
+                                'bottom-10 right-20'
+                            ];
+                            return (
+                                <div key={i} className={`absolute ${positions[i]} max-w-xs pointer-events-auto`}>
+                                    <div className="flex items-center gap-4 mb-2">
+                                        <div className="w-8 h-8 flex items-center justify-center border rounded-full" style={{ borderColor: colors.secondary, color: colors.secondary }}>
+                                            {i + 1}
+                                        </div>
+                                        <h4 className="text-xl font-bold" style={{ color: colors.text }}>{item.title}</h4>
+                                    </div>
+                                    <div className="h-[1px] w-full mb-2 bg-gradient-to-r from-transparent via-primary to-transparent" style={{ backgroundImage: `linear-gradient(90deg, transparent, ${colors.primary}, transparent)` }} />
+                                    <p className="text-sm opacity-70" style={{ color: colors.text }}>{item.description || item.value}</p>
+                                </div>
+                            )
+                        })}
+                    </div>
+                </div>
+            </div>
+            <SlideFooter title={slide.title} slideNumber={9} colors={colors} />
+        </div>
+    );
+};
+
+// ============================================
+// MASTER CONTENT LAYOUT - THE VARIATION ENGINE
+// ============================================
+// Supports: Classic, Split Card, Hero Block, Minimal Offset, Magazine
+type MasterVariation = 'classic' | 'split-card' | 'hero-block' | 'minimal-offset' | 'magazine';
+
+const MasterContentLayout = ({ slide, colors, variation = 'classic' }: { slide: any; colors: any; variation?: MasterVariation }) => {
+    // Determine content
+    const bullets = slide.bullets || slide.content?.bullets || [];
+    const text = slide.text || slide.content?.text || slide.content?.description;
+    const hasImage = !!(slide.backgroundImage || slide.imageSearchQuery);
+    const imageSrc = slide.backgroundImage || (slide.imageSearchQuery ? `https://source.unsplash.com/1600x900/?${encodeURIComponent(slide.imageSearchQuery)}` : null);
+
+    // --- VARIATION 1: CLASSIC (Standard text left, image right) ---
+    if (variation === 'classic') {
+        return (
+            <div className="relative w-full h-full overflow-hidden" style={{ backgroundColor: colors.bg }}>
+                <AbstractShapes colors={colors} />
+                <div className="relative z-10 grid grid-cols-2 h-full">
+                    <div className="p-20 flex flex-col justify-center">
+                        <h2 className="text-5xl font-bold mb-8" style={{ color: colors.text }}>{slide.title}</h2>
+                        {text && <p className="text-xl mb-6 opacity-90" style={{ color: colors.text }}>{text}</p>}
+                        <ul className="space-y-4">
+                            {bullets.map((b: string, i: number) => (
+                                <li key={i} className="flex items-start gap-4">
+                                    <div className="w-2 h-2 rounded-full mt-3 flex-shrink-0" style={{ backgroundColor: colors.primary }} />
+                                    <span className="text-xl" style={{ color: colors.text }}>{b}</span>
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
+                    <div className="p-12 pl-0 flex items-center justify-center">
+                        {imageSrc ? (
+                            <img src={imageSrc} className="w-full h-5/6 object-cover rounded-3xl shadow-2xl rotate-2 hover:rotate-0 transition-all" alt={slide.title} />
+                        ) : (
+                            <div className="w-full h-5/6 rounded-3xl opacity-10" style={{ backgroundColor: colors.primary }} />
+                        )}
+                    </div>
+                </div>
+                <SlideFooter title={slide.title} slideNumber={2} colors={colors} />
+            </div>
+        );
+    }
+
+    // --- VARIATION 2: SPLIT CARD (Floating card on minimal bg) ---
+    if (variation === 'split-card') {
+        return (
+            <div className="relative w-full h-full overflow-hidden flex items-center justify-center p-20" style={{ backgroundColor: colors.bg }}>
+                {/* Background wash */}
+                <div className="absolute inset-0 opacity-30" style={{ background: `linear-gradient(135deg, ${colors.bg} 0%, ${colors.primary}20 100%)` }} />
+
+                <div className="relative z-10 w-full max-w-6xl h-5/6 rounded-[3rem] shadow-2xl overflow-hidden flex bg-white/80 backdrop-blur-xl border border-white/20">
+                    {/* Image Side */}
+                    <div className="w-2/5 relative">
+                        {imageSrc && <img src={imageSrc} className="absolute inset-0 w-full h-full object-cover" alt="" />}
+                        <div className="absolute inset-0 mix-blend-multiply opacity-40" style={{ backgroundColor: colors.primary }} />
+                    </div>
+                    {/* Content Side */}
+                    <div className="w-3/5 p-16 flex flex-col justify-center">
+                        <span className="text-sm font-bold tracking-widest uppercase mb-4 opacity-50" style={{ color: '#000000' }}>KEY INSIGHTS</span>
+                        <h2 className="text-4xl font-bold mb-8" style={{ color: '#000000' }}>{slide.title}</h2>
+                        <ul className="space-y-6">
+                            {bullets.map((b: string, i: number) => (
+                                <li key={i} className="flex items-center gap-4 p-4 rounded-xl hover:bg-black/5 transition-colors">
+                                    <span className="w-8 h-8 rounded-full flex items-center justify-center font-bold shadow-lg" style={{ backgroundColor: colors.secondary, color: '#ffffff' }}>{i + 1}</span>
+                                    <span className="text-lg font-medium opacity-80" style={{ color: '#000000' }}>{b}</span>
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    // --- VARIATION 3: HERO BLOCK (Image top, cards bottom) ---
+    if (variation === 'hero-block') {
+        return (
+            <div className="relative w-full h-full overflow-hidden flex flex-col" style={{ backgroundColor: colors.bg }}>
+                <div className="h-1/2 relative w-full overflow-hidden">
+                    {imageSrc && <img src={imageSrc} className="w-full h-full object-cover" alt="" />}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent flex items-end p-16">
+                        <h2 className="text-6xl font-bold shadow-sm" style={{ color: '#ffffff' }}>{slide.title}</h2>
+                    </div>
+                </div>
+                <div className="flex-1 p-12 grid grid-cols-3 gap-8 items-start">
+                    {bullets.slice(0, 3).map((b: string, i: number) => (
+                        <div key={i} className="p-8 rounded-2xl border h-full" style={{ borderColor: `${colors.text}20`, backgroundColor: `${colors.bg}` }}>
+                            <div className="w-12 h-1 h-1 mb-6" style={{ backgroundColor: colors.accent }} />
+                            <p className="text-xl leading-relaxed" style={{ color: colors.text }}>{b}</p>
+                        </div>
+                    ))}
+                </div>
+                <SlideFooter title={slide.title} slideNumber={3} colors={colors} />
+            </div>
+        );
+    }
+
+    // --- VARIATION 4: MAGAZINE (Typography focused) ---
+    if (variation === 'magazine') {
+        return (
+            <div className="relative w-full h-full overflow-hidden p-16 flex flex-col" style={{ backgroundColor: colors.bg }}>
+                <div className="w-full border-t-4 mb-12" style={{ borderColor: colors.primary }} />
+                <div className="flex-1 grid grid-cols-12 gap-12">
+                    <div className="col-span-5 flex flex-col">
+                        <h2 className="text-7xl font-black leading-tight mb-8" style={{ color: colors.text }}>
+                            {slide.title.split(' ').map((word: string, i: number) => (
+                                <span key={i} className="block">{word}</span>
+                            ))}
+                        </h2>
+                        <p className="text-lg opacity-60 mt-auto" style={{ color: colors.text }}>ISSUE 01 • {new Date().getFullYear()}</p>
+                    </div>
+                    <div className="col-span-7 relative">
+                        {imageSrc && (
+                            <div className="absolute right-0 top-0 w-3/4 h-3/4 z-0 opacity-20 filter grayscale">
+                                <img src={imageSrc} className="w-full h-full object-cover rounded-full" alt="" />
+                            </div>
+                        )}
+                        <div className="relative z-10 space-y-8 mt-12">
+                            {bullets.map((b: string, i: number) => (
+                                <div key={i} className="flex gap-6 border-b pb-6" style={{ borderColor: `${colors.text}20` }}>
+                                    <span className="text-4xl font-serif italic opacity-30" style={{ color: colors.secondary }}>0{i + 1}</span>
+                                    <p className="text-2xl font-medium pt-2" style={{ color: colors.text }}>{b}</p>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    // --- VARIATION 5: MINIMAL OFFSET (Clean, whitespace) ---
+    return (
+        <div className="relative w-full h-full overflow-hidden bg-white" style={{ backgroundColor: colors.bg }}>
+            <div className="absolute right-0 top-0 bottom-0 w-1/3 opacity-10" style={{ backgroundColor: colors.primary }} />
+            <div className="absolute w-32 h-32 rounded-full -top-16 -left-16 blur-2xl opacity-20" style={{ backgroundColor: colors.accent }} />
+
+            <div className="relative z-10 h-full p-24 flex flex-col justify-center max-w-5xl">
+                <span className="text-sm tracking-[0.3em] font-bold uppercase mb-6" style={{ color: colors.secondary }}>Overview</span>
+                <h2 className="text-5xl font-light mb-16 leading-tight" style={{ color: colors.text }}>
+                    {slide.title}
+                </h2>
+                <div className="grid grid-cols-2 gap-16">
+                    {bullets.map((b: string, i: number) => (
+                        <div key={i} className="flex flex-col">
+                            <div className="w-full h-[1px] mb-4 opacity-30" style={{ backgroundColor: colors.text }} />
+                            <p className="text-xl" style={{ color: colors.text }}>{b}</p>
+                        </div>
+                    ))}
+                </div>
+            </div>
+        </div>
+    );
+};
+
+// ============================================
+// MASTER COVER LAYOUT - THE VARIATION ENGINE
+// ============================================
+type CoverVariation = 'centered-minimal' | 'full-split' | 'diagonal-hero' | 'typographic-giant' | 'boxed-modern' | 'gradient-mesh' | 'dark-tech' | 'offset-gallery' | 'floating-glass' | 'cinematic';
+
+const MasterCoverLayout = ({ slide, colors, variation = 'centered-minimal' }: { slide: any; colors: any; variation?: CoverVariation }) => {
+    const subtitle = slide.subtitle || slide.content?.subtitle || slide.title?.split(':')[1] || "Presentation Deck";
+    const mainTitle = slide.title?.split(':')[0] || slide.title || "Untitled Presentation";
+    const imageSrc = slide.backgroundImage || (slide.imageSearchQuery ? `https://source.unsplash.com/1600x900/?${encodeURIComponent(slide.imageSearchQuery)}` : null);
+
+    // 1. CENTERED MINIMAL (Clean, safe)
+    if (variation === 'centered-minimal') {
+        return (
+            <div className="relative w-full h-full overflow-hidden flex flex-col items-center justify-center text-center p-20" style={{ backgroundColor: colors.bg }}>
+                <AbstractShapes colors={colors} />
+                <div className="relative z-10 max-w-4xl">
+                    <div className="w-24 h-1 mb-12 mx-auto" style={{ backgroundColor: colors.primary }} />
+                    <h1 className="text-7xl font-bold mb-8 tracking-tight" style={{ color: colors.text }}>{mainTitle}</h1>
+                    <p className="text-3xl font-light opacity-80" style={{ color: colors.text }}>{subtitle}</p>
+                </div>
+            </div>
+        );
+    }
+
+    // 2. FULL SPLIT (Image Left, Text Right)
+    if (variation === 'full-split') {
+        return (
+            <div className="relative w-full h-full overflow-hidden grid grid-cols-2" style={{ backgroundColor: colors.bg }}>
+                <div className="h-full relative">
+                    {imageSrc ? (
+                        <img src={imageSrc} className="w-full h-full object-cover" alt="" />
+                    ) : (
+                        <div className="w-full h-full" style={{ backgroundColor: colors.primary }} />
+                    )}
+                    <div className="absolute inset-0 bg-black/20" />
+                </div>
+                <div className="h-full flex flex-col justify-center p-20">
+                    <h1 className="text-7xl font-black mb-8 leading-tight" style={{ color: colors.text }}>{mainTitle}</h1>
+                    <p className="text-2xl opacity-70 mb-12" style={{ color: colors.text }}>{subtitle}</p>
+                    <div className="w-full h-px opacity-20" style={{ backgroundColor: colors.text }} />
+                    <div className="flex gap-4 mt-8">
+                        <div className="w-12 h-12 rounded-full border-2" style={{ borderColor: colors.primary }} />
+                        <div className="w-12 h-12 rounded-full border-2" style={{ borderColor: colors.secondary }} />
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    // 3. DIAGONAL HERO (Dynamic slice)
+    if (variation === 'diagonal-hero') {
+        return (
+            <div className="relative w-full h-full overflow-hidden" style={{ backgroundColor: colors.primary }}>
+                <div className="absolute inset-0 w-full h-full bg-white z-0" style={{ clipPath: 'polygon(0 0, 100% 0, 100% 85%, 0 45%)', backgroundColor: colors.bg }} />
+                <div className="absolute z-10 top-20 left-20 max-w-3xl">
+                    <h1 className="text-8xl font-black mb-4 drop-shadow-sm" style={{ color: colors.text }}>{mainTitle}</h1>
+                    <p className="text-3xl font-medium" style={{ color: colors.secondary }}>{subtitle}</p>
+                </div>
+                {imageSrc && (
+                    <div className="absolute bottom-0 right-0 w-2/3 h-2/3 object-cover z-20" style={{ clipPath: 'polygon(20% 0, 100% 0, 100% 100%, 0% 100%)' }}>
+                        <img src={imageSrc} className="w-full h-full object-cover" alt="" />
+                    </div>
+                )}
+            </div>
+        );
+    }
+
+    // 4. TYPOGRAPHIC GIANT (Swiss style)
+    if (variation === 'typographic-giant') {
+        return (
+            <div className="relative w-full h-full overflow-hidden p-16 bg-zinc-900 border-[20px]" style={{ backgroundColor: colors.text, borderColor: colors.bg }}>
+                <div className="h-full border-2 p-12 flex flex-col justify-between" style={{ borderColor: colors.bg }}>
+                    <div className="flex justify-between items-start">
+                        <span className="text-2xl font-mono" style={{ color: colors.bg }}>EST. {new Date().getFullYear()}</span>
+                        <div className="w-20 h-20 rounded-full animate-spin-slow" style={{ border: `2px dashed ${colors.bg}` }} />
+                    </div>
+                    <h1 className="text-[9rem] leading-[0.8] font-bold tracking-tighter" style={{ color: colors.bg }}>
+                        {mainTitle}
+                    </h1>
+                    <p className="text-3xl font-mono text-right" style={{ color: colors.bg }}>// {subtitle}</p>
+                </div>
+            </div>
+        );
+    }
+
+    // 5. BOXED MODERN (Card in center)
+    if (variation === 'boxed-modern') {
+        return (
+            <div className="relative w-full h-full overflow-hidden flex items-center justify-center" style={{ backgroundColor: colors.secondary }}>
+                {imageSrc && <img src={imageSrc} className="absolute inset-0 w-full h-full object-cover opacity-50 blur-sm" alt="" />}
+                <div className="relative z-10 bg-white p-24 shadow-2xl max-w-4xl text-center" style={{ backgroundColor: colors.bg }}>
+                    <div className="border-4 p-8 mb-8 inline-block" style={{ borderColor: colors.primary }}>
+                        <h1 className="text-6xl font-bold uppercase tracking-widest" style={{ color: colors.text }}>{mainTitle}</h1>
+                    </div>
+                    <p className="text-xl tracking-widest uppercase font-bold" style={{ color: colors.accent }}>{subtitle}</p>
+                </div>
+            </div>
+        );
+    }
+
+    // 6. GRADIENT MESH (Trendy, colorful)
+    if (variation === 'gradient-mesh') {
+        return (
+            <div className="relative w-full h-full overflow-hidden flex flex-col justify-end p-20" style={{ backgroundColor: colors.bg }}>
+                <div className="absolute top-0 right-0 w-[800px] h-[800px] rounded-full blur-[120px] opacity-40 mix-blend-multiply" style={{ backgroundColor: colors.primary }} />
+                <div className="absolute bottom-0 left-0 w-[600px] h-[600px] rounded-full blur-[100px] opacity-40 mix-blend-multiply" style={{ backgroundColor: colors.secondary }} />
+
+                <div className="relative z-10 backdrop-blur-sm bg-white/10 p-12 rounded-2xl border border-white/20 max-w-4xl">
+                    <h1 className="text-7xl font-bold mb-6" style={{ color: colors.text }}>{mainTitle}</h1>
+                    <div className="h-2 w-32 rounded-full mb-6" style={{ backgroundColor: colors.accent }} />
+                    <p className="text-2xl opacity-80" style={{ color: colors.text }}>{subtitle}</p>
+                </div>
+            </div>
+        );
+    }
+
+    // 7. DARK TECH (Cyberpunk feel)
+    if (variation === 'dark-tech') {
+        return (
+            <div className="relative w-full h-full overflow-hidden bg-black flex items-center p-24" style={{ backgroundColor: '#050505' }}>
+                <div className="absolute inset-0" style={{ backgroundImage: `radial-gradient(circle at 50% 50%, ${colors.primary}20 0%, transparent 50%)` }} />
+                <div className="grid grid-cols-12 gap-8 w-full z-10">
+                    <div className="col-span-8">
+                        <h1 className="text-8xl font-bold text-transparent bg-clip-text mb-8" style={{ backgroundImage: `linear-gradient(to right, #ffffff, ${colors.primary})` }}>
+                            {mainTitle}
+                        </h1>
+                        <p className="text-2xl font-mono border-l-2 border-gray-600 pl-6" style={{ color: '#9ca3af' }}>{subtitle}</p>
+                    </div>
+                </div>
+                <div className="absolute bottom-10 right-10 flex gap-2">
+                    {[1, 2, 3].map(i => <div key={i} className="w-2 h-2 bg-white rounded-full opacity-50" />)}
+                </div>
+            </div>
+        );
+    }
+
+    // 8. OFFSET GALLERY (Images + text blocks)
+    if (variation === 'offset-gallery') {
+        return (
+            <div className="relative w-full h-full overflow-hidden grid grid-cols-12 gap-4 p-8" style={{ backgroundColor: colors.bg }}>
+                <div className="col-span-8 row-span-2 relative rounded-3xl overflow-hidden">
+                    {imageSrc ? <img src={imageSrc} className="w-full h-full object-cover" alt="" /> : <div className="w-full h-full bg-gray-200" />}
+                    <div className="absolute bottom-0 left-0 p-12 bg-white/90 m-6 rounded-2xl">
+                        <h1 className="text-5xl font-bold" style={{ color: colors.primary }}>{mainTitle}</h1>
+                    </div>
+                </div>
+                <div className="col-span-4 bg-black rounded-3xl p-8 flex items-end" style={{ backgroundColor: colors.secondary }}>
+                    <p className="text-3xl font-medium leading-tight" style={{ color: '#ffffff' }}>{subtitle}</p>
+                </div>
+                <div className="col-span-4 rounded-3xl opacity-20" style={{ backgroundColor: colors.primary }} />
+            </div>
+        );
+    }
+
+    // 9. FLOATING GLASS (Premium)
+    if (variation === 'floating-glass') {
+        return (
+            <div className="relative w-full h-full overflow-hidden flex items-center justify-center" style={{ backgroundColor: colors.primary }}>
+                {imageSrc && <img src={imageSrc} className="absolute inset-0 w-full h-full object-cover opacity-60 mix-blend-overlay" alt="" />}
+                <div className="relative w-[90%] h-[80%] rounded-3xl border border-white/30 bg-white/10 backdrop-blur-lg shadow-2xl flex flex-col items-center justify-center text-center p-20">
+                    <span className="tracking-[0.5em] text-sm font-bold mb-12" style={{ color: '#ffffff' }}>PRESENTATION</span>
+                    <h1 className="text-8xl font-serif mb-12 drop-shadow-lg" style={{ color: '#ffffff' }}>{mainTitle}</h1>
+                    <button className="px-12 py-4 font-bold rounded-full hover:scale-105 transition-transform" style={{ backgroundColor: '#ffffff', color: '#000000' }}>START</button>
+                </div>
+            </div>
+        );
+    }
+
+    // 10. CINEMATIC (Movie poster style)
+    return (
+        <div className="relative w-full h-full overflow-hidden flex flex-col justify-end pb-32 px-24" style={{ backgroundColor: 'black' }}>
+            {imageSrc ? (
+                <img src={imageSrc} className="absolute inset-0 w-full h-full object-cover opacity-60" alt="" />
+            ) : (
+                <div className="absolute inset-0 opacity-20" style={{ background: `linear-gradient(45deg, ${colors.primary}, ${colors.secondary})` }} />
+            )}
+            <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent" />
+
+            <div className="relative z-10 border-l-8 pl-12" style={{ borderColor: colors.primary }}>
+                <h1 className="text-8xl font-bold mb-6 uppercase tracking-tight" style={{ color: '#ffffff' }}>{mainTitle}</h1>
+                <p className="text-4xl font-light mr-12" style={{ color: '#d1d5db' }}>{subtitle} <span className="text-sm align-top opacity-50">©2025</span></p>
+            </div>
+        </div>
+    );
+};
+
 // ============================================
 // MAIN COMPONENT
 // ============================================
 
-export const ModernSlideRenderer = ({ slide, theme, className }: SlideRendererProps) => {
+export const ModernSlideRenderer = ({ slide, theme, className, colorPalette }: SlideRendererProps) => {
     // Get template colors
-    const template = getTemplateById(theme) || {
-        colors: {
-            primary: '#1fb6ff',
-            secondary: '#1fb6ff',
-            accent: '#1fb6ff',
-            bg: '#ffffff',
-            text: '#09090b',
-        }
+    const template = getTemplateById(theme);
+
+    // Resolve colors: prefer dynamic palette, fallback to template, fallback to defaults
+    const colors = colorPalette || template?.colors || {
+        primary: '#2563EB',
+        secondary: '#7C3AED',
+        accent: '#2563EB',
+        bg: '#ffffff',
+        text: '#0F172A',
     };
 
-    const colors = template.colors;
     const slideType = slide.type || slide.layout || 'content';
     const normalizedType = slideType.toLowerCase();
 
@@ -860,16 +1349,89 @@ export const ModernSlideRenderer = ({ slide, theme, className }: SlideRendererPr
             console.log('  → Matched: BentoGridLayout (has items + bento/grid type)');
             return <BentoGridLayout slide={slide} colors={colors} />;
         }
+        if (hasItems && items.length >= 3) {
+            // Fallback to Bento if has items but not explicitly requested, 30% chance or if type is 'features'
+            if (normalizedType.includes('feature') || Math.random() > 0.7) {
+                console.log('  → Matched: BentoGridLayout (smart inference)');
+                return <BentoGridLayout slide={slide} colors={colors} />;
+            }
+        }
         if (hasQuote) {
             console.log('  → Matched: QuoteLargeLayout (has quote data)');
             return <QuoteLargeLayout slide={slide} colors={colors} />;
         }
 
         // PRIORITY 2: Layout type string matching (fallback)
-        // Cover/Hero layouts
+        if (normalizedType.includes('showcase') || normalizedType.includes('product')) {
+            console.log('  → Matched: ProductShowcaseLayout (explicit)');
+            return <ProductShowcaseLayout slide={slide} colors={colors} />;
+        }
+
+        // Smart Injection: If theme is 'tech' or 'product' and has items, use Showcase occasionally
+        if ((theme.includes('tech') || theme.includes('product')) && hasItems && items.length >= 3) {
+            if (Math.random() > 0.6) {
+                console.log('  → Matched: ProductShowcaseLayout (smart theme injection)');
+                return <ProductShowcaseLayout slide={slide} colors={colors} />;
+            }
+        }
+
+
+
+        // STANDARD CONTENT - SMART VARIATION ENGINE
+        // Instead of returning generic bullets, pick a variation
+        if (normalizedType.includes('content') || normalizedType.includes('bullet') || normalizedType === 'text') {
+            console.log('  → Matched: MasterContentLayout (Smart Variation Engine)');
+
+            // Use combination of slide index + title for variety but not total randomness
+            const salt = slide.id || slide.title || 'salt';
+            const slideIndex = slide.index || 0;
+            const hash = salt.split('').reduce((acc: number, char: string) => acc + char.charCodeAt(0), 0);
+            const variations: MasterVariation[] = ['classic', 'split-card', 'hero-block', 'magazine', 'minimal-offset'];
+
+            // Add more entropy: combine hash with slide index and a time factor
+            const entropy = hash + slideIndex * 17 + Math.floor(Date.now() / 100000) % 5;
+            let picked: MasterVariation = variations[entropy % variations.length];
+
+            // Theme affinities are now SUGGESTIONS, not OVERRIDES (50% chance to use theme suggestion)
+            if (Math.random() > 0.5) {
+                if (theme.includes('tech')) picked = variations[(entropy + 1) % variations.length];
+                if (theme.includes('minimal')) picked = variations[(entropy + 2) % variations.length];
+                if (theme.includes('creative')) picked = variations[(entropy + 3) % variations.length];
+            }
+
+            console.log(`  → Picked variation: ${picked}`);
+            return <MasterContentLayout slide={slide} colors={colors} variation={picked} />;
+        }
+
+        // Cover / Hero layouts
         if (normalizedType.includes('cover') || normalizedType.includes('hero')) {
-            console.log('  → Matched: CoverHeroLayout (type contains cover/hero)');
-            return <CoverHeroLayout slide={slide} colors={colors} />;
+            console.log('  → Matched: MasterCoverLayout (Smart Variation Engine)');
+
+            // Use combination of slide index + title for variety
+            const salt = slide.id || slide.title || 'cover';
+            const slideIndex = slide.index || 0;
+            const hash = salt.split('').reduce((acc: number, char: string) => acc + char.charCodeAt(0), 0);
+            const variations: CoverVariation[] = [
+                'centered-minimal', 'full-split', 'diagonal-hero', 'typographic-giant',
+                'boxed-modern', 'gradient-mesh', 'dark-tech', 'offset-gallery',
+                'floating-glass', 'cinematic'
+            ];
+
+            // Add entropy
+            const entropy = hash + slideIndex * 13 + Math.floor(Date.now() / 100000) % 10;
+            let picked: CoverVariation = variations[entropy % variations.length];
+
+            // Theme affinities are now SUGGESTIONS (50% chance)
+            if (Math.random() > 0.5) {
+                const offset = hash % 3;
+                if (theme.includes('tech')) picked = variations[(entropy + offset) % variations.length];
+                if (theme.includes('creative')) picked = variations[(entropy + offset + 2) % variations.length];
+                if (theme.includes('minimal')) picked = variations[(entropy + offset + 4) % variations.length];
+                if (theme.includes('corporate')) picked = variations[(entropy + offset + 6) % variations.length];
+            }
+
+            console.log(`  → Picked cover variation: ${picked}`);
+            return <MasterCoverLayout slide={slide} colors={colors} variation={picked} />;
         }
 
         // Section divider

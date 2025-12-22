@@ -73,7 +73,7 @@ const adaptDeck = (deck: any) => {
     })),
     theme: deck.theme || "startup-pitch",
     themeConfig: deck.themeConfig,
-    colorScheme: deck.colorScheme,
+    colorScheme: deck.colorPalette || deck.colorScheme,
   };
 };
 
@@ -497,6 +497,7 @@ export default function Editor() {
                         <ModernSlideRenderer
                           slide={slide}
                           theme={currentProject.theme}
+                          colorPalette={currentProject.colorScheme}
                           className="w-full h-full"
                         />
                       </div>
@@ -541,6 +542,7 @@ export default function Editor() {
             <ModernSlideRenderer
               slide={currentProject.slides[selectedSlide]}
               theme={currentProject.theme}
+              colorPalette={currentProject.colorScheme}
               className="w-full h-full bg-white"
             />
           </div>

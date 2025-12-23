@@ -14,9 +14,18 @@ import {
   ChevronLeft,
   ChevronRight,
   Play,
-  AlertCircle
+  AlertCircle,
+  Sparkles
 } from "lucide-react";
 import { PresentationBuilderLoader } from "@/components/layout/PresentationBuilderLoader";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 // Supabase client (using anon key for read-only)
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || "https://dntcdhabtctfbylynlcr.supabase.co";
@@ -103,6 +112,7 @@ export default function Editor() {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [slideScale, setSlideScale] = useState(1);
   const [error, setError] = useState<string | null>(null);
+  const [isExportDialogOpen, setIsExportDialogOpen] = useState(false);
 
   // Keyboard navigation
   useEffect(() => {
@@ -307,81 +317,16 @@ export default function Editor() {
     }
   };
 
-  const handleExportPowerPoint = async () => {
-    if (!currentProject) return;
-    setIsExporting(true);
-    try {
-      const response = await api.exportPresentation({
-        format: 'pptx',
-        deck: {
-          title: currentProject.title,
-          subtitle: currentProject.subtitle,
-          theme: currentProject.theme,
-          colorScheme: currentProject.colorScheme,
-          slides: currentProject.slides,
-        },
-      });
+  const handleExportClick = () => {
+    setIsExportDialogOpen(true);
+  };
 
-      const exportTraceId = response.traceId;
-
-      // Poll for download URL
-      let attempts = 0;
-      const maxAttempts = 30; // 30 seconds
-
-      while (attempts < maxAttempts) {
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        const status = await api.getJobStatus(exportTraceId);
-
-        if (status.status === 'succeeded' && status.url) {
-          let downloadUrl = status.url;
-
-          // Fix relative URLs in dev
-          if (downloadUrl.startsWith('/')) {
-            // Assume backend is on same host or proxy, or use base URL logic
-            // Ideally API returns full URL or proxy handles it. 
-            // For now, let's try to construct it if we know the base.
-            // But actually, if it comes from API, it might serve static files.
-
-            // Quick fix for localhost dev if needed:
-            // downloadUrl = `http://localhost:3000${downloadUrl}`; 
-            // Use window.location.origin if served by same backend, or hardcoded for now.
-            if (downloadUrl.startsWith('/uploads') || downloadUrl.startsWith('/exports')) {
-              const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:3000";
-              // Strip /v1 if present for static files? depends on nestjs static serve
-              // Usually NestJS serves on root or /public
-              downloadUrl = `${apiUrl.replace('/v1', '')}${downloadUrl}`;
-            }
-          }
-
-          const link = document.createElement('a');
-          link.href = downloadUrl;
-          link.download = downloadUrl.split('/').pop() || 'presentation.pptx';
-          document.body.appendChild(link);
-          link.click();
-          document.body.removeChild(link);
-
-          toast({
-            title: 'Téléchargement lancé',
-            description: 'Votre présentation est en cours de téléchargement...',
-          });
-          break;
-        } else if (status.status === 'failed') {
-          throw new Error('Export failed');
-        }
-        attempts++;
-      }
-
-      if (attempts >= maxAttempts) throw new Error('Export timeout');
-
-    } catch (error: any) {
-      toast({
-        title: 'Export Failed',
-        description: error.message,
-        variant: 'destructive',
-      });
-    } finally {
-      setIsExporting(false);
-    }
+  const handleNotifyMe = () => {
+    toast({
+      title: "C'est noté !",
+      description: "Vous serez prévenu dès que l'export sera disponible.",
+    });
+    setIsExportDialogOpen(false);
   };
 
   // Loading Screen
@@ -453,14 +398,13 @@ export default function Editor() {
 
             <div className="flex items-center gap-1">
               <Button
-                onClick={handleExportPowerPoint}
-                disabled={isExporting}
+                onClick={handleExportClick}
                 variant="ghost"
                 size="icon"
-                className="h-9 w-9 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted disabled:opacity-50"
+                className="h-9 w-9 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted"
                 title="Export PowerPoint"
               >
-                {isExporting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
+                <Download className="h-4 w-4" />
               </Button>
             </div>
           </div>
@@ -583,6 +527,27 @@ export default function Editor() {
         </div>
 
       </div>
+
+      <Dialog open={isExportDialogOpen} onOpenChange={setIsExportDialogOpen}>
+        <DialogContent className="sm:max-w-[425px] border-border bg-background/95 backdrop-blur-xl shadow-2xl">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold flex items-center gap-2">
+              <Sparkles className="h-5 w-5 text-primary" />
+              L'export PPTX arrive très bientôt !
+            </DialogTitle>
+            <DialogDescription className="pt-2 text-base text-foreground/80 leading-relaxed">
+              On travaille jour et nuit pour vous offrir un export parfait.
+              <br /><br />
+              En attendant, profitez de la <strong>visionneuse plein écran</strong> pour vos présentations ou partagez votre <strong>lien unique</strong>.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="mt-4">
+            <Button onClick={handleNotifyMe} className="w-full font-bold shadow-lg shadow-primary/20">
+              Être prévenu de la sortie
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

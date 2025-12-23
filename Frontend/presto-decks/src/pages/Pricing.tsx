@@ -1,9 +1,12 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { CheckCircle2, Sparkles, Zap } from "lucide-react";
+import { CheckCircle2, Sparkles, Zap, Layers, HelpCircle } from "lucide-react";
 
 export default function Pricing() {
+  const [billingCycle, setBillingCycle] = useState<"monthly" | "yearly">("yearly");
+
   const plans = [
     {
       name: "Free",
@@ -11,10 +14,10 @@ export default function Pricing() {
       period: "/mois",
       description: "Pour tester et découvrir",
       features: [
-        "3 présentations par mois",
-        "Templates de base",
-        "Export PDF",
-        "Watermark SlideAI",
+        "1 présentation par mois",
+        "Import PDF (5 pages max)",
+        "Visionneuse Web interactive",
+        "Filigrane SlideAI",
       ],
       limitations: [
         "Pas d'export PowerPoint",
@@ -26,37 +29,39 @@ export default function Pricing() {
       badge: null,
     },
     {
-      name: "Étudiant",
-      price: "10€",
+      name: "Starter",
+      price: billingCycle === "yearly" ? "7€" : "9€",
       period: "/mois",
+      billingNote: billingCycle === "yearly" ? "Facturé 84€ par an" : "Facturé mensuellement",
       description: "Pour étudiants et usage occasionnel",
       features: [
-        "10 présentations par mois",
-        "Slides illimitées par présentation",
-        "Tous les templates premium",
-        "Export PowerPoint + PDF",
-        "Pas de watermark",
-        "Support standard",
+        "15 présentations par mois",
+        "Moteur PDF-to-Slide complet",
+        "Lien de partage public (Unique)",
+        "Retrait du filigrane",
       ],
       limitations: [],
-      cta: "Commencer avec Étudiant",
+      cta: "Choisir Starter",
       variant: "outline" as const,
       popular: false,
-      badge: "Plus populaire chez les étudiants",
+      badge: null,
     },
     {
       name: "Pro",
-      price: "19€",
+      price: billingCycle === "yearly" ? "14€" : "19€",
       period: "/mois",
+      billingNote: billingCycle === "yearly" ? "Facturé 168€ par an" : "Facturé mensuellement",
       description: "Pour les professionnels",
       features: [
-        "Présentations illimitées",
-        "Tous les templates premium",
-        "Export PowerPoint + PDF + Google Slides",
-        "Brand Kit personnalisé",
-        "Optimisations IA avancées",
-        "Support prioritaire",
-        "Pas de watermark",
+        <span key="unlimited" className="font-bold">Génération Illimitée</span>,
+        "Priorité sur les serveurs IA",
+        "Personnalisation du Brand Kit",
+        "Réécriture IA avancée (Ton & Style)",
+        <span key="beta-export" className="flex items-center gap-2">
+          Accès Bêta aux futurs Exports
+          <span className="text-[10px] bg-primary/10 text-primary px-1.5 py-0.5 rounded font-bold uppercase tracking-wider">Bêta</span>
+        </span>,
+        "Visionneuse Web interactive",
       ],
       cta: "Essayer Pro gratuitement",
       variant: "solid" as const,
@@ -65,18 +70,16 @@ export default function Pricing() {
     },
     {
       name: "Business",
-      price: "99€",
+      price: billingCycle === "yearly" ? "49€" : "59€",
       period: "/mois",
+      billingNote: billingCycle === "yearly" ? "Facturé 588€ par an" : "Facturé mensuellement",
       description: "Pour les équipes",
       features: [
-        "Tout de Pro, plus :",
-        "Templates d'équipe partagés",
-        "Collaboration temps réel",
-        "SSO (Single Sign-On)",
-        "Gestion des utilisateurs",
+        "Tout du Plan Pro",
+        "Espace de travail collaboratif",
+        "Support Prioritaire 24/7",
         "Analytics avancées",
-        "Support prioritaire 24/7",
-        "Onboarding personnalisé",
+        "SSO (Single Sign-On)",
       ],
       cta: "Contacter les ventes",
       variant: "solid" as const,
@@ -85,108 +88,218 @@ export default function Pricing() {
     },
   ];
 
+  const packs = [
+    {
+      name: "Pack Découverte",
+      price: "7€",
+      credits: "5 présentations",
+      icon: Layers,
+      cta: "Acheter 5 crédits",
+    },
+    {
+      name: "Pack Power",
+      price: "15€",
+      credits: "15 présentations",
+      icon: Layers,
+      cta: "Acheter 15 crédits",
+    },
+  ];
+
   return (
     <div className="py-20">
-      <section className="container">
-          <div className="text-center space-y-6 mb-20 animate-fade-in-up">
-            <div className="inline-flex items-center space-x-2 rounded-full glass px-6 py-3 text-sm mb-4">
-              <Zap className="h-5 w-5 text-accent animate-pulse" />
-              <span className="text-foreground/90 font-medium">Simple, transparent, scalable</span>
-            </div>
-            <h1 className="text-5xl md:text-7xl font-bold">
-              <span className="text-gradient-animated">Tarifs</span> simples et transparents
-            </h1>
-            <p className="text-xl md:text-2xl text-foreground/70 max-w-2xl mx-auto">
-              Choisissez le plan qui correspond à vos besoins. 
-              Changez ou annulez à tout moment.
-            </p>
+      <section className="container px-4 md:px-6">
+        <div className="text-center space-y-6 mb-16 animate-fade-in-up">
+          <div className="inline-flex items-center space-x-2 rounded-full glass px-6 py-3 text-sm mb-4">
+            <Zap className="h-5 w-5 text-accent animate-pulse" />
+            <span className="text-foreground/90 font-medium">Simple, transparent, scalable</span>
           </div>
+          <h1 className="text-4xl md:text-6xl font-bold">
+            <span className="text-gradient-animated">Tarifs</span> adaptés à vos besoins
+          </h1>
+          <p className="text-xl text-foreground/70 max-w-2xl mx-auto">
+            Commencez gratuitement, passez à la vitesse supérieure quand vous êtes prêt.
+          </p>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-7xl mx-auto">
-            {plans.map((plan, index) => (
-              <Card
-                key={index}
-                className={`relative card-premium transition-all duration-500 hover:scale-105 ${
-                  plan.popular
-                    ? "border-primary/50 shadow-glow animate-gradient"
-                    : "hover:shadow-card"
-                }`}
-                style={{ 
-                  animationDelay: `${index * 150}ms`,
-                  ...(plan.popular && {
-                    background: 'linear-gradient(135deg, rgba(124, 58, 237, 0.1), rgba(59, 130, 246, 0.1), rgba(16, 185, 129, 0.1))',
-                  })
-                }}
+          {/* Billing Cycle Toggle */}
+          <div className="flex items-center justify-center mt-12 mb-12">
+            <div className="relative inline-flex items-center p-1.5 rounded-full bg-secondary/30 border border-border backdrop-blur-sm">
+              {/* Sliding Background Pill */}
+              <div
+                className={`absolute inset-y-1.5 rounded-full bg-background shadow-sm transition-all duration-300 ease-out ${billingCycle === "monthly" ? "left-1.5 w-[calc(50%-6px)]" : "left-[calc(50%)] w-[calc(50%-6px)]"
+                  }`}
+              />
+
+              <button
+                onClick={() => setBillingCycle("monthly")}
+                className={`relative z-10 px-8 py-2.5 rounded-full text-sm font-semibold transition-colors duration-300 ${billingCycle === "monthly"
+                  ? "text-foreground"
+                  : "text-muted-foreground hover:text-foreground/80"
+                  }`}
               >
-                {(plan.popular || plan.badge) && (
-                  <div className="absolute -top-6 left-1/2 -translate-x-1/2 z-10">
-                    <div className="flex flex-col items-center gap-1.5 rounded-full gradient-aurora px-5 py-3 text-[11px] font-bold text-white shadow-glow animate-glow-pulse w-[140px]">
-                      <Sparkles className="h-4 w-4 flex-shrink-0" />
-                      <span className="text-center leading-[1.3] break-words">{plan.badge || "Plus populaire"}</span>
-                    </div>
-                  </div>
-                )}
+                Mensuel
+              </button>
+              <button
+                onClick={() => setBillingCycle("yearly")}
+                className={`relative z-10 px-8 py-2.5 rounded-full text-sm font-semibold transition-colors duration-300 ${billingCycle === "yearly"
+                  ? "text-foreground"
+                  : "text-muted-foreground hover:text-foreground/80"
+                  }`}
+              >
+                Annuel
+              </button>
 
-                <CardHeader className="text-center pb-8 pt-14">
-                  <CardTitle className="text-3xl font-bold mb-2">
-                    {plan.name}
-                  </CardTitle>
-                  <div className="mt-6">
-                    <span className={`text-6xl font-bold ${plan.popular ? 'text-gradient' : ''}`}>
+              {/* Modern Badge - Only visible when Yearly is selected */}
+              <div
+                className={`absolute left-full ml-4 top-1/2 -translate-y-1/2 hidden sm:flex items-center transition-all duration-300 ${billingCycle === "yearly"
+                  ? "opacity-100 translate-x-0"
+                  : "opacity-0 -translate-x-2 pointer-events-none"
+                  }`}
+              >
+                {/* Arrow */}
+                <div className="w-4 h-px bg-primary/30 mr-2 relative overflow-visible">
+                  <div className="absolute right-0 top-1/2 -translate-y-1/2 w-1.5 h-1.5 border-t border-r border-primary/30 rotate-45" />
+                </div>
+
+                <div className="flex items-center gap-1.5 pl-1.5 pr-2.5 py-1 rounded-full bg-primary/10 border border-primary/20 text-xs font-bold text-primary shadow-sm whitespace-nowrap">
+                  <Sparkles className="w-3 h-3 fill-primary" />
+                  <span>-25% (2 mois offerts)</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Subscription Cards */}
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto mb-24">
+          {plans.map((plan, index) => (
+            <Card
+              key={plan.name}
+              className={`relative flex flex-col rounded-2xl transition-all duration-500 ${plan.popular
+                ? "border-primary/50 shadow-glow scale-105 z-10"
+                : "border-border/50 hover:border-primary/30 hover:shadow-card hover:-translate-y-1"
+                }`}
+            >
+              {(plan.popular || plan.badge) && (
+                <div className="absolute -top-4 left-1/2 -translate-x-1/2 z-20">
+                  <div className="flex items-center gap-1.5 rounded-full bg-gradient-to-r from-primary to-blue-500 px-4 py-1.5 text-xs font-bold text-white shadow-lg whitespace-nowrap">
+                    <Sparkles className="h-3.5 w-3.5" />
+                    <span>{plan.badge || "Plus populaire"}</span>
+                  </div>
+                </div>
+              )}
+
+              <CardHeader className="text-center pb-2 pt-8">
+                <CardTitle className="text-xl font-bold mb-2">
+                  {plan.name}
+                </CardTitle>
+                <div className="mt-4 mb-2">
+                  <div className="flex items-baseline justify-center gap-1">
+                    <span className={`text-4xl font-bold ${plan.popular ? 'text-gradient' : ''}`}>
                       {plan.price}
                     </span>
-                    <span className="text-foreground/60 text-lg">{plan.period}</span>
+                    <span className="text-foreground/60 text-sm font-medium">{plan.period}</span>
                   </div>
-                  <p className="text-foreground/70 mt-3 text-base">
-                    {plan.description}
-                  </p>
-                </CardHeader>
+                  {plan.billingNote && (
+                    <p className="text-xs text-foreground/50 mt-1 h-4">
+                      {plan.billingNote}
+                    </p>
+                  )}
+                  {!plan.billingNote && <div className="h-5" />} {/* Spacer for alignment */}
+                </div>
+                <p className="text-foreground/70 text-sm min-h-[40px]">
+                  {plan.description}
+                </p>
+              </CardHeader>
 
-                <CardContent className="space-y-6 pb-8">
-                  <Button
-                    variant={plan.popular ? "solid" : plan.variant}
-                    size="lg"
-                    className={`w-full h-14 rounded-2xl font-bold text-base ${
-                      plan.popular 
-                        ? 'shadow-glow hover:scale-105' 
-                        : 'hover:scale-105'
-                    } transition-all duration-300`}
-                    asChild
-                  >
-                    <Link to="/app">{plan.cta}</Link>
+              <CardContent className="flex flex-col flex-1 gap-6">
+                <Button
+                  variant={plan.popular ? "solid" : plan.variant}
+                  className={`w-full rounded-xl font-bold ${plan.popular
+                    ? 'shadow-lg shadow-primary/20 hover:shadow-primary/40'
+                    : ''
+                    }`}
+                  asChild
+                >
+                  <Link to="/app">{plan.cta}</Link>
+                </Button>
+
+                <div className="space-y-3 flex-1">
+                  {plan.features.map((feature, i) => (
+                    <div key={i} className="flex items-start text-sm">
+                      <CheckCircle2 className="h-4 w-4 text-primary mr-2.5 mt-0.5 flex-shrink-0" />
+                      <div className="text-foreground/80 leading-tight">
+                        {feature}
+                      </div>
+                    </div>
+                  ))}
+                  {plan.limitations?.map((limitation, i) => (
+                    <div key={i} className="flex items-start text-sm opacity-50">
+                      <div className="h-4 w-4 mr-2.5 mt-0.5 flex items-center justify-center">
+                        <div className="w-1.5 h-1.5 rounded-full bg-foreground/40" />
+                      </div>
+                      <span className="text-foreground/60">
+                        {limitation}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+
+        {/* Credit Packs Section */}
+        <div className="max-w-4xl mx-auto text-center border-t border-border/50 pt-16">
+          <h2 className="text-3xl font-bold mb-4">
+            Pas prêt pour un abonnement ?
+          </h2>
+          <p className="text-lg text-foreground/70 mb-2">
+            Prenez un Pack Liberté.
+          </p>
+          <div className="flex items-center justify-center gap-2 text-sm text-foreground/60 mb-10 mx-auto">
+            <HelpCircle className="w-4 h-4" />
+            <span>Pas de renouvellement automatique. Utilisez vos crédits quand vous voulez.</span>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-6 max-w-2xl mx-auto">
+            {packs.map((pack) => (
+              <Card key={pack.name} className="relative group overflow-hidden bg-secondary/10 border-border/50 hover:bg-secondary/20 hover:border-primary/20 hover:shadow-lg transition-all duration-300">
+                <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+
+                <CardContent className="p-6 flex flex-col items-center text-center gap-5 relative z-10">
+                  <div className="p-3.5 bg-background rounded-2xl shadow-sm ring-1 ring-inset ring-foreground/5 group-hover:scale-110 group-hover:rotate-3 transition-transform duration-300">
+                    <pack.icon className="w-7 h-7 text-primary" />
+                  </div>
+
+                  <div className="space-y-1">
+                    <h3 className="font-bold text-xl">{pack.name}</h3>
+                    <p className="text-muted-foreground font-medium">{pack.credits}</p>
+                  </div>
+
+                  <div className="flex items-baseline justify-center gap-1 my-1">
+                    <span className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-foreground to-foreground/70">{pack.price}</span>
+                  </div>
+
+                  <Button variant="outline" className="w-full rounded-xl font-bold hover:bg-primary hover:text-primary-foreground border-primary/20 hover:border-primary transition-all duration-300">
+                    {pack.cta}
                   </Button>
-
-                  <ul className="space-y-4">
-                    {plan.features.map((feature, i) => (
-                      <li key={i} className="flex items-start">
-                        <CheckCircle2 className="h-5 w-5 text-accent mr-3 mt-0.5 flex-shrink-0" />
-                        <span className="text-sm font-medium text-foreground/90">{feature}</span>
-                      </li>
-                    ))}
-                    {plan.limitations?.map((limitation, i) => (
-                      <li key={i} className="flex items-start opacity-40">
-                        <span className="text-sm line-through text-foreground/60">
-                          {limitation}
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
                 </CardContent>
               </Card>
             ))}
           </div>
+        </div>
 
-          <div className="mt-20 text-center space-y-4 animate-fade-in-up">
-            <p className="text-foreground/70 text-lg font-medium">
-              Toutes les cartes bancaires acceptées • Annulation à tout moment
-            </p>
-            <p className="text-base text-foreground/60">
-              Des questions ? {" "}
-              <a href="mailto:contact@slideai.com" className="text-primary hover:text-accent transition-colors font-semibold">
-                Contactez-nous
-              </a>
-            </p>
-          </div>
+        <div className="mt-20 text-center space-y-4 animate-fade-in-up">
+          <p className="text-foreground/70 text-lg font-medium">
+            Toutes les cartes bancaires acceptées • Annulation à tout moment
+          </p>
+          <p className="text-base text-foreground/60">
+            Des questions ? {" "}
+            <a href="mailto:contact@slideai.com" className="text-primary hover:text-accent transition-colors font-semibold">
+              Contactez-nous
+            </a>
+          </p>
+        </div>
       </section>
     </div>
   );

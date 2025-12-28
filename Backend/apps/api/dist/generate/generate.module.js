@@ -7,10 +7,12 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 // apps/api/src/generate/generate.module.ts
 import { Module } from '@nestjs/common';
 import { GenerateController } from './generate.controller.js';
+import { SubscriptionModule } from '../subscription/subscription.module.js';
 let GenerateModule = class GenerateModule {
 };
 GenerateModule = __decorate([
     Module({
+        imports: [SubscriptionModule],
         controllers: [GenerateController],
     })
 ], GenerateModule);

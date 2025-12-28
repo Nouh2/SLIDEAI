@@ -15,6 +15,7 @@ import { FastifyRequest } from 'fastify';
 import { SupabaseGuard } from '../auth/supabase.guard.js';
 import { z } from 'zod';
 import { QueueService } from '../queues/queue.service.js';
+import { SubscriptionService } from '../subscription/subscription.service.js';
 import { ulid } from 'ulid';
 import IORedis from 'ioredis';
 import { createRequire } from 'module';
@@ -192,7 +193,10 @@ function getRedisUrl(): string {
 export class GenerateController {
   private redis: IORedis;
 
-  constructor(private queues: QueueService) {
+  constructor(
+    private queues: QueueService,
+    private subscriptionService: SubscriptionService,
+  ) {
     this.redis = new IORedis(getRedisUrl(), {
       maxRetriesPerRequest: null,
     });
@@ -244,6 +248,10 @@ export class GenerateController {
     // Parse and validate the schema
     const data = generateSchema.parse(formFields);
     const traceId = ulid();
+    const userId = req.user.sub;
+
+    // === CHECK SUBSCRIPTION CREDITS ===
+    await this.subscriptionService.canGenerate(userId, req.user.email);
 
     // Extract text from document (if provided)
     let documentText = '';
@@ -284,6 +292,9 @@ export class GenerateController {
     });
 
     console.log('[DEBUG] Job added successfully:', traceId);
+
+    // === CONSUME CREDIT AFTER SUCCESSFUL JOB SUBMISSION ===
+    await this.subscriptionService.consumeCredit(userId, req.user.email);
 
     return {
       traceId,

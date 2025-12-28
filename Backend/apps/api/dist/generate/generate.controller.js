@@ -17,6 +17,7 @@ import { Controller, Get, Param, Post, Req, UseGuards, } from '@nestjs/common';
 import { SupabaseGuard } from '../auth/supabase.guard.js';
 import { z } from 'zod';
 import { QueueService } from '../queues/queue.service.js';
+import { SubscriptionService } from '../subscription/subscription.service.js';
 import { ulid } from 'ulid';
 import IORedis from 'ioredis';
 import { createRequire } from 'module';
@@ -167,9 +168,11 @@ function getRedisUrl() {
 }
 let GenerateController = class GenerateController {
     queues;
+    subscriptionService;
     redis;
-    constructor(queues) {
+    constructor(queues, subscriptionService) {
         this.queues = queues;
+        this.subscriptionService = subscriptionService;
         this.redis = new IORedis(getRedisUrl(), {
             maxRetriesPerRequest: null,
         });
@@ -216,6 +219,9 @@ let GenerateController = class GenerateController {
         // Parse and validate the schema
         const data = generateSchema.parse(formFields);
         const traceId = ulid();
+        const userId = req.user.sub;
+        // === CHECK SUBSCRIPTION CREDITS ===
+        await this.subscriptionService.canGenerate(userId, req.user.email);
         // Extract text from document (if provided)
         let documentText = '';
         if (fileBuffer) {
@@ -247,6 +253,8 @@ let GenerateController = class GenerateController {
             },
         });
         console.log('[DEBUG] Job added successfully:', traceId);
+        // === CONSUME CREDIT AFTER SUCCESSFUL JOB SUBMISSION ===
+        await this.subscriptionService.consumeCredit(userId, req.user.email);
         return {
             traceId,
             status: 'accepted',
@@ -283,6 +291,7 @@ __decorate([
 ], GenerateController.prototype, "jobStatus", null);
 GenerateController = __decorate([
     Controller('/v1'),
-    __metadata("design:paramtypes", [QueueService])
+    __metadata("design:paramtypes", [QueueService,
+        SubscriptionService])
 ], GenerateController);
 export { GenerateController };

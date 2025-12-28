@@ -1,9 +1,11 @@
 import { FastifyRequest } from 'fastify';
 import { QueueService } from '../queues/queue.service.js';
+import { SubscriptionService } from '../subscription/subscription.service.js';
 export declare class GenerateController {
     private queues;
+    private subscriptionService;
     private redis;
-    constructor(queues: QueueService);
+    constructor(queues: QueueService, subscriptionService: SubscriptionService);
     /**
      * Generate presentation from prompt + optional document upload
      * Accepts both JSON and multipart/form-data

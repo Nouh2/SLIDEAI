@@ -3,7 +3,8 @@
 // Modular architecture with support for rich content types
 
 import 'dotenv/config';
-import { Worker } from 'bullmq';
+import * as crypto from 'crypto';
+import { Job, Worker } from 'bullmq';
 import IORedis from 'ioredis';
 import { ulid } from 'ulid';
 import AWS from 'aws-sdk';
@@ -293,30 +294,7 @@ const generateWorker = new Worker(
 
       // Deck parsed successfully
 
-      // SAVE TO SUPABASE with real user ID
-      if (supabase) {
-        try {
-          const { data: savedDeck, error: saveError } = await supabase
-            .from('presentations')
-            .insert({
-              user_id: userId, // Use real user ID from JWT
-              title: deck.title || 'Untitled Presentation',
-              slides: deck,
-              theme: themeConfig.id,
-              status: 'ready'
-            })
-            .select()
-            .single();
-
-          if (saveError) {
-            console.error('[Generate] ❌ Failed to save to Supabase:', saveError.message);
-          } else {
-            console.log('[Generate] ✅ Saved to Supabase ID:', savedDeck.id);
-          }
-        } catch (err: any) {
-          console.error('[Generate] ❌ Supabase Save Exception:', err.message);
-        }
-      }
+      // (Save block moved from here)
 
       deck = sanitizeDeck(deck, prompt);
       deck.theme = themeConfig.id;
@@ -340,6 +318,35 @@ const generateWorker = new Worker(
           return { ...slide, backgroundImage };
         })
       );
+
+      // SAVE TO SUPABASE with real user ID (AFTER images are fetched)
+      if (supabase) {
+        try {
+          // Generate a UUID for the presentation (Supabase doesn't auto-generate like Prisma)
+          const presentationId = crypto.randomUUID();
+
+          const { data: savedDeck, error: saveError } = await supabase
+            .from('presentations')
+            .insert({
+              id: presentationId, // Explicit UUID
+              user_id: userId, // Use real user ID from JWT
+              title: deck.title || 'Untitled Presentation',
+              slides: deck, // Now contains images
+              theme: themeConfig.id,
+              status: 'ready'
+            })
+            .select()
+            .single();
+
+          if (saveError) {
+            console.error('[Generate] ❌ Failed to save to Supabase:', saveError.message);
+          } else {
+            console.log('[Generate] ✅ Saved to Supabase ID:', savedDeck.id);
+          }
+        } catch (err: any) {
+          console.error('[Generate] ❌ Supabase Save Exception:', err.message);
+        }
+      }
 
       // Generation complete
 

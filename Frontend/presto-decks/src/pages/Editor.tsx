@@ -40,8 +40,8 @@ const adaptDeck = (deck: any) => {
     subtitle: deck.subtitle,
     thumbnail: "https://images.unsplash.com/photo-1557804506-669a67965ba0?w=800&q=80",
     lastModified: new Date().toISOString(),
-    slides: (deck.slides?.slides || deck.slides || []).map((s: any) => ({
-      id: s.id || Math.random().toString(36).substr(2, 9),
+    slides: (deck.slides?.slides || deck.slides || []).map((s: any, index: number) => ({
+      id: s.id || `slide-${index}`,
       type: s.type || s.layout || "content",
       title: s.title,
       subtitle: s.subtitle || s.content?.subtitle,
@@ -49,6 +49,7 @@ const adaptDeck = (deck: any) => {
 
       // Background image from Unsplash
       backgroundImage: s.backgroundImage,
+      imageSearchQuery: s.imageSearchQuery, // Used by some layouts as fallback
 
       // Legacy content fields
       bullets: s.content?.bullets || s.bullets || [],
@@ -159,15 +160,19 @@ export default function Editor() {
       const targetWidth = 1920;
       const targetHeight = 1080;
 
-      // Add padding calculation
-      const padding = isFullscreen ? 0 : 64; // No padding in fullscreen
-      const availableWidth = width - padding;
-      const availableHeight = height - padding;
+      // Add padding calculation - account for navigation buttons and breathing room
+      const horizontalPadding = isFullscreen ? 0 : 160; // Space for nav buttons (left/right arrows)
+      const verticalPadding = isFullscreen ? 0 : 120;   // Space for bottom pill and breathing room
+
+      const availableWidth = width - horizontalPadding;
+      const availableHeight = height - verticalPadding;
 
       const scaleX = availableWidth / targetWidth;
       const scaleY = availableHeight / targetHeight;
 
-      setSlideScale(Math.min(scaleX, scaleY));
+      // Cap the scale to prevent overflow - max 0.55 for non-fullscreen
+      const maxScale = isFullscreen ? 1 : 0.55;
+      setSlideScale(Math.min(scaleX, scaleY, maxScale));
     };
 
     const observer = new ResizeObserver(updateScale);
@@ -175,14 +180,16 @@ export default function Editor() {
       observer.observe(slideContainerRef.current);
     }
 
-    updateScale();
+    // Small delay to ensure layout is stable
+    setTimeout(updateScale, 100);
+
     window.addEventListener('resize', updateScale);
 
     return () => {
       observer.disconnect();
       window.removeEventListener('resize', updateScale);
     };
-  }, [isFullscreen]);
+  }, [isFullscreen, isLoading]);
 
   // Data Fetching
   useEffect(() => {
@@ -474,21 +481,29 @@ export default function Editor() {
             </div>
           )}
 
-          {/* Render Slide */}
+          {/* Render Slide - Wrapper ensures the scaled slide doesn't overflow */}
           <div
-            className={`relative transition-transform duration-300 ease-out origin-center shadow-2xl ${isFullscreen ? '' : 'rounded-xl ring-1 ring-black/5'}`}
             style={{
-              width: '1920px',
-              height: '1080px',
-              transform: `scale(${slideScale})`
+              width: `${1920 * slideScale}px`,
+              height: `${1080 * slideScale}px`,
             }}
           >
-            <ModernSlideRenderer
-              slide={currentProject.slides[selectedSlide]}
-              theme={currentProject.theme}
-              colorPalette={currentProject.colorScheme}
-              className="w-full h-full bg-white"
-            />
+            <div
+              className={`relative shadow-2xl ${isFullscreen ? '' : 'rounded-xl ring-1 ring-black/5'}`}
+              style={{
+                width: '1920px',
+                height: '1080px',
+                transform: `scale(${slideScale})`,
+                transformOrigin: 'top left',
+              }}
+            >
+              <ModernSlideRenderer
+                slide={currentProject.slides[selectedSlide]}
+                theme={currentProject.theme}
+                colorPalette={currentProject.colorScheme}
+                className="w-full h-full bg-white"
+              />
+            </div>
           </div>
 
           {/* Navigation Controls (Floating) */}

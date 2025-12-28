@@ -11,6 +11,7 @@ import { QueueModule } from './queues/queue.module.js';
 import { PrismaService } from './prisma.service.js';
 import { AuditMiddleware } from './common/audit.middleware.js';
 import { UploadController } from './upload/upload.controller.js'; // ✅ ajoute bien .js à la fin
+import { SubscriptionModule } from './subscription/subscription.module.js';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { UploadController } from './upload/upload.controller.js'; // ✅ ajoute 
     QueueModule,
     GenerateModule,
     ExportModule,
+    SubscriptionModule,
   ],
   controllers: [
     HealthController,

@@ -86,20 +86,49 @@ Every slide MUST include an \`imageSearchQuery\`:
 4. AVAILABLE LAYOUTS
 ═══════════════════════════════════════════════════
 
-| Layout | Description |
-|--------|-------------|
-| cover | Title, subtitle, background image |
-| section | Section divider, bold typography |
-| bullets | Standard content with list |
-| stats | 2-4 key large numbers |
-| chart | Data visualization (bar, line, pie, donut) |
-| table | Structured rows and columns |
-| comparison | 2-column split (e.g. Pros/Cons) |
-| timeline | Chronological steps with dates |
-| infographic | Funnel, pyramid, or process flow |
-| quote | Large typography citation |
-| bento | Grid of features/cards (modern style) |
-| image-focus | Full background image with overlay text |
+| Layout | Description | Data Requirement |
+|--------|-------------|------------------|
+| cover | Title, subtitle, background image | - |
+| section | Section divider, bold typography | - |
+| text-columns | Dense text content split into 3 vertical columns | **Rich text paragraphs** (not just bullets). Use for "About Us", "History", "Detailed Explanations". |
+| bullets | Standard content with list | List of 3-6 distinct points |
+| stats | 2-4 key large numbers | **Real metrics** (e.g., "+30%", "$10M", "500 Users"). Do NOT use for dates. |
+| chart | Data visualization (bar, line, pie, donut) | **Numerical dataset**. MUST have at least 2 data points. |
+| table | Structured rows and columns | **Tabular data** (headers + rows). Good for pricing, features, financial data. |
+| comparison | 2-column split (e.g. Pros/Cons, Before/After) | **Two distinct groups/lists**. |
+| timeline | Chronological steps with dates | **Dates/Times + Events**. Do NOT use for generic lists. |
+| infographic | Funnel, pyramid, or process flow | **Sequential or hierarchical steps**. |
+| bento | Grid of features/cards (modern style) | **3+ distinct component items**. Good for "Key Features". |
+| image-focus | Full background image with overlay text | **Strong visual concept**. Use for "Vision", "Mission", "Impact". |
+
+═══════════════════════════════════════════════════
+8. SMART LAYOUT SELECTION (CRITICAL)
+═══════════════════════════════════════════════════
+
+> **RULE:** You must match the layout to the **CONTENT TYPE**, not just seek variety.
+
+1. **Text-Heavy Content?**
+   - IF you have > 50 words or long paragraphs -> Use text-columns layout.
+   - Do NOT use bullets for dense text, it looks bad.
+   - Do NOT use chart or stats.
+
+2. **Financials / Growth / Data?**
+   - IF you have numbers -> Use stats (for big KPIs) or chart (for trends/comparisons).
+   - IF you have detailed figures -> Use table.
+
+3. **History / Roadmap / Steps?**
+   - ALWAYS use timeline layout.
+
+4. **Comparison / VS / Alternatives?**
+   - ALWAYS use comparison layout.
+
+5. **Features / Benefits / Ecosystem?**
+   - Use bento or infographic to show components.
+
+**CRITICAL PROHIBITIONS:**
+- ❌ **NEVER** use a chart layout if you don't have concrete, realistic numbers to plot.
+- ❌ **NEVER** use a table if you only have one row.
+- ❌ **NEVER** use stats for a list of text headings. Only for numbers.
 
 ═══════════════════════════════════════════════════
 5. JSON OUTPUT FORMAT (STRICT)
@@ -369,10 +398,11 @@ Generate a professional, rich presentation following the exact JSON schema.
 ═══════════════════════════════════════════════════
 
 CRITICAL OVERRIDE INSTRUCTIONS:
-1. IGNORE the slide count above. Generate 15-30 slides to FULLY cover this document.
-2. Be VERBOSE - use long bullet points (2-3 sentences each, not single phrases).
+1. IGNORE the slide count above. Generate 12-20 slides to FULLY cover this document.
+2. Be VERBOSE - use long bullet points (2-3 sentences each).
 3. Extract ALL chapters, key figures, definitions, statistics, and technical details.
-4. This is for a CONSULTING REPORT / study document, NOT a stage presentation.
+4. **LAYOUT PREFERENCE**: Prioritize text-columns, table, and section layouts. Use text-columns for all dense explanatory slides.
+5. This is for a CONSULTING REPORT / study document, NOT a stage presentation.
 5. Fill the slides with dense, actionable content. No empty spaces.
 
 📄 SOURCE DOCUMENT MATERIAL:

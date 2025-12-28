@@ -257,6 +257,20 @@ const StatsLayout = ({ slide, colors }: { slide: any; colors: any }) => {
         <div className="relative w-full h-full overflow-hidden" style={{ backgroundColor: colors.bg }}>
             <AbstractShapes colors={colors} />
 
+            {/* Background Image if available */}
+            {(slide.backgroundImage || slide.imageSearchQuery) && (
+                <>
+                    <div
+                        className="absolute inset-0 bg-cover bg-center opacity-20"
+                        style={{
+                            backgroundImage: `url(${slide.backgroundImage || `https://source.unsplash.com/1600x900/?${encodeURIComponent(slide.imageSearchQuery)}`})`,
+                            mixBlendMode: 'overlay'
+                        }}
+                    />
+                    <div className="absolute inset-0 backdrop-blur-[2px]" />
+                </>
+            )}
+
             <div className="relative z-10 flex flex-col px-20 pt-16 pb-24 h-full">
                 <h2 className="text-6xl md:text-7xl font-bold mb-16 text-center" style={{ color: colors.text }}>
                     {slide.title}
@@ -357,6 +371,19 @@ const ChartLayout = ({ slide, colors }: { slide: any; colors: any }) => {
     return (
         <div className="relative w-full h-full overflow-hidden" style={{ backgroundColor: colors.bg }}>
             <AbstractShapes colors={colors} />
+
+            {/* Background Image if available */}
+            {(slide.backgroundImage || slide.imageSearchQuery) && (
+                <>
+                    <div
+                        className="absolute inset-0 bg-cover bg-center opacity-10"
+                        style={{
+                            backgroundImage: `url(${slide.backgroundImage || `https://source.unsplash.com/1600x900/?${encodeURIComponent(slide.imageSearchQuery)}`})`,
+                            mixBlendMode: 'multiply'
+                        }}
+                    />
+                </>
+            )}
 
             <div className="relative z-10 flex flex-col px-20 pt-16 pb-24 h-full">
                 <h2 className="text-5xl md:text-6xl font-bold mb-8" style={{ color: colors.text }}>
@@ -475,9 +502,12 @@ const ChartLayout = ({ slide, colors }: { slide: any; colors: any }) => {
 };
 
 
-// Table layout - Modern glassmorphism design
-const TableLayout = ({ slide, colors }: { slide: any; colors: any }) => {
+// Table layout - Modern glassmorphism design (Variants: default, striped, minimal)
+const TableLayout = ({ slide, colors, variant = 'default' }: { slide: any; colors: any, variant?: 'default' | 'striped' | 'minimal' }) => {
     const table = slide.table || slide.content?.table;
+
+    const isStriped = variant === 'striped';
+    const isMinimal = variant === 'minimal';
 
     return (
         <div className="relative w-full h-full overflow-hidden" style={{ backgroundColor: colors.bg }}>
@@ -489,20 +519,23 @@ const TableLayout = ({ slide, colors }: { slide: any; colors: any }) => {
                 </h2>
 
                 {table ? (
-                    <div className="w-full max-w-5xl backdrop-blur-md rounded-3xl overflow-hidden shadow-2xl border"
+                    <div className={`w-full max-w-6xl overflow-hidden ${isMinimal ? '' : 'rounded-3xl shadow-2xl border backdrop-blur-md'}`}
                         style={{
-                            backgroundColor: `${colors.bg}90`,
+                            backgroundColor: isMinimal ? 'transparent' : `${colors.bg}90`,
                             borderColor: `${colors.primary}30`,
-                            boxShadow: `0 25px 50px -12px ${colors.primary}20`
+                            boxShadow: isMinimal ? 'none' : `0 25px 50px -12px ${colors.primary}20`
                         }}>
-                        <table className="w-full">
+                        <table className="w-full border-collapse">
                             <thead>
-                                <tr style={{ backgroundColor: colors.primary }}>
+                                <tr style={{ backgroundColor: isMinimal ? 'transparent' : colors.primary }}>
                                     {table.columns?.map((col: string, i: number) => (
                                         <th
                                             key={i}
-                                            className="px-8 py-6 text-left text-lg font-bold uppercase tracking-wider"
-                                            style={{ color: '#ffffff' }}
+                                            className={`px-8 py-6 text-left text-lg font-bold uppercase tracking-wider ${isMinimal ? 'border-b-2' : ''}`}
+                                            style={{
+                                                color: isMinimal ? colors.primary : '#ffffff',
+                                                borderColor: colors.primary
+                                            }}
                                         >
                                             {col}
                                         </th>
@@ -513,9 +546,9 @@ const TableLayout = ({ slide, colors }: { slide: any; colors: any }) => {
                                 {table.rows?.map((row: string[], rowIdx: number) => (
                                     <tr
                                         key={rowIdx}
-                                        className="transition-colors hover:bg-white/10"
+                                        className="transition-colors hover:bg-white/5"
                                         style={{
-                                            backgroundColor: rowIdx % 2 === 0 ? `${colors.primary}08` : 'transparent',
+                                            backgroundColor: isStriped && rowIdx % 2 === 0 ? `${colors.primary}08` : 'transparent',
                                             borderBottom: `1px solid ${colors.text}10`
                                         }}
                                     >
@@ -546,46 +579,84 @@ const TableLayout = ({ slide, colors }: { slide: any; colors: any }) => {
 };
 
 
-// Timeline layout - Process steps
-const TimelineLayout = ({ slide, colors }: { slide: any; colors: any }) => {
+// Timeline layout - Process steps (Variants: default, vertical, zigzag)
+const TimelineLayout = ({ slide, colors, variant = 'default' }: { slide: any; colors: any, variant?: 'default' | 'vertical' | 'zigzag' }) => {
     const timeline = slide.timeline || slide.content?.timeline;
     const items = timeline?.items || [];
+
+    const isVertical = variant === 'vertical';
 
     return (
         <div className="relative w-full h-full overflow-hidden" style={{ backgroundColor: colors.bg }}>
             <AbstractShapes colors={colors} />
 
+            {/* Background Image if available */}
+            {(slide.backgroundImage || slide.imageSearchQuery) && (
+                <>
+                    <div
+                        className="absolute inset-0 bg-cover bg-center opacity-15"
+                        style={{
+                            backgroundImage: `url(${slide.backgroundImage || `https://source.unsplash.com/1600x900/?${encodeURIComponent(slide.imageSearchQuery)}`})`,
+                            mixBlendMode: 'multiply'
+                        }}
+                    />
+                </>
+            )}
+
             <div className="relative z-10 flex flex-col px-20 pt-16 pb-24 h-full">
-                <h2 className="text-5xl md:text-6xl font-bold mb-16" style={{ color: colors.text }}>
+                <h2 className={`text-5xl md:text-6xl font-bold mb-16 ${isVertical ? 'text-left pl-12' : 'text-center'}`} style={{ color: colors.text }}>
                     {slide.title}
                 </h2>
 
-                <div className="flex-1 flex items-center">
-                    <div className="w-full relative">
-                        {/* Timeline line */}
-                        <div className="absolute top-1/2 left-0 right-0 h-1 transform -translate-y-1/2" style={{ backgroundColor: `${colors.primary}40` }} />
+                <div className="flex-1 flex items-center justify-center">
 
-                        {/* Timeline items */}
-                        <div className="relative flex justify-between">
-                            {items.slice(0, 5).map((item: any, i: number) => (
-                                <div key={i} className="flex flex-col items-center max-w-[200px]">
-                                    {/* Date above */}
-                                    <span className="text-lg font-bold mb-4" style={{ color: colors.primary }}>{item.date}</span>
-
-                                    {/* Circle node */}
-                                    <div className="w-8 h-8 rounded-full border-4 shadow-lg z-10" style={{ backgroundColor: colors.primary, borderColor: colors.bg }} />
-
-                                    {/* Title and description below */}
-                                    <div className="mt-4 text-center">
-                                        <h4 className="text-xl font-bold" style={{ color: colors.text }}>{item.title}</h4>
-                                        {item.description && (
-                                            <p className="text-base mt-2" style={{ color: colors.text, opacity: 0.7 }}>{item.description}</p>
-                                        )}
+                    {/* VERTICAL VARIANT */}
+                    {isVertical ? (
+                        <div className="relative w-full max-w-4xl h-full overflow-y-auto pr-8">
+                            <div className="absolute top-0 bottom-0 left-8 w-1" style={{ backgroundColor: `${colors.primary}40` }} />
+                            <div className="space-y-12">
+                                {items.map((item: any, i: number) => (
+                                    <div key={i} className="relative flex items-start gap-12 ml-6">
+                                        <div className="absolute left-0 w-5 h-5 -ml-[10px] rounded-full border-4 z-10 mt-2" style={{ backgroundColor: colors.bg, borderColor: colors.primary }} />
+                                        <div className="w-24 pt-1 text-right font-bold text-xl" style={{ color: colors.primary }}>{item.date}</div>
+                                        <div className="flex-1 pb-8 border-b border-gray-100/10">
+                                            <h4 className="text-2xl font-bold mb-2" style={{ color: colors.text }}>{item.title}</h4>
+                                            <p className="text-lg opacity-80" style={{ color: colors.text }}>{item.description}</p>
+                                        </div>
                                     </div>
-                                </div>
-                            ))}
+                                ))}
+                            </div>
                         </div>
-                    </div>
+                    ) : (
+                        /* HORIZONTAL / DEFAULT VARIANT */
+                        <div className="w-full relative">
+                            {/* Timeline line */}
+                            <div className="absolute top-1/2 left-0 right-0 h-1 transform -translate-y-1/2" style={{ backgroundColor: `${colors.primary}40` }} />
+
+                            {/* Timeline items */}
+                            <div className="relative flex justify-between px-12">
+                                {items.slice(0, 5).map((item: any, i: number) => (
+                                    <div key={i} className={`flex flex-col items-center max-w-[240px] relative ${i % 2 === 0 ? '-top-12' : 'top-12'}`}>
+                                        {/* Date */}
+                                        <span className={`text-lg font-bold mb-4 ${i % 2 === 0 ? 'order-1' : 'order-3 mt-4'}`} style={{ color: colors.primary }}>{item.date}</span>
+
+                                        {/* Circle node */}
+                                        <div className={`w-6 h-6 rounded-full border-4 shadow-lg z-10 order-2`} style={{ backgroundColor: colors.primary, borderColor: colors.bg }} />
+
+                                        {/* Content */}
+                                        <div className={`text-center ${i % 2 === 0 ? 'order-3 mt-4' : 'order-1 mb-4'}`}>
+                                            <h4 className="text-xl font-bold leading-tight" style={{ color: colors.text }}>{item.title}</h4>
+                                            {item.description && (
+                                                <p className="text-base mt-2 leading-snug" style={{ color: colors.text, opacity: 0.7 }}>{item.description}</p>
+                                            )}
+                                        </div>
+                                        {/* Connector line to main axis */}
+                                        <div className={`absolute left-1/2 w-0.5 h-12 bg-primary/30 -z-10 ${i % 2 === 0 ? 'top-[40px]' : 'bottom-[40px]'}`} />
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
 
@@ -594,63 +665,107 @@ const TimelineLayout = ({ slide, colors }: { slide: any; colors: any }) => {
     );
 };
 
-// Comparison layout - Before/After or A vs B
-const ComparisonLayout = ({ slide, colors }: { slide: any; colors: any }) => {
+// Comparison layout - Multiple variants
+const ComparisonLayout = ({ slide, colors, variant = 'default' }: { slide: any; colors: any, variant?: 'default' | 'cards' | 'split' }) => {
     const comparison = slide.comparison || slide.content?.comparison;
     const columns = slide.columns || slide.content?.columns;
 
-    // Support both comparison object and columns array
     const left = comparison?.left || columns?.[0];
     const right = comparison?.right || columns?.[1];
 
+    const isSplit = variant === 'split';
+    const isCards = variant === 'cards';
+
     return (
         <div className="relative w-full h-full overflow-hidden" style={{ backgroundColor: colors.bg }}>
-            <AbstractShapes colors={colors} />
+            {!isSplit && <AbstractShapes colors={colors} />}
 
-            <div className="relative z-10 flex flex-col px-20 pt-16 pb-24 h-full">
-                <h2 className="text-5xl md:text-6xl font-bold mb-12 text-center" style={{ color: colors.text }}>
-                    {slide.title}
-                </h2>
-
-                <div className="flex-1 grid grid-cols-2 gap-12">
-                    {/* Left side */}
-                    {left && (
-                        <div className="backdrop-blur-md rounded-3xl p-10 border shadow-lg" style={{ backgroundColor: `${colors.bg}40`, borderColor: `${colors.text}20` }}>
-                            <h3 className="text-3xl font-bold mb-6" style={{ color: colors.text }}>{left.title}</h3>
-                            {left.subtitle && (
-                                <p className="text-xl mb-6" style={{ color: colors.text, opacity: 0.8 }}>{left.subtitle}</p>
-                            )}
-                            <ul className="space-y-4">
-                                {(left.items || []).map((item: string, j: number) => (
-                                    <li key={j} className="flex items-start gap-4">
-                                        <span className="w-3 h-3 rounded-full mt-2" style={{ backgroundColor: colors.secondary }} />
-                                        <span className="text-xl" style={{ color: colors.text, opacity: 0.9 }}>{item}</span>
-                                    </li>
-                                ))}
-                            </ul>
-                        </div>
-                    )}
-
-                    {/* Right side (highlighted) */}
-                    {right && (
-                        <div className="backdrop-blur-md rounded-3xl p-10 border-2 shadow-lg" style={{ borderColor: colors.primary, backgroundColor: `${colors.primary}10` }}>
-                            <h3 className="text-3xl font-bold mb-6" style={{ color: colors.primary }}>{right.title}</h3>
-                            {right.subtitle && (
-                                <p className="text-xl mb-6 opacity-80" style={{ color: colors.text }}>{right.subtitle}</p>
-                            )}
-                            <ul className="space-y-4">
-                                {(right.items || []).map((item: string, j: number) => (
-                                    <li key={j} className="flex items-start gap-4">
-                                        <span className="w-3 h-3 rounded-full mt-2" style={{ backgroundColor: colors.primary }} />
-                                        <span className="text-xl" style={{ color: colors.text, opacity: 0.9 }}>{item}</span>
-                                    </li>
-                                ))}
-                            </ul>
-                        </div>
-                    )}
+            {/* Split background */}
+            {isSplit && (
+                <div className="absolute inset-0 flex">
+                    <div className="w-1/2 h-full" style={{ backgroundColor: colors.bg }} />
+                    <div className="w-1/2 h-full opacity-10" style={{ backgroundColor: colors.primary }} />
                 </div>
-            </div>
+            )}
 
+            <div className={`relative z-10 flex flex-col h-full ${isSplit ? '' : 'px-20 pt-16 pb-24'}`}>
+                {!isSplit && (
+                    <h2 className="text-5xl md:text-6xl font-bold mb-12 text-center" style={{ color: colors.text }}>
+                        {slide.title}
+                    </h2>
+                )}
+
+                {isSplit ? (
+                    <div className="flex-1 flex w-full h-full">
+                        {/* Left split */}
+                        <div className="w-1/2 flex flex-col justify-center px-16 relative">
+                            <div className="absolute top-24 left-16">
+                                <h2 className="text-5xl font-bold mb-8" style={{ color: colors.text }}>{slide.title}</h2>
+                            </div>
+                            {left && (
+                                <div className="mt-20">
+                                    <h3 className="text-4xl font-bold mb-8" style={{ color: colors.text }}>{left.title}</h3>
+                                    <ul className="space-y-6">
+                                        {(left.items || []).map((item: string, j: number) => (
+                                            <li key={j} className="flex items-start gap-4">
+                                                <span className="w-3 h-3 rounded-full mt-2" style={{ backgroundColor: colors.primary }} />
+                                                <span className="text-2xl opacity-90" style={{ color: colors.text }}>{item}</span>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </div>
+                            )}
+                        </div>
+                        {/* Right split */}
+                        <div className="w-1/2 flex flex-col justify-center px-16 relative bg-white/5">
+                            {right && (
+                                <div className="mt-20">
+                                    <h3 className="text-4xl font-bold mb-8" style={{ color: colors.primary }}>{right.title}</h3>
+                                    <ul className="space-y-6">
+                                        {(right.items || []).map((item: string, j: number) => (
+                                            <li key={j} className="flex items-start gap-4">
+                                                <span className="w-3 h-3 rounded-full mt-2" style={{ backgroundColor: colors.primary }} />
+                                                <span className="text-2xl opacity-90" style={{ color: colors.text }}>{item}</span>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                ) : (
+                    <div className={`flex-1 grid grid-cols-2 gap-16 ${isCards ? 'items-stretch' : 'items-start'}`}>
+                        {/* Standard/Cards Layout */}
+                        {left && (
+                            <div className={`${isCards ? 'bg-surface/50 backdrop-blur-md rounded-3xl p-10 border shadow-xl' : ''}`}
+                                style={{ borderColor: `${colors.text}10` }}>
+                                <h3 className="text-3xl font-bold mb-8 border-b pb-4" style={{ color: colors.text, borderColor: colors.primary }}>{left.title}</h3>
+                                <ul className="space-y-5">
+                                    {(left.items || []).map((item: string, j: number) => (
+                                        <li key={j} className="flex items-start gap-4">
+                                            <span className="text-xl" style={{ color: colors.text, opacity: 0.8 }}>• {item}</span>
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
+                        )}
+                        {right && (
+                            <div className={`${isCards ? 'bg-surface/80 backdrop-blur-md rounded-3xl p-10 border-2 shadow-2xl transform scale-105' : ''}`}
+                                style={{ borderColor: colors.primary }}>
+                                <h3 className="text-3xl font-bold mb-8 border-b pb-4" style={{ color: colors.primary, borderColor: colors.primary }}>{right.title}</h3>
+                                <ul className="space-y-5">
+                                    {(right.items || []).map((item: string, j: number) => (
+                                        <li key={j} className="flex items-start gap-4">
+                                            <span className="w-6 h-6 rounded-full flex items-center justify-center text-xs text-white flex-shrink-0" style={{ backgroundColor: colors.primary }}>✓</span>
+                                            <span className="text-xl font-medium" style={{ color: colors.text }}>{item}</span>
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
+                        )}
+                    </div>
+                )}
+            </div>
             <SlideFooter title={slide.title} slideNumber={8} colors={colors} />
         </div>
     );
@@ -755,26 +870,56 @@ const InfographicLayout = ({ slide, colors }: { slide: any; colors: any }) => {
 
 // Quote layout - Testimonial or key quote
 // Quote layout - Testimonial or key quote
-const QuoteLargeLayout = ({ slide, colors }: { slide: any; colors: any }) => {
-    const quote = slide.quote || slide.content?.quote;
+// Text Heavy Layout - 3 Columns with Icons
+const ThreeColumnTextLayout = ({ slide, colors }: { slide: any; colors: any }) => {
+    const content = slide.content?.text || slide.text || slide.description || "";
+    // Split content into 3 rough chunks if it's a long string, or use existing chunks
+    const chunks = Array.isArray(content) ? content : content.split('. ').reduce((acc: any[], sentence: string, i: number) => {
+        if (i % 3 === 0) acc.push(sentence);
+        else acc[acc.length - 1] += '. ' + sentence;
+        return acc;
+    }, []);
+
+    const columns = chunks.slice(0, 3).map((text: string) => text.trim()).filter(Boolean);
 
     return (
         <div className="relative w-full h-full overflow-hidden" style={{ backgroundColor: colors.bg }}>
             <AbstractShapes colors={colors} />
 
-            <div className="relative z-10 flex flex-col items-center justify-center h-full px-32 pb-32 text-center">
-                <div className="text-9xl mb-10 opacity-20" style={{ color: colors.text }}>"</div>
-                <p className="text-5xl md:text-6xl font-medium mb-12 leading-relaxed" style={{ color: colors.text }}>
-                    {quote?.text || slide.title}
-                </p>
-                {quote?.author && (
-                    <p className="text-3xl opacity-80" style={{ color: colors.textSecondary || colors.text }}>
-                        — {quote.author}{quote.role ? `, ${quote.role}` : ''}
-                    </p>
-                )}
+            {/* Background Image if available */}
+            {(slide.backgroundImage || slide.imageSearchQuery) && (
+                <>
+                    <div
+                        className="absolute inset-0 bg-cover bg-center opacity-10"
+                        style={{
+                            backgroundImage: `url(${slide.backgroundImage || `https://source.unsplash.com/1600x900/?${encodeURIComponent(slide.imageSearchQuery)}`})`,
+                            mixBlendMode: 'multiply'
+                        }}
+                    />
+                </>
+            )}
+
+            <div className="relative z-10 flex flex-col px-20 pt-16 pb-24 h-full">
+                <h2 className="text-5xl md:text-6xl font-bold mb-16 text-center" style={{ color: colors.text }}>
+                    {slide.title}
+                </h2>
+
+                <div className="flex-1 grid grid-cols-3 gap-12 items-start">
+                    {columns.map((colText: string, i: number) => (
+                        <div key={i} className="flex flex-col gap-6">
+                            <div className="w-16 h-1 rounded-full opacity-50" style={{ backgroundColor: colors.primary }} />
+                            <p className="text-xl leading-relaxed text-justify opacity-90" style={{ color: colors.text }}>
+                                {colText.endsWith('.') ? colText : colText + '.'}
+                            </p>
+                        </div>
+                    ))}
+                    {columns.length === 0 && (
+                        <p className="col-span-3 text-center text-2xl opacity-60">No text content available.</p>
+                    )}
+                </div>
             </div>
 
-            <SlideFooter title="Quote" slideNumber={10} colors={colors} />
+            <SlideFooter title={slide.title} slideNumber={10} colors={colors} />
         </div>
     );
 };
@@ -1311,25 +1456,25 @@ export const ModernSlideRenderer = ({ slide, theme, className, colorPalette }: S
         console.log(`[SlideRenderer] Slide: "${slide.title}" | type: "${normalizedType}" | content keys: [${contentKeys.join(', ')}]`);
 
         // Smart content detection: check actual data presence before layout matching
-        const hasChart = slide.chart || slide.content?.chart;
-        const hasTable = slide.table || slide.content?.table;
-        const hasTimeline = slide.timeline || slide.content?.timeline;
-        const hasInfographic = slide.infographic || slide.content?.infographic;
-        const hasComparison = slide.comparison || slide.content?.comparison;
-        const hasStats = slide.stats || slide.content?.stats;
-        const hasItems = slide.items || slide.content?.items;
-        const hasQuote = slide.quote || slide.content?.quote;
+        const hasChart = (slide.chart?.data?.length > 0 || slide.content?.chart?.data?.length > 0);
+        const hasTable = (slide.table?.rows?.length > 0 || slide.content?.table?.rows?.length > 0);
+        const hasTimeline = (slide.timeline?.items?.length > 0 || slide.content?.timeline?.items?.length > 0);
+        const hasInfographic = (slide.infographic?.steps?.length > 0 || slide.content?.infographic?.steps?.length > 0);
+        const hasComparison = (slide.comparison?.items?.length > 0 || slide.content?.comparison?.items?.length > 0) || (slide.columns?.length === 2);
+        const hasStats = (slide.stats?.length > 0 || slide.metrics?.length > 0 || slide.content?.stats?.length > 0);
+        const hasItems = (slide.items?.length > 0 || slide.content?.items?.length > 0);
+        const hasQuote = (slide.quote?.text || slide.content?.quote?.text);
+
+        let LayoutComponent: React.ComponentType<any> = MasterContentLayout; // Default to MasterContentLayout
 
         // PRIORITY 1: Content-based detection (what data actually exists)
         if (hasChart) {
             console.log('  → Matched: ChartLayout (has chart data)');
-            return <ChartLayout slide={slide} colors={colors} />;
-        }
-        if (hasInfographic) {
+            LayoutComponent = ChartLayout;
+        } else if (hasInfographic) {
             console.log('  → Matched: InfographicLayout (has infographic data)');
-            return <InfographicLayout slide={slide} colors={colors} />;
-        }
-        if (hasTimeline) {
+            LayoutComponent = InfographicLayout;
+        } else if (hasTimeline) {
             console.log('  → Matched: TimelineLayout (has timeline data)');
             return <TimelineLayout slide={slide} colors={colors} />;
         }
@@ -1357,8 +1502,8 @@ export const ModernSlideRenderer = ({ slide, theme, className, colorPalette }: S
             }
         }
         if (hasQuote) {
-            console.log('  → Matched: QuoteLargeLayout (has quote data)');
-            return <QuoteLargeLayout slide={slide} colors={colors} />;
+            console.log('  → Matched: ThreeColumnTextLayout (was QuoteLargeLayout)');
+            return <ThreeColumnTextLayout slide={slide} colors={colors} />;
         }
 
         // PRIORITY 2: Layout type string matching (fallback)
@@ -1383,20 +1528,37 @@ export const ModernSlideRenderer = ({ slide, theme, className, colorPalette }: S
             console.log('  → Matched: MasterContentLayout (Smart Variation Engine)');
 
             // Use combination of slide index + title for variety but not total randomness
+            // FIX: Made deterministic by removing Date.now() and Math.random()
             const salt = slide.id || slide.title || 'salt';
             const slideIndex = slide.index || 0;
-            const hash = salt.split('').reduce((acc: number, char: string) => acc + char.charCodeAt(0), 0);
+
+            // Simple string hashing function
+            const hashString = (str: string) => {
+                let hash = 0;
+                for (let i = 0; i < str.length; i++) {
+                    const char = str.charCodeAt(i);
+                    hash = ((hash << 5) - hash) + char;
+                    hash = hash & hash; // Convert to 32bit integer
+                }
+                return Math.abs(hash);
+            };
+
+            const hash = hashString(salt + slideIndex);
+
             const variations: MasterVariation[] = ['classic', 'split-card', 'hero-block', 'magazine', 'minimal-offset'];
 
-            // Add more entropy: combine hash with slide index and a time factor
-            const entropy = hash + slideIndex * 17 + Math.floor(Date.now() / 100000) % 5;
-            let picked: MasterVariation = variations[entropy % variations.length];
+            // Deterministic pseudo-random number for theme decision (0-1 range)
+            const pseudoRandom = (hash % 100) / 100;
 
-            // Theme affinities are now SUGGESTIONS, not OVERRIDES (50% chance to use theme suggestion)
-            if (Math.random() > 0.5) {
-                if (theme.includes('tech')) picked = variations[(entropy + 1) % variations.length];
-                if (theme.includes('minimal')) picked = variations[(entropy + 2) % variations.length];
-                if (theme.includes('creative')) picked = variations[(entropy + 3) % variations.length];
+            // Base choice based on hash
+            let pickedIndex = hash % variations.length;
+            let picked: MasterVariation = variations[pickedIndex];
+
+            // Theme affinities are now SUGGESTIONS, not OVERRIDES (50% chance to use theme suggestion based on deterministic random)
+            if (pseudoRandom > 0.5) {
+                if (theme.includes('tech')) picked = variations[(pickedIndex + 1) % variations.length];
+                else if (theme.includes('minimal')) picked = variations[(pickedIndex + 2) % variations.length];
+                else if (theme.includes('creative')) picked = variations[(pickedIndex + 3) % variations.length];
             }
 
             console.log(`  → Picked variation: ${picked}`);
@@ -1410,24 +1572,40 @@ export const ModernSlideRenderer = ({ slide, theme, className, colorPalette }: S
             // Use combination of slide index + title for variety
             const salt = slide.id || slide.title || 'cover';
             const slideIndex = slide.index || 0;
-            const hash = salt.split('').reduce((acc: number, char: string) => acc + char.charCodeAt(0), 0);
+
+            // Simple string hashing function
+            const hashString = (str: string) => {
+                let hash = 0;
+                for (let i = 0; i < str.length; i++) {
+                    const char = str.charCodeAt(i);
+                    hash = ((hash << 5) - hash) + char;
+                    hash = hash & hash; // Convert to 32bit integer
+                }
+                return Math.abs(hash);
+            };
+
+            const hash = hashString(salt + slideIndex);
+
             const variations: CoverVariation[] = [
                 'centered-minimal', 'full-split', 'diagonal-hero', 'typographic-giant',
                 'boxed-modern', 'gradient-mesh', 'dark-tech', 'offset-gallery',
                 'floating-glass', 'cinematic'
             ];
 
-            // Add entropy
-            const entropy = hash + slideIndex * 13 + Math.floor(Date.now() / 100000) % 10;
-            let picked: CoverVariation = variations[entropy % variations.length];
+            // Deterministic pseudo-random number
+            const pseudoRandom = (hash % 100) / 100;
+
+            // Base choice
+            let pickedIndex = hash % variations.length;
+            let picked: CoverVariation = variations[pickedIndex];
 
             // Theme affinities are now SUGGESTIONS (50% chance)
-            if (Math.random() > 0.5) {
+            if (pseudoRandom > 0.5) {
                 const offset = hash % 3;
-                if (theme.includes('tech')) picked = variations[(entropy + offset) % variations.length];
-                if (theme.includes('creative')) picked = variations[(entropy + offset + 2) % variations.length];
-                if (theme.includes('minimal')) picked = variations[(entropy + offset + 4) % variations.length];
-                if (theme.includes('corporate')) picked = variations[(entropy + offset + 6) % variations.length];
+                if (theme.includes('tech')) picked = variations[(pickedIndex + offset) % variations.length];
+                else if (theme.includes('creative')) picked = variations[(pickedIndex + offset + 2) % variations.length];
+                else if (theme.includes('minimal')) picked = variations[(pickedIndex + offset + 4) % variations.length];
+                else if (theme.includes('corporate')) picked = variations[(pickedIndex + offset + 6) % variations.length];
             }
 
             console.log(`  → Picked cover variation: ${picked}`);
@@ -1440,32 +1618,45 @@ export const ModernSlideRenderer = ({ slide, theme, className, colorPalette }: S
             return <SectionDividerLayout slide={slide} colors={colors} />;
         }
 
-        // Stats/Metrics by type (if no actual stats data)
+        // Stats/Metrics by type - STRICT CHECK
         if (normalizedType.includes('stat') || normalizedType.includes('metric') || normalizedType.includes('kpi')) {
-            console.log('  → Matched: StatsLayout (type contains stat/metric/kpi)');
-            return <StatsLayout slide={slide} colors={colors} />;
+            if (hasStats) {
+                console.log('  → Matched: StatsLayout (type match + data verified)');
+                return <StatsLayout slide={slide} colors={colors} />;
+            }
+            console.log('  → Fallback: Stats layout requested but no data -> transitioning to text layout');
         }
 
-        // Chart by type (if no actual chart data)
+        // Chart by type - STRICT CHECK: Only if data exists, otherwise fallback to text
         if (normalizedType.includes('chart') || normalizedType.includes('graph')) {
-            console.log('  → Matched: ChartLayout (type contains chart/graph, but no chart data!)');
-            return <ChartLayout slide={slide} colors={colors} />;
+            if (hasChart) {
+                console.log('  → Matched: ChartLayout (type match + data verified)');
+                return <ChartLayout slide={slide} colors={colors} />;
+            } else {
+                console.log('  → Fallback: Chart type requested but no data -> defaulting to Content/ThreeCol');
+                // Fall through to default content handler
+            }
         }
 
-        // Timeline/Process by type
+        // Timeline/Process by type - STRICT CHECK
         if (normalizedType.includes('timeline') || normalizedType.includes('roadmap') || normalizedType.includes('process')) {
-            console.log('  → Matched: TimelineLayout (type contains timeline/roadmap/process, checking for infographic fallback)');
-            // Check if it's actually an infographic
-            if (hasInfographic || normalizedType.includes('acquisition')) {
+            if (hasTimeline) {
+                console.log('  → Matched: TimelineLayout (type match + data verified)');
+                return <TimelineLayout slide={slide} colors={colors} />;
+            } else if (hasInfographic) {
                 return <InfographicLayout slide={slide} colors={colors} />;
             }
-            return <TimelineLayout slide={slide} colors={colors} />;
+            // Fallback if no timeline data
+            console.log('  → Fallback: Timeline type requested but no data -> defaulting to Content/ThreeCol');
         }
 
-        // Comparison
+        // Comparison - STRICT CHECK
         if (normalizedType.includes('comparison') || normalizedType.includes('versus') || normalizedType.includes('before')) {
-            console.log('  → Matched: ComparisonLayout (type contains comparison/versus/before)');
-            return <ComparisonLayout slide={slide} colors={colors} />;
+            if (hasComparison) {
+                console.log('  → Matched: ComparisonLayout (type match + data verified)');
+                return <ComparisonLayout slide={slide} colors={colors} />;
+            }
+            console.log('  → Fallback: Comparison layout requested but no data -> transitioning to text layout');
         }
 
         // Infographic
@@ -1475,9 +1666,10 @@ export const ModernSlideRenderer = ({ slide, theme, className, colorPalette }: S
         }
 
         // Quote
+        // Quote - Redirect to Text Columns
         if (normalizedType.includes('quote') || normalizedType.includes('testimonial')) {
-            console.log('  → Matched: QuoteLargeLayout (type contains quote/testimonial)');
-            return <QuoteLargeLayout slide={slide} colors={colors} />;
+            console.log('  → Matched: ThreeColumnTextLayout (was QuoteLargeLayout)');
+            return <ThreeColumnTextLayout slide={slide} colors={colors} />;
         }
 
         // Bento grid

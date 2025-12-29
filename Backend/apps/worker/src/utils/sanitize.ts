@@ -1,17 +1,18 @@
 // apps/worker/src/utils/sanitize.ts
-// Content sanitization and validation utilities
+// Content sanitization, validation, and NORMALIZATION utilities
+// This is the "DOUANIER" - it ensures all AI output is converted to standard format
 
 import type { ThemeConfig } from '../config/themes';
 
 /**
- * Represents a slide with all possible content types
+ * Represents a slide with all possible content types (STANDARD FORMAT)
  */
 export interface SlideContent {
     subtitle?: string;
     text?: string;
     bullets?: string[];
     stats?: Array<{ value: string; label: string }>;
-    items?: Array<{ title: string; value: string }>;
+    items?: Array<{ title: string; description?: string; value?: string; image?: string }>;
     chart?: {
         type: 'bar' | 'line' | 'pie' | 'donut' | 'area';
         title?: string;
@@ -27,7 +28,7 @@ export interface SlideContent {
     };
     infographic?: {
         type: 'funnel' | 'pyramid' | 'process';
-        steps: Array<{ label: string; value: number | string }>;
+        steps: Array<{ label: string; value?: number | string }>;
     };
     comparison?: {
         left: { title: string; subtitle?: string; items: string[] };
@@ -38,6 +39,7 @@ export interface SlideContent {
         author?: string;
         role?: string;
     };
+    columns?: Array<{ title?: string; header?: string; text?: string; body?: string }>;
     notes?: string;
 }
 
@@ -52,226 +54,423 @@ export interface Slide {
 export interface Deck {
     title: string;
     theme: string;
+    colorPalette?: {
+        primary: string;
+        secondary: string;
+        accent: string;
+        bg: string;
+        text: string;
+    };
     themeConfig?: ThemeConfig;
     slides: Slide[];
 }
 
+// ============================================
+// NORMALIZATION FUNCTIONS (Per Layout Type)
+// ============================================
+
 /**
- * Ensure a slide has valid content and fallback if empty
+ * Normalize TIMELINE layout data
+ * AI might send: events, steps, milestones, items
+ * Standard format: timeline.items[{ date, title, description }]
+ */
+function normalizeTimeline(content: any): SlideContent {
+    const sourceData = content.events || content.steps || content.milestones || content.timeline?.items || content.items || [];
+
+    if (sourceData.length === 0) return content;
+
+    const normalizedItems = sourceData.map((item: any) => ({
+        date: item.date || item.time || item.year || '',
+        title: item.event || item.title || item.name || item.milestone || '',
+        description: item.description || item.details || item.text || ''
+    }));
+
+    return {
+        ...content,
+        timeline: { items: normalizedItems },
+        // Clean up non-standard keys
+        events: undefined,
+        steps: undefined,
+        milestones: undefined
+    };
+}
+
+/**
+ * Normalize STATS layout data
+ * AI might send: stats, statistics, metrics, kpis
+ * Standard format: stats[{ value, label }]
+ */
+function normalizeStats(content: any): SlideContent {
+    const sourceData = content.stats || content.statistics || content.metrics || content.kpis || [];
+
+    if (sourceData.length === 0) return content;
+
+    const normalizedStats = sourceData.map((stat: any) => ({
+        value: String(stat.value || stat.number || stat.metric || stat.figure || ''),
+        label: stat.label || stat.title || stat.name || stat.description || ''
+    }));
+
+    return {
+        ...content,
+        stats: normalizedStats,
+        // Clean up non-standard keys
+        statistics: undefined,
+        metrics: undefined,
+        kpis: undefined
+    };
+}
+
+/**
+ * Normalize BENTO/GRID layout data
+ * AI might send: items, features, cards, components
+ * Standard format: items[{ title, description, value?, image? }]
+ */
+function normalizeBento(content: any): SlideContent {
+    const sourceData = content.items || content.features || content.cards || content.components || content.elements || [];
+
+    if (sourceData.length === 0) return content;
+
+    const normalizedItems = sourceData.map((item: any) => ({
+        title: item.title || item.name || item.header || '',
+        description: item.description || item.text || item.body || item.content || '',
+        value: item.value || item.metric || item.number || undefined,
+        image: item.image || item.icon || item.img || undefined
+    }));
+
+    return {
+        ...content,
+        items: normalizedItems,
+        // Clean up non-standard keys
+        features: undefined,
+        cards: undefined,
+        components: undefined,
+        elements: undefined
+    };
+}
+
+/**
+ * Normalize CHART layout data
+ * AI might send: chart, labels+datasets, data+categories
+ * Standard format: chart{ type, categories, series[{ name, data }] }
+ */
+function normalizeChart(content: any): SlideContent {
+    // If already in standard format
+    if (content.chart?.categories && content.chart?.series) {
+        return content;
+    }
+
+    // AI format: labels + datasets
+    if (content.labels && content.datasets) {
+        const normalizedChart = {
+            type: content.chartType || content.type || 'bar',
+            title: content.chartTitle || content.title || '',
+            categories: content.labels,
+            series: content.datasets.map((ds: any) => ({
+                name: ds.label || ds.name || 'Data',
+                data: ds.data || []
+            }))
+        };
+
+        return {
+            ...content,
+            chart: normalizedChart,
+            // Clean up
+            labels: undefined,
+            datasets: undefined,
+            chartType: undefined
+        };
+    }
+
+    return content;
+}
+
+/**
+ * Normalize TABLE layout data
+ * AI might send: table, headers+rows
+ * Standard format: table{ columns, rows }
+ */
+function normalizeTable(content: any): SlideContent {
+    // If already in standard format
+    if (content.table?.columns && content.table?.rows) {
+        return content;
+    }
+
+    // AI format: headers + rows directly in content
+    if (content.headers && content.rows) {
+        return {
+            ...content,
+            table: {
+                columns: content.headers,
+                rows: content.rows
+            },
+            // Clean up
+            headers: undefined
+        };
+    }
+
+    return content;
+}
+
+/**
+ * Normalize COMPARISON layout data
+ * AI might send: comparison, leftTitle+leftBullets, columns
+ * Standard format: comparison{ left: { title, items }, right: { title, items } }
+ */
+function normalizeComparison(content: any): SlideContent {
+    // If already in standard format
+    if (content.comparison?.left && content.comparison?.right) {
+        return content;
+    }
+
+    // AI format: leftTitle/leftBullets + rightTitle/rightBullets
+    if (content.leftTitle || content.rightTitle) {
+        return {
+            ...content,
+            comparison: {
+                left: {
+                    title: content.leftTitle || 'Option A',
+                    items: content.leftBullets || content.leftItems || []
+                },
+                right: {
+                    title: content.rightTitle || 'Option B',
+                    items: content.rightBullets || content.rightItems || []
+                }
+            },
+            // Clean up
+            leftTitle: undefined,
+            leftBullets: undefined,
+            leftItems: undefined,
+            rightTitle: undefined,
+            rightBullets: undefined,
+            rightItems: undefined
+        };
+    }
+
+    // AI format: columns array with 2 items
+    if (content.columns?.length === 2 && !content.columns[0]?.body) {
+        return {
+            ...content,
+            comparison: {
+                left: {
+                    title: content.columns[0].title || content.columns[0].header || 'Option A',
+                    items: content.columns[0].items || content.columns[0].bullets || []
+                },
+                right: {
+                    title: content.columns[1].title || content.columns[1].header || 'Option B',
+                    items: content.columns[1].items || content.columns[1].bullets || []
+                }
+            }
+        };
+    }
+
+    return content;
+}
+
+/**
+ * Normalize INFOGRAPHIC layout data
+ * AI might send: infographic, steps, phases, stages
+ * Standard format: infographic{ type, steps[{ label, value? }] }
+ */
+function normalizeInfographic(content: any): SlideContent {
+    // If already in standard format
+    if (content.infographic?.steps) {
+        return content;
+    }
+
+    // AI sends type + steps directly
+    if (content.type && content.steps) {
+        const normalizedSteps = content.steps.map((step: any) => {
+            // Handle string steps
+            if (typeof step === 'string') {
+                return { label: step, value: undefined };
+            }
+            return {
+                label: step.label || step.name || step.title || '',
+                value: step.value || step.percent || step.number || undefined
+            };
+        });
+
+        return {
+            ...content,
+            infographic: {
+                type: content.type,
+                steps: normalizedSteps
+            },
+            // Don't clean up type/steps as they might be referenced elsewhere
+        };
+    }
+
+    return content;
+}
+
+/**
+ * Normalize TEXT-COLUMNS layout data
+ * AI might send: columns with header/body or title/text
+ * Standard format: columns[{ title, text }]
+ */
+function normalizeTextColumns(content: any): SlideContent {
+    if (!content.columns || content.columns.length === 0) return content;
+
+    const normalizedColumns = content.columns.map((col: any) => ({
+        title: col.header || col.title || '',
+        text: col.body || col.text || col.content || ''
+    }));
+
+    return {
+        ...content,
+        columns: normalizedColumns
+    };
+}
+
+/**
+ * Normalize QUOTE layout data
+ * AI might send: quote object, or quoteText/author directly
+ * Standard format: quote{ text, author?, role? }
+ */
+function normalizeQuote(content: any): SlideContent {
+    // If already in standard format
+    if (content.quote?.text) {
+        return content;
+    }
+
+    // AI sends quoteText/author directly
+    if (content.quoteText || content.text) {
+        return {
+            ...content,
+            quote: {
+                text: content.quoteText || content.text || '',
+                author: content.author || content.speaker || content.by || undefined,
+                role: content.role || content.title || content.position || undefined
+            },
+            // Clean up
+            quoteText: undefined,
+            author: undefined,
+            speaker: undefined,
+            by: undefined,
+            role: undefined
+        };
+    }
+
+    return content;
+}
+
+// ============================================
+// MASTER NORMALIZATION DISPATCHER
+// ============================================
+
+/**
+ * Apply the correct normalization based on layout type
+ */
+function normalizeSlideContent(slide: Slide): Slide {
+    const layout = slide.layout?.toLowerCase() || 'bullets';
+    let content = slide.content || {};
+
+    // Apply normalization based on layout
+    switch (true) {
+        case layout.includes('timeline') || layout.includes('roadmap'):
+            content = normalizeTimeline(content);
+            break;
+        case layout.includes('stat') || layout.includes('metric') || layout.includes('kpi'):
+            content = normalizeStats(content);
+            break;
+        case layout.includes('bento') || layout.includes('grid') || layout.includes('feature'):
+            content = normalizeBento(content);
+            break;
+        case layout.includes('chart') || layout.includes('graph'):
+            content = normalizeChart(content);
+            break;
+        case layout.includes('table'):
+            content = normalizeTable(content);
+            break;
+        case layout.includes('comparison') || layout.includes('versus') || layout.includes('vs'):
+            content = normalizeComparison(content);
+            break;
+        case layout.includes('infographic') || layout.includes('funnel') || layout.includes('pyramid') || layout.includes('process'):
+            content = normalizeInfographic(content);
+            break;
+        case layout.includes('text-column') || layout.includes('column'):
+            content = normalizeTextColumns(content);
+            break;
+        case layout.includes('quote') || layout.includes('testimonial'):
+            content = normalizeQuote(content);
+            break;
+        default:
+            // For other layouts (cover, bullets, image-focus, section), no special normalization needed
+            break;
+    }
+
+    return { ...slide, content };
+}
+
+// ============================================
+// MAIN SANITIZATION FUNCTION
+// ============================================
+
+/**
+ * Ensure a slide has valid STRUCTURE (no fake content injection)
  */
 function ensureSlideContent(slide: Slide, index: number, deckTitle: string): Slide {
-    const content = slide.content || {};
-    const layout = (slide.layout || '').toLowerCase();
+    // Ensure content object exists
+    if (!slide.content) {
+        slide.content = {};
+    }
 
-    // Ensure title exists
+    // Ensure title exists (minimal fallback)
     if (!slide.title) {
         slide.title = `Slide ${index + 1}`;
     }
 
-    // Ensure imageSearchQuery exists
+    // Ensure imageSearchQuery exists for image fetching
     if (!slide.imageSearchQuery) {
         slide.imageSearchQuery = `${deckTitle} professional presentation`;
     }
 
-    // Layout-specific content validation
-    if (layout.includes('cover') || index === 0) {
-        // Cover slides need at least a subtitle or bullets
-        if (!content.subtitle && !(content.bullets && content.bullets.length > 0)) {
-            content.subtitle = 'Transforming ideas into impact';
-            content.bullets = ['Key insight 1', 'Key insight 2', 'Key insight 3'];
-        }
-    } else if (layout.includes('stat') || layout.includes('metric')) {
-        // Stats slides need stats
-        if (!content.stats || content.stats.length === 0) {
-            content.stats = [
-                { value: '+45%', label: 'Year-over-year growth' },
-                { value: '99.9%', label: 'Uptime reliability' },
-            ];
-        }
-    } else if (layout.includes('bento') || layout.includes('grid')) {
-        // Bento slides need items
-        if (!content.items || content.items.length === 0) {
-            // Try to convert bullets to items
-            if (content.bullets && content.bullets.length > 0) {
-                content.items = content.bullets.slice(0, 6).map((b, i) => ({
-                    title: `Point ${i + 1}`,
-                    value: b,
-                }));
-            } else {
-                content.items = [
-                    { title: 'Feature 1', value: 'Description of feature 1' },
-                    { title: 'Feature 2', value: 'Description of feature 2' },
-                    { title: 'Feature 3', value: 'Description of feature 3' },
-                    { title: 'Feature 4', value: 'Description of feature 4' },
-                ];
-            }
-        }
-    } else if (layout.includes('chart')) {
-        // Chart slides need chart data
-        if (!content.chart) {
-            content.chart = {
-                type: 'bar',
-                title: 'Performance Metrics',
-                categories: ['Q1', 'Q2', 'Q3', 'Q4'],
-                series: [{ name: 'Value', data: [65, 78, 90, 110] }],
-            };
-        }
-    } else if (layout.includes('table')) {
-        // Table slides need table data
-        if (!content.table) {
-            content.table = {
-                columns: ['Item', 'Status', 'Progress'],
-                rows: [
-                    ['Task 1', 'Complete', '100%'],
-                    ['Task 2', 'In Progress', '75%'],
-                    ['Task 3', 'Pending', '0%'],
-                ],
-            };
-        }
-    } else if (layout.includes('timeline')) {
-        // Timeline slides need timeline items
-        if (!content.timeline) {
-            content.timeline = {
-                items: [
-                    { date: 'Phase 1', title: 'Planning', description: 'Initial setup' },
-                    { date: 'Phase 2', title: 'Development', description: 'Build and test' },
-                    { date: 'Phase 3', title: 'Launch', description: 'Go live' },
-                ],
-            };
-        }
-    } else if (layout.includes('comparison')) {
-        // Comparison slides need comparison data
-        if (!content.comparison) {
-            content.comparison = {
-                left: { title: 'Before', items: ['Manual process', 'Time-consuming', 'Error-prone'] },
-                right: { title: 'After', items: ['Automated', 'Fast', 'Accurate'] },
-            };
-        }
-    } else if (layout.includes('infographic') || layout.includes('funnel')) {
-        // Infographic slides need infographic data
-        if (!content.infographic) {
-            content.infographic = {
-                type: 'funnel',
-                steps: [
-                    { label: 'Awareness', value: 10000 },
-                    { label: 'Interest', value: 5000 },
-                    { label: 'Decision', value: 1000 },
-                    { label: 'Action', value: 500 },
-                ],
-            };
-        }
-    } else if (layout.includes('quote')) {
-        // Quote slides need quote content
-        if (!content.quote) {
-            content.quote = {
-                text: 'Innovation distinguishes between a leader and a follower.',
-                author: 'Steve Jobs',
-            };
-        }
-    } else {
-        // Default content layout needs bullets
-        if (!content.bullets || content.bullets.length === 0) {
-            content.bullets = [
-                `${slide.title}: Key point 1`,
-                `${slide.title}: Key point 2`,
-                `${slide.title}: Key point 3`,
-            ];
-        }
-    }
-
-    slide.content = content;
     return slide;
 }
 
 /**
- * Ensure a deck has required content variety
- * Transforms slides if needed to ensure layout diversity
- */
-function ensureDeckVariety(deck: Deck): Deck {
-    const slides = deck.slides || [];
-
-    // Track layout usage
-    const layoutCounts: Record<string, number> = {};
-    let hasStats = false;
-    let hasChart = false;
-    let hasBento = false;
-
-    slides.forEach((slide) => {
-        const layout = (slide.layout || '').toLowerCase();
-        layoutCounts[layout] = (layoutCounts[layout] || 0) + 1;
-
-        if (layout.includes('stat')) hasStats = true;
-        if (layout.includes('chart')) hasChart = true;
-        if (layout.includes('bento') || layout.includes('grid')) hasBento = true;
-    });
-
-    // If no stats slide and we have more than 4 slides, convert one
-    if (!hasStats && slides.length > 4) {
-        const idx = Math.min(2, slides.length - 1);
-        slides[idx].layout = 'stats';
-        slides[idx].content = slides[idx].content || {};
-        if (!slides[idx].content.stats) {
-            slides[idx].content.stats = [
-                { value: '+150%', label: 'Key metric growth' },
-                { value: '98%', label: 'Customer satisfaction' },
-            ];
-        }
-    }
-
-    // If no bento grid and we have more than 5 slides, convert one
-    if (!hasBento && slides.length > 5) {
-        const idx = Math.min(3, slides.length - 2);
-        if (!slides[idx].layout.includes('stat') && !slides[idx].layout.includes('cover')) {
-            slides[idx].layout = 'bento';
-            slides[idx].content = slides[idx].content || {};
-            const bullets = slides[idx].content.bullets || [];
-            slides[idx].content.items = bullets.slice(0, 4).map((b: string, i: number) => ({
-                title: `Feature ${i + 1}`,
-                value: b,
-            }));
-        }
-    }
-
-    deck.slides = slides;
-    return deck;
-}
-
-/**
  * Main sanitization function
- * Ensures deck has valid structure and content
+ * Ensures deck has valid structure and NORMALIZED content
  */
 export function sanitizeDeck(deck: any, deckTitle?: string): Deck {
     const title = deck?.title || deckTitle || 'Presentation';
 
-    // Ensure slides array exists
+    // Only create fallback deck if AI returned nothing at all
     if (!deck?.slides || !Array.isArray(deck.slides) || deck.slides.length === 0) {
+        console.warn('[Sanitize] ⚠️ AI returned empty slides - creating minimal fallback');
         deck = {
             title,
             theme: deck?.theme || 'startup-pitch',
+            colorPalette: deck?.colorPalette,
             slides: [
                 {
                     layout: 'cover',
                     title: title,
-                    imageSearchQuery: 'professional presentation business',
+                    imageSearchQuery: 'professional presentation',
                     content: {
                         subtitle: 'Generated presentation',
-                        bullets: ['Key insight 1', 'Key insight 2'],
                     },
                 },
             ],
         };
     }
 
-    // Ensure each slide has valid layout
+    // Process each slide: ensure structure + normalize content
     deck.slides = deck.slides.map((slide: any, index: number) => {
         if (!slide.layout) {
             slide.layout = index === 0 ? 'cover' : 'bullets';
         }
-        return ensureSlideContent(slide, index, title);
+
+        // Step 1: Ensure basic structure
+        slide = ensureSlideContent(slide, index, title);
+
+        // Step 2: NORMALIZE content to standard format (THE KEY STEP)
+        slide = normalizeSlideContent(slide);
+
+        return slide;
     });
 
-    // Ensure deck has layout variety
-    deck = ensureDeckVariety(deck);
+    console.log(`[Sanitize] ✅ Normalized ${deck.slides.length} slides`);
 
     return deck as Deck;
 }

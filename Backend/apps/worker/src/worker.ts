@@ -283,6 +283,19 @@ const generateWorker = new Worker(
 
       if (!raw) throw new Error('Empty AI response');
 
+      // === DEBUG: Save raw AI response to file ===
+      const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+      const debugDir = path.join(process.cwd(), 'debug-logs');
+      if (!fs.existsSync(debugDir)) {
+        fs.mkdirSync(debugDir, { recursive: true });
+      }
+      fs.writeFileSync(
+        path.join(debugDir, `${timestamp}_raw_ai_response.json`),
+        raw,
+        'utf-8'
+      );
+      console.log(`[Generate] 📝 DEBUG: Raw AI response saved to debug-logs/${timestamp}_raw_ai_response.json`);
+
       // 3. Parse and sanitize the deck
       let deck: Deck;
       try {
@@ -299,6 +312,14 @@ const generateWorker = new Worker(
       deck = sanitizeDeck(deck, prompt);
       deck.theme = themeConfig.id;
       deck.themeConfig = themeConfig;
+
+      // === DEBUG: Save final processed deck to file ===
+      fs.writeFileSync(
+        path.join(debugDir, `${timestamp}_final_deck.json`),
+        JSON.stringify(deck, null, 2),
+        'utf-8'
+      );
+      console.log(`[Generate] 📝 DEBUG: Final deck saved to debug-logs/${timestamp}_final_deck.json`);
 
       console.log(`[Generate] Deck has ${deck.slides.length} slides`);
 
@@ -333,7 +354,9 @@ const generateWorker = new Worker(
               title: deck.title || 'Untitled Presentation',
               slides: deck, // Now contains images
               theme: themeConfig.id,
-              status: 'ready'
+              status: 'ready',
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString()
             })
             .select()
             .single();

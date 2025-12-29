@@ -282,10 +282,6 @@ All colors MUST be HSL.
   }
 
   /* Improve card backgrounds */
-  [class*="bg-card"],
-  [class*="bg-surface"] {
-    background-color: hsl(var(--surface)) !important;
-  }
 
   /* Background adjustments for better readability */
   body {
@@ -329,7 +325,7 @@ All colors MUST be HSL.
 
   /* ========== TEXT COLOR OVERRIDES FOR LIGHT MODE ========== */
   /* DISABLED: These overrides break presentation slides that need light text on dark backgrounds even in light mode */
-  
+
   /* All white text variations */
   /*
   .text-white,

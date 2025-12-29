@@ -1,0 +1,227 @@
+{
+  "title": "Lumina Studios : L'Art de Peindre avec des Photons",
+  "subtitle": "Portfolio de Pitch Business - Collectif d'Art Numérique Avant-gardiste",
+  "colorPalette": {
+    "primary": "#E100FF",
+    "secondary": "#00FBFF",
+    "accent": "#FFD700",
+    "bg": "#050505",
+    "text": "#F5F5F5"
+  },
+  "slides": [
+    {
+      "layout": "cover",
+      "title": "Lumina Studios",
+      "imageSearchQuery": "immersive light art installation digital futuristic",
+      "content": {
+        "subtitle": "Redéfinir l'immersion par la peinture photonique et la technologie 8K.",
+        "bullets": [
+          "Collectif d'artistes numériques",
+          "Installations monumentales",
+          "Expériences sensorielles uniques"
+        ]
+      }
+    },
+    {
+      "layout": "section",
+      "title": "La Philosophie : Peindre avec des Photons",
+      "imageSearchQuery": "abstract light beams dark background neon",
+      "content": {
+        "subtitle": "Nous ne projetons pas d'images, nous sculptons la perception humaine à travers la manipulation pure de la lumière."
+      }
+    },
+    {
+      "layout": "text-columns",
+      "title": "Notre Vision Artistique",
+      "imageSearchQuery": "digital art studio workshop creative",
+      "content": {
+        "columns": [
+          {
+            "header": "L'Essence du Flux",
+            "body": "Lumina Studios explore la frontière entre le tangible et le virtuel. En utilisant le photon comme pigment, nous créons des environnements qui respirent et réagissent à la présence humaine, transformant des espaces statiques en organismes vivants."
+          },
+          {
+            "header": "Technologie Invisible",
+            "body": "Pour nous, la technologie n'est qu'un outil au service de l'émotion. Nos algorithmes génératifs et nos systèmes de projection de pointe s'effacent pour laisser place à une immersion totale, sans friction ni interface visible."
+          },
+          {
+            "header": "Impact Sensoriel",
+            "body": "Chaque installation est conçue comme un voyage psychogéographique. Nous collaborons avec des neuroscientifiques pour comprendre comment la lumière et le son spatialisé influencent les états de conscience de nos spectateurs."
+          }
+        ]
+      }
+    },
+    {
+      "layout": "bento",
+      "title": "Portfolio : Œuvres Majeures",
+      "imageSearchQuery": "modern art gallery digital installation",
+      "content": {
+        "items": [
+          {
+            "title": "Neon Forest",
+            "description": "Une forêt de lasers organiques réagissant au toucher. Cette œuvre explore la symbiose entre la nature sauvage et la précision géométrique du laser."
+          },
+          {
+            "title": "Void Mirrors",
+            "description": "Une installation de miroirs infinis couplée à une projection volumétrique. Le spectateur perd tout repère spatial dans un abîme de lumière pure."
+          },
+          {
+            "title": "Ether Flow",
+            "description": "Une sculpture de particules de lumière en suspension, simulant les courants atmosphériques en temps réel grâce à des données météorologiques mondiales."
+          },
+          {
+            "title": "Prism Gate",
+            "description": "Un portail architectural utilisant la diffraction de la lumière pour créer des arcs-en-ciel solides que les visiteurs peuvent traverser physiquement."
+          }
+        ]
+      }
+    },
+    {
+      "layout": "image-focus",
+      "title": "Focus : Neon Forest",
+      "imageSearchQuery": "neon laser forest art installation",
+      "content": {
+        "subtitle": "Une immersion de 500m² où chaque faisceau lumineux est une entité vivante.",
+        "bullets": [
+          "Plus de 200 lasers programmables",
+          "Capteurs de mouvement LiDAR haute précision",
+          "Paysage sonore binaural génératif"
+        ]
+      }
+    },
+    {
+      "layout": "comparison",
+      "title": "Void Mirrors : Réalité vs Reflet",
+      "imageSearchQuery": "infinity mirror room digital art",
+      "content": {
+        "leftTitle": "Espace Physique",
+        "leftBullets": [
+          "Structure modulaire en aluminium noir",
+          "Miroirs à haute réflectivité (99.9%)",
+          "Surface au sol de 120 mètres carrés"
+        ],
+        "rightTitle": "Espace Virtuel",
+        "rightBullets": [
+          "Moteur de rendu temps réel Unreal Engine 5",
+          "Projections 8K à 120 images par seconde",
+          "Génération procédurale de motifs géométriques"
+        ]
+      }
+    },
+    {
+      "layout": "infographic",
+      "title": "Le Processus Lumina",
+      "imageSearchQuery": "digital design process workflow",
+      "content": {
+        "steps": [
+          {
+            "title": "Concept",
+            "description": "Étude de la psychologie de l'espace et storyboard narratif."
+          },
+          {
+            "title": "Code",
+            "description": "Développement d'algorithmes génératifs sur mesure."
+          },
+          {
+            "title": "Projection",
+            "description": "Calibration millimétrée de projecteurs 8K haute puissance."
+          },
+          {
+            "title": "Immersion",
+            "description": "Ouverture au public et interaction en temps réel."
+          }
+        ]
+      }
+    },
+    {
+      "layout": "stats",
+      "title": "Performance & Puissance Technique",
+      "imageSearchQuery": "high tech projector lens close up",
+      "content": {
+        "stats": [
+          {
+            "label": "Résolution Native",
+            "value": "8K"
+          },
+          {
+            "label": "Luminosité Totale",
+            "value": "1.2M Lumens"
+          },
+          {
+            "label": "Latence Interaction",
+            "value": "< 15ms"
+          },
+          {
+            "label": "Récompenses Internationales",
+            "value": "12"
+          }
+        ]
+      }
+    },
+    {
+      "layout": "timeline",
+      "title": "Tournée Mondiale 2024-2025",
+      "imageSearchQuery": "tokyo berlin city lights night",
+      "content": {
+        "events": [
+          {
+            "date": "Octobre 2024",
+            "event": "Tokyo : Mori Art Museum - Rétrospective 'Photon Dreams'"
+          },
+          {
+            "date": "Mars 2025",
+            "event": "Berlin : Kraftwerk - Installation monumentale 'Industrial Light'"
+          },
+          {
+            "date": "Juin 2025",
+            "event": "Paris : Palais de Tokyo - Collaboration exclusive Mode & Lumière"
+          },
+          {
+            "date": "Septembre 2025",
+            "event": "New York : The Shed - Première de 'Void Mirrors II'"
+          }
+        ]
+      }
+    },
+    {
+      "layout": "section",
+      "title": "Collaborons pour Illuminer le Futur",
+      "imageSearchQuery": "creative business handshake light background",
+      "content": {
+        "subtitle": "Contact : hello@lumina-studios.art | Rejoignez l'avant-garde du design immersif."
+      }
+    }
+  ],
+  "theme": "creative-portfolio",
+  "themeConfig": {
+    "id": "creative-portfolio",
+    "name": "Creative Portfolio",
+    "mode": "dark",
+    "colors": {
+      "background": "#1E1E2E",
+      "surface": "#2A2A3E",
+      "text": "#F5F5F5",
+      "textSecondary": "#A1A1AA",
+      "accent": "#FF006E",
+      "accentSecondary": "#FB5607",
+      "chartColors": [
+        "#FF006E",
+        "#FB5607",
+        "#FFBE0B",
+        "#8338EC",
+        "#3A86FF"
+      ]
+    },
+    "fonts": {
+      "heading": "Arial",
+      "body": "Arial"
+    },
+    "shapes": {
+      "borderRadius": 0.25,
+      "shadow": true,
+      "strokeWidth": 0
+    },
+    "imageKeywords": "artistic colorful abstract creative vibrant design",
+    "iconStyle": "bold"
+  }
+}

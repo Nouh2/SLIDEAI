@@ -98,7 +98,7 @@ Every slide MUST include an \`imageSearchQuery\`:
 | comparison | 2-column split (e.g. Pros/Cons, Before/After) | **Two distinct groups/lists**. |
 | timeline | Chronological steps with dates | **Dates/Times + Events**. Do NOT use for generic lists. |
 | infographic | Funnel, pyramid, or process flow | **Sequential or hierarchical steps**. |
-| bento | Grid of features/cards (modern style) | **3+ distinct component items**. Good for "Key Features". |
+| bento | Grid of features/cards (modern style) | **3+ distinct component items**. Good for "Key Features". Each item MUST have a long description (2-3 sentences). |
 | image-focus | Full background image with overlay text | **Strong visual concept**. Use for "Vision", "Mission", "Impact". |
 
 ═══════════════════════════════════════════════════

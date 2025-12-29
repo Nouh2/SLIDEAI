@@ -1,0 +1,331 @@
+{
+  "title": "Elena V: Photographie de Mode Éditoriale",
+  "subtitle": "L'esthétique du brut, du contraste et de la provocation",
+  "colorPalette": {
+    "primary": "#000000",
+    "secondary": "#4A4A4A",
+    "accent": "#FF0000",
+    "bg": "#0A0A0A",
+    "text": "#F5F5F5"
+  },
+  "slides": [
+    {
+      "layout": "cover",
+      "title": "Elena V",
+      "imageSearchQuery": "high fashion editorial photography black and white raw",
+      "content": {
+        "subtitle": "L'esthétique du brut et du provocateur. Portfolio 2024.",
+        "bullets": [
+          "Vogue & Dazed Featured",
+          "Spécialiste Fashion Week",
+          "Direction Artistique Disruptive"
+        ]
+      }
+    },
+    {
+      "layout": "image-focus",
+      "title": "Déclaration d'Artiste",
+      "imageSearchQuery": "grainy film photography fashion portrait blurry",
+      "content": {
+        "subtitle": "La Beauté Imparfaite",
+        "bullets": [
+          "Je cherche la vérité dans la faille, pas dans la retouche.",
+          "Mon travail est une rébellion contre le lissage numérique.",
+          "Le contraste est mon langage, la provocation est mon outil."
+        ]
+      }
+    },
+    {
+      "layout": "text-columns",
+      "title": "La Philosophie du Brut",
+      "imageSearchQuery": "industrial studio fashion photography dark",
+      "content": {
+        "subtitle": "Une approche viscérale de l'image",
+        "text-columns": [
+          "L'authenticité radicale : Dans un monde saturé de filtres, je propose une vision sans concession. Mes clichés capturent l'instant où le mannequin oublie la caméra, révélant une vulnérabilité brute et puissante.",
+          "Le contraste dramatique : L'utilisation d'ombres dures et de hautes lumières saturées crée une tension narrative unique. Chaque image raconte une histoire de conflit entre l'ombre et la lumière.",
+          "L'émotion provocatrice : Mon but n'est pas de plaire, mais de faire ressentir. Que ce soit par le mouvement, le regard ou la composition, chaque photo est un défi lancé au spectateur."
+        ]
+      }
+    },
+    {
+      "layout": "section",
+      "title": "Héritage Éditorial",
+      "imageSearchQuery": "fashion magazine spread layout",
+      "content": {
+        "subtitle": "Parcourir les couvertures et les séries iconiques",
+        "bullets": [
+          "Vogue Italia",
+          "Dazed & Confused",
+          "i-D Magazine",
+          "Numéro"
+        ]
+      }
+    },
+    {
+      "layout": "bento",
+      "title": "Couvertures Iconiques",
+      "imageSearchQuery": "magazine cover fashion photography vogue dazed",
+      "content": {
+        "subtitle": "Une présence affirmée dans la presse internationale",
+        "items": [
+          {
+            "title": "Vogue Italia - Septembre",
+            "description": "Une série explorant le minimalisme brutaliste dans les rues de Berlin. Utilisation exclusive de l'argentique 35mm."
+          },
+          {
+            "title": "Dazed - Été",
+            "description": "Couverture provocatrice sur la jeunesse underground parisienne. Un mélange de chaos et de haute couture."
+          },
+          {
+            "title": "i-D Magazine",
+            "description": "Série 'The Raw Issue'. Focus sur les textures de peau et les vêtements déconstruits sans post-production."
+          }
+        ]
+      }
+    },
+    {
+      "layout": "chart",
+      "title": "Impact et Portée",
+      "imageSearchQuery": "abstract data visualization red and black",
+      "content": {
+        "subtitle": "Croissance de la visibilité éditoriale (2021-2024)",
+        "chartData": [
+          {
+            "label": "2021",
+            "value": 12
+          },
+          {
+            "label": "2022",
+            "value": 28
+          },
+          {
+            "label": "2023",
+            "value": 45
+          },
+          {
+            "label": "2024",
+            "value": 62
+          }
+        ],
+        "bullets": [
+          "Augmentation de 400% des publications internationales",
+          "Top 10 des photographes émergents selon 'The Fashion Law'",
+          "Engagement social média supérieur à la moyenne du secteur"
+        ]
+      }
+    },
+    {
+      "layout": "comparison",
+      "title": "L'Esthétique Elena V",
+      "imageSearchQuery": "editorial fashion contrast side by side",
+      "content": {
+        "subtitle": "Brut vs Traditionnel",
+        "leftTitle": "Photographie Conventionnelle",
+        "leftItems": [
+          "Peau lissée à l'excès",
+          "Éclairage plat et prévisible",
+          "Poses statiques et forcées",
+          "Perfection artificielle"
+        ],
+        "rightTitle": "Vision Elena V",
+        "rightItems": [
+          "Grain apparent et textures réelles",
+          "Ombres portées et contrastes forts",
+          "Mouvement organique et chaos",
+          "Beauté dans l'imperfection"
+        ]
+      }
+    },
+    {
+      "layout": "section",
+      "title": "Backstage : Le Chaos Créatif",
+      "imageSearchQuery": "backstage fashion show chaos photography",
+      "content": {
+        "subtitle": "L'envers du décor, là où l'énergie naît",
+        "bullets": [
+          "L'adrénaline du direct",
+          "L'intimité des préparatifs",
+          "La vérité derrière le rideau"
+        ]
+      }
+    },
+    {
+      "layout": "infographic",
+      "title": "Le Workflow du Chaos",
+      "imageSearchQuery": "abstract process flow lines dark",
+      "content": {
+        "subtitle": "De l'idée à la capture finale",
+        "steps": [
+          "Concept : Déconstruction des tendances actuelles.",
+          "Chaos : Création d'un environnement spontané sur le plateau.",
+          "Capture : Saisir l'imprévisible et l'erreur magnifique.",
+          "Curating : Sélection des images les plus viscérales."
+        ]
+      }
+    },
+    {
+      "layout": "stats",
+      "title": "L'Impact en Chiffres",
+      "imageSearchQuery": "modern typography numbers bold",
+      "content": {
+        "subtitle": "Une reconnaissance globale",
+        "stats": [
+          {
+            "label": "Couvertures",
+            "value": "24"
+          },
+          {
+            "label": "Campagnes",
+            "value": "50+"
+          },
+          {
+            "label": "Pays",
+            "value": "12"
+          },
+          {
+            "label": "Expositions",
+            "value": "08"
+          }
+        ]
+      }
+    },
+    {
+      "layout": "table",
+      "title": "Services & Collaborations",
+      "imageSearchQuery": "fashion week schedule paper",
+      "content": {
+        "subtitle": "Options de booking pour la Fashion Week",
+        "headers": [
+          "Service",
+          "Focus",
+          "Livrables"
+        ],
+        "rows": [
+          [
+            "Éditorial Main",
+            "Vision Artistique Totale",
+            "Série de 12 images HQ"
+          ],
+          [
+            "Backstage Access",
+            "Chaos et Énergie",
+            "Reportage immersif complet"
+          ],
+          [
+            "Street Style Brut",
+            "Réalisme Urbain",
+            "20 clichés instantanés"
+          ],
+          [
+            "Direction Artistique",
+            "Concept Global",
+            "Moodboard + Shooting"
+          ]
+        ]
+      }
+    },
+    {
+      "layout": "timeline",
+      "title": "Parcours Artistique",
+      "imageSearchQuery": "vintage film strips photography",
+      "content": {
+        "subtitle": "L'évolution d'une vision",
+        "events": [
+          {
+            "date": "2019",
+            "event": "Débuts à Berlin, focus sur l'underground technoid."
+          },
+          {
+            "date": "2021",
+            "event": "Première couverture pour Dazed, Londres."
+          },
+          {
+            "date": "2023",
+            "event": "Exposition solo 'Imperfect' à Paris et Tokyo."
+          },
+          {
+            "date": "2024",
+            "event": "Nomination 'Photographe de l'année' aux Fashion Awards."
+          }
+        ]
+      }
+    },
+    {
+      "layout": "section",
+      "title": "Ce qu'ils disent d'Elena",
+      "imageSearchQuery": "fashion designer portrait studio",
+      "content": {
+        "subtitle": "Témoignages de l'industrie",
+        "bullets": [
+          "Elle voit ce que personne d'autre n'ose regarder.",
+          "Un regard qui redéfinit les standards de la mode actuelle.",
+          "Le travail d'Elena est une claque visuelle nécessaire."
+        ]
+      }
+    },
+    {
+      "layout": "bullets",
+      "title": "Expertise Technique",
+      "imageSearchQuery": "vintage camera lenses collection",
+      "content": {
+        "subtitle": "Outils et méthodes de création",
+        "bullets": [
+          "Maîtrise de l'argentique moyen format et 35mm.",
+          "Éclairage cinématographique à fort contraste.",
+          "Direction de modèles axée sur la performance émotionnelle.",
+          "Post-production minimale préservant le grain naturel.",
+          "Capacité d'adaptation aux environnements de défilés chaotiques."
+        ]
+      }
+    },
+    {
+      "layout": "image-focus",
+      "title": "Fashion Week 2025",
+      "imageSearchQuery": "paris fashion week eiffel tower night blurred",
+      "content": {
+        "subtitle": "Réservez votre vision maintenant",
+        "bullets": [
+          "Disponibilités limitées pour New York, Londres, Milan et Paris.",
+          "Approche exclusive pour marques de créateurs et magazines.",
+          "Capturez l'essence de votre collection avec audace."
+        ]
+      }
+    },
+    {
+      "layout": "stats",
+      "title": "Portée Numérique",
+      "imageSearchQuery": "smartphone screen social media fashion",
+      "content": {
+        "subtitle": "Influence et communauté",
+        "stats": [
+          {
+            "label": "Abonnés",
+            "value": "250K"
+          },
+          {
+            "label": "Impressions/mois",
+            "value": "1.5M"
+          },
+          {
+            "label": "Taux d'engagement",
+            "value": "8.4%"
+          }
+        ]
+      }
+    },
+    {
+      "layout": "cover",
+      "title": "Contact & Bookings",
+      "imageSearchQuery": "minimalist business card black background",
+      "content": {
+        "subtitle": "Collaborons pour briser les codes.",
+        "bullets": [
+          "Email: studio@elenav-photo.com",
+          "Instagram: @elena_v_raw",
+          "WhatsApp: +33 6 00 00 00 00"
+        ]
+      }
+    }
+  ]
+}

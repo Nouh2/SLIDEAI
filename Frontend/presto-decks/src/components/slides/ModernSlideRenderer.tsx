@@ -138,11 +138,11 @@ const CoverHeroLayout = ({ slide, colors }: { slide: any; colors: any }) => (
         <AbstractShapes colors={colors} />
 
         {/* Background image with overlay */}
-        {slide.backgroundImage && !slide.backgroundImage.includes('placehold') && (
+        {(slide.backgroundImage || slide.imageSearchQuery) && !slide.backgroundImage?.includes('placehold') && (
             <>
                 <div
                     className="absolute inset-0 bg-cover bg-center"
-                    style={{ backgroundImage: `url(${slide.backgroundImage})` }}
+                    style={{ backgroundImage: `url(${slide.backgroundImage || `https://source.unsplash.com/1600x900/?${encodeURIComponent(slide.imageSearchQuery)}`})` }}
                 />
                 <div className="absolute inset-0" style={{ backgroundColor: `${colors.bg}CC` }} />
             </>
@@ -186,12 +186,36 @@ const CoverHeroLayout = ({ slide, colors }: { slide: any; colors: any }) => (
 // Section divider - Bold title slide
 const SectionDividerLayout = ({ slide, colors }: { slide: any; colors: any }) => (
     <div className="relative w-full h-full overflow-hidden" style={{ backgroundColor: colors.bg }}>
+
+        {/* Background Image with Overlay */}
+        {(slide.backgroundImage || slide.imageSearchQuery) && (
+            <>
+                <div
+                    className="absolute inset-0 bg-cover bg-center transition-transform duration-1000 transform scale-105"
+                    style={{
+                        backgroundImage: `url(${slide.backgroundImage || `https://source.unsplash.com/1600x900/?${encodeURIComponent(slide.imageSearchQuery)}`})`,
+                    }}
+                />
+                <div className="absolute inset-0" style={{ backgroundColor: `${colors.bg}E6` }} />
+            </>
+        )}
+
         <AbstractShapes colors={colors} />
 
-        <div className="relative z-10 flex items-center justify-center h-full px-20 pb-32">
-            <h2 className="text-7xl md:text-8xl font-bold text-center" style={{ color: colors.primary }}>
+        <div className="relative z-10 flex flex-col items-center justify-center h-full px-20 pb-32 max-w-6xl mx-auto">
+            <h2 className="text-7xl md:text-8xl font-bold text-center mb-8 drop-shadow-lg" style={{ color: colors.primary }}>
                 {slide.title}
             </h2>
+
+            {(slide.subtitle || slide.content?.subtitle) && (
+                <div className="w-32 h-2 mb-8 rounded-full" style={{ backgroundColor: colors.accent }} />
+            )}
+
+            {(slide.subtitle || slide.content?.subtitle) && (
+                <p className="text-3xl md:text-4xl text-center font-light leading-relaxed max-w-4xl opacity-90" style={{ color: colors.text }}>
+                    {slide.subtitle || slide.content?.subtitle}
+                </p>
+            )}
         </div>
 
         <SlideFooter title={slide.title} slideNumber={2} colors={colors} />
@@ -251,7 +275,8 @@ const ContentBulletsLayout = ({ slide, colors }: { slide: any; colors: any }) =>
 
 // Stats/Metrics layout - Big numbers
 const StatsLayout = ({ slide, colors }: { slide: any; colors: any }) => {
-    const stats = slide.stats || slide.content?.stats || slide.metrics || slide.content?.metrics || [];
+    // Support multiple AI formats: stats, statistics, metrics
+    const stats = slide.stats || slide.content?.stats || slide.content?.statistics || slide.metrics || slide.content?.metrics || [];
 
     return (
         <div className="relative w-full h-full overflow-hidden" style={{ backgroundColor: colors.bg }}>
@@ -276,11 +301,15 @@ const StatsLayout = ({ slide, colors }: { slide: any; colors: any }) => {
                     {slide.title}
                 </h2>
 
-                <div className="flex-1 grid grid-cols-2 md:grid-cols-4 gap-8">
+                <div className="flex-1 flex flex-wrap items-stretch justify-center gap-8 content-center">
                     {stats.slice(0, 4).map((stat: any, i: number) => (
                         <div
                             key={i}
-                            className="bg-surface/80 backdrop-blur-md rounded-3xl p-8 border border-border shadow-lg flex flex-col items-center justify-center text-center"
+                            className="bg-surface/80 backdrop-blur-md rounded-3xl p-8 border border-border shadow-lg flex flex-col items-center justify-center text-center w-full md:w-[calc(25%-1.5rem)] min-w-[280px]"
+                            style={{
+                                borderColor: `${colors.text}20`,
+                                boxShadow: `0 8px 32px 0 ${colors.primary}10`
+                            }}
                         >
                             <p className="text-5xl md:text-6xl font-bold mb-4" style={{ color: colors.primary }}>{stat.value}</p>
                             <p className="text-xl opacity-80" style={{ color: colors.text }}>{stat.label}</p>
@@ -296,7 +325,19 @@ const StatsLayout = ({ slide, colors }: { slide: any; colors: any }) => {
 
 // Chart layout - Data visualization
 const ChartLayout = ({ slide, colors }: { slide: any; colors: any }) => {
-    const chart = slide.chart || slide.content?.chart;
+    let chart = slide.chart || slide.content?.chart;
+
+    // Support AI format: chartType, labels, datasets directly in content
+    if (!chart && slide.content?.labels && slide.content?.datasets) {
+        chart = {
+            type: slide.content.chartType || 'bar',
+            categories: slide.content.labels,
+            series: slide.content.datasets.map((ds: any) => ({
+                name: ds.label || 'Data',
+                data: ds.data || []
+            }))
+        };
+    }
 
     // Generate dynamic chart colors from theme palette
     const generateChartColors = () => {
@@ -376,10 +417,10 @@ const ChartLayout = ({ slide, colors }: { slide: any; colors: any }) => {
             {(slide.backgroundImage || slide.imageSearchQuery) && (
                 <>
                     <div
-                        className="absolute inset-0 bg-cover bg-center opacity-10"
+                        className="absolute inset-0 bg-cover bg-center opacity-20"
                         style={{
                             backgroundImage: `url(${slide.backgroundImage || `https://source.unsplash.com/1600x900/?${encodeURIComponent(slide.imageSearchQuery)}`})`,
-                            mixBlendMode: 'multiply'
+                            mixBlendMode: 'overlay'
                         }}
                     />
                 </>
@@ -504,7 +545,15 @@ const ChartLayout = ({ slide, colors }: { slide: any; colors: any }) => {
 
 // Table layout - Modern glassmorphism design (Variants: default, striped, minimal)
 const TableLayout = ({ slide, colors, variant = 'default' }: { slide: any; colors: any, variant?: 'default' | 'striped' | 'minimal' }) => {
-    const table = slide.table || slide.content?.table;
+    let table = slide.table || slide.content?.table;
+
+    // Support AI format: headers and rows directly in content
+    if (!table && slide.content?.headers && slide.content?.rows) {
+        table = {
+            columns: slide.content.headers,
+            rows: slide.content.rows
+        };
+    }
 
     const isStriped = variant === 'striped';
     const isMinimal = variant === 'minimal';
@@ -512,6 +561,19 @@ const TableLayout = ({ slide, colors, variant = 'default' }: { slide: any; color
     return (
         <div className="relative w-full h-full overflow-hidden" style={{ backgroundColor: colors.bg }}>
             <AbstractShapes colors={colors} />
+
+            {/* Background Image if available */}
+            {(slide.backgroundImage || slide.imageSearchQuery) && (
+                <>
+                    <div
+                        className="absolute inset-0 bg-cover bg-center opacity-20"
+                        style={{
+                            backgroundImage: `url(${slide.backgroundImage || `https://source.unsplash.com/1600x900/?${encodeURIComponent(slide.imageSearchQuery)}`})`,
+                            mixBlendMode: 'overlay'
+                        }}
+                    />
+                </>
+            )}
 
             <div className="relative z-10 flex flex-col items-center justify-center px-16 py-12 h-full">
                 <h2 className="text-5xl md:text-6xl font-bold mb-12 text-center" style={{ color: colors.text }}>
@@ -582,7 +644,18 @@ const TableLayout = ({ slide, colors, variant = 'default' }: { slide: any; color
 // Timeline layout - Process steps (Variants: default, vertical, zigzag)
 const TimelineLayout = ({ slide, colors, variant = 'default' }: { slide: any; colors: any, variant?: 'default' | 'vertical' | 'zigzag' }) => {
     const timeline = slide.timeline || slide.content?.timeline;
-    const items = timeline?.items || [];
+    // Support AI format: content.steps or content.events with {date, event} objects
+    let items = timeline?.items || [];
+    const sourceItems = slide.content?.steps || slide.content?.events;
+
+    if (items.length === 0 && sourceItems?.length > 0) {
+        // Convert AI format {date, event} to expected format {date, title, description}
+        items = sourceItems.map((step: any) => ({
+            date: step.date || '',
+            title: step.event || step.title || '',
+            description: step.description || ''
+        }));
+    }
 
     const isVertical = variant === 'vertical';
 
@@ -594,10 +667,10 @@ const TimelineLayout = ({ slide, colors, variant = 'default' }: { slide: any; co
             {(slide.backgroundImage || slide.imageSearchQuery) && (
                 <>
                     <div
-                        className="absolute inset-0 bg-cover bg-center opacity-15"
+                        className="absolute inset-0 bg-cover bg-center opacity-20"
                         style={{
                             backgroundImage: `url(${slide.backgroundImage || `https://source.unsplash.com/1600x900/?${encodeURIComponent(slide.imageSearchQuery)}`})`,
-                            mixBlendMode: 'multiply'
+                            mixBlendMode: 'overlay'
                         }}
                     />
                 </>
@@ -670,8 +743,22 @@ const ComparisonLayout = ({ slide, colors, variant = 'default' }: { slide: any; 
     const comparison = slide.comparison || slide.content?.comparison;
     const columns = slide.columns || slide.content?.columns;
 
-    const left = comparison?.left || columns?.[0];
-    const right = comparison?.right || columns?.[1];
+    // Support AI format: leftTitle/leftBullets, rightTitle/rightBullets directly in content
+    let left = comparison?.left || columns?.[0];
+    let right = comparison?.right || columns?.[1];
+
+    if (!left && slide.content?.leftTitle) {
+        left = {
+            title: slide.content.leftTitle,
+            items: slide.content.leftBullets || slide.content.leftItems || []
+        };
+    }
+    if (!right && slide.content?.rightTitle) {
+        right = {
+            title: slide.content.rightTitle,
+            items: slide.content.rightBullets || slide.content.rightItems || []
+        };
+    }
 
     const isSplit = variant === 'split';
     const isCards = variant === 'cards';
@@ -679,6 +766,19 @@ const ComparisonLayout = ({ slide, colors, variant = 'default' }: { slide: any; 
     return (
         <div className="relative w-full h-full overflow-hidden" style={{ backgroundColor: colors.bg }}>
             {!isSplit && <AbstractShapes colors={colors} />}
+
+            {/* Background Image if available (supported in all variants) */}
+            {(slide.backgroundImage || slide.imageSearchQuery) && (
+                <>
+                    <div
+                        className="absolute inset-0 bg-cover bg-center opacity-20"
+                        style={{
+                            backgroundImage: `url(${slide.backgroundImage || `https://source.unsplash.com/1600x900/?${encodeURIComponent(slide.imageSearchQuery)}`})`,
+                            mixBlendMode: 'overlay'
+                        }}
+                    />
+                </>
+            )}
 
             {/* Split background */}
             {isSplit && (
@@ -773,8 +873,29 @@ const ComparisonLayout = ({ slide, colors, variant = 'default' }: { slide: any; 
 
 // Infographic layout - Funnels, pyramids, processes
 // Infographic layout - Funnels, pyramids, processes
+// Infographic layout - Funnels, pyramids, processes
+// Infographic layout - Funnels, pyramids, processes
 const InfographicLayout = ({ slide, colors }: { slide: any; colors: any }) => {
-    const infographic = slide.infographic || slide.content?.infographic;
+    let infographic = slide.infographic || slide.content?.infographic;
+
+    // Support AI format: type and steps directly in content
+    if (!infographic && slide.content?.steps) {
+        infographic = {
+            type: slide.content.type || 'funnel',
+            steps: slide.content.steps.map((step: any) => {
+                // Handle string steps from AI
+                if (typeof step === 'string') {
+                    return { label: step, value: '' };
+                }
+                // Handle AI object format {title, description} -> {label, description}
+                if (step.title && !step.label) {
+                    return { ...step, label: step.title };
+                }
+                return step;
+            })
+        };
+    }
+
     const steps = infographic?.steps || [];
     const type = infographic?.type || 'funnel';
 
@@ -795,6 +916,19 @@ const InfographicLayout = ({ slide, colors }: { slide: any; colors: any }) => {
         <div className="relative w-full h-full overflow-hidden" style={{ backgroundColor: colors.bg }}>
             <AbstractShapes colors={colors} />
 
+            {/* Background Image if available */}
+            {(slide.backgroundImage || slide.imageSearchQuery) && (
+                <>
+                    <div
+                        className="absolute inset-0 bg-cover bg-center opacity-20"
+                        style={{
+                            backgroundImage: `url(${slide.backgroundImage || `https://source.unsplash.com/1600x900/?${encodeURIComponent(slide.imageSearchQuery)}`})`,
+                            mixBlendMode: 'overlay'
+                        }}
+                    />
+                </>
+            )}
+
             <div className="relative z-10 flex flex-col px-20 pt-16 pb-24 h-full">
                 <h2 className="text-5xl md:text-6xl font-bold mb-12" style={{ color: colors.text }}>
                     {slide.title}
@@ -802,20 +936,21 @@ const InfographicLayout = ({ slide, colors }: { slide: any; colors: any }) => {
 
                 <div className="flex-1 flex items-center justify-center">
                     {type === 'funnel' && (
-                        <div className="flex flex-col items-center gap-4 w-full max-w-2xl">
+                        <div className="flex flex-col items-center gap-6 w-full max-w-4xl">
                             {steps.slice(0, 5).map((step: any, i: number) => {
                                 const widthPercent = 100 - i * 15;
                                 return (
                                     <div
                                         key={i}
-                                        className="h-20 rounded-lg flex items-center justify-center text-white font-bold text-xl transition-all shadow-lg backdrop-blur-sm bg-opacity-90"
+                                        className="h-auto py-6 rounded-2xl flex flex-col items-center justify-center text-white text-center transition-all shadow-lg backdrop-blur-sm bg-opacity-90 px-4"
                                         style={{
                                             width: `${widthPercent}%`,
                                             backgroundColor: getStepColor(i),
                                             color: '#ffffff' // Always white text on colored bars
                                         }}
                                     >
-                                        <span className="drop-shadow-md">{step.label}: {step.value}</span>
+                                        <span className="text-3xl font-bold drop-shadow-md">{step.label}</span>
+                                        {step.description && <span className="text-lg opacity-90 font-medium mt-1 drop-shadow-sm">{step.description}</span>}
                                     </div>
                                 );
                             })}
@@ -823,18 +958,19 @@ const InfographicLayout = ({ slide, colors }: { slide: any; colors: any }) => {
                     )}
 
                     {type === 'process' && (
-                        <div className="flex items-center gap-6 w-full justify-center">
+                        <div className="flex items-center gap-8 w-full justify-center flex-wrap">
                             {steps.slice(0, 5).map((step: any, i: number) => (
                                 <div key={i} className="flex items-center">
                                     <div
-                                        className="w-36 h-36 rounded-2xl flex flex-col items-center justify-center text-white p-4 shadow-xl"
+                                        className="w-64 h-64 rounded-3xl flex flex-col items-center justify-center text-white p-6 shadow-2xl transition-transform hover:scale-105"
                                         style={{ backgroundColor: getStepColor(i) }}
                                     >
-                                        <span className="text-4xl font-bold">{i + 1}</span>
-                                        <span className="text-sm text-center mt-2 font-medium">{step.label}</span>
+                                        <span className="text-5xl font-extrabold mb-3 opacity-50">{i + 1}</span>
+                                        <span className="text-xl text-center font-bold leading-tight mb-2">{step.label}</span>
+                                        {step.description && <span className="text-sm text-center opacity-90 leading-tight">{step.description}</span>}
                                     </div>
                                     {i < steps.length - 1 && (
-                                        <div className="w-12 h-1 mx-2 opacity-30" style={{ backgroundColor: colors.text }} />
+                                        <div className="w-16 h-2 mx-4 opacity-20 rounded-full" style={{ backgroundColor: colors.text }} />
                                     )}
                                 </div>
                             ))}
@@ -842,19 +978,20 @@ const InfographicLayout = ({ slide, colors }: { slide: any; colors: any }) => {
                     )}
 
                     {type === 'pyramid' && (
-                        <div className="flex flex-col items-center gap-4 w-full max-w-2xl">
+                        <div className="flex flex-col items-center gap-6 w-full max-w-4xl">
                             {steps.slice(0, 5).reverse().map((step: any, i: number) => {
                                 const widthPercent = 30 + i * 15;
                                 return (
                                     <div
                                         key={i}
-                                        className="h-16 rounded-lg flex items-center justify-center text-white font-bold text-lg shadow-md"
+                                        className="h-auto py-4 rounded-2xl flex flex-col items-center justify-center text-white text-center shadow-lg transition-all hover:scale-[1.02] px-4"
                                         style={{
                                             width: `${widthPercent}%`,
                                             backgroundColor: getStepColor(steps.length - 1 - i),
                                         }}
                                     >
-                                        {step.label}
+                                        <span className="text-2xl font-bold">{step.label}</span>
+                                        {step.description && <span className="text-base opacity-90 mt-1">{step.description}</span>}
                                     </div>
                                 );
                             })}
@@ -872,15 +1009,40 @@ const InfographicLayout = ({ slide, colors }: { slide: any; colors: any }) => {
 // Quote layout - Testimonial or key quote
 // Text Heavy Layout - 3 Columns with Icons
 const ThreeColumnTextLayout = ({ slide, colors }: { slide: any; colors: any }) => {
-    const content = slide.content?.text || slide.text || slide.description || "";
-    // Split content into 3 rough chunks if it's a long string, or use existing chunks
-    const chunks = Array.isArray(content) ? content : content.split('. ').reduce((acc: any[], sentence: string, i: number) => {
-        if (i % 3 === 0) acc.push(sentence);
-        else acc[acc.length - 1] += '. ' + sentence;
-        return acc;
-    }, []);
+    // Support AI format: content.columns with {header, body} or {title, text} objects
+    let columns: Array<{ title: string; text: string }> = [];
 
-    const columns = chunks.slice(0, 3).map((text: string) => text.trim()).filter(Boolean);
+    const sourceColumns = slide.content?.columns || slide.content?.['text-columns'];
+
+    if (sourceColumns?.length > 0) {
+        // AI format: array of {header, body} or {title, text} or strings "Title: Body"
+        columns = sourceColumns.map((col: any) => {
+            if (typeof col === 'string') {
+                const parts = col.split(':');
+                if (parts.length > 1) {
+                    return { title: parts[0].trim(), text: parts.slice(1).join(':').trim() };
+                }
+                return { title: '', text: col };
+            }
+            return {
+                title: col.header || col.title || '',
+                text: col.body || col.text || ''
+            };
+        });
+    } else {
+        // Fallback: split long text into chunks
+        const content = slide.content?.text || slide.text || slide.description || "";
+        const chunks = Array.isArray(content) ? content : content.split('. ').reduce((acc: any[], sentence: string, i: number) => {
+            if (i % 3 === 0) acc.push(sentence);
+            else acc[acc.length - 1] += '. ' + sentence;
+            return acc;
+        }, []);
+
+        columns = chunks.slice(0, 3).map((text: string, i: number) => ({
+            title: `Point ${i + 1}`,
+            text: text.trim()
+        })).filter((c: any) => c.text);
+    }
 
     return (
         <div className="relative w-full h-full overflow-hidden" style={{ backgroundColor: colors.bg }}>
@@ -890,10 +1052,10 @@ const ThreeColumnTextLayout = ({ slide, colors }: { slide: any; colors: any }) =
             {(slide.backgroundImage || slide.imageSearchQuery) && (
                 <>
                     <div
-                        className="absolute inset-0 bg-cover bg-center opacity-10"
+                        className="absolute inset-0 bg-cover bg-center opacity-20"
                         style={{
                             backgroundImage: `url(${slide.backgroundImage || `https://source.unsplash.com/1600x900/?${encodeURIComponent(slide.imageSearchQuery)}`})`,
-                            mixBlendMode: 'multiply'
+                            mixBlendMode: 'overlay'
                         }}
                     />
                 </>
@@ -904,23 +1066,28 @@ const ThreeColumnTextLayout = ({ slide, colors }: { slide: any; colors: any }) =
                     {slide.title}
                 </h2>
 
-                <div className="flex-1 grid grid-cols-3 gap-12 items-start">
-                    {columns.map((colText: string, i: number) => (
-                        <div key={i} className="flex flex-col gap-6">
-                            <div className="w-16 h-1 rounded-full opacity-50" style={{ backgroundColor: colors.primary }} />
-                            <p className="text-xl leading-relaxed text-justify opacity-90" style={{ color: colors.text }}>
-                                {colText.endsWith('.') ? colText : colText + '.'}
+                <div className="flex-1 grid grid-cols-3 gap-12">
+                    {columns.map((col, i) => (
+                        <div
+                            key={i}
+                            className="bg-surface/60 backdrop-blur-md rounded-3xl p-8 border border-border"
+                            style={{ borderColor: `${colors.primary}20` }}
+                        >
+                            {col.title && (
+                                <h3 className="text-2xl font-bold mb-4" style={{ color: colors.primary }}>
+                                    {col.title}
+                                </h3>
+                            )}
+                            <p className="text-lg leading-relaxed opacity-90" style={{ color: colors.text }}>
+                                {col.text}
                             </p>
                         </div>
                     ))}
-                    {columns.length === 0 && (
-                        <p className="col-span-3 text-center text-2xl opacity-60">No text content available.</p>
-                    )}
                 </div>
             </div>
 
-            <SlideFooter title={slide.title} slideNumber={10} colors={colors} />
-        </div>
+            <SlideFooter title={slide.title} colors={colors} />
+        </div >
     );
 };
 
@@ -930,10 +1097,10 @@ const ThreeColumnTextLayout = ({ slide, colors }: { slide: any; colors: any }) =
 const ImageFocusLayout = ({ slide, colors }: { slide: any; colors: any }) => (
     <div className="relative w-full h-full overflow-hidden">
         {/* Full-bleed background image */}
-        {slide.backgroundImage && !slide.backgroundImage.includes('placehold') ? (
+        {(slide.backgroundImage && !slide.backgroundImage.includes('placehold')) || slide.imageSearchQuery ? (
             <div
                 className="absolute inset-0 bg-cover bg-center"
-                style={{ backgroundImage: `url(${slide.backgroundImage})` }}
+                style={{ backgroundImage: `url(${slide.backgroundImage || `https://source.unsplash.com/1600x900/?${encodeURIComponent(slide.imageSearchQuery)}`})` }}
             />
         ) : (
             <div
@@ -965,6 +1132,19 @@ const BentoGridLayout = ({ slide, colors }: { slide: any; colors: any }) => {
         <div className="relative w-full h-full overflow-hidden" style={{ backgroundColor: colors.bg }}>
             <AbstractShapes colors={colors} variant="bento" />
 
+            {/* Background Image if available */}
+            {(slide.backgroundImage || slide.imageSearchQuery) && (
+                <>
+                    <div
+                        className="absolute inset-0 bg-cover bg-center opacity-20"
+                        style={{
+                            backgroundImage: `url(${slide.backgroundImage || `https://source.unsplash.com/1600x900/?${encodeURIComponent(slide.imageSearchQuery)}`})`,
+                            mixBlendMode: 'overlay'
+                        }}
+                    />
+                </>
+            )}
+
             <div className="relative z-10 flex flex-col px-16 py-12 h-full">
                 <h2 className="text-5xl font-bold mb-8" style={{ color: colors.text }}>
                     {slide.title}
@@ -973,33 +1153,56 @@ const BentoGridLayout = ({ slide, colors }: { slide: any; colors: any }) => {
                 <div className="flex-1 grid grid-cols-6 grid-rows-2 gap-6">
                     {displayItems.map((item: any, i: number) => {
                         // Dynamic spanning logic for bento feel
+                        // Make first item large (left side), others stacked on right
                         const isLarge = i === 0;
-                        const isWide = i === 3;
-                        const colSpan = isLarge ? "col-span-3" : isWide ? "col-span-3" : "col-span-2";
+                        // For a 6-col grid:
+                        // Large item takes 3 cols (half width) and 2 rows (full height)
+                        // Other items take 3 cols (half width) and 1 row
+                        const colSpan = "col-span-3";
                         const rowSpan = isLarge ? "row-span-2" : "row-span-1";
+
+                        // Use provided image or fallback to Unsplash based on content
+                        const searchQuery = item.title || slide.title || 'technology';
+                        const imgSrc = item.image || `https://source.unsplash.com/800x600/?${encodeURIComponent(searchQuery)}`;
 
                         return (
                             <div
                                 key={i}
-                                className={`${colSpan} ${rowSpan} rounded-3xl p-8 flex flex-col justify-between transition-all hover:scale-[1.02] border backdrop-blur-sm bg-white/5`}
+                                className={`${colSpan} ${rowSpan} group relative rounded-3xl overflow-hidden transition-all hover:scale-[1.02] border shadow-lg`}
                                 style={{
                                     borderColor: `${colors.text}20`,
-                                    boxShadow: `0 8px 32px 0 ${colors.text}05`
                                 }}
                             >
-                                <div className="flex items-start justify-between mb-4">
-                                    <div className="w-10 h-10 rounded-full flex items-center justify-center opacity-80" style={{ backgroundColor: `${colors.secondary}20` }}>
-                                        <span className="text-xl" role="img" aria-label="icon">✨</span>
+                                {/* Background Image */}
+                                <div
+                                    className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-110"
+                                    style={{ backgroundImage: `url(${imgSrc})` }}
+                                />
+
+                                {/* Dark Gradient Overlay for text readability */}
+                                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-black/10" />
+
+                                {/* Content */}
+                                <div className="relative z-10 h-full p-8 flex flex-col justify-end">
+                                    <div className="flex items-center justify-between mb-2">
+                                        {/* Value/Number if available */}
+                                        {item.value ? (
+                                            <span className="text-3xl font-bold text-white shadow-sm">{item.value}</span>
+                                        ) : (
+                                            <div className="w-8 h-1 rounded-full bg-white/40 mb-4" />
+                                        )}
                                     </div>
-                                    {item.value && (
-                                        <span className="text-2xl font-bold" style={{ color: colors.primary }}>{item.value}</span>
-                                    )}
-                                </div>
-                                <div>
-                                    <h3 className="text-2xl font-bold mb-2" style={{ color: colors.text }}>{item.title}</h3>
-                                    {item.description && (
-                                        <p className="text-lg opacity-70" style={{ color: colors.text }}>{item.description}</p>
-                                    )}
+
+                                    <div>
+                                        <h3 className="text-2xl lg:text-3xl font-bold mb-3 text-white shadow-md leading-tight">
+                                            {item.title}
+                                        </h3>
+                                        {item.description && (
+                                            <p className="text-lg text-white/90 leading-relaxed font-medium shadow-sm line-clamp-3">
+                                                {item.description}
+                                            </p>
+                                        )}
+                                    </div>
                                 </div>
                             </div>
                         );
@@ -1253,11 +1456,23 @@ const MasterCoverLayout = ({ slide, colors, variation = 'centered-minimal' }: { 
     if (variation === 'centered-minimal') {
         return (
             <div className="relative w-full h-full overflow-hidden flex flex-col items-center justify-center text-center p-20" style={{ backgroundColor: colors.bg }}>
+
+                {/* Background Image if available */}
+                {imageSrc && (
+                    <>
+                        <div
+                            className="absolute inset-0 bg-cover bg-center transition-transform duration-1000 transform hover:scale-105"
+                            style={{ backgroundImage: `url(${imageSrc})` }}
+                        />
+                        <div className="absolute inset-0 backdrop-blur-sm" style={{ backgroundColor: `${colors.bg}CC` }} />
+                    </>
+                )}
+
                 <AbstractShapes colors={colors} />
                 <div className="relative z-10 max-w-4xl">
                     <div className="w-24 h-1 mb-12 mx-auto" style={{ backgroundColor: colors.primary }} />
-                    <h1 className="text-7xl font-bold mb-8 tracking-tight" style={{ color: colors.text }}>{mainTitle}</h1>
-                    <p className="text-3xl font-light opacity-80" style={{ color: colors.text }}>{subtitle}</p>
+                    <h1 className="text-7xl font-bold mb-8 tracking-tight drop-shadow-lg" style={{ color: colors.text }}>{mainTitle}</h1>
+                    <p className="text-3xl font-light opacity-90 leading-relaxed" style={{ color: colors.text }}>{subtitle}</p>
                 </div>
             </div>
         );
@@ -1456,14 +1671,50 @@ export const ModernSlideRenderer = ({ slide, theme, className, colorPalette }: S
         console.log(`[SlideRenderer] Slide: "${slide.title}" | type: "${normalizedType}" | content keys: [${contentKeys.join(', ')}]`);
 
         // Smart content detection: check actual data presence before layout matching
-        const hasChart = (slide.chart?.data?.length > 0 || slide.content?.chart?.data?.length > 0);
-        const hasTable = (slide.table?.rows?.length > 0 || slide.content?.table?.rows?.length > 0);
-        const hasTimeline = (slide.timeline?.items?.length > 0 || slide.content?.timeline?.items?.length > 0);
-        const hasInfographic = (slide.infographic?.steps?.length > 0 || slide.content?.infographic?.steps?.length > 0);
-        const hasComparison = (slide.comparison?.items?.length > 0 || slide.content?.comparison?.items?.length > 0) || (slide.columns?.length === 2);
-        const hasStats = (slide.stats?.length > 0 || slide.metrics?.length > 0 || slide.content?.stats?.length > 0);
+        // Support BOTH expected format AND AI's actual output format
+        const hasChart = (
+            slide.chart?.data?.length > 0 ||
+            slide.content?.chart?.data?.length > 0 ||
+            // AI format: chartType + labels + datasets
+            (slide.content?.labels?.length > 0 && slide.content?.datasets?.length > 0)
+        );
+        const hasTable = (
+            slide.table?.rows?.length > 0 ||
+            slide.content?.table?.rows?.length > 0 ||
+            // AI format: headers + rows directly in content
+            (slide.content?.headers?.length > 0 && slide.content?.rows?.length > 0)
+        );
+        const hasTimeline = (
+            slide.timeline?.items?.length > 0 ||
+            slide.content?.timeline?.items?.length > 0 ||
+            // AI format: steps array with date/event objects OR events array
+            (slide.content?.steps?.length > 0 && slide.content?.steps?.[0]?.date) ||
+            (slide.content?.events?.length > 0 && slide.content?.events?.[0]?.date)
+        );
+        const hasInfographic = (
+            slide.infographic?.steps?.length > 0 ||
+            slide.content?.infographic?.steps?.length > 0 ||
+            // AI format: type + steps (but steps are strings, not date objects)
+            (slide.content?.type && slide.content?.steps?.length > 0 && !slide.content?.steps?.[0]?.date)
+        );
+        const hasComparison = (
+            slide.comparison?.left ||
+            slide.content?.comparison?.left ||
+            (slide.columns?.length === 2) ||
+            // AI format: leftTitle + rightTitle (fallback)
+            (slide.content?.leftTitle && slide.content?.rightTitle)
+        );
+        const hasStats = (
+            slide.stats?.length > 0 ||
+            slide.metrics?.length > 0 ||
+            slide.content?.stats?.length > 0 ||
+            // AI format: statistics array
+            slide.content?.statistics?.length > 0
+        );
         const hasItems = (slide.items?.length > 0 || slide.content?.items?.length > 0);
         const hasQuote = (slide.quote?.text || slide.content?.quote?.text);
+        // AI format: columns array for text-columns layout
+        const hasTextColumns = (slide.content?.columns?.length > 0 || slide.content?.['text-columns']?.length > 0);
 
         let LayoutComponent: React.ComponentType<any> = MasterContentLayout; // Default to MasterContentLayout
 
@@ -1490,11 +1741,16 @@ export const ModernSlideRenderer = ({ slide, theme, className, colorPalette }: S
             console.log('  → Matched: StatsLayout (has stats data)');
             return <StatsLayout slide={slide} colors={colors} />;
         }
+        if (hasTextColumns) {
+            console.log('  → Matched: ThreeColumnTextLayout (has columns data)');
+            return <ThreeColumnTextLayout slide={slide} colors={colors} />;
+        }
         if (hasItems && (normalizedType.includes('bento') || normalizedType.includes('grid'))) {
             console.log('  → Matched: BentoGridLayout (has items + bento/grid type)');
             return <BentoGridLayout slide={slide} colors={colors} />;
         }
-        if (hasItems && items.length >= 3) {
+        const itemsArray = slide.content?.items || [];
+        if (hasItems && itemsArray.length >= 3) {
             // Fallback to Bento if has items but not explicitly requested, 30% chance or if type is 'features'
             if (normalizedType.includes('feature') || Math.random() > 0.7) {
                 console.log('  → Matched: BentoGridLayout (smart inference)');

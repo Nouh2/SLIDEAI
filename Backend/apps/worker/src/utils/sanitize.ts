@@ -229,20 +229,22 @@ function normalizeComparison(content: any): SlideContent {
             comparison: {
                 left: {
                     title: content.leftTitle || 'Option A',
-                    items: content.leftBullets || content.leftItems || []
+                    items: content.leftBullets || content.leftItems || content.leftPoints || []
                 },
                 right: {
                     title: content.rightTitle || 'Option B',
-                    items: content.rightBullets || content.rightItems || []
+                    items: content.rightBullets || content.rightItems || content.rightPoints || []
                 }
             },
             // Clean up
             leftTitle: undefined,
             leftBullets: undefined,
             leftItems: undefined,
+            leftPoints: undefined,
             rightTitle: undefined,
             rightBullets: undefined,
-            rightItems: undefined
+            rightItems: undefined,
+            rightPoints: undefined
         };
     }
 

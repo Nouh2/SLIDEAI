@@ -20,6 +20,25 @@ interface SlideRendererProps {
 // HELPER COMPONENTS
 // ============================================
 
+const getContrastColor = (hexcolor: string) => {
+    if (!hexcolor || hexcolor.startsWith('rgba') || hexcolor.startsWith('transparent')) return '#ffffff';
+    let hex = hexcolor.replace('#', '');
+    if (hex.length === 3) hex = hex.split('').map(s => s + s).join('');
+    const r = parseInt(hex.substr(0, 2), 16);
+    const g = parseInt(hex.substr(2, 2), 16);
+    const b = parseInt(hex.substr(4, 2), 16);
+    const yiq = (r * 299 + g * 587 + b * 114) / 1000;
+    return yiq >= 128 ? '#000000' : '#ffffff';
+};
+
+const getReadableColor = (preferredColor: string, backgroundColor: string) => {
+    const contrastToBg = getContrastColor(backgroundColor);
+    const contrastToPreferred = getContrastColor(preferredColor);
+    // If they share the same contrast (e.g. both want white text on black), then preferred is fine.
+    // If they differ (e.g. preferred wants white but bg is white), then fallback to contrastToBg.
+    return contrastToBg !== contrastToPreferred ? preferredColor : contrastToBg;
+};
+
 // Enhanced abstract background shapes - premium artistic look
 const AbstractShapes = ({ colors, variant = 'default' }: { colors: any; variant?: string }) => {
     const primary = colors.primary || '#2563EB';
@@ -305,13 +324,13 @@ const StatsLayout = ({ slide, colors }: { slide: any; colors: any }) => {
                     {stats.slice(0, 4).map((stat: any, i: number) => (
                         <div
                             key={i}
-                            className="bg-surface/80 backdrop-blur-md rounded-3xl p-8 border border-border shadow-lg flex flex-col items-center justify-center text-center w-full md:w-[calc(25%-1.5rem)] min-w-[280px]"
+                            className="flex-1 flex flex-col items-center justify-center p-12 bg-surface/40 backdrop-blur-md rounded-[40px] border transition-all hover:scale-105"
                             style={{
                                 borderColor: `${colors.text}20`,
                                 boxShadow: `0 8px 32px 0 ${colors.primary}10`
                             }}
                         >
-                            <p className="text-5xl md:text-6xl font-bold mb-4" style={{ color: colors.primary }}>{stat.value}</p>
+                            <p className="text-5xl md:text-6xl font-bold mb-4" style={{ color: getReadableColor(colors.primary, colors.bg) }}>{stat.value}</p>
                             <p className="text-xl opacity-80" style={{ color: colors.text }}>{stat.label}</p>
                         </div>
                     ))}
@@ -444,7 +463,7 @@ const ChartLayout = ({ slide, colors }: { slide: any; colors: any }) => {
                                         const height = (value / maxVal) * 100;
                                         return (
                                             <div key={i} className="flex flex-col items-center gap-4 flex-1">
-                                                <span className="text-xl font-bold" style={{ color: chartColors[i % chartColors.length] }}>{value}</span>
+                                                <span className="text-xl font-bold" style={{ color: getReadableColor(chartColors[i % chartColors.length], colors.bg) }}>{value}</span>
                                                 <div
                                                     className="w-full max-w-24 rounded-t-xl transition-all shadow-lg"
                                                     style={{
@@ -691,7 +710,7 @@ const TimelineLayout = ({ slide, colors, variant = 'default' }: { slide: any; co
                                 {items.map((item: any, i: number) => (
                                     <div key={i} className="relative flex items-start gap-12 ml-6">
                                         <div className="absolute left-0 w-5 h-5 -ml-[10px] rounded-full border-4 z-10 mt-2" style={{ backgroundColor: colors.bg, borderColor: colors.primary }} />
-                                        <div className="w-24 pt-1 text-right font-bold text-xl" style={{ color: colors.primary }}>{item.date}</div>
+                                        <div className="w-24 pt-1 text-right font-bold text-xl" style={{ color: getReadableColor(colors.primary, colors.bg) }}>{item.date}</div>
                                         <div className="flex-1 pb-8 border-b border-gray-100/10">
                                             <h4 className="text-2xl font-bold mb-2" style={{ color: colors.text }}>{item.title}</h4>
                                             <p className="text-lg opacity-80" style={{ color: colors.text }}>{item.description}</p>
@@ -711,7 +730,7 @@ const TimelineLayout = ({ slide, colors, variant = 'default' }: { slide: any; co
                                 {items.slice(0, 5).map((item: any, i: number) => (
                                     <div key={i} className={`flex flex-col items-center max-w-[240px] relative ${i % 2 === 0 ? '-top-12' : 'top-12'}`}>
                                         {/* Date */}
-                                        <span className={`text-lg font-bold mb-4 ${i % 2 === 0 ? 'order-1' : 'order-3 mt-4'}`} style={{ color: colors.primary }}>{item.date}</span>
+                                        <span className={`text-lg font-bold mb-4 ${i % 2 === 0 ? 'order-1' : 'order-3 mt-4'}`} style={{ color: getReadableColor(colors.primary, colors.bg) }}>{item.date}</span>
 
                                         {/* Circle node */}
                                         <div className={`w-6 h-6 rounded-full border-4 shadow-lg z-10 order-2`} style={{ backgroundColor: colors.primary, borderColor: colors.bg }} />
@@ -747,17 +766,32 @@ const ComparisonLayout = ({ slide, colors, variant = 'default' }: { slide: any; 
     let left = comparison?.left || columns?.[0];
     let right = comparison?.right || columns?.[1];
 
-    if (!left && slide.content?.leftTitle) {
-        left = {
-            title: slide.content.leftTitle,
-            items: slide.content.leftBullets || slide.content.leftItems || []
-        };
+    // Robust mapping for left side
+    if (typeof left === 'string') {
+        left = { title: left, items: [] };
     }
-    if (!right && slide.content?.rightTitle) {
-        right = {
-            title: slide.content.rightTitle,
-            items: slide.content.rightBullets || slide.content.rightItems || []
+    if (!left && (slide.content?.leftTitle || slide.content?.leftPoints || slide.content?.leftBullets)) {
+        left = {
+            title: slide.content?.leftTitle || slide.content?.comparison?.leftTitle || "Left side",
+            items: slide.content?.leftBullets || slide.content?.leftItems || slide.content?.leftPoints || []
         };
+    } else if (left && (!left.items || left.items.length === 0)) {
+        // Fill items if they exist elsewhere
+        left.items = slide.content?.leftBullets || slide.content?.leftItems || slide.content?.leftPoints || left.items || [];
+    }
+
+    // Robust mapping for right side
+    if (typeof right === 'string') {
+        right = { title: right, items: [] };
+    }
+    if (!right && (slide.content?.rightTitle || slide.content?.rightPoints || slide.content?.rightBullets)) {
+        right = {
+            title: slide.content?.rightTitle || slide.content?.comparison?.rightTitle || "Right side",
+            items: slide.content?.rightBullets || slide.content?.rightItems || slide.content?.rightPoints || []
+        };
+    } else if (right && (!right.items || right.items.length === 0)) {
+        // Fill items if they exist elsewhere
+        right.items = slide.content?.rightBullets || slide.content?.rightItems || slide.content?.rightPoints || right.items || [];
     }
 
     const isSplit = variant === 'split';
@@ -820,7 +854,7 @@ const ComparisonLayout = ({ slide, colors, variant = 'default' }: { slide: any; 
                         <div className="w-1/2 flex flex-col justify-center px-16 relative bg-white/5">
                             {right && (
                                 <div className="mt-20">
-                                    <h3 className="text-4xl font-bold mb-8" style={{ color: colors.primary }}>{right.title}</h3>
+                                    <h3 className="text-4xl font-bold mb-8" style={{ color: getReadableColor(colors.primary, colors.bg) }}>{right.title}</h3>
                                     <ul className="space-y-6">
                                         {(right.items || []).map((item: string, j: number) => (
                                             <li key={j} className="flex items-start gap-4">
@@ -939,18 +973,20 @@ const InfographicLayout = ({ slide, colors }: { slide: any; colors: any }) => {
                         <div className="flex flex-col items-center gap-6 w-full max-w-4xl">
                             {steps.slice(0, 5).map((step: any, i: number) => {
                                 const widthPercent = 100 - i * 15;
+                                const bgColor = getStepColor(i);
+                                const textColor = getContrastColor(bgColor);
                                 return (
                                     <div
                                         key={i}
-                                        className="h-auto py-6 rounded-2xl flex flex-col items-center justify-center text-white text-center transition-all shadow-lg backdrop-blur-sm bg-opacity-90 px-4"
+                                        className="h-auto py-6 rounded-2xl flex flex-col items-center justify-center text-center transition-all shadow-lg backdrop-blur-sm bg-opacity-90 px-4"
                                         style={{
                                             width: `${widthPercent}%`,
-                                            backgroundColor: getStepColor(i),
-                                            color: '#ffffff' // Always white text on colored bars
+                                            backgroundColor: bgColor,
+                                            color: textColor
                                         }}
                                     >
                                         <span className="text-3xl font-bold drop-shadow-md">{step.label}</span>
-                                        {step.description && <span className="text-lg opacity-90 font-medium mt-1 drop-shadow-sm">{step.description}</span>}
+                                        {step.description && <span className="text-lg opacity-90 font-medium mt-1 drop-shadow-sm" style={{ color: `${textColor}E6` }}>{step.description}</span>}
                                     </div>
                                 );
                             })}
@@ -959,21 +995,25 @@ const InfographicLayout = ({ slide, colors }: { slide: any; colors: any }) => {
 
                     {type === 'process' && (
                         <div className="flex items-center gap-8 w-full justify-center flex-wrap">
-                            {steps.slice(0, 5).map((step: any, i: number) => (
-                                <div key={i} className="flex items-center">
-                                    <div
-                                        className="w-64 h-64 rounded-3xl flex flex-col items-center justify-center text-white p-6 shadow-2xl transition-transform hover:scale-105"
-                                        style={{ backgroundColor: getStepColor(i) }}
-                                    >
-                                        <span className="text-5xl font-extrabold mb-3 opacity-50">{i + 1}</span>
-                                        <span className="text-xl text-center font-bold leading-tight mb-2">{step.label}</span>
-                                        {step.description && <span className="text-sm text-center opacity-90 leading-tight">{step.description}</span>}
+                            {steps.slice(0, 5).map((step: any, i: number) => {
+                                const bgColor = getStepColor(i);
+                                const textColor = getContrastColor(bgColor);
+                                return (
+                                    <div key={i} className="flex items-center">
+                                        <div
+                                            className="w-64 h-64 rounded-3xl flex flex-col items-center justify-center p-6 shadow-2xl transition-transform hover:scale-105"
+                                            style={{ backgroundColor: bgColor, color: textColor }}
+                                        >
+                                            <span className="text-5xl font-extrabold mb-3 opacity-30" style={{ color: textColor }}>{i + 1}</span>
+                                            <span className="text-xl text-center font-bold leading-tight mb-2">{step.label}</span>
+                                            {step.description && <span className="text-sm text-center opacity-90 leading-tight" style={{ color: `${textColor}E6` }}>{step.description}</span>}
+                                        </div>
+                                        {i < steps.length - 1 && (
+                                            <div className="w-16 h-2 mx-4 opacity-20 rounded-full" style={{ backgroundColor: colors.text }} />
+                                        )}
                                     </div>
-                                    {i < steps.length - 1 && (
-                                        <div className="w-16 h-2 mx-4 opacity-20 rounded-full" style={{ backgroundColor: colors.text }} />
-                                    )}
-                                </div>
-                            ))}
+                                );
+                            })}
                         </div>
                     )}
 
@@ -981,17 +1021,20 @@ const InfographicLayout = ({ slide, colors }: { slide: any; colors: any }) => {
                         <div className="flex flex-col items-center gap-6 w-full max-w-4xl">
                             {steps.slice(0, 5).reverse().map((step: any, i: number) => {
                                 const widthPercent = 30 + i * 15;
+                                const bgColor = getStepColor(steps.length - 1 - i);
+                                const textColor = getContrastColor(bgColor);
                                 return (
                                     <div
                                         key={i}
-                                        className="h-auto py-4 rounded-2xl flex flex-col items-center justify-center text-white text-center shadow-lg transition-all hover:scale-[1.02] px-4"
+                                        className="h-auto py-4 rounded-2xl flex flex-col items-center justify-center text-center shadow-lg transition-all hover:scale-[1.02] px-4"
                                         style={{
                                             width: `${widthPercent}%`,
-                                            backgroundColor: getStepColor(steps.length - 1 - i),
+                                            backgroundColor: bgColor,
+                                            color: textColor
                                         }}
                                     >
                                         <span className="text-2xl font-bold">{step.label}</span>
-                                        {step.description && <span className="text-base opacity-90 mt-1">{step.description}</span>}
+                                        {step.description && <span className="text-base opacity-90 mt-1" style={{ color: `${textColor}E6` }}>{step.description}</span>}
                                     </div>
                                 );
                             })}
@@ -1115,8 +1158,16 @@ const ImageFocusLayout = ({ slide, colors }: { slide: any; colors: any }) => (
         {/* Content */}
         <div className="relative z-10 flex flex-col items-center justify-center h-full px-20 text-center text-white">
             <h2 className="text-7xl md:text-8xl font-bold mb-8">{slide.title}</h2>
-            {(slide.subtitle || slide.content?.subtitle || slide.content?.text) && (
-                <p className="text-3xl max-w-4xl">{slide.subtitle || slide.content?.subtitle || slide.content?.text}</p>
+            {/* Subtitle */}
+            {(slide.subtitle || slide.content?.subtitle) && (
+                <p className="text-3xl font-light mb-8 opacity-90 max-w-4xl uppercase tracking-widest">{slide.subtitle || slide.content?.subtitle}</p>
+            )}
+
+            {/* Main Text */}
+            {(slide.content?.text || slide.text) && (
+                <p className="text-xl md:text-2xl max-w-3xl leading-relaxed opacity-90 font-serif italic">
+                    "{slide.content?.text || slide.text}"
+                </p>
             )}
         </div>
     </div>
@@ -1448,8 +1499,9 @@ const MasterContentLayout = ({ slide, colors, variation = 'classic' }: { slide: 
 type CoverVariation = 'centered-minimal' | 'full-split' | 'diagonal-hero' | 'typographic-giant' | 'boxed-modern' | 'gradient-mesh' | 'dark-tech' | 'offset-gallery' | 'floating-glass' | 'cinematic';
 
 const MasterCoverLayout = ({ slide, colors, variation = 'centered-minimal' }: { slide: any; colors: any; variation?: CoverVariation }) => {
-    const subtitle = slide.subtitle || slide.content?.subtitle || slide.title?.split(':')[1] || "Presentation Deck";
+    const subtitle = slide.subtitle || slide.content?.subtitle || slide.title?.split(':')[1] || "";
     const mainTitle = slide.title?.split(':')[0] || slide.title || "Untitled Presentation";
+    const bullets = slide.bullets || slide.content?.bullets || [];
     const imageSrc = slide.backgroundImage || (slide.imageSearchQuery ? `https://source.unsplash.com/1600x900/?${encodeURIComponent(slide.imageSearchQuery)}` : null);
 
     // 1. CENTERED MINIMAL (Clean, safe)
@@ -1471,8 +1523,19 @@ const MasterCoverLayout = ({ slide, colors, variation = 'centered-minimal' }: { 
                 <AbstractShapes colors={colors} />
                 <div className="relative z-10 max-w-4xl">
                     <div className="w-24 h-1 mb-12 mx-auto" style={{ backgroundColor: colors.primary }} />
-                    <h1 className="text-7xl font-bold mb-8 tracking-tight drop-shadow-lg" style={{ color: colors.text }}>{mainTitle}</h1>
-                    <p className="text-3xl font-light opacity-90 leading-relaxed" style={{ color: colors.text }}>{subtitle}</p>
+                    <h1 className="text-7xl font-bold mb-8 tracking-tight drop-shadow-lg" style={{ color: getReadableColor(colors.text, colors.bg) }}>{mainTitle}</h1>
+                    {subtitle && <p className="text-3xl font-light opacity-90 leading-relaxed mb-10" style={{ color: getReadableColor(colors.text, colors.bg) }}>{subtitle}</p>}
+
+                    {bullets.length > 0 && (
+                        <div className="flex flex-wrap justify-center gap-6 mt-6">
+                            {bullets.slice(0, 3).map((b, i) => (
+                                <div key={i} className="flex items-center gap-3 bg-white/10 backdrop-blur-md px-6 py-3 rounded-full border border-white/20">
+                                    <div className="w-2 h-2 rounded-full" style={{ backgroundColor: colors.accent }} />
+                                    <span className="text-xl font-medium" style={{ color: getReadableColor(colors.text, colors.bg) }}>{b}</span>
+                                </div>
+                            ))}
+                        </div>
+                    )}
                 </div>
             </div>
         );
@@ -1491,10 +1554,22 @@ const MasterCoverLayout = ({ slide, colors, variation = 'centered-minimal' }: { 
                     <div className="absolute inset-0 bg-black/20" />
                 </div>
                 <div className="h-full flex flex-col justify-center p-20">
-                    <h1 className="text-7xl font-black mb-8 leading-tight" style={{ color: colors.text }}>{mainTitle}</h1>
-                    <p className="text-2xl opacity-70 mb-12" style={{ color: colors.text }}>{subtitle}</p>
-                    <div className="w-full h-px opacity-20" style={{ backgroundColor: colors.text }} />
-                    <div className="flex gap-4 mt-8">
+                    <h1 className="text-7xl font-black mb-8 leading-tight" style={{ color: getReadableColor(colors.text, colors.bg) }}>{mainTitle}</h1>
+                    {subtitle && <p className="text-2xl opacity-70 mb-12" style={{ color: getReadableColor(colors.text, colors.bg) }}>{subtitle}</p>}
+                    <div className="w-full h-px opacity-20 mb-8" style={{ backgroundColor: colors.text }} />
+
+                    {bullets.length > 0 && (
+                        <ul className="space-y-4 mb-12">
+                            {bullets.slice(0, 3).map((b, i) => (
+                                <li key={i} className="flex items-center gap-4">
+                                    <div className="w-2 h-2 rounded-full" style={{ backgroundColor: colors.primary }} />
+                                    <span className="text-xl font-medium opacity-80" style={{ color: getReadableColor(colors.text, colors.bg) }}>{b}</span>
+                                </li>
+                            ))}
+                        </ul>
+                    )}
+
+                    <div className="flex gap-4">
                         <div className="w-12 h-12 rounded-full border-2" style={{ borderColor: colors.primary }} />
                         <div className="w-12 h-12 rounded-full border-2" style={{ borderColor: colors.secondary }} />
                     </div>
@@ -1509,8 +1584,19 @@ const MasterCoverLayout = ({ slide, colors, variation = 'centered-minimal' }: { 
             <div className="relative w-full h-full overflow-hidden" style={{ backgroundColor: colors.primary }}>
                 <div className="absolute inset-0 w-full h-full bg-white z-0" style={{ clipPath: 'polygon(0 0, 100% 0, 100% 85%, 0 45%)', backgroundColor: colors.bg }} />
                 <div className="absolute z-10 top-20 left-20 max-w-3xl">
-                    <h1 className="text-8xl font-black mb-4 drop-shadow-sm" style={{ color: colors.text }}>{mainTitle}</h1>
-                    <p className="text-3xl font-medium" style={{ color: colors.secondary }}>{subtitle}</p>
+                    <h1 className="text-8xl font-black mb-4 drop-shadow-sm" style={{ color: getReadableColor(colors.text, colors.bg) }}>{mainTitle}</h1>
+                    <p className="text-3xl font-medium mb-8" style={{ color: colors.secondary }}>{subtitle}</p>
+
+                    {bullets.length > 0 && (
+                        <ul className="space-y-4">
+                            {bullets.slice(0, 3).map((b, i) => (
+                                <li key={i} className="flex items-center gap-4">
+                                    <div className="w-12 h-[2px]" style={{ backgroundColor: colors.accent }} />
+                                    <span className="text-2xl font-bold opacity-80" style={{ color: getReadableColor(colors.text, colors.bg) }}>{b}</span>
+                                </li>
+                            ))}
+                        </ul>
+                    )}
                 </div>
                 {imageSrc && (
                     <div className="absolute bottom-0 right-0 w-2/3 h-2/3 object-cover z-20" style={{ clipPath: 'polygon(20% 0, 100% 0, 100% 100%, 0% 100%)' }}>
@@ -1546,9 +1632,20 @@ const MasterCoverLayout = ({ slide, colors, variation = 'centered-minimal' }: { 
                 {imageSrc && <img src={imageSrc} className="absolute inset-0 w-full h-full object-cover opacity-50 blur-sm" alt="" />}
                 <div className="relative z-10 bg-white p-24 shadow-2xl max-w-4xl text-center" style={{ backgroundColor: colors.bg }}>
                     <div className="border-4 p-8 mb-8 inline-block" style={{ borderColor: colors.primary }}>
-                        <h1 className="text-6xl font-bold uppercase tracking-widest" style={{ color: colors.text }}>{mainTitle}</h1>
+                        <h1 className="text-6xl font-bold uppercase tracking-widest" style={{ color: getReadableColor(colors.text, colors.bg) }}>{mainTitle}</h1>
                     </div>
-                    <p className="text-xl tracking-widest uppercase font-bold" style={{ color: colors.accent }}>{subtitle}</p>
+                    {subtitle && <p className="text-xl tracking-widest uppercase font-bold mb-8" style={{ color: colors.accent }}>{subtitle}</p>}
+
+                    {bullets.length > 0 && (
+                        <div className="flex justify-center gap-8 mt-4 border-t pt-8" style={{ borderColor: `${colors.text}10` }}>
+                            {bullets.slice(0, 3).map((b, i) => (
+                                <div key={i} className="flex flex-col items-center">
+                                    <span className="text-sm font-bold opacity-40 mb-2" style={{ color: colors.text }}>0{i + 1}</span>
+                                    <span className="text-lg font-medium" style={{ color: getReadableColor(colors.text, colors.bg) }}>{b}</span>
+                                </div>
+                            ))}
+                        </div>
+                    )}
                 </div>
             </div>
         );
@@ -1556,15 +1653,37 @@ const MasterCoverLayout = ({ slide, colors, variation = 'centered-minimal' }: { 
 
     // 6. GRADIENT MESH (Trendy, colorful)
     if (variation === 'gradient-mesh') {
+        // Check if background is light (returns black text) or dark (returns white text)
+        const isLightBg = getContrastColor(colors.bg) === '#000000';
+
+        // For light backgrounds, 'screen' blending makes colors vanish. Use 'multiply' or normal.
+        // For dark backgrounds, 'screen' creates nice glowing effects.
+        const blendMode = isLightBg ? 'mix-blend-multiply' : 'mix-blend-screen';
+        const centerBlend = isLightBg ? 'mix-blend-normal' : 'mix-blend-overlay';
+        const blobOpacity = isLightBg ? 'opacity-30' : 'opacity-60';
+
         return (
             <div className="relative w-full h-full overflow-hidden flex flex-col justify-end p-20" style={{ backgroundColor: colors.bg }}>
-                <div className="absolute top-0 right-0 w-[800px] h-[800px] rounded-full blur-[120px] opacity-40 mix-blend-multiply" style={{ backgroundColor: colors.primary }} />
-                <div className="absolute bottom-0 left-0 w-[600px] h-[600px] rounded-full blur-[100px] opacity-40 mix-blend-multiply" style={{ backgroundColor: colors.secondary }} />
+                {/* Enhanced Animated Blobs */}
+                <div className={`absolute top-[-10%] right-[-10%] w-[1000px] h-[1000px] rounded-full blur-[150px] ${blobOpacity} ${blendMode} animate-pulse`} style={{ backgroundColor: colors.primary, animationDuration: '8s' }} />
+                <div className={`absolute bottom-[-10%] left-[-10%] w-[800px] h-[800px] rounded-full blur-[150px] ${blobOpacity} ${blendMode} animate-pulse`} style={{ backgroundColor: colors.secondary, animationDuration: '10s', animationDelay: '1s' }} />
+                <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full blur-[120px] ${blobOpacity} ${centerBlend}`} style={{ backgroundColor: colors.accent }} />
 
-                <div className="relative z-10 backdrop-blur-sm bg-white/10 p-12 rounded-2xl border border-white/20 max-w-4xl">
-                    <h1 className="text-7xl font-bold mb-6" style={{ color: colors.text }}>{mainTitle}</h1>
-                    <div className="h-2 w-32 rounded-full mb-6" style={{ backgroundColor: colors.accent }} />
-                    <p className="text-2xl opacity-80" style={{ color: colors.text }}>{subtitle}</p>
+                <div className="relative z-10 backdrop-blur-xl bg-white/20 p-16 rounded-[3rem] border border-white/30 max-w-5xl shadow-2xl">
+                    <h1 className="text-8xl font-bold mb-6 tracking-tight" style={{ color: getReadableColor(colors.text, colors.bg) }}>{mainTitle}</h1>
+                    {subtitle && <p className="text-3xl font-light mb-8 opacity-90" style={{ color: getReadableColor(colors.text, colors.bg) }}>{subtitle}</p>}
+                    <div className="h-1.5 w-40 rounded-full mb-10" style={{ backgroundColor: colors.accent }} />
+
+                    {bullets.length > 0 && (
+                        <div className="grid grid-cols-1 gap-6">
+                            {bullets.slice(0, 3).map((b, i) => (
+                                <div key={i} className="flex items-center gap-6 group">
+                                    <div className="w-4 h-4 rounded-full transition-all group-hover:scale-125" style={{ backgroundColor: colors.primary }} />
+                                    <span className="text-2xl font-medium tracking-wide" style={{ color: getReadableColor(colors.text, colors.bg) }}>{b}</span>
+                                </div>
+                            ))}
+                        </div>
+                    )}
                 </div>
             </div>
         );
@@ -1580,7 +1699,18 @@ const MasterCoverLayout = ({ slide, colors, variation = 'centered-minimal' }: { 
                         <h1 className="text-8xl font-bold text-transparent bg-clip-text mb-8" style={{ backgroundImage: `linear-gradient(to right, #ffffff, ${colors.primary})` }}>
                             {mainTitle}
                         </h1>
-                        <p className="text-2xl font-mono border-l-2 border-gray-600 pl-6" style={{ color: '#9ca3af' }}>{subtitle}</p>
+                        <p className="text-2xl font-mono border-l-2 border-gray-600 pl-6 mb-12" style={{ color: '#9ca3af' }}>{subtitle}</p>
+
+                        {bullets.length > 0 && (
+                            <div className="flex gap-12 ml-6">
+                                {bullets.slice(0, 3).map((b, i) => (
+                                    <div key={i} className="flex flex-col gap-2">
+                                        <div className="w-8 h-[1px] bg-primary" style={{ backgroundColor: colors.primary }} />
+                                        <span className="text-sm font-mono uppercase tracking-tighter opacity-70" style={{ color: '#ffffff' }}>[{b}]</span>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
                     </div>
                 </div>
                 <div className="absolute bottom-10 right-10 flex gap-2">
@@ -1597,11 +1727,19 @@ const MasterCoverLayout = ({ slide, colors, variation = 'centered-minimal' }: { 
                 <div className="col-span-8 row-span-2 relative rounded-3xl overflow-hidden">
                     {imageSrc ? <img src={imageSrc} className="w-full h-full object-cover" alt="" /> : <div className="w-full h-full bg-gray-200" />}
                     <div className="absolute bottom-0 left-0 p-12 bg-white/90 m-6 rounded-2xl">
-                        <h1 className="text-5xl font-bold" style={{ color: colors.primary }}>{mainTitle}</h1>
+                        <h1 className="text-5xl font-bold mb-4" style={{ color: getReadableColor(colors.primary, '#ffffff') }}>{mainTitle}</h1>
+                        {bullets.length > 0 && (
+                            <div className="flex gap-4">
+                                {bullets.slice(0, 2).map((b, i) => (
+                                    <span key={i} className="text-sm font-bold opacity-60 px-3 py-1 rounded-full bg-gray-100">{b}</span>
+                                ))}
+                            </div>
+                        )}
                     </div>
                 </div>
-                <div className="col-span-4 bg-black rounded-3xl p-8 flex items-end" style={{ backgroundColor: colors.secondary }}>
-                    <p className="text-3xl font-medium leading-tight" style={{ color: '#ffffff' }}>{subtitle}</p>
+                <div className="col-span-4 bg-black rounded-3xl p-8 flex flex-col justify-end" style={{ backgroundColor: colors.secondary }}>
+                    <p className="text-3xl font-medium leading-tight text-white mb-4">{subtitle}</p>
+                    {bullets.length > 2 && <p className="text-sm text-white/60 italic">{bullets[2]}</p>}
                 </div>
                 <div className="col-span-4 rounded-3xl opacity-20" style={{ backgroundColor: colors.primary }} />
             </div>
@@ -1615,7 +1753,19 @@ const MasterCoverLayout = ({ slide, colors, variation = 'centered-minimal' }: { 
                 {imageSrc && <img src={imageSrc} className="absolute inset-0 w-full h-full object-cover opacity-60 mix-blend-overlay" alt="" />}
                 <div className="relative w-[90%] h-[80%] rounded-3xl border border-white/30 bg-white/10 backdrop-blur-lg shadow-2xl flex flex-col items-center justify-center text-center p-20">
                     <span className="tracking-[0.5em] text-sm font-bold mb-12" style={{ color: '#ffffff' }}>PRESENTATION</span>
-                    <h1 className="text-8xl font-serif mb-12 drop-shadow-lg" style={{ color: '#ffffff' }}>{mainTitle}</h1>
+                    <h1 className="text-8xl font-serif mb-8 drop-shadow-lg text-white">{mainTitle}</h1>
+                    {subtitle && <p className="text-2xl font-light mb-12 opacity-80 text-white italic">{subtitle}</p>}
+
+                    {bullets.length > 0 && (
+                        <div className="flex gap-12 mb-16">
+                            {bullets.slice(0, 3).map((b, i) => (
+                                <div key={i} className="flex flex-col items-center gap-2">
+                                    <div className="w-1 h-1 rounded-full bg-white" />
+                                    <span className="text-sm uppercase tracking-widest text-white/70">{b}</span>
+                                </div>
+                            ))}
+                        </div>
+                    )}
                     <button className="px-12 py-4 font-bold rounded-full hover:scale-105 transition-transform" style={{ backgroundColor: '#ffffff', color: '#000000' }}>START</button>
                 </div>
             </div>
@@ -1633,8 +1783,18 @@ const MasterCoverLayout = ({ slide, colors, variation = 'centered-minimal' }: { 
             <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent" />
 
             <div className="relative z-10 border-l-8 pl-12" style={{ borderColor: colors.primary }}>
-                <h1 className="text-8xl font-bold mb-6 uppercase tracking-tight" style={{ color: '#ffffff' }}>{mainTitle}</h1>
-                <p className="text-4xl font-light mr-12" style={{ color: '#d1d5db' }}>{subtitle} <span className="text-sm align-top opacity-50">©2025</span></p>
+                <h1 className="text-8xl font-bold mb-6 uppercase tracking-tight text-white">{mainTitle}</h1>
+                <p className="text-4xl font-light mr-12 mb-10 text-gray-300">{subtitle} <span className="text-sm align-top opacity-50">©2025</span></p>
+
+                {bullets.length > 0 && (
+                    <div className="flex gap-8 opacity-60">
+                        {bullets.slice(0, 3).map((b, i) => (
+                            <span key={i} className="text-sm font-bold uppercase tracking-[0.2em] text-white">
+                                {b} {i < bullets.slice(0, 3).length - 1 && "•"}
+                            </span>
+                        ))}
+                    </div>
+                )}
             </div>
         </div>
     );
@@ -1673,8 +1833,8 @@ export const ModernSlideRenderer = ({ slide, theme, className, colorPalette }: S
         // Smart content detection: check actual data presence before layout matching
         // Support BOTH expected format AND AI's actual output format
         const hasChart = (
-            slide.chart?.data?.length > 0 ||
-            slide.content?.chart?.data?.length > 0 ||
+            slide.chart?.data?.length > 0 || slide.chart?.categories?.length > 0 ||
+            slide.content?.chart?.data?.length > 0 || slide.content?.chart?.categories?.length > 0 ||
             // AI format: chartType + labels + datasets
             (slide.content?.labels?.length > 0 && slide.content?.datasets?.length > 0)
         );
@@ -1698,11 +1858,15 @@ export const ModernSlideRenderer = ({ slide, theme, className, colorPalette }: S
             (slide.content?.type && slide.content?.steps?.length > 0 && !slide.content?.steps?.[0]?.date)
         );
         const hasComparison = (
-            slide.comparison?.left ||
-            slide.content?.comparison?.left ||
-            (slide.columns?.length === 2) ||
-            // AI format: leftTitle + rightTitle (fallback)
-            (slide.content?.leftTitle && slide.content?.rightTitle)
+            !normalizedType.includes('text') && // Prevent text-columns from being hijacked as comparison
+            (
+                slide.comparison?.left ||
+                slide.content?.comparison?.left ||
+                (slide.columns?.length === 2) ||
+                // AI format: titles and points (fallback)
+                (slide.content?.leftTitle || slide.content?.rightTitle) ||
+                (slide.content?.leftPoints || slide.content?.rightPoints)
+            )
         );
         const hasStats = (
             slide.stats?.length > 0 ||
@@ -1788,33 +1952,36 @@ export const ModernSlideRenderer = ({ slide, theme, className, colorPalette }: S
             const salt = slide.id || slide.title || 'salt';
             const slideIndex = slide.index || 0;
 
-            // Simple string hashing function
+            // Robust hashing function (FNV-1a variant) for better distribution
             const hashString = (str: string) => {
-                let hash = 0;
+                let hash = 2166136261;
                 for (let i = 0; i < str.length; i++) {
-                    const char = str.charCodeAt(i);
-                    hash = ((hash << 5) - hash) + char;
-                    hash = hash & hash; // Convert to 32bit integer
+                    hash ^= str.charCodeAt(i);
+                    hash = Math.imul(hash, 16777619);
                 }
-                return Math.abs(hash);
+                return hash >>> 0;
             };
 
-            const hash = hashString(salt + slideIndex);
+            // Calculate two distinct hashes to decouple selection from theme decision
+            const baseHash = hashString(salt + slideIndex + 'variation');
+            const themeHash = hashString(salt + slideIndex + 'theme');
 
             const variations: MasterVariation[] = ['classic', 'split-card', 'hero-block', 'magazine', 'minimal-offset'];
 
             // Deterministic pseudo-random number for theme decision (0-1 range)
-            const pseudoRandom = (hash % 100) / 100;
+            const pseudoRandom = (themeHash % 100) / 100;
 
-            // Base choice based on hash
-            let pickedIndex = hash % variations.length;
+            // Base choice based on baseHash
+            let pickedIndex = baseHash % variations.length;
             let picked: MasterVariation = variations[pickedIndex];
 
-            // Theme affinities are now SUGGESTIONS, not OVERRIDES (50% chance to use theme suggestion based on deterministic random)
-            if (pseudoRandom > 0.5) {
-                if (theme.includes('tech')) picked = variations[(pickedIndex + 1) % variations.length];
-                else if (theme.includes('minimal')) picked = variations[(pickedIndex + 2) % variations.length];
-                else if (theme.includes('creative')) picked = variations[(pickedIndex + 3) % variations.length];
+            // Theme affinities are now SUGGESTIONS (70% chance to use theme suggestion)
+            if (pseudoRandom > 0.3) {
+                if (theme.includes('tech')) picked = variations[(pickedIndex + 1) % variations.length]; // Affinity for more "structured" looks
+                else if (theme.includes('minimal') || theme.includes('corporate')) picked = variations[baseHash % 2 === 0 ? 0 : 4]; // classic or minimal-offset
+                else if (theme.includes('creative') || theme.includes('marketing')) picked = variations[baseHash % 2 === 0 ? 1 : 3]; // split-card or magazine
+                else if (theme.includes('startup') || theme.includes('product')) picked = variations[baseHash % 2 === 0 ? 1 : 2]; // split-card or hero-block
+                else if (theme.includes('consulting')) picked = variations[baseHash % 2 === 0 ? 0 : 2]; // classic or hero-block
             }
 
             console.log(`  → Picked variation: ${picked}`);
@@ -1829,18 +1996,19 @@ export const ModernSlideRenderer = ({ slide, theme, className, colorPalette }: S
             const salt = slide.id || slide.title || 'cover';
             const slideIndex = slide.index || 0;
 
-            // Simple string hashing function
+            // Robust hashing function (FNV-1a variant)
             const hashString = (str: string) => {
-                let hash = 0;
+                let hash = 2166136261;
                 for (let i = 0; i < str.length; i++) {
-                    const char = str.charCodeAt(i);
-                    hash = ((hash << 5) - hash) + char;
-                    hash = hash & hash; // Convert to 32bit integer
+                    hash ^= str.charCodeAt(i);
+                    hash = Math.imul(hash, 16777619);
                 }
-                return Math.abs(hash);
+                return hash >>> 0;
             };
 
-            const hash = hashString(salt + slideIndex);
+            // Calculate two distinct hashes
+            const baseHash = hashString(salt + slideIndex + 'cover');
+            const themeHash = hashString(salt + slideIndex + 'theme');
 
             const variations: CoverVariation[] = [
                 'centered-minimal', 'full-split', 'diagonal-hero', 'typographic-giant',
@@ -1848,20 +2016,22 @@ export const ModernSlideRenderer = ({ slide, theme, className, colorPalette }: S
                 'floating-glass', 'cinematic'
             ];
 
-            // Deterministic pseudo-random number
-            const pseudoRandom = (hash % 100) / 100;
+            // Deterministic pseudo-random number for theme decision
+            const pseudoRandom = (themeHash % 100) / 100;
 
-            // Base choice
-            let pickedIndex = hash % variations.length;
+            // Base choice based on baseHash
+            let pickedIndex = baseHash % variations.length;
             let picked: CoverVariation = variations[pickedIndex];
 
-            // Theme affinities are now SUGGESTIONS (50% chance)
-            if (pseudoRandom > 0.5) {
-                const offset = hash % 3;
-                if (theme.includes('tech')) picked = variations[(pickedIndex + offset) % variations.length];
-                else if (theme.includes('creative')) picked = variations[(pickedIndex + offset + 2) % variations.length];
-                else if (theme.includes('minimal')) picked = variations[(pickedIndex + offset + 4) % variations.length];
-                else if (theme.includes('corporate')) picked = variations[(pickedIndex + offset + 6) % variations.length];
+            // Theme affinities are now SUGGESTIONS (70% chance)
+            if (pseudoRandom > 0.3) {
+                const offset = themeHash % 3;
+                if (theme.includes('tech')) picked = variations[(pickedIndex + offset) % variations.length]; // Prefers tech, glass, dark
+                else if (theme.includes('creative')) picked = variations[(pickedIndex + offset + 2) % variations.length]; // Prefers giant, mesh, gallery
+                else if (theme.includes('minimal')) picked = variations[(pickedIndex + offset + 4) % variations.length]; // Prefers centered, boxed
+                else if (theme.includes('corporate') || theme.includes('consulting')) picked = variations[themeHash % 2 === 0 ? 0 : 1]; // centered-minimal or full-split
+                else if (theme.includes('marketing') || theme.includes('product')) picked = variations[themeHash % 2 === 0 ? 5 : 9]; // gradient-mesh or cinematic
+                else if (theme.includes('startup')) picked = variations[themeHash % 2 === 0 ? 2 : 4]; // diagonal-hero or boxed-modern
             }
 
             console.log(`  → Picked cover variation: ${picked}`);
@@ -1940,8 +2110,14 @@ export const ModernSlideRenderer = ({ slide, theme, className, colorPalette }: S
             return <ImageFocusLayout slide={slide} colors={colors} />;
         }
 
-        // Columns layout (legacy support)
-        if (normalizedType.includes('column')) {
+        // Text Columns (explicit type match fallback)
+        if (normalizedType.includes('text') && normalizedType.includes('column')) {
+            console.log('  → Matched: ThreeColumnTextLayout (explicit text-column type)');
+            return <ThreeColumnTextLayout slide={slide} colors={colors} />;
+        }
+
+        // Columns layout (legacy support) - Strict exclusion of text-columns
+        if (normalizedType.includes('column') && !normalizedType.includes('text')) {
             console.log('  → Matched: ComparisonLayout (type contains column - legacy)');
             return <ComparisonLayout slide={slide} colors={colors} />;
         }

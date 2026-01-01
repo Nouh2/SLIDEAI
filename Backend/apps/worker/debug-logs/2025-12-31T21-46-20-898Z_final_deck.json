@@ -1,0 +1,480 @@
+{
+  "title": "Lancement Stratégique SlideAI B2B Europe 2026",
+  "subtitle": "Analyse de marché, prévisions de croissance et framework de déploiement Scale-up",
+  "colorPalette": {
+    "primary": "#003366",
+    "secondary": "#8E1B1B",
+    "accent": "#D4AF37",
+    "bg": "#F4F4F4",
+    "text": "#1A1A1A"
+  },
+  "slides": [
+    {
+      "layout": "cover",
+      "title": "Stratégie d'Expansion SlideAI : Horizon 2026",
+      "imageSearchQuery": "professional business skyscraper london architecture",
+      "content": {
+        "subtitle": "Conquérir le marché Enterprise européen par l'intelligence créative.",
+        "bullets": [
+          "Analyse stratégique B2B",
+          "Objectif 5M€ ARR",
+          "Roadmap d'implémentation"
+        ]
+      }
+    },
+    {
+      "layout": "section",
+      "title": "Synthèse Exécutive",
+      "imageSearchQuery": "executive meeting room minimalist",
+      "content": {
+        "subtitle": "Transformer la communication corporate par l'automatisation intelligente."
+      }
+    },
+    {
+      "layout": "text-columns",
+      "title": "Le Paradoxe de la Productivité en Europe",
+      "imageSearchQuery": "busy office workers data overload",
+      "content": {
+        "columns": [
+          {
+            "title": "Le Problème Actuel",
+            "text": "Les cadres européens passent en moyenne 12 heures par semaine sur la création de supports visuels. Cette perte de temps opérationnelle freine l'innovation et la prise de décision rapide dans les grands groupes du CAC 40 et du DAX."
+          },
+          {
+            "title": "L'Opportunité SlideAI",
+            "text": "SlideAI réduit ce temps de 80% en transformant des données brutes en narrations visuelles sophistiquées, respectant scrupuleusement les chartes graphiques complexes des entreprises internationales."
+          },
+          {
+            "title": "Vision Stratégique",
+            "text": "D'ici 2026, SlideAI ne sera plus un outil d'assistance, mais le moteur central de la communication stratégique pour les départements de conseil et de direction financière en Europe."
+          }
+        ]
+      }
+    },
+    {
+      "layout": "chart",
+      "title": "Potentiel du Marché Européen (TAM/SAM)",
+      "imageSearchQuery": "financial data chart analysis",
+      "content": {
+        "description": "Analyse du marché des logiciels de productivité bureautique en Europe de l'Ouest, avec un focus sur les solutions SaaS Enterprise.",
+        "chart": {
+          "type": "bar",
+          "title": "",
+          "categories": [
+            "TAM (Total)",
+            "SAM (Serviceable)",
+            "SOM (Target 2026)"
+          ],
+          "series": [
+            {
+              "name": "Marché en Millions d'Euros",
+              "data": [
+                450,
+                120,
+                15
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "layout": "comparison",
+      "title": "Paysage Concurrentiel : SlideAI vs Incumbents",
+      "imageSearchQuery": "chess game strategy competition",
+      "content": {
+        "comparison": {
+          "left": {
+            "title": "Solutions Traditionnelles (PowerPoint/Canva)",
+            "items": [
+              "Processus manuel et chronophage",
+              "Difficulté de maintien de la charte",
+              "Pas d'intelligence contextuelle",
+              "Coût caché lié au temps de travail"
+            ]
+          },
+          "right": {
+            "title": "SlideAI (L'avantage disruptif)",
+            "items": [
+              "Génération instantanée via IA",
+              "Respect strict du 'Brand Identity'",
+              "Analyse de données intégrée",
+              "ROI mesurable dès le premier mois"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "layout": "stats",
+      "title": "Objectifs de Croissance 2024-2026",
+      "imageSearchQuery": "growth arrow success",
+      "content": {
+        "stats": [
+          {
+            "value": "5M€",
+            "label": "Revenu Annuel Récurrent (ARR)"
+          },
+          {
+            "value": "150+",
+            "label": "Comptes Entreprise Actifs"
+          },
+          {
+            "value": "115%",
+            "label": "Taux de Rétention (NRR)"
+          },
+          {
+            "value": "12",
+            "label": "Pays Européens Couverts"
+          }
+        ]
+      }
+    },
+    {
+      "layout": "chart",
+      "title": "Trajectoire de Revenus Prévisionnelle",
+      "imageSearchQuery": "ascending graph business growth",
+      "content": {
+        "description": "Projection basée sur un cycle de vente moyen de 4 mois pour les comptes Enterprise.",
+        "chart": {
+          "type": "line",
+          "title": "",
+          "categories": [
+            "Q1 2025",
+            "Q2 2025",
+            "Q3 2025",
+            "Q4 2025",
+            "Q1 2026",
+            "Q2 2026"
+          ],
+          "series": [
+            {
+              "name": "ARR Cumulé (M€)",
+              "data": [
+                0.8,
+                1.4,
+                2.1,
+                3,
+                4.2,
+                5.1
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "layout": "bento",
+      "title": "Segments de Marché Prioritaires",
+      "imageSearchQuery": "industry sectors icons blue",
+      "content": {
+        "items": [
+          {
+            "title": "Cabinets de Conseil",
+            "description": "Optimisation de la production de livrables clients. Focus sur la rapidité et la précision analytique pour McKinsey, BCG et Big Four."
+          },
+          {
+            "title": "Services Financiers",
+            "description": "Automatisation des rapports trimestriels et des decks de fusion-acquisition. Sécurité des données de niveau bancaire requise."
+          },
+          {
+            "title": "Secteur Pharma & Tech",
+            "description": "Présentation de données complexes de R&D et roadmaps produits. Besoin de visualisation de données sophistiquée."
+          },
+          {
+            "title": "Directions Marketing",
+            "description": "Maintien de la cohérence de marque sur l'ensemble des filiales européennes avec des templates dynamiques."
+          }
+        ]
+      }
+    },
+    {
+      "layout": "infographic",
+      "title": "Framework de Déploiement 'Scale-up'",
+      "imageSearchQuery": "gears process flow diagram",
+      "content": {
+        "type": "process",
+        "steps": [
+          {
+            "title": "Standardisation",
+            "description": "Audit des actifs de marque et intégration des templates maîtres dans l'IA."
+          },
+          {
+            "title": "Synergie",
+            "description": "Déploiement pilote sur un département clé (ex: Stratégie) pour valider le ROI."
+          },
+          {
+            "title": "Scaling",
+            "description": "Expansion horizontale à l'ensemble de l'organisation avec support dédié."
+          }
+        ]
+      }
+    },
+    {
+      "layout": "table",
+      "title": "Plan de Recrutement Stratégique",
+      "imageSearchQuery": "hiring team interview",
+      "content": {
+        "rows": [
+          [
+            "Ventes (Sales)",
+            "Account Executives",
+            "8",
+            "DACH, France, UK"
+          ],
+          [
+            "Engineering",
+            "AI Specialists / DevOps",
+            "6",
+            "Remote / Hub Berlin"
+          ],
+          [
+            "Customer Success",
+            "Enterprise Managers",
+            "4",
+            "Pan-Européen"
+          ],
+          [
+            "Marketing",
+            "B2B Demand Gen",
+            "2",
+            "Siège Social"
+          ]
+        ],
+        "table": {
+          "columns": [
+            "Département",
+            "Rôles Clés",
+            "Nombre",
+            "Focus Régional"
+          ],
+          "rows": [
+            [
+              "Ventes (Sales)",
+              "Account Executives",
+              "8",
+              "DACH, France, UK"
+            ],
+            [
+              "Engineering",
+              "AI Specialists / DevOps",
+              "6",
+              "Remote / Hub Berlin"
+            ],
+            [
+              "Customer Success",
+              "Enterprise Managers",
+              "4",
+              "Pan-Européen"
+            ],
+            [
+              "Marketing",
+              "B2B Demand Gen",
+              "2",
+              "Siège Social"
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "layout": "timeline",
+      "title": "Jalons Technologiques 2025-2026",
+      "imageSearchQuery": "technology digital roadmap",
+      "content": {
+        "items": [
+          {
+            "date": "Mars 2025",
+            "event": "Lancement API Enterprise & Connecteurs BI (Tableau/PowerBI)."
+          },
+          {
+            "date": "Juin 2025",
+            "event": "Certification Sécurité ISO 27001 et conformité RGPD avancée."
+          },
+          {
+            "date": "Octobre 2025",
+            "event": "Moteur IA Multi-modal (Text-to-Design 2.0) avec gestion de la voix."
+          },
+          {
+            "date": "Janvier 2026",
+            "event": "Collaboration en temps réel assistée par agent IA autonome."
+          }
+        ],
+        "timeline": {
+          "items": [
+            {
+              "date": "Mars 2025",
+              "title": "Lancement API Enterprise & Connecteurs BI (Tableau/PowerBI).",
+              "description": ""
+            },
+            {
+              "date": "Juin 2025",
+              "title": "Certification Sécurité ISO 27001 et conformité RGPD avancée.",
+              "description": ""
+            },
+            {
+              "date": "Octobre 2025",
+              "title": "Moteur IA Multi-modal (Text-to-Design 2.0) avec gestion de la voix.",
+              "description": ""
+            },
+            {
+              "date": "Janvier 2026",
+              "title": "Collaboration en temps réel assistée par agent IA autonome.",
+              "description": ""
+            }
+          ]
+        }
+      }
+    },
+    {
+      "layout": "timeline",
+      "title": "Roadmap d'Implémentation sur 12 Mois",
+      "imageSearchQuery": "calendar planning strategy",
+      "content": {
+        "items": [
+          {
+            "date": "Mois 1-3",
+            "event": "Phase d'amorçage : Recrutement de la core team Sales Europe et setup infrastructure."
+          },
+          {
+            "date": "Mois 4-6",
+            "event": "Expansion : Signature des 5 premiers comptes 'Lighthouse' (CAC 40 / DAX)."
+          },
+          {
+            "date": "Mois 7-9",
+            "event": "Optimisation : Lancement des fonctionnalités de collaboration d'équipe avancées."
+          },
+          {
+            "date": "Mois 10-12",
+            "event": "Accélération : Campagne marketing agressive et préparation du round Series B."
+          }
+        ],
+        "timeline": {
+          "items": [
+            {
+              "date": "Mois 1-3",
+              "title": "Phase d'amorçage : Recrutement de la core team Sales Europe et setup infrastructure.",
+              "description": ""
+            },
+            {
+              "date": "Mois 4-6",
+              "title": "Expansion : Signature des 5 premiers comptes 'Lighthouse' (CAC 40 / DAX).",
+              "description": ""
+            },
+            {
+              "date": "Mois 7-9",
+              "title": "Optimisation : Lancement des fonctionnalités de collaboration d'équipe avancées.",
+              "description": ""
+            },
+            {
+              "date": "Mois 10-12",
+              "title": "Accélération : Campagne marketing agressive et préparation du round Series B.",
+              "description": ""
+            }
+          ]
+        }
+      }
+    },
+    {
+      "layout": "table",
+      "title": "Analyse des Risques et Atténuation",
+      "imageSearchQuery": "risk management shield",
+      "content": {
+        "rows": [
+          [
+            "Souveraineté des données",
+            "Élevé",
+            "Hébergement local (EU) et chiffrement de bout en bout."
+          ],
+          [
+            "Adoption utilisateur",
+            "Moyen",
+            "Programme de formation 'Champion' et UI ultra-intuitive."
+          ],
+          [
+            "Concurrence Big Tech",
+            "Élevé",
+            "Focus sur la personnalisation extrême de la charte graphique."
+          ]
+        ],
+        "table": {
+          "columns": [
+            "Risque Identifié",
+            "Impact",
+            "Stratégie d'Atténuation"
+          ],
+          "rows": [
+            [
+              "Souveraineté des données",
+              "Élevé",
+              "Hébergement local (EU) et chiffrement de bout en bout."
+            ],
+            [
+              "Adoption utilisateur",
+              "Moyen",
+              "Programme de formation 'Champion' et UI ultra-intuitive."
+            ],
+            [
+              "Concurrence Big Tech",
+              "Élevé",
+              "Focus sur la personnalisation extrême de la charte graphique."
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "layout": "image-focus",
+      "title": "Devenir le Standard Européen",
+      "imageSearchQuery": "futuristic office vision digital",
+      "content": {
+        "subtitle": "Notre mission est d'éliminer la friction entre l'idée et la présentation pour chaque entreprise en Europe.",
+        "bullets": [
+          "Innovation continue",
+          "Excellence opérationnelle",
+          "Partenariat de confiance"
+        ]
+      }
+    },
+    {
+      "layout": "section",
+      "title": "Prochaines Étapes & Questions",
+      "imageSearchQuery": "handshake business deal",
+      "content": {
+        "subtitle": "Contact : direction-strategie@slideai.com | Session Q&A"
+      }
+    }
+  ],
+  "theme": "consulting",
+  "themeConfig": {
+    "id": "consulting",
+    "name": "Consulting Premium",
+    "mode": "dark",
+    "colors": {
+      "background": "#0F172A",
+      "surface": "#1E293B",
+      "text": "#F8FAFC",
+      "textSecondary": "#94A3B8",
+      "accent": "#F59E0B",
+      "accentSecondary": "#3B82F6",
+      "chartColors": [
+        "#F59E0B",
+        "#3B82F6",
+        "#10B981",
+        "#EF4444",
+        "#8B5CF6"
+      ]
+    },
+    "fonts": {
+      "heading": "Arial",
+      "body": "Arial"
+    },
+    "shapes": {
+      "borderRadius": 0.1,
+      "shadow": true,
+      "strokeWidth": 1
+    },
+    "imageKeywords": "business professional executive premium corporate",
+    "iconStyle": "regular"
+  }
+}

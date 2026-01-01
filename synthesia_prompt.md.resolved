@@ -1,0 +1,23 @@
+# Prompt pour Vidéo Démo SlideAI (Synthesia.io)
+
+Voici le prompt structuré pour générer une vidéo de présentation professionnelle.
+
+## 1. Paramètres de l'Avatar
+- **Avatar recommandé** : "Alex" ou "Sarah" (Tenue Business Casual moderne).
+- **Voix** : Français (Antonin ou Lea), ton enthousiaste, professionnel et fluide.
+- **Arrière-plan** : Bureau moderne minimaliste avec des touches de néon bleu/violet (rappelant l'identité visuelle de SlideAI).
+
+## 2. Script & Storyboard
+
+| Scène | Script (Ce que l'avatar dit) | Visuel & Cues |
+| :--- | :--- | :--- |
+| **Intro** | "Soyons honnêtes : créer une présentation professionnelle prend trop de temps. Entre le contenu et le design, on y perd des heures." | Avatar au centre. Overlay texte : "PowerPoint = Perte de temps ?" |
+| **Solution** | "Découvrez SlideAI. L'outil qui transforme vos idées en decks époustouflants, instantanément." | Transition fluide vers une capture d'écran du Hero de SlideAI. |
+| **Démo IA** | "Tapez votre sujet, et regardez l'IA construire votre présentation brique par brique, avec un design moderne et des animations fluides." | Montage accéléré de la génération d'un deck (animation 'brick by brick'). |
+| **Design** | "Accédez à des milliers de palettes de couleurs et des mises en page intelligentes. Plus besoin d'être designer pour briller." | Affichage des variations de thèmes et du `ModernSlideRenderer`. |
+| **Édition** | "Modifiez chaque élément en temps réel. C'est simple, rapide, et le résultat est toujours premium." | Preview de l'éditeur en action. |
+| **Outro** | "Prêt à transformer vos présentations ? Essayez SlideAI gratuitement pour vos 5 premiers decks. Rendez-vous sur notre site." | QR Code ou URL affichée. Avatar qui sourit. |
+
+## 3. Prompt contextuel pour Synthesia (Copier-Coller)
+
+> "Génère une vidéo de 45 secondes pour présenter SlideAI, un outil SaaS de création de présentations par IA. L'avatar doit être dynamique et s'adresser directement aux professionnels. Utilise un langage moderne (SaaS). L'esthétique doit être 'Glassmorphism' avec des dégradés bleu et violet. Le script doit mettre l'accent sur le gain de temps et la qualité esthétique 'premium' des slides générées. Termine par un appel à l'action pour l'essai gratuit."

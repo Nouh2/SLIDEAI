@@ -1,0 +1,231 @@
+{
+  "title": "Les Fondamentaux de l'Astrophysique",
+  "subtitle": "Un voyage scientifique à travers le cosmos",
+  "colorPalette": {
+    "primary": "#00796B",
+    "secondary": "#BBDEFB",
+    "accent": "#FFD600",
+    "bg": "#F5F5F5",
+    "text": "#212121"
+  },
+  "slides": [
+    {
+      "layout": "cover",
+      "title": "Les Fondamentaux de l'Astrophysique",
+      "imageSearchQuery": "majestic spiral galaxy nebula",
+      "content": {
+        "subtitle": "Comprendre les lois qui régissent l'Univers, des étoiles aux galaxies.",
+        "bullets": [
+          "Introduction aux concepts clés",
+          "Mécanique céleste et lumière",
+          "Cycle de vie des astres"
+        ]
+      }
+    },
+    {
+      "layout": "bento",
+      "title": "Objectifs du Cours",
+      "imageSearchQuery": "astronomy telescope education icons",
+      "content": {
+        "items": [
+          {
+            "title": "Comprendre les Étoiles",
+            "description": "Analyser comment la fusion nucléaire alimente les moteurs de l'univers et crée les éléments chimiques."
+          },
+          {
+            "title": "Explorer le Système Solaire",
+            "description": "Étudier la dynamique des planètes, des lunes et des petits corps célestes qui nous entourent."
+          },
+          {
+            "title": "Maîtriser les Distances",
+            "description": "Apprendre à mesurer l'immensité de l'espace en années-lumière et en parsecs."
+          }
+        ]
+      }
+    },
+    {
+      "layout": "text-columns",
+      "title": "Qu'est-ce que l'Astrophysique ?",
+      "imageSearchQuery": "physics formulas blackboard space",
+      "content": {
+        "columns": [
+          {
+            "header": "Une Science Physique",
+            "text": "L'astrophysique est la branche de l'astronomie qui utilise les principes de la physique et de la chimie pour déterminer la nature des objets célestes, plutôt que leurs positions ou mouvements dans l'espace."
+          },
+          {
+            "header": "L'Outil de la Lumière",
+            "text": "La quasi-totalité de nos informations provient de la lumière. En analysant le spectre électromagnétique, nous pouvons déduire la température, la composition et la vitesse des étoiles lointaines."
+          },
+          {
+            "header": "L'Échelle du Temps",
+            "text": "Observer l'espace, c'est observer le passé. À cause de la vitesse finie de la lumière, nous voyons les objets tels qu'ils étaient il y a des millions, voire des milliards d'années."
+          }
+        ]
+      }
+    },
+    {
+      "layout": "infographic",
+      "title": "La Naissance d'une Étoile",
+      "imageSearchQuery": "star formation nebula process",
+      "content": {
+        "steps": [
+          "Effondrement d'un nuage moléculaire géant sous sa propre gravité.",
+          "Formation d'une proto-étoile au centre du disque de gaz.",
+          "Augmentation de la pression et de la température interne.",
+          "Déclenchement de la fusion de l'hydrogène : l'étoile est née."
+        ]
+      }
+    },
+    {
+      "layout": "comparison",
+      "title": "Étoile vs Planète",
+      "imageSearchQuery": "sun vs earth comparison space",
+      "content": {
+        "leftTitle": "Étoiles",
+        "leftList": [
+          "Produisent leur propre lumière",
+          "Composées de plasma chaud",
+          "Masses extrêmement élevées",
+          "Fusion nucléaire au cœur"
+        ],
+        "rightTitle": "Planètes",
+        "rightList": [
+          "Réfléchissent la lumière",
+          "Composées de roches ou de gaz",
+          "Masses beaucoup plus faibles",
+          "Pas de fusion nucléaire"
+        ]
+      }
+    },
+    {
+      "layout": "stats",
+      "title": "L'Univers en Chiffres",
+      "imageSearchQuery": "deep space numbers astronomy",
+      "content": {
+        "stats": [
+          {
+            "label": "Âge de l'Univers",
+            "value": "13.8 Mds"
+          },
+          {
+            "label": "Galaxies estimées",
+            "value": "2000 Mds"
+          },
+          {
+            "label": "Vitesse de la lumière",
+            "value": "299 792 km/s"
+          }
+        ]
+      }
+    },
+    {
+      "layout": "timeline",
+      "title": "Vie d'une Naine Rouge",
+      "imageSearchQuery": "red dwarf star evolution",
+      "content": {
+        "steps": [
+          {
+            "date": "Début",
+            "event": "Formation à partir de nébuleuses de faible masse."
+          },
+          {
+            "date": "1000 Mds ans",
+            "event": "Longue séquence principale brûlant lentement l'hydrogène."
+          },
+          {
+            "date": "Fin",
+            "event": "Consommation totale et transformation directe en naine blanche."
+          }
+        ]
+      }
+    },
+    {
+      "layout": "table",
+      "title": "Classification des Planètes",
+      "imageSearchQuery": "solar system planets table",
+      "content": {
+        "headers": ["Type", "Exemples", "Composition", "Atmosphère"],
+        "rows": [
+          ["Telluriques", "Terre, Mars", "Roches et métaux", "Mince à épaisse"],
+          ["Géantes gazeuses", "Jupiter, Saturne", "Hydrogène, Hélium", "Très épaisse"],
+          ["Géantes de glace", "Uranus, Neptune", "Glace, Ammoniac", "Épaisse / Froide"]
+        ]
+      }
+    },
+    {
+      "layout": "image-focus",
+      "title": "La Gravité : Le Ciment de l'Univers",
+      "imageSearchQuery": "spacetime curvature gravity einstein",
+      "content": {
+        "subtitle": "Selon Einstein, la gravité n'est pas une force, mais une courbure de l'espace-temps provoquée par la masse."
+      }
+    },
+    {
+      "layout": "chart",
+      "title": "Composition de l'Univers",
+      "imageSearchQuery": "composition of universe pie chart",
+      "content": {
+        "chartType": "pie",
+        "labels": ["Énergie Noire", "Matière Noire", "Matière Ordinaire"],
+        "datasets": [
+          {
+            "label": "Pourcentage (%)",
+            "data": [68, 27, 5]
+          }
+        ]
+      }
+    },
+    {
+      "layout": "bullets",
+      "title": "Les Mystères de la Matière Noire",
+      "imageSearchQuery": "dark matter cosmic web",
+      "content": {
+        "bullets": [
+          "Elle ne brille pas et n'émet aucun rayonnement détectable.",
+          "Son existence est déduite de ses effets gravitationnels sur les galaxies.",
+          "Elle représente environ 85% de la matière totale de l'univers.",
+          "Sa nature exacte reste l'un des plus grands défis de la physique moderne."
+        ]
+      }
+    },
+    {
+      "layout": "bento",
+      "title": "Résumé des Concepts",
+      "imageSearchQuery": "science summary icons blue",
+      "content": {
+        "items": [
+          {
+            "title": "Fusion",
+            "description": "Le processus qui transforme la masse en énergie pure au cœur des étoiles."
+          },
+          {
+            "title": "Spectroscopie",
+            "description": "L'analyse de la lumière pour identifier les éléments chimiques à distance."
+          },
+          {
+            "title": "Expansion",
+            "description": "Le fait que les galaxies s'éloignent les unes des autres à cause du Big Bang."
+          },
+          {
+            "title": "Relativité",
+            "description": "Le cadre théorique nécessaire pour comprendre les objets massifs comme les trous noirs."
+          }
+        ]
+      }
+    },
+    {
+      "layout": "section",
+      "title": "Conclusion et Perspectives",
+      "imageSearchQuery": "night sky observatory telescope",
+      "content": {
+        "subtitle": "L'astrophysique est une quête sans fin pour répondre à la question : d'où venons-nous ?",
+        "bullets": [
+          "Prochain cours : La cosmologie observationnelle",
+          "Lectures recommandées : 'Cosmos' de Carl Sagan",
+          "Examen final prévu pour la semaine prochaine"
+        ]
+      }
+    }
+  ]
+}

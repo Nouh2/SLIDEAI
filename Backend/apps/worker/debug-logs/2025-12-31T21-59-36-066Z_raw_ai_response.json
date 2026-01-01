@@ -1,0 +1,251 @@
+{
+  "title": "Analyse Stratégique : SlideAI Europe B2B 2026",
+  "subtitle": "Conquête du marché Entreprise et trajectoire vers 5M€ de revenus annuels",
+  "colorPalette": {
+    "primary": "#002D62",
+    "secondary": "#C8102E",
+    "accent": "#FFB81C",
+    "bg": "#F4F7F9",
+    "text": "#1A1A1A"
+  },
+  "slides": [
+    {
+      "layout": "cover",
+      "title": "Expansion Stratégique SlideAI",
+      "imageSearchQuery": "modern skyscraper london paris business district",
+      "content": {
+        "subtitle": "Plan de déploiement Européen 2026 : Vers l'excellence opérationnelle en B2B",
+        "bullets": [
+          "Vision 2026",
+          "Analyse de Marché",
+          "Modèle de Croissance"
+        ]
+      }
+    },
+    {
+      "layout": "section",
+      "title": "Synthèse Exécutive",
+      "imageSearchQuery": "corporate executive office meeting",
+      "content": {
+        "subtitle": "Positionner SlideAI comme le standard de la productivité documentaire en Europe.",
+        "bullets": [
+          "Opportunité : Marché de 2.5 milliards d'euros",
+          "Objectif : 5M€ d'ARR d'ici fin 2027",
+          "Focus : Conformité RGPD et intégration Enterprise"
+        ]
+      }
+    },
+    {
+      "layout": "text-columns",
+      "title": "Le Contexte du Marché Européen",
+      "imageSearchQuery": "european union flags business",
+      "content": {
+        "subtitle": "Pourquoi 2026 est l'année charnière pour l'IA générative en entreprise.",
+        "columns": [
+          "La maturité des entreprises européennes face à l'IA a atteint un point d'inflexion. Les grands comptes ne cherchent plus seulement des gadgets, mais des solutions d'infrastructure capables de transformer la productivité de leurs consultants et analystes tout en respectant les normes de souveraineté numérique.",
+          "Le marché B2B en Europe est fragmenté mais offre des opportunités majeures dans les pôles financiers et technologiques (Londres, Paris, Berlin). La demande pour des outils d'automatisation de présentations professionnelles est en croissance de 45% par an, poussée par le besoin de rapidité.",
+          "SlideAI se positionne sur le segment 'Premium Enterprise', offrant une couche de design sophistiquée que les outils généralistes ne peuvent égaler. Notre approche se concentre sur la qualité 'Consulting Grade' des livrables, essentielle pour les directions générales."
+        ]
+      }
+    },
+    {
+      "layout": "comparison",
+      "title": "Analyse du Paysage Concurrentiel",
+      "imageSearchQuery": "chess game strategy competition",
+      "content": {
+        "subtitle": "Positionnement de SlideAI face aux acteurs historiques et émergents",
+        "leftTitle": "SlideAI (Notre Solution)",
+        "leftItems": [
+          "Design 'Consulting-Grade' natif",
+          "Conformité RGPD stricte (Hébergement EU)",
+          "Intégration profonde avec les workflows BI",
+          "Modèle de prix basé sur la valeur ajoutée"
+        ],
+        "rightTitle": "Acteurs Traditionnels (MS Office/Canva)",
+        "rightItems": [
+          "Processus manuel chronophage",
+          "Design générique peu professionnel",
+          "Souveraineté des données incertaine",
+          "Modèles de licence rigides"
+        ]
+      }
+    },
+    {
+      "layout": "chart",
+      "title": "Prévisions de Croissance 2025-2027",
+      "imageSearchQuery": "financial growth chart revenue",
+      "content": {
+        "subtitle": "Trajectoire vers l'objectif de 5 000 000 € de Revenus Annuels Récurrents (ARR)",
+        "chartType": "bar",
+        "labels": ["Q1 2025", "Q4 2025", "Q2 2026", "Q4 2026", "Q2 2027", "Q4 2027"],
+        "datasets": [
+          {
+            "label": "ARR en Millions d'Euros",
+            "data": [0.4, 0.9, 1.8, 2.9, 4.1, 5.2]
+          }
+        ]
+      }
+    },
+    {
+      "layout": "infographic",
+      "title": "Framework de Déploiement 'Scale-up'",
+      "imageSearchQuery": "stairs up success business growth",
+      "content": {
+        "subtitle": "Notre méthodologie propriétaire pour pénétrer les grands comptes",
+        "steps": [
+          "Lighthouse : Acquisition de 3 clients de référence par marché clé",
+          "Integration : Déploiement des API personnalisées et SSO",
+          "Expansion : Modèle 'Land and Expand' au sein des départements",
+          "Optimization : Analyse d'usage et itération produit continue"
+        ]
+      }
+    },
+    {
+      "layout": "bento",
+      "title": "Piliers Stratégiques Majeurs",
+      "imageSearchQuery": "modern technology architecture modules",
+      "content": {
+        "subtitle": "Les fondations de notre avantage compétitif en Europe.",
+        "items": [
+          {
+            "title": "Excellence Produit",
+            "description": "Développement d'un moteur de design intelligent capable de respecter les chartes graphiques complexes des entreprises du CAC40 et du DAX40."
+          },
+          {
+            "title": "Ventes High-Touch",
+            "description": "Mise en place d'une force de vente directe spécialisée dans le cycle de vente complexe des grandes organisations européennes."
+          },
+          {
+            "title": "Souveraineté Data",
+            "description": "Garantie d'un stockage localisé et d'un traitement des données sans entraînement sur les données clients, pilier de la confiance B2B."
+          },
+          {
+            "title": "Écosystème Partenaires",
+            "description": "Alliances stratégiques avec les cabinets de conseil en transformation digitale pour prescrire SlideAI comme outil de productivité."
+          }
+        ]
+      }
+    },
+    {
+      "layout": "stats",
+      "title": "Indicateurs de Performance (KPIs) 2026",
+      "imageSearchQuery": "dashboard data metrics",
+      "content": {
+        "subtitle": "Objectifs chiffrés pour mesurer le succès de l'implémentation.",
+        "stats": [
+          {
+            "label": "Coût d'Acquisition (CAC)",
+            "value": "1.2k €"
+          },
+          {
+            "label": "Rétention NRR",
+            "value": "125%"
+          },
+          {
+            "label": "Utilisateurs Actifs",
+            "value": "15k"
+          },
+          {
+            "label": "Marge Brute",
+            "value": "82%"
+          }
+        ]
+      }
+    },
+    {
+      "layout": "table",
+      "title": "Priorisation des Marchés Régionaux",
+      "imageSearchQuery": "map of europe business",
+      "content": {
+        "subtitle": "Analyse comparative du potentiel par zone géographique.",
+        "headers": ["Région", "Potentiel", "Complexité", "Focus Secteur"],
+        "rows": [
+          ["DACH (All/Aut/Sui)", "Très Élevé", "Haute (Légal)", "Industrie / Finance"],
+          ["France", "Élevé", "Moyenne", "Luxe / Énergie / Conseil"],
+          ["UK & Irlande", "Très Élevé", "Faible", "Tech / Services Financiers"],
+          ["Benelux", "Moyen", "Faible", "Logistique / Pharma"]
+        ]
+      }
+    },
+    {
+      "layout": "timeline",
+      "title": "Roadmap d'Implémentation sur 12 Mois",
+      "imageSearchQuery": "business roadmap timeline planning",
+      "content": {
+        "subtitle": "Jalons technologiques et opérationnels pour 2025-2026",
+        "events": [
+          {
+            "date": "Mois 1-3",
+            "event": "Recrutement de l'équipe Core Europe (Sales & Customer Success)"
+          },
+          {
+            "date": "Mois 4-6",
+            "event": "Lancement de la version Enterprise v2 avec isolation des données"
+          },
+          {
+            "date": "Mois 7-9",
+            "event": "Ouverture des bureaux à Berlin et Londres"
+          },
+          {
+            "date": "Mois 10-12",
+            "event": "Atteinte du seuil de rentabilité opérationnelle sur le segment B2B"
+          }
+        ]
+      }
+    },
+    {
+      "layout": "bullets",
+      "title": "Stratégie de Recrutement Talent",
+      "imageSearchQuery": "professional team meeting collaboration",
+      "content": {
+        "subtitle": "Bâtir une organisation capable de soutenir une croissance de 300%.",
+        "bullets": [
+          "Account Executives spécialisés SaaS Enterprise (6 nouveaux postes)",
+          "Ingénieurs Solutions pour l'intégration technique sur mesure",
+          "Customer Success Managers pour garantir l'adoption et le NRR",
+          "Experts Compliance & Sécurité pour les audits clients"
+        ]
+      }
+    },
+    {
+      "layout": "image-focus",
+      "title": "Sécurité & Technologie : Le Socle de Confiance",
+      "imageSearchQuery": "cyber security data protection server room",
+      "content": {
+        "subtitle": "Notre architecture est conçue pour les exigences les plus strictes du secteur bancaire et public.",
+        "bullets": [
+          "Certifications ISO 27001 & SOC2 Type II prévues pour Q3 2026",
+          "Chiffrement de bout en bout et Zero-Knowledge Architecture",
+          "Hébergement souverain sur serveurs Européens"
+        ]
+      }
+    },
+    {
+      "layout": "section",
+      "title": "Thèse d'Investissement",
+      "imageSearchQuery": "handshake business deal",
+      "content": {
+        "subtitle": "Pourquoi SlideAI est le leader incontesté de la prochaine génération de productivité.",
+        "bullets": [
+          "Produit différencié par le design",
+          "Marché adressable en expansion rapide",
+          "Équipe d'exécution de classe mondiale"
+        ]
+      }
+    },
+    {
+      "layout": "bullets",
+      "title": "Prochaines Étapes & Appel à l'Action",
+      "imageSearchQuery": "startup launch button",
+      "content": {
+        "subtitle": "Engagement immédiat pour sécuriser la domination du marché.",
+        "bullets": [
+          "Validation du budget de recrutement pour le Q1",
+          "Signature du partenariat stratégique avec les intégrateurs",
+          "Lancement de la campagne de prospection 'Lighthouse'",
+          "Revue trimestrielle des objectifs de croissance"
+        ]
+      }
+    }
+  ]
+}

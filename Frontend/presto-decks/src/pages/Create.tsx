@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Sparkles, Wand2, ArrowRight, Zap, Paperclip, FileText, X, Loader2, ChevronLeft } from "lucide-react";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+
 import { Slider } from "@/components/ui/slider";
 import { useToast } from "@/hooks/use-toast";
 import { api } from "@/lib/api";
@@ -13,35 +13,25 @@ import { getTemplateById } from "@/data/slideTemplates";
 import { projectService } from "@/lib/projects";
 import { supabase } from "@/contexts/AuthContext";
 
-const purposes = [
-    "Business Pitch",
-    "Marketing Plan",
-    "Educational Course",
-    "Product Launch",
-    "Sales Presentation",
-    "Team Meeting",
-    "Conference Talk",
-];
+
 
 export default function Create() {
     const [step, setStep] = useState<'template' | 'customize'>("template");
     const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
     const [vision, setVision] = useState("");
-    const [purpose, setPurpose] = useState("Business Pitch");
+
     const [slides, setSlides] = useState([10]);
     const [isGenerating, setIsGenerating] = useState(false);
     const [isUploading, setIsUploading] = useState(false);
     const [attachedFile, setAttachedFile] = useState<File | null>(null);
 
 
+    const [isDragging, setIsDragging] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const navigate = useNavigate();
     const { toast } = useToast();
 
-    const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (!file) return;
-
+    const processFile = (file: File) => {
         // Limit file size to 10MB
         if (file.size > 10 * 1024 * 1024) {
             toast({
@@ -52,7 +42,6 @@ export default function Create() {
             return;
         }
 
-        // Store file directly (will be sent with generate request)
         setAttachedFile(file);
         toast({
             title: "Document ajouté",
@@ -60,6 +49,31 @@ export default function Create() {
         });
 
         if (fileInputRef.current) fileInputRef.current.value = "";
+    };
+
+    const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        processFile(file);
+    };
+
+    const handleDragOver = (e: React.DragEvent) => {
+        e.preventDefault();
+        setIsDragging(true);
+    };
+
+    const handleDragLeave = (e: React.DragEvent) => {
+        e.preventDefault();
+        setIsDragging(false);
+    };
+
+    const handleDrop = async (e: React.DragEvent) => {
+        e.preventDefault();
+        setIsDragging(false);
+        const file = e.dataTransfer.files?.[0];
+        if (file) {
+            processFile(file);
+        }
     };
 
     const handleGenerate = async () => {
@@ -97,7 +111,7 @@ export default function Create() {
             }
 
             const data = await api.generate({
-                prompt: `${finalPrompt}. Objectif: ${purpose}. ${template ? `Theme suggéré: ${template.id}` : ''}`,
+                prompt: `${finalPrompt}. Objectif: Présentation. ${template ? `Theme suggéré: ${template.id}` : ''}`,
                 language: "fr",
                 tone: "pro",
                 length: "medium",
@@ -112,7 +126,7 @@ export default function Create() {
             // Save project to local storage for Dashboard visibility
             projectService.add({
                 id: traceId,
-                title: vision.split('\n')[0].substring(0, 40) || purpose,
+                title: vision.split('\n')[0].substring(0, 40) || "Présentation",
                 prompt: finalPrompt,
                 slides: new Array(slides[0]).fill({}), // Placeholder count
                 theme: template ? { id: template.id, name: template.name } : "modern",
@@ -264,20 +278,27 @@ export default function Create() {
                                                     className="w-full flex-1 min-h-[200px] md:min-h-[300px] bg-transparent border-none rounded-lg pl-12 pr-4 py-4 text-lg text-foreground placeholder:text-muted-foreground/50 focus:ring-0 resize-none leading-relaxed"
                                                 />
 
-                                                {/* Attached File Display */}
+                                                {/* Attached File Display - In Input Area */}
                                                 <AnimatePresence>
                                                     {attachedFile && (
                                                         <motion.div
                                                             initial={{ opacity: 0, y: 10 }}
                                                             animate={{ opacity: 1, y: 0 }}
                                                             exit={{ opacity: 0, y: 10 }}
-                                                            className="mx-4 mb-2 flex items-center gap-2 bg-primary/10 border border-primary/20 rounded-lg px-3 py-2 w-fit"
+                                                            className="mx-4 mb-4 flex items-center justify-between gap-3 bg-muted/50 border border-border/60 rounded-xl px-4 py-3 group/file"
                                                         >
-                                                            <FileText className="w-4 h-4 text-primary" />
-                                                            <span className="text-sm text-foreground/90 truncate max-w-[200px]">{attachedFile.name}</span>
+                                                            <div className="flex items-center gap-3 overflow-hidden">
+                                                                <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                                                                    <FileText className="w-4 h-4 text-primary" />
+                                                                </div>
+                                                                <div className="flex flex-col min-w-0">
+                                                                    <span className="text-sm font-medium truncate">{attachedFile.name}</span>
+                                                                    <span className="text-xs text-muted-foreground">{(attachedFile.size / 1024).toFixed(0)} KB</span>
+                                                                </div>
+                                                            </div>
                                                             <button
                                                                 onClick={() => setAttachedFile(null)}
-                                                                className="ml-2 text-muted-foreground hover:text-destructive transition-colors"
+                                                                className="text-muted-foreground hover:text-destructive transition-colors p-1 hover:bg-destructive/10 rounded-full"
                                                             >
                                                                 <X className="w-4 h-4" />
                                                             </button>
@@ -285,21 +306,31 @@ export default function Create() {
                                                     )}
                                                 </AnimatePresence>
 
-                                                {/* Quick Actions & Upload */}
-                                                <div className="flex items-center justify-between px-4 pb-2">
+                                                {/* Quick Actions */}
+                                                <div className="flex items-center justify-start px-4 pb-4">
                                                     <div className="flex gap-2 overflow-x-auto no-scrollbar">
-                                                        {["@moderne", "@pro", "@startup"].map((tag) => (
-                                                            <button
-                                                                key={tag}
-                                                                onClick={() => setVision(vision + " " + tag)}
-                                                                className="text-xs px-2 py-1 rounded-md bg-secondary/10 hover:bg-secondary/20 text-secondary-foreground hover:text-primary transition-colors whitespace-nowrap"
-                                                            >
-                                                                {tag}
-                                                            </button>
-                                                        ))}
+                                                        {/* Tags removed earlier, keeping container for potential future use or spacing */}
                                                     </div>
-
-                                                    <div className="flex items-center gap-2">
+                                                </div>
+                                            </div>
+                                            {/* Controls Sidebar with Drop Zone */}
+                                            <div className="flex flex-col gap-4 md:w-72 md:border-l border-border md:pl-4">
+                                                <div className="flex flex-col h-full gap-4">
+                                                    {/* Drop Zone */}
+                                                    <div
+                                                        className={`
+                                                            relative rounded-xl border-dashed border-2 transition-all duration-200 ease-in-out
+                                                            flex flex-col items-center justify-center p-6 text-center cursor-pointer min-h-[160px]
+                                                            ${isDragging
+                                                                ? 'border-primary bg-primary/5 scale-[1.02]'
+                                                                : 'border-border/60 hover:border-primary/50 hover:bg-muted/30'
+                                                            }
+                                                        `}
+                                                        onDragOver={handleDragOver}
+                                                        onDragLeave={handleDragLeave}
+                                                        onDrop={handleDrop}
+                                                        onClick={() => fileInputRef.current?.click()}
+                                                    >
                                                         <input
                                                             type="file"
                                                             ref={fileInputRef}
@@ -307,58 +338,42 @@ export default function Create() {
                                                             onChange={handleFileSelect}
                                                             accept=".pdf,.doc,.docx,.txt,.md"
                                                         />
-                                                        <Button
-                                                            variant="ghost"
-                                                            size="sm"
-                                                            onClick={() => fileInputRef.current?.click()}
-                                                            disabled={isUploading}
-                                                            className="text-muted-foreground hover:text-primary hover:bg-primary/10 gap-2"
-                                                        >
-                                                            {isUploading ? (
-                                                                <Loader2 className="w-4 h-4 animate-spin" />
-                                                            ) : (
-                                                                <Paperclip className="w-4 h-4" />
-                                                            )}
-                                                            <span className="hidden sm:inline">Ajouter un document</span>
-                                                        </Button>
-                                                    </div>
-                                                </div>
-                                            </div>
 
-                                            {/* Controls Sidebar */}
-                                            <div className="flex flex-col gap-2 md:w-72 md:border-l border-border md:pl-2">
-                                                <div className="space-y-4 p-2">
-                                                    <div className="space-y-2">
-                                                        <label className="text-xs font-medium text-muted-foreground">Type de présentation</label>
-                                                        <Select value={purpose} onValueChange={setPurpose} disabled={isGenerating}>
-                                                            <SelectTrigger className="bg-white border-input h-10 text-sm">
-                                                                <SelectValue placeholder="Objectif" />
-                                                            </SelectTrigger>
-                                                            <SelectContent>
-                                                                {purposes.map((p) => (
-                                                                    <SelectItem key={p} value={p}>{p}</SelectItem>
-                                                                ))}
-                                                            </SelectContent>
-                                                        </Select>
+                                                        <div className={`
+                                                            w-12 h-12 rounded-full flex items-center justify-center mb-3 transition-colors
+                                                            ${isDragging ? 'bg-primary text-white' : 'bg-muted text-muted-foreground'}
+                                                        `}>
+                                                            {isDragging ? <ArrowRight className="w-5 h-5 animate-bounce" /> : <Paperclip className="w-5 h-5" />}
+                                                        </div>
+
+                                                        <div className="space-y-1">
+                                                            <p className="text-sm font-medium">
+                                                                {isDragging ? "Déposez ici" : "Ajouter un fichier"}
+                                                            </p>
+                                                            <p className="text-xs text-muted-foreground">
+                                                                Glissez ou cliquez
+                                                            </p>
+                                                        </div>
                                                     </div>
 
-                                                    <div className="space-y-2">
-                                                        <div className="flex justify-between">
+                                                    {/* Slider moves here */}
+                                                    <div className="space-y-3 px-1">
+                                                        <div className="flex justify-between items-center">
                                                             <label className="text-xs font-medium text-muted-foreground">Nombre de slides</label>
-                                                            <span className="text-xs font-mono">{slides[0]}</span>
+                                                            <span className="text-xs font-mono bg-muted px-2 py-0.5 rounded text-foreground">{slides[0]}</span>
                                                         </div>
                                                         <Slider
                                                             value={slides}
                                                             onValueChange={setSlides}
                                                             min={5}
-                                                            max={30}
+                                                            max={20}
                                                             step={1}
                                                             className="py-2"
                                                         />
                                                     </div>
                                                 </div>
 
-                                                <div className="mt-auto p-2">
+                                                <div className="mt-auto pt-2">
                                                     <Button
                                                         size="lg"
                                                         onClick={handleGenerate}
@@ -370,7 +385,7 @@ export default function Create() {
                                                         ) : (
                                                             <div className="flex items-center gap-2 justify-center">
                                                                 <Zap className="w-4 h-4 fill-current" />
-                                                                <span>Générer la présentation</span>
+                                                                <span>Générer</span>
                                                             </div>
                                                         )}
                                                     </Button>

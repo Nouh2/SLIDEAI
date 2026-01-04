@@ -17,6 +17,7 @@ const Auth = lazy(() => import("@/pages/Auth"));
 const Brand = lazy(() => import("@/pages/Brand"));
 const Privacy = lazy(() => import("@/pages/Privacy"));
 const NotFound = lazy(() => import("@/pages/NotFound"));
+const JoinPage = lazy(() => import("@/pages/JoinPage"));
 
 const PageLoader = () => (
     <div className="h-[calc(100vh-4rem)] w-full flex items-center justify-center">
@@ -86,6 +87,11 @@ export const AnimatedRoutes = () => {
                         <ProtectedRoute>
                             <PageTransition><Editor /></PageTransition>
                         </ProtectedRoute>
+                    } />
+
+                    {/* SHARE LINK ROUTE */}
+                    <Route path="/share/:token" element={
+                        <PageTransition><JoinPage /></PageTransition>
                     } />
 
                     {/* 404 */}

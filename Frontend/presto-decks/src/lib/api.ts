@@ -282,4 +282,79 @@ export const api = {
     console.warn("api.getStatus is deprecated. Use api.getJobStatus instead.");
     return this.getJobStatus(traceId);
   },
+
+  // ============================================
+  // PRESENTATION SHARING API
+  // ============================================
+
+  /**
+   * Get all presentations for the current user (owned + shared)
+   * GET /v1/presentations
+   */
+  async getPresentations(accessToken: string): Promise<{ owned: any[]; shared: any[] }> {
+    const response = await fetch(`${API_BASE_URL}/presentations`, {
+      headers: buildHeaders(accessToken),
+    });
+    if (!response.ok) throw new Error('Impossible de charger les présentations');
+    return response.json();
+  },
+
+  /**
+   * Get a single presentation by ID
+   * GET /v1/presentations/:id
+   */
+  async getPresentation(id: string, accessToken: string): Promise<any> {
+    const response = await fetch(`${API_BASE_URL}/presentations/${id}`, {
+      headers: buildHeaders(accessToken),
+    });
+    if (!response.ok) throw new Error('Présentation introuvable');
+    return response.json();
+  },
+
+  /**
+   * Save/update a presentation
+   * PUT /v1/presentations/:id
+   */
+  async savePresentation(id: string, data: { slides?: any; title?: string }, accessToken: string): Promise<any> {
+    const response = await fetch(`${API_BASE_URL}/presentations/${id}`, {
+      method: 'PUT',
+      headers: buildHeaders(accessToken, 'application/json'),
+      body: JSON.stringify(data),
+    });
+    if (!response.ok) throw new Error('Échec de la sauvegarde');
+    return response.json();
+  },
+
+  /**
+   * Generate a share link for a presentation
+   * POST /v1/presentations/:id/share
+   */
+  async sharePresentation(id: string, accessToken: string): Promise<{ shareUrl: string; token: string }> {
+    const response = await fetch(`${API_BASE_URL}/presentations/${id}/share`, {
+      method: 'POST',
+      headers: buildHeaders(accessToken),
+    });
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({ message: 'Erreur' }));
+      throw new Error(err.message || 'Impossible de générer le lien de partage');
+    }
+    return response.json();
+  },
+
+  /**
+   * Join a presentation using a share token
+   * POST /v1/presentations/join
+   */
+  async joinPresentation(token: string, accessToken: string): Promise<{ presentationId: string }> {
+    const response = await fetch(`${API_BASE_URL}/presentations/join`, {
+      method: 'POST',
+      headers: buildHeaders(accessToken, 'application/json'),
+      body: JSON.stringify({ token }),
+    });
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({ message: 'Lien invalide' }));
+      throw new Error(err.message || 'Lien de partage invalide');
+    }
+    return response.json();
+  },
 };

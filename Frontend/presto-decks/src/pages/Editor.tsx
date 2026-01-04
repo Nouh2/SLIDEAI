@@ -6,14 +6,19 @@ import { ModernSlideRenderer } from "@/components/slides/ModernSlideRenderer";
 import { examples } from "@/data/examples";
 import { api } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
-import { createClient } from "@supabase/supabase-js";
+import { supabase } from "@/contexts/AuthContext";
 import {
   Loader2,
   Download,
   Home,
   ChevronLeft,
   ChevronRight,
+  Layout,
+  Maximize2,
+  Minimize2,
   Play,
+  Save,
+  Share2,
   AlertCircle,
   Sparkles
 } from "lucide-react";
@@ -26,11 +31,11 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { AddElementMenu } from "@/components/editor/AddElementMenu";
+import { PropertiesPanel, SelectedElement } from "@/components/editor/PropertiesPanel";
+import { ShareDialog } from "@/components/editor/ShareDialog";
 
-// Supabase client (using anon key for read-only)
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || "https://dntcdhabtctfbylynlcr.supabase.co";
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRudGNkaGFidGN0ZmJ5bHlubGNyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjYwNDg1NTUsImV4cCI6MjA4MTYyNDU1NX0.9mtNdCOyR7qiEXjS0n7uC5Dq8hSS8s5gZ3wtxbre-R8";
-const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
 
 // Helper to adapt API deck format to frontend format
 const adaptDeck = (deck: any) => {
@@ -112,6 +117,7 @@ export default function Editor() {
   // States
   const [currentProject, setCurrentProject] = useState<any>(null);
   const [selectedSlide, setSelectedSlide] = useState(0);
+  const [selectedElement, setSelectedElement] = useState<SelectedElement | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isExporting, setIsExporting] = useState(false);
   const [status, setStatus] = useState<string>("idle");
@@ -119,22 +125,39 @@ export default function Editor() {
   const [slideScale, setSlideScale] = useState(1);
   const [error, setError] = useState<string | null>(null);
   const [isExportDialogOpen, setIsExportDialogOpen] = useState(false);
+  const [accessToken, setAccessToken] = useState<string | null>(null);
+
+  // Get access token on mount
+  useEffect(() => {
+    const getToken = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) setAccessToken(session.access_token);
+    };
+    getToken();
+  }, []);
 
   // Keyboard navigation
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      // Don't trigger if editing text
+      if (e.target instanceof HTMLTextAreaElement || e.target instanceof HTMLInputElement) return;
+
       if (!currentProject) return;
 
       if (e.key === "ArrowRight" || e.key === "ArrowDown" || e.key === " ") {
         if (selectedSlide < currentProject.slides.length - 1) {
           setSelectedSlide(prev => prev + 1);
+          setSelectedElement(null);
         }
       } else if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
         if (selectedSlide > 0) {
           setSelectedSlide(prev => prev - 1);
+          setSelectedElement(null);
         }
       } else if (e.key === "Escape") {
-        if (document.fullscreenElement) {
+        if (selectedElement) {
+          setSelectedElement(null);
+        } else if (document.fullscreenElement) {
           document.exitFullscreen();
         }
       }
@@ -142,7 +165,7 @@ export default function Editor() {
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [currentProject, selectedSlide]);
+  }, [currentProject, selectedSlide, selectedElement]);
 
   // Handle Fullscreen events
   useEffect(() => {
@@ -200,40 +223,34 @@ export default function Editor() {
   useEffect(() => {
     setError(null);
 
-    // === MODE 1: Fetch by presentation ID from Supabase ===
+    // === MODE 1: Fetch by presentation ID via API ===
     if (presentationId) {
-      const fetchFromSupabase = async () => {
+      const fetchFromAPI = async () => {
         setIsLoading(true);
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) {
+          setError("Connexion requise");
+          setIsLoading(false);
+          return;
+        }
+        setAccessToken(session.access_token);
         try {
-          const { data, error: dbError } = await supabase
-            .from('presentations')
-            .select('*')
-            .eq('id', presentationId)
-            .single();
-
-          if (dbError || !data) {
-            setError("Présentation introuvable");
-            setIsLoading(false);
-            return;
-          }
-
-          // Adapt the data - slides might be nested in the 'slides' column
+          const data = await api.getPresentation(presentationId, session.access_token);
           const adapted = adaptDeck({
             id: data.id,
             title: data.title,
-            slides: data.slides, // This is the full JSON stored
+            slides: data.slides,
             theme: data.theme,
           });
           setCurrentProject(adapted);
           setIsLoading(false);
         } catch (err: any) {
-          console.error("Supabase fetch error:", err);
-          setError("Erreur lors du chargement");
+          console.error("API fetch error:", err);
+          setError(err.message || "Erreur lors du chargement");
           setIsLoading(false);
         }
       };
-
-      fetchFromSupabase();
+      fetchFromAPI();
       return;
     }
 
@@ -341,6 +358,115 @@ export default function Editor() {
     setIsExportDialogOpen(false);
   };
 
+  const handleElementSelect = (element: any) => {
+    // Add slide index to ID to make it unique across deck
+    const fullId = `${selectedSlide}-${element.id}`;
+    setSelectedElement({ ...element, id: fullId });
+  };
+
+  // Helper helper to update nested object immutably
+  const updateDeep = (obj: any, pathParts: string[], value: any): any => {
+    // If we've reached the end of the path, return the value
+    if (pathParts.length === 0) return value;
+
+    const [head, ...tail] = pathParts;
+    const index = parseInt(head);
+    const isArrayIndex = !isNaN(index);
+
+    // If strict array syntax was used in path splitting, we can know if it's an array
+    // But simple inference: if valid integer, treat as array access if obj is array or empty
+
+    const currentVal = obj || {};
+    const isCurrentArray = Array.isArray(currentVal);
+
+    // Create shallow copy
+    const copy = isCurrentArray ? [...currentVal] : { ...currentVal };
+
+    // recurse
+    copy[head] = updateDeep(currentVal[head], tail, value);
+
+    return copy;
+  };
+
+  const handleElementUpdate = (path: string, value: any) => {
+    if (!currentProject) return;
+
+    // Split path: 'content.columns[0].title' -> ['content', 'columns', '0', 'title']
+    // Regex matches . or [ or ] (but filter out empty strings from ] split)
+    const pathParts = path.replace(/\]/g, '').split(/[\.\[]/);
+
+    const newProject = { ...currentProject };
+    const newSlides = [...newProject.slides];
+
+    // Update generic slide state recursively
+    // We treat 'newSlides[selectedSlide]' as the root
+    newSlides[selectedSlide] = updateDeep(newSlides[selectedSlide], pathParts, value);
+
+    // Also update local selected element for immediate feedback
+    if (selectedElement) {
+      setSelectedElement({ ...selectedElement, value });
+    }
+
+    newProject.slides = newSlides;
+    setCurrentProject(newProject);
+  };
+
+
+  const handleAddElement = (type: 'text' | 'image' | 'shape') => {
+    if (!currentProject) return;
+
+    const newProject = { ...currentProject };
+    const newSlides = [...newProject.slides];
+    const slide = { ...newSlides[selectedSlide] };
+
+    // Ensure elements array exists
+    const elements = slide.elements ? [...slide.elements] : [];
+
+    const newId = `el-${Date.now()}`;
+    const newElement = {
+      id: newId,
+      type: type,
+      x: 35,
+      y: 35,
+      width: type === 'text' ? 30 : 25,
+      height: type === 'text' ? 10 : 25,
+      rotation: 0,
+      opacity: 1,
+      content: type === 'text' ? 'New Text Block' : 'https://source.unsplash.com/random/400x300',
+      value: type === 'text' ? 'New Text Block' : 'https://source.unsplash.com/random/400x300',
+      path: `elements[${elements.length}]`,
+      label: type === 'text' ? 'Text Box' : 'Image',
+      style: {
+        fontSize: '1.5rem',
+        textAlign: 'left', // Default align
+        color: currentProject.colorScheme?.text || '#000000',
+        fontWeight: 'normal'
+      }
+    };
+
+    elements.push(newElement);
+    slide.elements = elements;
+
+    newSlides[selectedSlide] = slide;
+    newProject.slides = newSlides;
+    setCurrentProject(newProject);
+
+    // Select the new element immediately
+    // Note: handleElementSelect expects raw element, it adds prefix
+    handleElementSelect(newElement);
+  };
+
+  const handleSave = async () => {
+    if (!currentProject || !accessToken) return;
+    try {
+      await api.savePresentation(currentProject.id, { slides: currentProject.slides }, accessToken);
+      toast({ title: "Sauvegardé", description: "Vos modifications sont enregistrées." });
+    } catch (e: any) {
+      console.error("Save error:", e);
+      toast({ title: "Erreur", description: e.message || "Échec de la sauvegarde.", variant: "destructive" });
+    }
+  };
+
   // Loading Screen
   if (isLoading || !currentProject) {
     if (error) {
@@ -408,15 +534,21 @@ export default function Editor() {
               Diaporama
             </Button>
 
-            <div className="flex items-center gap-1">
-              <Button
-                onClick={handleExportClick}
-                variant="ghost"
-                size="icon"
-                className="h-9 w-9 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted"
-                title="Export PowerPoint"
-              >
-                <Download className="h-4 w-4" />
+
+            <div className="flex items-center gap-2">
+              <Button variant="ghost" onClick={handleSave} title="Sauvegarder">
+                <Save className="w-4 h-4" />
+              </Button>
+              {currentProject && accessToken && (
+                <ShareDialog
+                  presentationId={currentProject.id}
+                  accessToken={accessToken}
+                />
+              )}
+              <AddElementMenu onAdd={handleAddElement} />
+              <Button variant="outline" onClick={() => setIsExportDialogOpen(true)}>
+                <Download className="w-4 h-4 mr-2" />
+                Export
               </Button>
             </div>
           </div>
@@ -437,7 +569,7 @@ export default function Editor() {
               {currentProject.slides.map((slide: any, idx: number) => (
                 <div
                   key={idx}
-                  onClick={() => setSelectedSlide(idx)}
+                  onClick={() => { setSelectedSlide(idx); setSelectedElement(null); }}
                   className={`group relative cursor-pointer outline-none`}
                 >
                   {/* Slide Number Indicator */}
@@ -507,6 +639,8 @@ export default function Editor() {
                 theme={currentProject.theme}
                 colorPalette={currentProject.colorScheme}
                 className="w-full h-full bg-white"
+                onElementSelect={handleElementSelect}
+                selectedElementId={selectedElement ? selectedElement.id.split('-').slice(1).join('-') : null}
               />
             </div>
           </div>
@@ -545,6 +679,15 @@ export default function Editor() {
             </>
           )}
         </div>
+
+        {/* 4. Properties Panel */}
+        {!isFullscreen && selectedElement && (
+          <PropertiesPanel
+            element={selectedElement}
+            onUpdate={handleElementUpdate}
+            onClose={() => setSelectedElement(null)}
+          />
+        )}
 
       </div>
 

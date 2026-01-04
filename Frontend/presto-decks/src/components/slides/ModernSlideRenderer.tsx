@@ -16,11 +16,88 @@ interface SlideRendererProps {
         bg: string;
         text: string;
     };
+    onElementSelect?: (element: { id: string; type: 'text' | 'image' | 'list' | 'chart'; path: string; value: any; label: string }) => void;
+    selectedElementId?: string | null;
 }
+
+// Helper wrapper for editable elements
+const EditableElement = ({
+    element,
+    children,
+    onSelect,
+    isSelected,
+    className,
+    style
+}: {
+    element: any;
+    children?: React.ReactNode;
+    onSelect?: (element: any) => void;
+    isSelected?: boolean;
+    className?: string;
+    style?: React.CSSProperties;
+}) => {
+    if (!onSelect) return <div className={className} style={style}>{children || element?.value}</div>;
+
+    return (
+        <div
+            onClick={(e) => {
+                e.stopPropagation();
+                onSelect(element);
+            }}
+            className={cn("relative transition-all duration-200 rounded-sm cursor-text", className, isSelected ? "ring-2 ring-primary ring-offset-2 z-50" : "hover:ring-1 hover:ring-primary/50")}
+            style={style}
+        >
+            {children || element.value}
+        </div>
+    );
+};
 
 // ============================================
 // HELPER COMPONENTS
 // ============================================
+
+// FloatingElement component for draggable/resizable elements
+const FloatingElement = ({ element, colors, onSelect, isSelected }: { element: any; colors: any; onSelect?: any; isSelected?: boolean }) => {
+    const { id, type, x, y, width, height, rotation, opacity, path, value, label } = element;
+
+    const elementStyle: React.CSSProperties = {
+        position: 'absolute',
+        left: `${x || 0}%`,
+        top: `${y || 0}%`,
+        width: width ? `${width}%` : 'auto',
+        maxWidth: '80%',
+        height: height ? `${height}%` : 'auto',
+        transform: `rotate(${rotation || 0}deg)`,
+        opacity: opacity || 1,
+        zIndex: isSelected ? 50 : 10,
+        cursor: onSelect ? 'grab' : 'default',
+        color: element.style?.color || colors.text,
+        fontSize: element.style?.fontSize,
+        fontWeight: element.style?.fontWeight,
+        textAlign: element.style?.textAlign as any,
+    };
+
+    return (
+        <EditableElement
+            element={element}
+            onSelect={onSelect}
+            isSelected={isSelected}
+            className="p-2" // Add some padding for easier selection
+            style={elementStyle}
+        >
+            {type === 'image' ? (
+                <img src={value || element.content} alt="custom" className="w-full h-full object-cover rounded-lg shadow-lg pointer-events-none" />
+            ) : (
+                <div
+                    dangerouslySetInnerHTML={{ __html: value || element.content || "Double click to edit" }}
+                    className="min-w-[100px] min-h-[1em] outline-none"
+                    style={{ fontSize: 'inherit' }}
+                />
+            )}
+        </EditableElement>
+    );
+};
+
 
 const getContrastColor = (hexcolor: string) => {
     if (!hexcolor || hexcolor.startsWith('rgba') || hexcolor.startsWith('transparent')) return '#ffffff';
@@ -154,7 +231,8 @@ const SlideFooter = ({ slideNumber, title, colors }: { slideNumber?: number; tit
 
 
 // Cover/Hero slide - Opening slide
-const CoverHeroLayout = ({ slide, colors }: { slide: any; colors: any }) => (
+// Cover/Hero slide - Opening slide
+const CoverHeroLayout = ({ slide, colors, onSelect, selectedId }: { slide: any; colors: any; onSelect?: any; selectedId?: string | null }) => (
     <div className="relative w-full h-full overflow-hidden" style={{ backgroundColor: colors.bg }}>
         <AbstractShapes colors={colors} />
 
@@ -170,20 +248,32 @@ const CoverHeroLayout = ({ slide, colors }: { slide: any; colors: any }) => (
         )}
 
         <div className="relative z-10 flex flex-col items-center justify-center h-full px-20 pb-32 text-center">
-            <h1 className="text-8xl md:text-9xl font-bold mb-10 leading-tight">
-                {slide.title?.split(' ').map((word: string, i: number) => {
-                    const isKeyword = ['vision', 'pitch', 'strategy', 'innovation', 'future', 'ai', 'tech'].some(kw =>
-                        word.toLowerCase().includes(kw)
-                    );
-                    return isKeyword ?
-                        <span key={i} style={{ color: colors.primary }}>{word} </span> :
-                        <span key={i} style={{ color: colors.text }}>{word} </span>;
-                })}
-            </h1>
+            <EditableElement
+                element={{ id: 'title', type: 'text', value: slide.title, path: 'title', label: 'Title' }}
+                onSelect={onSelect}
+                isSelected={selectedId === 'title'}
+            >
+                <h1 className="text-8xl md:text-9xl font-bold mb-10 leading-tight">
+                    {slide.title?.split(' ').map((word: string, i: number) => {
+                        const isKeyword = ['vision', 'pitch', 'strategy', 'innovation', 'future', 'ai', 'tech'].some(kw =>
+                            word.toLowerCase().includes(kw)
+                        );
+                        return isKeyword ?
+                            <span key={i} style={{ color: colors.primary }}>{word} </span> :
+                            <span key={i} style={{ color: colors.text }}>{word} </span>;
+                    })}
+                </h1>
+            </EditableElement>
 
             {(slide.subtitle || slide.content?.subtitle) && (
                 <div className="inline-block px-12 py-6 rounded-full bg-surface border border-border shadow-md">
-                    <p className="text-3xl opacity-80" style={{ color: colors.text }}>{slide.subtitle || slide.content?.subtitle}</p>
+                    <EditableElement
+                        element={{ id: 'subtitle', type: 'text', value: slide.subtitle || slide.content?.subtitle, path: slide.subtitle ? 'subtitle' : 'content.subtitle', label: 'Subtitle' }}
+                        onSelect={onSelect}
+                        isSelected={selectedId === 'subtitle'}
+                    >
+                        <p className="text-3xl opacity-80" style={{ color: colors.text }}>{slide.subtitle || slide.content?.subtitle}</p>
+                    </EditableElement>
                 </div>
             )}
 
@@ -191,10 +281,17 @@ const CoverHeroLayout = ({ slide, colors }: { slide: any; colors: any }) => (
             {(slide.bullets?.length > 0 || slide.content?.bullets?.length > 0) && (
                 <ul className="mt-10 space-y-3 text-left">
                     {(slide.bullets || slide.content?.bullets || []).slice(0, 4).map((bullet: string, i: number) => (
-                        <li key={i} className="flex items-center gap-4">
-                            <span className="w-3 h-3 rounded-full" style={{ backgroundColor: colors.primary }} />
-                            <span className="text-2xl opacity-80" style={{ color: colors.text }}>{bullet}</span>
-                        </li>
+                        <EditableElement
+                            key={i}
+                            element={{ id: `bullets-${i}`, type: 'list', value: bullet, path: slide.bullets ? `bullets[${i}]` : `content.bullets[${i}]`, label: `Bullet ${i + 1}` }}
+                            onSelect={onSelect}
+                            isSelected={selectedId === `bullets-${i}`}
+                        >
+                            <li className="flex items-center gap-4">
+                                <span className="w-3 h-3 rounded-full" style={{ backgroundColor: colors.primary }} />
+                                <span className="text-2xl opacity-80" style={{ color: colors.text }}>{bullet}</span>
+                            </li>
+                        </EditableElement>
                     ))}
                 </ul>
             )}
@@ -208,63 +305,22 @@ const CoverHeroLayout = ({ slide, colors }: { slide: any; colors: any }) => (
 
 
 // Content with bullets layout
-const ContentBulletsLayout = ({ slide, colors }: { slide: any; colors: any }) => {
-    const bullets = slide.bullets || slide.content?.bullets || [];
-    const subtitle = slide.subtitle || slide.content?.subtitle || slide.content?.text;
 
-    return (
-        <div className="relative w-full h-full overflow-hidden" style={{ backgroundColor: colors.bg }}>
-            <AbstractShapes colors={colors} />
-
-            <div className="relative z-10 flex flex-col px-20 pt-16 pb-24 h-full">
-                <h2 className="text-6xl md:text-7xl font-bold mb-16" style={{ color: colors.text }}>
-                    {slide.title}
-                </h2>
-
-                <div className="flex-1 flex flex-col md:flex-row gap-16">
-                    <div className="flex-1 space-y-8">
-                        {subtitle && (
-                            <p className="text-3xl mb-8 opacity-70" style={{ color: colors.text }}>{subtitle}</p>
-                        )}
-
-                        {bullets.length > 0 && (
-                            <ul className="space-y-6">
-                                {bullets.map((bullet: string, i: number) => (
-                                    <li key={i} className="flex items-start gap-6">
-                                        <span className="w-3 h-3 rounded-full mt-3 flex-shrink-0" style={{ backgroundColor: colors.primary }} />
-                                        <span className="text-2xl leading-relaxed opacity-90" style={{ color: colors.text }}>{bullet}</span>
-                                    </li>
-                                ))}
-                            </ul>
-                        )}
-                    </div>
-
-                    {slide.backgroundImage && !slide.backgroundImage.includes('placehold') && (
-                        <div className="w-full md:w-96 flex items-center justify-center">
-                            <div className="w-80 h-80 rounded-3xl overflow-hidden border-4 border-primary/20 shadow-2xl">
-                                <img
-                                    src={slide.backgroundImage}
-                                    alt={slide.title}
-                                    className="w-full h-full object-cover"
-                                />
-                            </div>
-                        </div>
-                    )}
-                </div>
-            </div>
-
-            <SlideFooter title={slide.title} slideNumber={3} colors={colors} />
-        </div>
-    );
-};
 
 // Stats/Metrics layout - Big numbers
 // Stats/Metrics layout - Big numbers with Visual Variants
 type StatsVariation = 'classic-grid' | 'metric-cards' | 'big-hero-stat' | 'data-progress' | 'trend-focus';
 
-const StatsLayout = ({ slide, colors, variation = 'classic-grid' }: { slide: any; colors: any; variation?: StatsVariation }) => {
+const StatsLayout = ({ slide, colors, variation = 'classic-grid', onSelect, selectedId }: { slide: any; colors: any; variation?: StatsVariation; onSelect?: any; selectedId?: string | null }) => {
     // Support multiple AI formats: stats, statistics, metrics
-    const stats = slide.stats || slide.content?.stats || slide.content?.statistics || slide.metrics || slide.content?.metrics || [];
+    let stats = slide.stats || slide.content?.stats || slide.content?.statistics || slide.metrics || slide.content?.metrics || [];
+
+    // Determine path prefix for editing
+    let statsPath = 'content.stats';
+    if (slide.stats) statsPath = 'stats';
+    else if (slide.metrics) statsPath = 'metrics';
+    else if (slide.content?.metrics) statsPath = 'content.metrics';
+    else if (slide.content?.statistics) statsPath = 'content.statistics';
 
     // --- VARIATION 1: METRIC CARDS (Clean card based) ---
     if (variation === 'metric-cards') {
@@ -274,7 +330,13 @@ const StatsLayout = ({ slide, colors, variation = 'classic-grid' }: { slide: any
 
                 <div className="relative z-10 flex flex-col px-16 py-12 h-full">
                     <div className="text-center mb-16">
-                        <h2 className="text-5xl font-bold mb-4" style={{ color: colors.text }}>{slide.title}</h2>
+                        <EditableElement
+                            element={{ id: 'title', type: 'text', value: slide.title, path: 'title', label: 'Title' }}
+                            onSelect={onSelect}
+                            isSelected={selectedId === 'title'}
+                        >
+                            <h2 className="text-5xl font-bold mb-4" style={{ color: colors.text }}>{slide.title}</h2>
+                        </EditableElement>
                         <p className="text-xl opacity-60" style={{ color: colors.text }}>Key Performance Indicators</p>
                     </div>
 
@@ -292,12 +354,24 @@ const StatsLayout = ({ slide, colors, variation = 'classic-grid' }: { slide: any
                                     <span className="text-2xl font-bold">{i + 1}</span>
                                 </div>
 
-                                <p className="text-4xl md:text-5xl font-bold mb-4 tracking-tight" style={{ color: colors.primary }}>
-                                    {stat.value}
-                                </p>
-                                <p className="text-sm font-bold uppercase tracking-widest opacity-70" style={{ color: colors.text }}>
-                                    {stat.label}
-                                </p>
+                                <EditableElement
+                                    element={{ id: `stat-${i}-value`, type: 'text', value: stat.value, path: `${statsPath}[${i}].value`, label: `Stat ${i + 1} Value` }}
+                                    onSelect={onSelect}
+                                    isSelected={selectedId === `stat-${i}-value`}
+                                >
+                                    <p className="text-4xl md:text-5xl font-bold mb-4 tracking-tight" style={{ color: colors.primary }}>
+                                        {stat.value}
+                                    </p>
+                                </EditableElement>
+                                <EditableElement
+                                    element={{ id: `stat-${i}-label`, type: 'text', value: stat.label, path: `${statsPath}[${i}].label`, label: `Stat ${i + 1} Label` }}
+                                    onSelect={onSelect}
+                                    isSelected={selectedId === `stat-${i}-label`}
+                                >
+                                    <p className="text-sm font-bold uppercase tracking-widest opacity-70" style={{ color: colors.text }}>
+                                        {stat.label}
+                                    </p>
+                                </EditableElement>
                             </div>
                         ))}
                     </div>
@@ -325,10 +399,22 @@ const StatsLayout = ({ slide, colors, variation = 'classic-grid' }: { slide: any
                         </span>
                         {heroStat && (
                             <>
-                                <h1 className="text-[180px] font-black leading-none mb-4 drop-shadow-2xl">
-                                    {heroStat.value}
-                                </h1>
-                                <p className="text-4xl font-light opacity-90">{heroStat.label}</p>
+                                <EditableElement
+                                    element={{ id: `hero-stat-value`, type: 'text', value: heroStat.value, path: `${statsPath}[0].value`, label: `Hero Stat Value` }}
+                                    onSelect={onSelect}
+                                    isSelected={selectedId === `hero-stat-value`}
+                                >
+                                    <h1 className="text-[180px] font-black leading-none mb-4 drop-shadow-2xl">
+                                        {heroStat.value}
+                                    </h1>
+                                </EditableElement>
+                                <EditableElement
+                                    element={{ id: `hero-stat-label`, type: 'text', value: heroStat.label, path: `${statsPath}[0].label`, label: `Hero Stat Label` }}
+                                    onSelect={onSelect}
+                                    isSelected={selectedId === `hero-stat-label`}
+                                >
+                                    <p className="text-4xl font-light opacity-90">{heroStat.label}</p>
+                                </EditableElement>
                             </>
                         )}
                     </div>
@@ -336,13 +422,31 @@ const StatsLayout = ({ slide, colors, variation = 'classic-grid' }: { slide: any
 
                 {/* Content side - Secondary Stats */}
                 <div className="w-5/12 h-full bg-surface p-12 flex flex-col justify-center">
-                    <h2 className="text-4xl font-bold mb-16" style={{ color: colors.text }}>{slide.title}</h2>
+                    <EditableElement
+                        element={{ id: 'title', type: 'text', value: slide.title, path: 'title', label: 'Title' }}
+                        onSelect={onSelect}
+                        isSelected={selectedId === 'title'}
+                    >
+                        <h2 className="text-4xl font-bold mb-16" style={{ color: colors.text }}>{slide.title}</h2>
+                    </EditableElement>
 
                     <div className="flex flex-col gap-8">
                         {secondaryStats.map((stat: any, i: number) => (
                             <div key={i} className="flex items-center gap-6 border-b pb-6" style={{ borderColor: `${colors.text}10` }}>
-                                <div className="text-3xl font-bold" style={{ color: colors.secondary }}>{stat.value}</div>
-                                <div className="text-lg opacity-70" style={{ color: colors.text }}>{stat.label}</div>
+                                <EditableElement
+                                    element={{ id: `sec-stat-${i}-value`, type: 'text', value: stat.value, path: `${statsPath}[${i + 1}].value`, label: `Stat ${i + 2} Value` }} // i+1 because 0 is hero
+                                    onSelect={onSelect}
+                                    isSelected={selectedId === `sec-stat-${i}-value`}
+                                >
+                                    <div className="text-3xl font-bold" style={{ color: colors.secondary }}>{stat.value}</div>
+                                </EditableElement>
+                                <EditableElement
+                                    element={{ id: `sec-stat-${i}-label`, type: 'text', value: stat.label, path: `${statsPath}[${i + 1}].label`, label: `Stat ${i + 2} Label` }}
+                                    onSelect={onSelect}
+                                    isSelected={selectedId === `sec-stat-${i}-label`}
+                                >
+                                    <div className="text-lg opacity-70" style={{ color: colors.text }}>{stat.label}</div>
+                                </EditableElement>
                             </div>
                         ))}
                         {secondaryStats.length === 0 && <p className="opacity-50 italic">Add more stats...</p>}
@@ -357,7 +461,13 @@ const StatsLayout = ({ slide, colors, variation = 'classic-grid' }: { slide: any
         return (
             <div className="relative w-full h-full overflow-hidden flex flex-col px-20 pt-16 pb-24" style={{ backgroundColor: colors.bg }}>
                 <div className="mb-16">
-                    <h2 className="text-6xl font-bold mb-4" style={{ color: colors.text }}>{slide.title}</h2>
+                    <EditableElement
+                        element={{ id: 'title', type: 'text', value: slide.title, path: 'title', label: 'Title' }}
+                        onSelect={onSelect}
+                        isSelected={selectedId === 'title'}
+                    >
+                        <h2 className="text-6xl font-bold mb-4" style={{ color: colors.text }}>{slide.title}</h2>
+                    </EditableElement>
                     <div className="w-20 h-2 bg-primary rounded-full" style={{ backgroundColor: colors.accent }} />
                 </div>
 
@@ -373,8 +483,20 @@ const StatsLayout = ({ slide, colors, variation = 'classic-grid' }: { slide: any
                         return (
                             <div key={i} className="flex flex-col justify-center">
                                 <div className="flex justify-between items-end mb-4">
-                                    <span className="text-xl font-medium opacity-80 uppercase tracking-wider" style={{ color: colors.text }}>{stat.label}</span>
-                                    <span className="text-4xl font-bold" style={{ color: colors.primary }}>{stat.value}</span>
+                                    <EditableElement
+                                        element={{ id: `stat-${i}-label`, type: 'text', value: stat.label, path: `${statsPath}[${i}].label`, label: `Stat ${i + 1} Label` }}
+                                        onSelect={onSelect}
+                                        isSelected={selectedId === `stat-${i}-label`}
+                                    >
+                                        <span className="text-xl font-medium opacity-80 uppercase tracking-wider" style={{ color: colors.text }}>{stat.label}</span>
+                                    </EditableElement>
+                                    <EditableElement
+                                        element={{ id: `stat-${i}-value`, type: 'text', value: stat.value, path: `${statsPath}[${i}].value`, label: `Stat ${i + 1} Value` }}
+                                        onSelect={onSelect}
+                                        isSelected={selectedId === `stat-${i}-value`}
+                                    >
+                                        <span className="text-4xl font-bold" style={{ color: colors.primary }}>{stat.value}</span>
+                                    </EditableElement>
                                 </div>
                                 <div className="w-full h-4 bg-gray-100 rounded-full overflow-hidden" style={{ backgroundColor: `${colors.text}10` }}>
                                     <div className="h-full rounded-full transition-all duration-1000 ease-out"
@@ -400,12 +522,18 @@ const StatsLayout = ({ slide, colors, variation = 'classic-grid' }: { slide: any
 
                 <div className="text-center mb-16 relative z-10 w-full max-w-4xl">
                     <span className="text-sm font-bold tracking-[0.3em] uppercase opacity-60 mb-4 block" style={{ color: colors.text }}>Performance</span>
-                    <h2 className="text-6xl font-black mb-8" style={{ color: colors.text }}>{slide.title}</h2>
+                    <EditableElement
+                        element={{ id: 'title', type: 'text', value: slide.title, path: 'title', label: 'Title' }}
+                        onSelect={onSelect}
+                        isSelected={selectedId === 'title'}
+                    >
+                        <h2 className="text-6xl font-black mb-8" style={{ color: colors.text }}>{slide.title}</h2>
+                    </EditableElement>
                     <div className="h-px w-full bg-gradient-to-r from-transparent via-current to-transparent opacity-20" style={{ color: colors.text }} />
                 </div>
 
                 <div className="grid grid-cols-3 gap-0 relative z-10 bg-white/5 backdrop-blur-xl rounded-[3rem] border shadow-2xl overflow-hidden divide-x"
-                    style={{ borderColor: `${colors.text}10`, divideColor: `${colors.text}10` }}>
+                    style={{ borderColor: `${colors.text}10` }}>
                     {stats.slice(0, 3).map((stat: any, i: number) => (
                         <div key={i} className="p-12 flex flex-col items-center text-center group hover:bg-white/5 transition-colors">
                             <div className="mb-4 p-3 rounded-full bg-surface" style={{ backgroundColor: i === 1 ? `${colors.primary}10` : `${colors.text}05` }}>
@@ -414,8 +542,20 @@ const StatsLayout = ({ slide, colors, variation = 'classic-grid' }: { slide: any
                                     {i % 2 === 0 ? '↗' : '↑'}
                                 </span>
                             </div>
-                            <h3 className="text-5xl font-bold mb-3 tracking-tight" style={{ color: colors.text }}>{stat.value}</h3>
-                            <p className="text-sm font-bold uppercase tracking-widest opacity-50" style={{ color: colors.text }}>{stat.label}</p>
+                            <EditableElement
+                                element={{ id: `stat-${i}-value`, type: 'text', value: stat.value, path: `${statsPath}[${i}].value`, label: `Stat ${i + 1} Value` }}
+                                onSelect={onSelect}
+                                isSelected={selectedId === `stat-${i}-value`}
+                            >
+                                <h3 className="text-5xl font-bold mb-3 tracking-tight" style={{ color: colors.text }}>{stat.value}</h3>
+                            </EditableElement>
+                            <EditableElement
+                                element={{ id: `stat-${i}-label`, type: 'text', value: stat.label, path: `${statsPath}[${i}].label`, label: `Stat ${i + 1} Label` }}
+                                onSelect={onSelect}
+                                isSelected={selectedId === `stat-${i}-label`}
+                            >
+                                <p className="text-sm font-bold uppercase tracking-widest opacity-50" style={{ color: colors.text }}>{stat.label}</p>
+                            </EditableElement>
                         </div>
                     ))}
                 </div>
@@ -444,9 +584,16 @@ const StatsLayout = ({ slide, colors, variation = 'classic-grid' }: { slide: any
             )}
 
             <div className="relative z-10 flex flex-col px-20 pt-16 pb-24 h-full">
-                <h2 className="text-6xl md:text-7xl font-bold mb-16 text-center" style={{ color: colors.text }}>
-                    {slide.title}
-                </h2>
+                <EditableElement
+                    element={{ id: 'title', type: 'text', value: slide.title, path: 'title', label: 'Title' }}
+                    onSelect={onSelect}
+                    isSelected={selectedId === 'title'}
+                    className="mb-16 text-center"
+                >
+                    <h2 className="text-6xl md:text-7xl font-bold text-center" style={{ color: colors.text }}>
+                        {slide.title}
+                    </h2>
+                </EditableElement>
 
                 <div className="flex-1 flex flex-wrap items-stretch justify-center gap-8 content-center">
                     {stats.slice(0, 4).map((stat: any, i: number) => (
@@ -458,8 +605,20 @@ const StatsLayout = ({ slide, colors, variation = 'classic-grid' }: { slide: any
                                 boxShadow: `0 8px 32px 0 ${colors.primary}10`
                             }}
                         >
-                            <p className="text-5xl md:text-6xl font-bold mb-4" style={{ color: getReadableColor(colors.primary, colors.bg) }}>{stat.value}</p>
-                            <p className="text-xl opacity-80" style={{ color: colors.text }}>{stat.label}</p>
+                            <EditableElement
+                                element={{ id: `stat-${i}-value`, type: 'text', value: stat.value, path: `${statsPath}[${i}].value`, label: `Stat ${i + 1} Value` }}
+                                onSelect={onSelect}
+                                isSelected={selectedId === `stat-${i}-value`}
+                            >
+                                <p className="text-5xl md:text-6xl font-bold mb-4" style={{ color: getReadableColor(colors.primary, colors.bg) }}>{stat.value}</p>
+                            </EditableElement>
+                            <EditableElement
+                                element={{ id: `stat-${i}-label`, type: 'text', value: stat.label, path: `${statsPath}[${i}].label`, label: `Stat ${i + 1} Label` }}
+                                onSelect={onSelect}
+                                isSelected={selectedId === `stat-${i}-label`}
+                            >
+                                <p className="text-xl opacity-80" style={{ color: colors.text }}>{stat.label}</p>
+                            </EditableElement>
                         </div>
                     ))}
                 </div>
@@ -624,9 +783,17 @@ const ChartVisuals = ({ chart, colors, height = 400 }: { chart: any, colors: any
 // Chart Layout - Multiple variants
 type ChartVariation = 'default-container' | 'split-detail' | 'floating-card' | 'full-bleed-hero' | 'minimal-stat';
 
-const ChartLayout = ({ slide, colors, variation = 'default-container' }: { slide: any; colors: any, variation?: ChartVariation }) => {
+const ChartLayout = ({ slide, colors, variation = 'default-container', onSelect, selectedId }: { slide: any; colors: any, variation?: ChartVariation; onSelect?: any; selectedId?: string | null }) => {
     // Normalization logic
     let chart = slide.chart || slide.content?.chart;
+
+    // --- PATH RESOLUTION ---
+    let chartPath = 'content.chart';
+    if (slide.chart) chartPath = 'chart';
+    else if (slide.content?.chart) chartPath = 'content.chart';
+
+    // Fallback for AI generated chart data without checking specific structure yet
+    // because chart object might be constructed below
 
     // AI Format Support
     const aiLabels = slide.content?.labels;
@@ -659,7 +826,14 @@ const ChartLayout = ({ slide, colors, variation = 'default-container' }: { slide
             <div className="relative w-full h-full overflow-hidden flex" style={{ backgroundColor: colors.bg }}>
                 {/* Left: Chart */}
                 <div className="w-3/5 p-16 flex flex-col justify-center border-r" style={{ borderColor: `${colors.text}10` }}>
-                    <h2 className="text-4xl font-bold mb-12" style={{ color: colors.text }}>{slide.title}</h2>
+                    <EditableElement
+                        element={{ id: 'title', type: 'text', value: slide.title, path: 'title', label: 'Title' }}
+                        onSelect={onSelect}
+                        isSelected={selectedId === 'title'}
+                        className="mb-12"
+                    >
+                        <h2 className="text-4xl font-bold" style={{ color: colors.text }}>{slide.title}</h2>
+                    </EditableElement>
                     <ChartVisuals chart={chart} colors={colors} height={500} />
                 </div>
 
@@ -667,19 +841,37 @@ const ChartLayout = ({ slide, colors, variation = 'default-container' }: { slide
                 <div className="w-2/5 flex flex-col justify-center space-y-12 px-12" style={{ backgroundColor: `${colors.primary}05` }}>
                     <div className="space-y-2">
                         <span className="text-sm font-bold uppercase tracking-widest opacity-60" style={{ color: colors.text }}>Total Value</span>
-                        <div className="text-6xl font-black tabular-nums" style={{ color: colors.primary }}>{totalValue.toLocaleString()}</div>
+                        <EditableElement
+                            element={{ id: 'total-value', type: 'text', value: totalValue.toLocaleString(), path: 'chart.totalValue', label: 'Total Value' }}
+                            onSelect={onSelect}
+                            isSelected={selectedId === 'total-value'}
+                        >
+                            <div className="text-6xl font-black tabular-nums" style={{ color: colors.primary }}>{totalValue.toLocaleString()}</div>
+                        </EditableElement>
                     </div>
 
                     <div className="space-y-2">
                         <span className="text-sm font-bold uppercase tracking-widest opacity-60" style={{ color: colors.text }}>Average</span>
-                        <div className="text-4xl font-bold tabular-nums opacity-80" style={{ color: colors.text }}>{avgValue.toLocaleString()}</div>
+                        <EditableElement
+                            element={{ id: 'avg-value', type: 'text', value: avgValue.toLocaleString(), path: 'chart.avgValue', label: 'Average Value' }}
+                            onSelect={onSelect}
+                            isSelected={selectedId === 'avg-value'}
+                        >
+                            <div className="text-4xl font-bold tabular-nums opacity-80" style={{ color: colors.text }}>{avgValue.toLocaleString()}</div>
+                        </EditableElement>
                     </div>
 
                     <div className="p-6 rounded-2xl border" style={{ borderColor: `${colors.text}10` }}>
                         <h4 className="font-bold mb-2" style={{ color: colors.text }}>Key Insight</h4>
-                        <p className="opacity-70 leading-relaxed" style={{ color: colors.text }}>
-                            {slide.content?.description || `Analysis of ${chart.title || slide.title} shows a total volume of ${totalValue}.`}
-                        </p>
+                        <EditableElement
+                            element={{ id: 'desc', type: 'text', value: slide.content?.description, path: 'content.description', label: 'Description' }}
+                            onSelect={onSelect}
+                            isSelected={selectedId === 'desc'}
+                        >
+                            <p className="opacity-70 leading-relaxed" style={{ color: colors.text }}>
+                                {slide.content?.description || `Analysis of ${chart.title || slide.title} shows a total volume of ${totalValue}.`}
+                            </p>
+                        </EditableElement>
                     </div>
                 </div>
             </div>
@@ -696,7 +888,13 @@ const ChartLayout = ({ slide, colors, variation = 'default-container' }: { slide
                 <div className="relative z-10 w-full max-w-5xl bg-surface backdrop-blur-xl rounded-3xl p-12 shadow-2xl border flex flex-col"
                     style={{ backgroundColor: `${colors.bg}F0`, borderColor: `${colors.text}10` }}>
                     <div className="flex items-center justify-between mb-12">
-                        <h2 className="text-4xl font-bold" style={{ color: colors.text }}>{slide.title}</h2>
+                        <EditableElement
+                            element={{ id: 'title', type: 'text', value: slide.title, path: 'title', label: 'Title' }}
+                            onSelect={onSelect}
+                            isSelected={selectedId === 'title'}
+                        >
+                            <h2 className="text-4xl font-bold" style={{ color: colors.text }}>{slide.title}</h2>
+                        </EditableElement>
                         <div className="px-4 py-2 rounded-full text-sm font-bold uppercase tracking-wider" style={{ backgroundColor: `${colors.primary}20`, color: colors.primary }}>
                             {chart.type} Analysis
                         </div>
@@ -721,8 +919,21 @@ const ChartLayout = ({ slide, colors, variation = 'default-container' }: { slide
 
                 <div className="relative z-10 mb-12">
                     <span className="inline-block py-1 px-3 border border-white/30 rounded-full text-xs font-bold uppercase mb-6 tracking-widest text-white/80">Data Visualization</span>
-                    <h2 className="text-6xl font-black mb-8 leading-tight max-w-4xl text-white">{slide.title}</h2>
-                    <p className="text-xl text-white/70 max-w-2xl">{slide.content?.description}</p>
+                    <EditableElement
+                        element={{ id: 'title', type: 'text', value: slide.title, path: 'title', label: 'Title' }}
+                        onSelect={onSelect}
+                        isSelected={selectedId === 'title'}
+                        className="mb-8"
+                    >
+                        <h2 className="text-6xl font-black leading-tight max-w-4xl text-white">{slide.title}</h2>
+                    </EditableElement>
+                    <EditableElement
+                        element={{ id: 'desc', type: 'text', value: slide.content?.description, path: 'content.description', label: 'Description' }}
+                        onSelect={onSelect}
+                        isSelected={selectedId === 'desc'}
+                    >
+                        <p className="text-xl text-white/70 max-w-2xl">{slide.content?.description}</p>
+                    </EditableElement>
                 </div>
 
                 <div className="relative z-10 w-full h-[450px] bg-white/10 rounded-3xl p-12 backdrop-blur-sm border border-white/20">
@@ -737,7 +948,14 @@ const ChartLayout = ({ slide, colors, variation = 'default-container' }: { slide
     if (variation === 'minimal-stat') {
         return (
             <div className="relative w-full h-full overflow-hidden p-20 flex flex-col" style={{ backgroundColor: colors.bg }}>
-                <h2 className="text-5xl font-light mb-20 text-center" style={{ color: colors.text }}>{slide.title}</h2>
+                <EditableElement
+                    element={{ id: 'title', type: 'text', value: slide.title, path: 'title', label: 'Title' }}
+                    onSelect={onSelect}
+                    isSelected={selectedId === 'title'}
+                    className="mb-20 text-center"
+                >
+                    <h2 className="text-5xl font-light" style={{ color: colors.text }}>{slide.title}</h2>
+                </EditableElement>
 
                 <div className="flex-1 flex items-center justify-center">
                     <div className="w-full max-w-4xl transform scale-110">
@@ -745,9 +963,16 @@ const ChartLayout = ({ slide, colors, variation = 'default-container' }: { slide
                     </div>
                 </div>
                 {slide.content?.description && (
-                    <p className="text-center text-lg opacity-60 max-w-2xl mx-auto mt-8" style={{ color: colors.text }}>
-                        {slide.content?.description}
-                    </p>
+                    <EditableElement
+                        element={{ id: 'desc', type: 'text', value: slide.content?.description, path: 'content.description', label: 'Description' }}
+                        onSelect={onSelect}
+                        isSelected={selectedId === 'desc'}
+                        className="max-w-2xl mx-auto mt-8"
+                    >
+                        <p className="text-center text-lg opacity-60" style={{ color: colors.text }}>
+                            {slide.content?.description}
+                        </p>
+                    </EditableElement>
                 )}
                 <SlideFooter title={slide.title} colors={colors} />
             </div>
@@ -773,16 +998,30 @@ const ChartLayout = ({ slide, colors, variation = 'default-container' }: { slide
             )}
 
             <div className="relative z-10 flex flex-col items-center justify-center px-16 py-12 h-full">
-                <h2 className="text-4xl md:text-5xl font-bold mb-10 text-center" style={{ color: colors.text }}>
-                    {slide.title}
-                </h2>
+                <EditableElement
+                    element={{ id: 'title', type: 'text', value: slide.title, path: 'title', label: 'Title' }}
+                    onSelect={onSelect}
+                    isSelected={selectedId === 'title'}
+                    className="mb-10 text-center"
+                >
+                    <h2 className="text-4xl md:text-5xl font-bold" style={{ color: colors.text }}>
+                        {slide.title}
+                    </h2>
+                </EditableElement>
 
                 <div className="w-full max-w-5xl bg-surface/80 backdrop-blur-md rounded-3xl p-10 shadow-2xl border"
                     style={{ borderColor: `${colors.text}10` }}>
 
                     {chart ? (
                         <div className="w-full">
-                            {chart.title && <h3 className="text-xl font-bold mb-8 text-center opacity-80" style={{ color: colors.text }}>{chart.title}</h3>}
+                            <EditableElement
+                                element={{ id: 'chart-title', type: 'text', value: chart.title, path: `${chartPath}.title`, label: 'Chart Title' }}
+                                onSelect={onSelect}
+                                isSelected={selectedId === 'chart-title'}
+                                className="mb-8"
+                            >
+                                {chart.title && <h3 className="text-xl font-bold text-center opacity-80" style={{ color: colors.text }}>{chart.title}</h3>}
+                            </EditableElement>
                             <ChartVisuals chart={chart} colors={colors} height={400} />
                         </div>
                     ) : (
@@ -803,15 +1042,30 @@ const ChartLayout = ({ slide, colors, variation = 'default-container' }: { slide
 // Table layout - Multiple variants for different data types
 type TableVariation = 'default' | 'pricing-tiers' | 'data-grid' | 'feature-matrix';
 
-const TableLayout = ({ slide, colors, variation = 'default' }: { slide: any; colors: any, variation?: TableVariation }) => {
+const TableLayout = ({ slide, colors, variation = 'default', onSelect, selectedId }: { slide: any; colors: any, variation?: TableVariation; onSelect?: any; selectedId?: string | null }) => {
     let table = slide.table || slide.content?.table;
 
-    // Support AI format: headers and rows directly in content
-    if (!table && slide.content?.headers && slide.content?.rows) {
-        table = {
-            columns: slide.content.headers,
-            rows: slide.content.rows
-        };
+    // Determine path prefix for editing
+    let colsPath = 'content.table.columns';
+    let rowsPath = 'content.table.rows';
+
+    if (slide.table) {
+        colsPath = 'table.columns';
+        rowsPath = 'table.rows';
+    } else if (slide.content?.table) {
+        colsPath = 'content.table.columns';
+        rowsPath = 'content.table.rows';
+    } else if (slide.content?.headers && slide.content?.rows) {
+        // Legacy/Direct format logic
+        colsPath = 'content.headers';
+        rowsPath = 'content.rows';
+
+        if (!table) {
+            table = {
+                columns: slide.content.headers,
+                rows: slide.content.rows
+            };
+        }
     }
 
     // --- VARIATION 1: PRICING TIERS (Cards) ---
@@ -824,9 +1078,22 @@ const TableLayout = ({ slide, colors, variation = 'default' }: { slide: any; col
             <div className="relative w-full h-full overflow-hidden flex flex-col items-center justify-center p-12" style={{ backgroundColor: colors.bg }}>
                 <AbstractShapes colors={colors} variant="bento" />
 
-                <div className="text-center mb-16 relative z-10">
-                    <h2 className="text-5xl font-bold mb-4" style={{ color: colors.text }}>{slide.title}</h2>
-                    {slide.subtitle && <p className="text-xl opacity-70" style={{ color: colors.text }}>{slide.subtitle}</p>}
+                <div className="text-center mb-16 relative z-10 w-full max-w-4xl">
+                    <EditableElement
+                        element={{ id: 'title', type: 'text', value: slide.title, path: 'title', label: 'Title' }}
+                        onSelect={onSelect}
+                        isSelected={selectedId === 'title'}
+                        className="mb-4"
+                    >
+                        <h2 className="text-5xl font-bold" style={{ color: colors.text }}>{slide.title}</h2>
+                    </EditableElement>
+                    <EditableElement
+                        element={{ id: 'subtitle', type: 'text', value: slide.subtitle, path: 'subtitle', label: 'Subtitle' }}
+                        onSelect={onSelect}
+                        isSelected={selectedId === 'subtitle'}
+                    >
+                        {slide.subtitle && <p className="text-xl opacity-70" style={{ color: colors.text }}>{slide.subtitle}</p>}
+                    </EditableElement>
                 </div>
 
                 <div className="flex gap-8 relative z-10 w-full max-w-6xl justify-center items-stretch">
@@ -848,14 +1115,34 @@ const TableLayout = ({ slide, colors, variation = 'default' }: { slide: any; col
                                     </div>
                                 )}
 
-                                <h3 className={`text-2xl font-bold mb-2 ${isPopular ? 'text-white' : ''}`}>{plan}</h3>
-                                <div className="text-5xl font-black mb-8">{price}</div>
+                                <EditableElement
+                                    element={{ id: `plan-${i}-name`, type: 'text', value: plan, path: `${colsPath}[${i}]`, label: `Plan Name` }}
+                                    onSelect={onSelect}
+                                    isSelected={selectedId === `plan-${i}-name`}
+                                    className="mb-2"
+                                >
+                                    <h3 className={`text-2xl font-bold ${isPopular ? 'text-white' : ''}`}>{plan}</h3>
+                                </EditableElement>
+                                <EditableElement
+                                    element={{ id: `plan-${i}-price`, type: 'text', value: price, path: `${rowsPath}[0][${i}]`, label: `Plan Price` }}
+                                    onSelect={onSelect}
+                                    isSelected={selectedId === `plan-${i}-price`}
+                                    className="mb-8"
+                                >
+                                    <div className="text-5xl font-black">{price}</div>
+                                </EditableElement>
 
                                 <ul className="space-y-4 flex-1">
                                     {features.map((feat: string, j: number) => (
                                         <li key={j} className="flex items-start gap-3 text-sm">
                                             <span className={`text-lg font-bold ${isPopular ? 'text-white' : 'text-green-500'}`}>✓</span>
-                                            <span className="opacity-90 pt-0.5">{feat}</span>
+                                            <EditableElement
+                                                element={{ id: `plan-${i}-feat-${j}`, type: 'text', value: feat, path: `${rowsPath}[${j + 1}][${i}]`, label: `Feature` }}
+                                                onSelect={onSelect}
+                                                isSelected={selectedId === `plan-${i}-feat-${j}`}
+                                            >
+                                                <span className="opacity-90 pt-0.5 block">{feat}</span>
+                                            </EditableElement>
                                         </li>
                                     ))}
                                     {features.length === 0 && (
@@ -884,7 +1171,13 @@ const TableLayout = ({ slide, colors, variation = 'default' }: { slide: any; col
                 <div className="mb-12 flex justify-between items-end border-b pb-6" style={{ borderColor: `${colors.text}20` }}>
                     <div>
                         <span className="text-xs font-mono uppercase tracking-widest opacity-50 mb-2 block" style={{ color: colors.text }}>Data Report</span>
-                        <h2 className="text-4xl font-bold" style={{ color: colors.text }}>{slide.title}</h2>
+                        <EditableElement
+                            element={{ id: 'title', type: 'text', value: slide.title, path: 'title', label: 'Title' }}
+                            onSelect={onSelect}
+                            isSelected={selectedId === 'title'}
+                        >
+                            <h2 className="text-4xl font-bold" style={{ color: colors.text }}>{slide.title}</h2>
+                        </EditableElement>
                     </div>
                     <div className="flex gap-2">
                         <div className="px-3 py-1 rounded bg-red-100 text-red-600 text-xs font-bold">- Negative</div>
@@ -902,7 +1195,13 @@ const TableLayout = ({ slide, colors, variation = 'default' }: { slide: any; col
                                         {table.columns?.map((col: string, i: number) => (
                                             <th key={i} className="px-4 py-3 text-left font-bold border-b border-r last:border-r-0"
                                                 style={{ borderColor: `${colors.text}10`, color: colors.primary }}>
-                                                {col}
+                                                <EditableElement
+                                                    element={{ id: `header-${i}`, type: 'text', value: col, path: `${colsPath}[${i}]`, label: `Header ${i + 1}` }}
+                                                    onSelect={onSelect}
+                                                    isSelected={selectedId === `header-${i}`}
+                                                >
+                                                    {col}
+                                                </EditableElement>
                                             </th>
                                         ))}
                                     </tr>
@@ -923,7 +1222,13 @@ const TableLayout = ({ slide, colors, variation = 'default' }: { slide: any; col
                                                         color: isNegative ? '#EF4444' : colors.text,
                                                         fontFamily: isNumeric ? 'monospace' : 'inherit'
                                                     }}>
-                                                    {cell}
+                                                    <EditableElement
+                                                        element={{ id: `cell-${rowIdx}-${cellIdx}`, type: 'text', value: cell, path: `${rowsPath}[${rowIdx}][${cellIdx}]`, label: `Cell ${rowIdx + 1},${cellIdx + 1}` }}
+                                                        onSelect={onSelect}
+                                                        isSelected={selectedId === `cell-${rowIdx}-${cellIdx}`}
+                                                    >
+                                                        {cell}
+                                                    </EditableElement>
                                                 </td>
                                             );
                                         })}
@@ -942,8 +1247,15 @@ const TableLayout = ({ slide, colors, variation = 'default' }: { slide: any; col
     if (variation === 'feature-matrix') {
         return (
             <div className="relative w-full h-full overflow-hidden p-16 flex flex-col" style={{ backgroundColor: colors.bg }}>
-                <div className="text-center mb-12">
-                    <h2 className="text-5xl font-bold mb-4" style={{ color: colors.text }}>{slide.title}</h2>
+                <div className="text-center mb-12 w-full max-w-4xl mx-auto">
+                    <EditableElement
+                        element={{ id: 'title', type: 'text', value: slide.title, path: 'title', label: 'Title' }}
+                        onSelect={onSelect}
+                        isSelected={selectedId === 'title'}
+                        className="mb-4"
+                    >
+                        <h2 className="text-5xl font-bold" style={{ color: colors.text }}>{slide.title}</h2>
+                    </EditableElement>
                     <div className="w-24 h-1 mx-auto rounded-full" style={{ backgroundColor: colors.primary }} />
                 </div>
 
@@ -954,7 +1266,13 @@ const TableLayout = ({ slide, colors, variation = 'default' }: { slide: any; col
                             <tr style={{ backgroundColor: colors.primary, color: '#ffffff' }}>
                                 {table?.columns?.map((col: string, i: number) => (
                                     <th key={i} className="px-6 py-5 text-left text-lg font-bold first:w-1/3">
-                                        {col}
+                                        <EditableElement
+                                            element={{ id: `header-${i}`, type: 'text', value: col, path: `${colsPath}[${i}]`, label: `Header ${i + 1}` }}
+                                            onSelect={onSelect}
+                                            isSelected={selectedId === `header-${i}`}
+                                        >
+                                            {col}
+                                        </EditableElement>
                                     </th>
                                 ))}
                             </tr>
@@ -971,11 +1289,24 @@ const TableLayout = ({ slide, colors, variation = 'default' }: { slide: any; col
                                             <td key={cellIdx} className={`px-6 py-4 border-b ${isFirstCol ? 'font-bold text-gray-800' : 'text-center'}`}
                                                 style={{ borderColor: 'rgba(0,0,0,0.05)' }}>
                                                 {isFirstCol ? (
-                                                    cell
+                                                    <EditableElement
+                                                        element={{ id: `cell-${rowIdx}-${cellIdx}`, type: 'text', value: cell, path: `${rowsPath}[${rowIdx}][${cellIdx}]`, label: `Cell ${rowIdx + 1},${cellIdx + 1}` }}
+                                                        onSelect={onSelect}
+                                                        isSelected={selectedId === `cell-${rowIdx}-${cellIdx}`}
+                                                    >
+                                                        {cell}
+                                                    </EditableElement>
                                                 ) : (
-                                                    isCheck ? <span className="text-green-500 font-bold text-xl">✓</span> :
-                                                        isCross ? <span className="text-gray-300 font-bold text-xl">•</span> : // or X
-                                                            <span className="text-gray-600">{cell}</span>
+                                                    <EditableElement
+                                                        element={{ id: `cell-${rowIdx}-${cellIdx}`, type: 'text', value: cell, path: `${rowsPath}[${rowIdx}][${cellIdx}]`, label: `Cell ${rowIdx + 1},${cellIdx + 1}` }}
+                                                        onSelect={onSelect}
+                                                        isSelected={selectedId === `cell-${rowIdx}-${cellIdx}`}
+                                                    >
+                                                        {isCheck ? <span className="text-green-500 font-bold text-xl">✓</span> :
+                                                            isCross ? <span className="text-gray-300 font-bold text-xl">•</span> : // or X
+                                                                <span className="text-gray-600">{cell}</span>
+                                                        }
+                                                    </EditableElement>
                                                 )}
                                             </td>
                                         );
@@ -1009,9 +1340,16 @@ const TableLayout = ({ slide, colors, variation = 'default' }: { slide: any; col
             )}
 
             <div className="relative z-10 flex flex-col items-center justify-center px-16 py-12 h-full">
-                <h2 className="text-5xl md:text-6xl font-bold mb-12 text-center" style={{ color: colors.text }}>
-                    {slide.title}
-                </h2>
+                <EditableElement
+                    element={{ id: 'title', type: 'text', value: slide.title, path: 'title', label: 'Title' }}
+                    onSelect={onSelect}
+                    isSelected={selectedId === 'title'}
+                    className="mb-12 text-center"
+                >
+                    <h2 className="text-5xl md:text-6xl font-bold" style={{ color: colors.text }}>
+                        {slide.title}
+                    </h2>
+                </EditableElement>
 
                 {table ? (
                     <div className="w-full max-w-6xl overflow-hidden rounded-3xl shadow-2xl border backdrop-blur-md"
@@ -1028,7 +1366,13 @@ const TableLayout = ({ slide, colors, variation = 'default' }: { slide: any; col
                                             key={i}
                                             className="px-8 py-6 text-left text-lg font-bold uppercase tracking-wider text-white"
                                         >
-                                            {col}
+                                            <EditableElement
+                                                element={{ id: `header-${i}`, type: 'text', value: col, path: `${colsPath}[${i}]`, label: `Header ${i + 1}` }}
+                                                onSelect={onSelect}
+                                                isSelected={selectedId === `header-${i}`}
+                                            >
+                                                {col}
+                                            </EditableElement>
                                         </th>
                                     ))}
                                 </tr>
@@ -1048,7 +1392,13 @@ const TableLayout = ({ slide, colors, variation = 'default' }: { slide: any; col
                                                 className="px-8 py-5 text-lg"
                                                 style={{ color: colors.text }}
                                             >
-                                                {cell}
+                                                <EditableElement
+                                                    element={{ id: `cell-${rowIdx}-${cellIdx}`, type: 'text', value: cell, path: `${rowsPath}[${rowIdx}][${cellIdx}]`, label: `Cell ${rowIdx + 1},${cellIdx + 1}` }}
+                                                    onSelect={onSelect}
+                                                    isSelected={selectedId === `cell-${rowIdx}-${cellIdx}`}
+                                                >
+                                                    {cell}
+                                                </EditableElement>
                                             </td>
                                         ))}
                                     </tr>
@@ -1073,11 +1423,18 @@ const TableLayout = ({ slide, colors, variation = 'default' }: { slide: any; col
 // Timeline layout - Process steps (Variants: default, vertical, zigzag)
 type TimelineVariation = 'horizontal-line' | 'vertical-alternating' | 'connected-cards' | 'stepped-process' | 'minimal-list';
 
-const TimelineLayout = ({ slide, colors, variation = 'horizontal-line' }: { slide: any; colors: any, variation?: TimelineVariation }) => {
+const TimelineLayout = ({ slide, colors, variation = 'horizontal-line', onSelect, selectedId }: { slide: any; colors: any, variation?: TimelineVariation; onSelect?: any; selectedId?: string | null }) => {
     const timeline = slide.timeline || slide.content?.timeline;
     // Support AI format: content.steps or content.events with {date, event} objects
     let items = timeline?.items || [];
     const sourceItems = slide.content?.steps || slide.content?.events;
+
+    // --- PATH RESOLUTION ---
+    let itemsPath = 'content.timeline.items';
+    if (slide.timeline?.items) itemsPath = 'timeline.items';
+    else if (slide.content?.timeline?.items) itemsPath = 'content.timeline.items';
+    else if (slide.content?.steps) itemsPath = 'content.steps';
+    else if (slide.content?.events) itemsPath = 'content.events';
 
     if (items.length === 0 && sourceItems?.length > 0) {
         // Convert AI format {date, event} to expected format {date, title, description}
@@ -1095,7 +1452,13 @@ const TimelineLayout = ({ slide, colors, variation = 'horizontal-line' }: { slid
                 <AbstractShapes colors={colors} />
 
                 <div className="text-center mb-16 relative z-10 w-full max-w-5xl">
-                    <h2 className="text-5xl font-bold mb-4" style={{ color: colors.text }}>{slide.title}</h2>
+                    <EditableElement
+                        element={{ id: 'title', type: 'text', value: slide.title, path: 'title', label: 'Title' }}
+                        onSelect={onSelect}
+                        isSelected={selectedId === 'title'}
+                    >
+                        <h2 className="text-5xl font-bold mb-4" style={{ color: colors.text }}>{slide.title}</h2>
+                    </EditableElement>
                 </div>
 
                 <div className="flex gap-6 relative z-10 w-full max-w-7xl justify-center items-stretch">
@@ -1110,13 +1473,33 @@ const TimelineLayout = ({ slide, colors, variation = 'horizontal-line' }: { slid
                             <div className="absolute top-1/2 -left-3 w-6 h-6 rounded-full border-4 bg-white"
                                 style={{ borderColor: colors.primary, opacity: i === 0 ? 0 : 1 }} />
 
-                            <span className="inline-block px-3 py-1 rounded-lg text-xs font-bold uppercase tracking-widest mb-4 self-start"
-                                style={{ backgroundColor: `${colors.primary}20`, color: colors.primary }}>
-                                {item.date || `Step ${i + 1}`}
-                            </span>
+                            <EditableElement
+                                element={{ id: `step-${i}-date`, type: 'text', value: item.date, path: `${itemsPath}[${i}].date`, label: `Step ${i + 1} Date` }}
+                                onSelect={onSelect}
+                                isSelected={selectedId === `step-${i}-date`}
+                                className="mb-4 self-start"
+                            >
+                                <span className="inline-block px-3 py-1 rounded-lg text-xs font-bold uppercase tracking-widest"
+                                    style={{ backgroundColor: `${colors.primary}20`, color: colors.primary }}>
+                                    {item.date || `Step ${i + 1}`}
+                                </span>
+                            </EditableElement>
 
-                            <h3 className="text-xl font-bold mb-2 leading-tight" style={{ color: colors.text }}>{item.title}</h3>
-                            <p className="text-sm opacity-70 leading-relaxed" style={{ color: colors.text }}>{item.description}</p>
+                            <EditableElement
+                                element={{ id: `step-${i}-title`, type: 'text', value: item.title, path: `${itemsPath}[${i}].title`, label: `Step ${i + 1} Title` }}
+                                onSelect={onSelect}
+                                isSelected={selectedId === `step-${i}-title`}
+                                className="mb-2"
+                            >
+                                <h3 className="text-xl font-bold leading-tight" style={{ color: colors.text }}>{item.title}</h3>
+                            </EditableElement>
+                            <EditableElement
+                                element={{ id: `step-${i}-desc`, type: 'text', value: item.description, path: `${itemsPath}[${i}].description`, label: `Step ${i + 1} Description` }}
+                                onSelect={onSelect}
+                                isSelected={selectedId === `step-${i}-desc`}
+                            >
+                                <p className="text-sm opacity-70 leading-relaxed" style={{ color: colors.text }}>{item.description}</p>
+                            </EditableElement>
                         </div>
                     ))}
                 </div>
@@ -1145,11 +1528,31 @@ const TimelineLayout = ({ slide, colors, variation = 'horizontal-line' }: { slid
                             {/* Step Content */}
                             <div className="relative z-10 pt-8 pl-4 border-l-4 h-full transition-all group-hover:pl-6"
                                 style={{ borderColor: i % 2 === 0 ? colors.primary : colors.secondary }}>
-                                <div className="mb-2 text-sm font-bold opacity-60 uppercase tracking-widest" style={{ color: colors.text }}>
-                                    {item.date}
-                                </div>
-                                <h3 className="text-2xl font-bold mb-3" style={{ color: colors.text }}>{item.title}</h3>
-                                <p className="text-lg opacity-80 leading-snug" style={{ color: colors.text }}>{item.description}</p>
+                                <EditableElement
+                                    element={{ id: `step-${i}-date`, type: 'text', value: item.date, path: `${itemsPath}[${i}].date`, label: `Step ${i + 1} Date` }}
+                                    onSelect={onSelect}
+                                    isSelected={selectedId === `step-${i}-date`}
+                                    className="mb-2"
+                                >
+                                    <div className="text-sm font-bold opacity-60 uppercase tracking-widest" style={{ color: colors.text }}>
+                                        {item.date}
+                                    </div>
+                                </EditableElement>
+                                <EditableElement
+                                    element={{ id: `step-${i}-title`, type: 'text', value: item.title, path: `${itemsPath}[${i}].title`, label: `Step ${i + 1} Title` }}
+                                    onSelect={onSelect}
+                                    isSelected={selectedId === `step-${i}-title`}
+                                    className="mb-3"
+                                >
+                                    <h3 className="text-2xl font-bold" style={{ color: colors.text }}>{item.title}</h3>
+                                </EditableElement>
+                                <EditableElement
+                                    element={{ id: `step-${i}-desc`, type: 'text', value: item.description, path: `${itemsPath}[${i}].description`, label: `Step ${i + 1} Description` }}
+                                    onSelect={onSelect}
+                                    isSelected={selectedId === `step-${i}-desc`}
+                                >
+                                    <p className="text-lg opacity-80 leading-snug" style={{ color: colors.text }}>{item.description}</p>
+                                </EditableElement>
                             </div>
                         </div>
                     ))}
@@ -1163,7 +1566,14 @@ const TimelineLayout = ({ slide, colors, variation = 'horizontal-line' }: { slid
     if (variation === 'vertical-alternating') {
         return (
             <div className="relative w-full h-full overflow-hidden p-12 flex flex-col" style={{ backgroundColor: colors.bg }}>
-                <h2 className="text-4xl font-bold mb-12 text-center" style={{ color: colors.text }}>{slide.title}</h2>
+                <EditableElement
+                    element={{ id: 'title', type: 'text', value: slide.title, path: 'title', label: 'Title' }}
+                    onSelect={onSelect}
+                    isSelected={selectedId === 'title'}
+                    className="mb-12 relative z-10"
+                >
+                    <h2 className="text-7xl font-serif italic relative z-10" style={{ color: colors.text }}>{slide.title}</h2>
+                </EditableElement>
 
                 <div className="flex-1 relative overflow-hidden">
                     {/* Central Line */}
@@ -1176,9 +1586,29 @@ const TimelineLayout = ({ slide, colors, variation = 'horizontal-line' }: { slid
                                 <div key={i} className={`flex items-center w-full relative ${isLeft ? '' : 'flex-row-reverse'}`}>
                                     {/* Side Content */}
                                     <div className={`w-1/2 px-12 ${isLeft ? 'text-right' : 'text-left'}`}>
-                                        <span className="text-xl font-mono font-bold block mb-1" style={{ color: colors.primary }}>{item.date}</span>
-                                        <h3 className="text-2xl font-bold mb-2 leading-tight" style={{ color: colors.text }}>{item.title}</h3>
-                                        <p className="text-base opacity-70" style={{ color: colors.text }}>{item.description}</p>
+                                        <EditableElement
+                                            element={{ id: `step-${i}-date`, type: 'text', value: item.date, path: `${itemsPath}[${i}].date`, label: `Step ${i + 1} Date` }}
+                                            onSelect={onSelect}
+                                            isSelected={selectedId === `step-${i}-date`}
+                                            className="mb-1"
+                                        >
+                                            <span className="text-xl font-mono font-bold block" style={{ color: colors.primary }}>{item.date}</span>
+                                        </EditableElement>
+                                        <EditableElement
+                                            element={{ id: `step-${i}-title`, type: 'text', value: item.title, path: `${itemsPath}[${i}].title`, label: `Step ${i + 1} Title` }}
+                                            onSelect={onSelect}
+                                            isSelected={selectedId === `step-${i}-title`}
+                                            className="mb-2"
+                                        >
+                                            <h3 className="text-2xl font-bold leading-tight" style={{ color: colors.text }}>{item.title}</h3>
+                                        </EditableElement>
+                                        <EditableElement
+                                            element={{ id: `step-${i}-desc`, type: 'text', value: item.description, path: `${itemsPath}[${i}].description`, label: `Step ${i + 1} Description` }}
+                                            onSelect={onSelect}
+                                            isSelected={selectedId === `step-${i}-desc`}
+                                        >
+                                            <p className="text-base opacity-70" style={{ color: colors.text }}>{item.description}</p>
+                                        </EditableElement>
                                     </div>
 
                                     {/* Center Dot */}
@@ -1217,14 +1647,33 @@ const TimelineLayout = ({ slide, colors, variation = 'horizontal-line' }: { slid
                             <div className="absolute left-0 top-2 w-2 h-2 rounded-full" style={{ backgroundColor: colors.secondary }} />
 
                             <div className="flex items-baseline gap-4 mb-1">
-                                {item.date && (
-                                    <span className="text-sm font-bold uppercase tracking-wider opacity-50 shrink-0 w-24" style={{ color: colors.text }}>
-                                        {item.date}
-                                    </span>
-                                )}
-                                <h3 className="text-2xl font-bold" style={{ color: colors.text }}>{item.title}</h3>
+                                <EditableElement
+                                    element={{ id: `step-${i}-date`, type: 'text', value: item.date, path: `${itemsPath}[${i}].date`, label: `Step ${i + 1} Date` }}
+                                    onSelect={onSelect}
+                                    isSelected={selectedId === `step-${i}-date`}
+                                >
+                                    {item.date && (
+                                        <span className="text-sm font-bold uppercase tracking-wider opacity-50 shrink-0 w-24 block" style={{ color: colors.text }}>
+                                            {item.date}
+                                        </span>
+                                    )}
+                                </EditableElement>
+                                <EditableElement
+                                    element={{ id: `step-${i}-title`, type: 'text', value: item.title, path: `${itemsPath}[${i}].title`, label: `Step ${i + 1} Title` }}
+                                    onSelect={onSelect}
+                                    isSelected={selectedId === `step-${i}-title`}
+                                >
+                                    <h3 className="text-2xl font-bold" style={{ color: colors.text }}>{item.title}</h3>
+                                </EditableElement>
                             </div>
-                            <p className="text-lg opacity-70 pl-28" style={{ color: colors.text }}>{item.description}</p>
+                            <EditableElement
+                                element={{ id: `step-${i}-desc`, type: 'text', value: item.description, path: `${itemsPath}[${i}].description`, label: `Step ${i + 1} Description` }}
+                                onSelect={onSelect}
+                                isSelected={selectedId === `step-${i}-desc`}
+                                className="pl-28"
+                            >
+                                <p className="text-lg opacity-70" style={{ color: colors.text }}>{item.description}</p>
+                            </EditableElement>
                         </div>
                     ))}
                 </div>
@@ -1253,9 +1702,16 @@ const TimelineLayout = ({ slide, colors, variation = 'horizontal-line' }: { slid
             )}
 
             <div className="relative z-10 flex flex-col px-20 pt-16 pb-24 h-full">
-                <h2 className="text-5xl md:text-6xl font-bold mb-16 text-center" style={{ color: colors.text }}>
-                    {slide.title}
-                </h2>
+                <EditableElement
+                    element={{ id: 'title', type: 'text', value: slide.title, path: 'title', label: 'Title' }}
+                    onSelect={onSelect}
+                    isSelected={selectedId === 'title'}
+                    className="mb-16 text-center"
+                >
+                    <h2 className="text-5xl md:text-6xl font-bold" style={{ color: colors.text }}>
+                        {slide.title}
+                    </h2>
+                </EditableElement>
 
                 <div className="flex-1 flex items-center justify-center">
                     <div className="w-full relative">
@@ -1267,17 +1723,37 @@ const TimelineLayout = ({ slide, colors, variation = 'horizontal-line' }: { slid
                             {items.slice(0, 5).map((item: any, i: number) => (
                                 <div key={i} className={`flex flex-col items-center max-w-[240px] relative ${i % 2 === 0 ? '-top-12' : 'top-12'}`}>
                                     {/* Date */}
-                                    <span className={`text-lg font-bold mb-4 ${i % 2 === 0 ? 'order-1' : 'order-3 mt-4'}`} style={{ color: getReadableColor(colors.primary, colors.bg) }}>{item.date}</span>
+                                    <EditableElement
+                                        element={{ id: `step-${i}-date`, type: 'text', value: item.date, path: `${itemsPath}[${i}].date`, label: `Step ${i + 1} Date` }}
+                                        onSelect={onSelect}
+                                        isSelected={selectedId === `step-${i}-date`}
+                                        className={`mb-4 ${i % 2 === 0 ? 'order-1' : 'order-3 mt-4'}`}
+                                    >
+                                        <span className="text-lg font-bold" style={{ color: getReadableColor(colors.primary, colors.bg) }}>{item.date}</span>
+                                    </EditableElement>
 
                                     {/* Circle node */}
                                     <div className={`w-6 h-6 rounded-full border-4 shadow-lg z-10 order-2`} style={{ backgroundColor: colors.primary, borderColor: colors.bg }} />
 
                                     {/* Content */}
                                     <div className={`text-center ${i % 2 === 0 ? 'order-3 mt-4' : 'order-1 mb-4'}`}>
-                                        <h4 className="text-xl font-bold leading-tight" style={{ color: colors.text }}>{item.title}</h4>
-                                        {item.description && (
-                                            <p className="text-base mt-2 leading-snug" style={{ color: colors.text, opacity: 0.7 }}>{item.description}</p>
-                                        )}
+                                        <EditableElement
+                                            element={{ id: `step-${i}-title`, type: 'text', value: item.title, path: `${itemsPath}[${i}].title`, label: `Step ${i + 1} Title` }}
+                                            onSelect={onSelect}
+                                            isSelected={selectedId === `step-${i}-title`}
+                                            className="mb-2"
+                                        >
+                                            <h4 className="text-xl font-bold leading-tight" style={{ color: colors.text }}>{item.title}</h4>
+                                        </EditableElement>
+                                        <EditableElement
+                                            element={{ id: `step-${i}-desc`, type: 'text', value: item.description, path: `${itemsPath}[${i}].description`, label: `Step ${i + 1} Description` }}
+                                            onSelect={onSelect}
+                                            isSelected={selectedId === `step-${i}-desc`}
+                                        >
+                                            {item.description && (
+                                                <p className="text-base mt-2 leading-snug" style={{ color: colors.text, opacity: 0.7 }}>{item.description}</p>
+                                            )}
+                                        </EditableElement>
                                     </div>
                                     {/* Connector line to main axis */}
                                     <div className={`absolute left-1/2 w-0.5 h-12 bg-primary/30 -z-10 ${i % 2 === 0 ? 'top-[40px]' : 'bottom-[40px]'}`} />
@@ -1297,7 +1773,7 @@ const TimelineLayout = ({ slide, colors, variation = 'horizontal-line' }: { slid
 // Comparison layout - Multiple variants
 type ComparisonVariation = 'balanced-split' | 'versus-cards' | 'feature-grid' | 'before-after' | 'pros-cons';
 
-const ComparisonLayout = ({ slide, colors, variation = 'balanced-split' }: { slide: any; colors: any, variation?: ComparisonVariation }) => {
+const ComparisonLayout = ({ slide, colors, variation = 'balanced-split', onSelect, selectedId }: { slide: any; colors: any, variation?: ComparisonVariation; onSelect?: any; selectedId?: string | null }) => {
     const comparison = slide.comparison || slide.content?.comparison;
     const columns = slide.columns || slide.content?.columns;
 
@@ -1333,14 +1809,67 @@ const ComparisonLayout = ({ slide, colors, variation = 'balanced-split' }: { sli
         right.items = slide.content?.rightBullets || slide.content?.rightItems || slide.content?.rightPoints || right.items || [];
     }
 
+    // --- PATH RESOLUTION ---
+    // Determine Paths for Left Side
+    let leftTitlePath = 'content.comparison.leftTitle';
+    let leftItemsPath = 'content.comparison.leftBullets';
+
+    if (slide.comparison?.left) {
+        leftTitlePath = 'comparison.left.title';
+        leftItemsPath = 'comparison.left.items';
+    } else if (slide.content?.comparison?.left) {
+        leftTitlePath = 'content.comparison.left.title';
+        leftItemsPath = 'content.comparison.left.items';
+    } else if (slide.columns?.[0]) {
+        leftTitlePath = 'columns[0].title';
+        leftItemsPath = 'columns[0].items';
+    } else if (slide.content?.columns?.[0]) {
+        leftTitlePath = 'content.columns[0].title';
+        leftItemsPath = 'content.columns[0].items';
+    } else if (slide.content?.leftTitle) {
+        leftTitlePath = 'content.leftTitle';
+        // items might be leftBullets, leftItems, leftPoints
+        if (slide.content.leftBullets) leftItemsPath = 'content.leftBullets';
+        else if (slide.content.leftItems) leftItemsPath = 'content.leftItems';
+        else if (slide.content.leftPoints) leftItemsPath = 'content.leftPoints';
+    }
+
+    // Determine Paths for Right Side
+    let rightTitlePath = 'content.comparison.rightTitle';
+    let rightItemsPath = 'content.comparison.rightBullets';
+
+    if (slide.comparison?.right) {
+        rightTitlePath = 'comparison.right.title';
+        rightItemsPath = 'comparison.right.items';
+    } else if (slide.content?.comparison?.right) {
+        rightTitlePath = 'content.comparison.right.title';
+        rightItemsPath = 'content.comparison.right.items';
+    } else if (slide.columns?.[1]) {
+        rightTitlePath = 'columns[1].title';
+        rightItemsPath = 'columns[1].items';
+    } else if (slide.content?.columns?.[1]) {
+        rightTitlePath = 'content.columns[1].title';
+        rightItemsPath = 'content.columns[1].items';
+    } else if (slide.content?.rightTitle) {
+        rightTitlePath = 'content.rightTitle';
+        if (slide.content.rightBullets) rightItemsPath = 'content.rightBullets';
+        else if (slide.content.rightItems) rightItemsPath = 'content.rightItems';
+        else if (slide.content.rightPoints) rightItemsPath = 'content.rightPoints';
+    }
+
     // --- VARIATION 1: VERSUS CARDS (Competitive) ---
     if (variation === 'versus-cards') {
         return (
             <div className="relative w-full h-full overflow-hidden flex flex-col p-12" style={{ backgroundColor: colors.bg }}>
                 <AbstractShapes colors={colors} />
-
                 <div className="text-center mb-12 relative z-10 w-full">
-                    <h2 className="text-5xl font-bold mb-4" style={{ color: colors.text }}>{slide.title}</h2>
+                    <EditableElement
+                        element={{ id: 'title', type: 'text', value: slide.title, path: 'title', label: 'Title' }}
+                        onSelect={onSelect}
+                        isSelected={selectedId === 'title'}
+                    >
+                        <h2 className="text-5xl font-bold mb-4" style={{ color: colors.text }}>{slide.title}</h2>
+                    </EditableElement>
                 </div>
 
                 <div className="flex-1 flex gap-12 items-center justify-center relative z-10 p-8">
@@ -1356,12 +1885,25 @@ const ComparisonLayout = ({ slide, colors, variation = 'balanced-split' }: { sli
                         <div className="w-16 h-16 rounded-2xl mb-6 shadow-inner flex items-center justify-center text-2xl font-bold" style={{ backgroundColor: `${colors.text}10`, color: colors.text }}>A</div>
                         {left && (
                             <>
-                                <h3 className="text-3xl font-bold mb-8" style={{ color: colors.text }}>{left.title}</h3>
+                                <EditableElement
+                                    element={{ id: 'left-title', type: 'text', value: left.title, path: leftTitlePath, label: 'Left Title' }}
+                                    onSelect={onSelect}
+                                    isSelected={selectedId === 'left-title'}
+                                    className="mb-8"
+                                >
+                                    <h3 className="text-3xl font-bold" style={{ color: colors.text }}>{left.title}</h3>
+                                </EditableElement>
                                 <ul className="space-y-4 w-full text-left">
                                     {(left.items || []).map((item: string, j: number) => (
                                         <li key={j} className="flex items-start gap-4 p-3 rounded-xl hover:bg-black/5 transition-colors">
                                             <span className="w-2 h-2 rounded-full mt-2.5 shrink-0" style={{ backgroundColor: colors.primary }} />
-                                            <span className="text-lg opacity-80" style={{ color: colors.text }}>{item}</span>
+                                            <EditableElement
+                                                element={{ id: `left-item-${j}`, type: 'text', value: item, path: `${leftItemsPath}[${j}]`, label: `Left Item ${j + 1}` }}
+                                                onSelect={onSelect}
+                                                isSelected={selectedId === `left-item-${j}`}
+                                            >
+                                                <span className="text-lg opacity-80" style={{ color: colors.text }}>{item}</span>
+                                            </EditableElement>
                                         </li>
                                     ))}
                                 </ul>
@@ -1375,12 +1917,25 @@ const ComparisonLayout = ({ slide, colors, variation = 'balanced-split' }: { sli
                         <div className="w-16 h-16 rounded-2xl mb-6 shadow-lg flex items-center justify-center text-2xl font-bold bg-white/20 text-white">B</div>
                         {right && (
                             <>
-                                <h3 className="text-3xl font-bold mb-8">{right.title}</h3>
+                                <EditableElement
+                                    element={{ id: 'right-title', type: 'text', value: right.title, path: rightTitlePath, label: 'Right Title' }}
+                                    onSelect={onSelect}
+                                    isSelected={selectedId === 'right-title'}
+                                    className="mb-8"
+                                >
+                                    <h3 className="text-3xl font-bold">{right.title}</h3>
+                                </EditableElement>
                                 <ul className="space-y-4 w-full text-left">
                                     {(right.items || []).map((item: string, j: number) => (
                                         <li key={j} className="flex items-start gap-4 p-3 rounded-xl hover:bg-white/10 transition-colors">
                                             <span className="w-2 h-2 rounded-full mt-2.5 shrink-0 bg-white" />
-                                            <span className="text-lg opacity-90">{item}</span>
+                                            <EditableElement
+                                                element={{ id: `right-item-${j}`, type: 'text', value: item, path: `${rightItemsPath}[${j}]`, label: `Right Item ${j + 1}` }}
+                                                onSelect={onSelect}
+                                                isSelected={selectedId === `right-item-${j}`}
+                                            >
+                                                <span className="text-lg opacity-90">{item}</span>
+                                            </EditableElement>
                                         </li>
                                     ))}
                                 </ul>
@@ -1407,14 +1962,28 @@ const ComparisonLayout = ({ slide, colors, variation = 'balanced-split' }: { sli
                     {/* Left Column */}
                     <div className="bg-surface flex flex-col" style={{ backgroundColor: colors.bg }}>
                         <div className="p-8 border-b" style={{ borderColor: `${colors.text}10`, backgroundColor: `${colors.primary}10` }}>
-                            {left && <h3 className="text-2xl font-bold text-center" style={{ color: colors.primary }}>{left.title}</h3>}
+                            {left && (
+                                <EditableElement
+                                    element={{ id: 'left-title', type: 'text', value: left.title, path: leftTitlePath, label: 'Left Title' }}
+                                    onSelect={onSelect}
+                                    isSelected={selectedId === 'left-title'}
+                                >
+                                    <h3 className="text-2xl font-bold text-center" style={{ color: colors.primary }}>{left.title}</h3>
+                                </EditableElement>
+                            )}
                         </div>
                         <div className="flex-1 p-8">
                             <ul className="space-y-0">
                                 {(left?.items || []).map((item: string, j: number) => (
                                     <li key={j} className="flex items-center gap-4 py-4 border-b last:border-0" style={{ borderColor: `${colors.text}08` }}>
                                         <span className="text-green-500 font-bold text-xl">✓</span>
-                                        <span className="text-lg opacity-80" style={{ color: colors.text }}>{item}</span>
+                                        <EditableElement
+                                            element={{ id: `left-item-${j}`, type: 'text', value: item, path: `${leftItemsPath}[${j}]`, label: `Left Item ${j + 1}` }}
+                                            onSelect={onSelect}
+                                            isSelected={selectedId === `left-item-${j}`}
+                                        >
+                                            <span className="text-lg opacity-80" style={{ color: colors.text }}>{item}</span>
+                                        </EditableElement>
                                     </li>
                                 ))}
                             </ul>
@@ -1424,14 +1993,28 @@ const ComparisonLayout = ({ slide, colors, variation = 'balanced-split' }: { sli
                     {/* Right Column */}
                     <div className="bg-surface flex flex-col" style={{ backgroundColor: colors.bg }}>
                         <div className="p-8 border-b" style={{ borderColor: `${colors.text}10`, backgroundColor: `${colors.secondary}10` }}>
-                            {right && <h3 className="text-2xl font-bold text-center" style={{ color: colors.secondary }}>{right.title}</h3>}
+                            {right && (
+                                <EditableElement
+                                    element={{ id: 'right-title', type: 'text', value: right.title, path: rightTitlePath, label: 'Right Title' }}
+                                    onSelect={onSelect}
+                                    isSelected={selectedId === 'right-title'}
+                                >
+                                    <h3 className="text-2xl font-bold text-center" style={{ color: colors.secondary }}>{right.title}</h3>
+                                </EditableElement>
+                            )}
                         </div>
                         <div className="flex-1 p-8">
                             <ul className="space-y-0">
                                 {(right?.items || []).map((item: string, j: number) => (
                                     <li key={j} className="flex items-center gap-4 py-4 border-b last:border-0" style={{ borderColor: `${colors.text}08` }}>
                                         <span className="text-green-500 font-bold text-xl">✓</span>
-                                        <span className="text-lg opacity-80" style={{ color: colors.text }}>{item}</span>
+                                        <EditableElement
+                                            element={{ id: `right-item-${j}`, type: 'text', value: item, path: `${rightItemsPath}[${j}]`, label: `Right Item ${j + 1}` }}
+                                            onSelect={onSelect}
+                                            isSelected={selectedId === `right-item-${j}`}
+                                        >
+                                            <span className="text-lg opacity-80" style={{ color: colors.text }}>{item}</span>
+                                        </EditableElement>
                                     </li>
                                 ))}
                             </ul>
@@ -1462,12 +2045,25 @@ const ComparisonLayout = ({ slide, colors, variation = 'balanced-split' }: { sli
                         <span className="uppercase tracking-widest text-sm font-bold opacity-50 mb-4 block text-gray-500">The Problem</span>
                         {left && (
                             <>
-                                <h3 className="text-4xl font-bold mb-8 text-gray-700">{left.title}</h3>
+                                <EditableElement
+                                    element={{ id: 'left-title', type: 'text', value: left.title, path: leftTitlePath, label: 'Left Title' }}
+                                    onSelect={onSelect}
+                                    isSelected={selectedId === 'left-title'}
+                                    className="mb-8"
+                                >
+                                    <h3 className="text-4xl font-bold text-gray-700">{left.title}</h3>
+                                </EditableElement>
                                 <ul className="space-y-6">
                                     {(left.items || []).map((item: string, j: number) => (
                                         <li key={j} className="flex items-start gap-4 opacity-70">
                                             <span className="text-xl text-red-400">✗</span>
-                                            <span className="text-xl text-gray-600">{item}</span>
+                                            <EditableElement
+                                                element={{ id: `left-item-${j}`, type: 'text', value: item, path: `${leftItemsPath}[${j}]`, label: `Left Item ${j + 1}` }}
+                                                onSelect={onSelect}
+                                                isSelected={selectedId === `left-item-${j}`}
+                                            >
+                                                <span className="text-xl text-gray-600">{item}</span>
+                                            </EditableElement>
                                         </li>
                                     ))}
                                 </ul>
@@ -1485,12 +2081,25 @@ const ComparisonLayout = ({ slide, colors, variation = 'balanced-split' }: { sli
                         <span className="uppercase tracking-widest text-sm font-bold opacity-70 mb-4 block text-white">The Solution</span>
                         {right && (
                             <>
-                                <h3 className="text-4xl font-bold mb-8">{right.title}</h3>
+                                <EditableElement
+                                    element={{ id: 'right-title', type: 'text', value: right.title, path: rightTitlePath, label: 'Right Title' }}
+                                    onSelect={onSelect}
+                                    isSelected={selectedId === 'right-title'}
+                                    className="mb-8"
+                                >
+                                    <h3 className="text-4xl font-bold">{right.title}</h3>
+                                </EditableElement>
                                 <ul className="space-y-6">
                                     {(right.items || []).map((item: string, j: number) => (
                                         <li key={j} className="flex items-start gap-4">
                                             <div className="w-6 h-6 rounded-full bg-white flex items-center justify-center text-xs shrink-0" style={{ color: colors.primary }}>✓</div>
-                                            <span className="text-xl font-medium">{item}</span>
+                                            <EditableElement
+                                                element={{ id: `right-item-${j}`, type: 'text', value: item, path: `${rightItemsPath}[${j}]`, label: `Right Item ${j + 1}` }}
+                                                onSelect={onSelect}
+                                                isSelected={selectedId === `right-item-${j}`}
+                                            >
+                                                <span className="text-xl font-medium">{item}</span>
+                                            </EditableElement>
                                         </li>
                                     ))}
                                 </ul>
@@ -1517,13 +2126,27 @@ const ComparisonLayout = ({ slide, colors, variation = 'balanced-split' }: { sli
                         style={{ backgroundColor: `${colors.secondary}10`, borderColor: `${colors.secondary}30` }}>
                         <div className="flex items-center gap-4 mb-8">
                             <div className="w-12 h-12 rounded-full flex items-center justify-center text-2xl bg-white shadow-sm" style={{ color: colors.secondary }}>👍</div>
-                            {left && <h3 className="text-3xl font-bold" style={{ color: colors.secondary }}>{left.title}</h3>}
+                            {left && (
+                                <EditableElement
+                                    element={{ id: 'left-title', type: 'text', value: left.title, path: leftTitlePath, label: 'Left Title' }}
+                                    onSelect={onSelect}
+                                    isSelected={selectedId === 'left-title'}
+                                >
+                                    <h3 className="text-3xl font-bold" style={{ color: colors.secondary }}>{left.title}</h3>
+                                </EditableElement>
+                            )}
                         </div>
                         <ul className="space-y-4">
                             {(left?.items || []).map((item: string, j: number) => (
                                 <li key={j} className="flex items-start gap-3">
                                     <span className="text-green-500 text-xl font-bold">+</span>
-                                    <span className="text-lg opacity-80" style={{ color: colors.text }}>{item}</span>
+                                    <EditableElement
+                                        element={{ id: `left-item-${j}`, type: 'text', value: item, path: `${leftItemsPath}[${j}]`, label: `Left Item ${j + 1}` }}
+                                        onSelect={onSelect}
+                                        isSelected={selectedId === `left-item-${j}`}
+                                    >
+                                        <span className="text-lg opacity-80" style={{ color: colors.text }}>{item}</span>
+                                    </EditableElement>
                                 </li>
                             ))}
                         </ul>
@@ -1534,13 +2157,27 @@ const ComparisonLayout = ({ slide, colors, variation = 'balanced-split' }: { sli
                         style={{ backgroundColor: `${colors.accent}10`, borderColor: `${colors.accent}30` }}>
                         <div className="flex items-center gap-4 mb-8">
                             <div className="w-12 h-12 rounded-full flex items-center justify-center text-2xl bg-white shadow-sm" style={{ color: colors.accent }}>👎</div>
-                            {right && <h3 className="text-3xl font-bold" style={{ color: colors.accent }}>{right.title}</h3>}
+                            {right && (
+                                <EditableElement
+                                    element={{ id: 'right-title', type: 'text', value: right.title, path: rightTitlePath, label: 'Right Title' }}
+                                    onSelect={onSelect}
+                                    isSelected={selectedId === 'right-title'}
+                                >
+                                    <h3 className="text-3xl font-bold" style={{ color: colors.accent }}>{right.title}</h3>
+                                </EditableElement>
+                            )}
                         </div>
                         <ul className="space-y-4">
                             {(right?.items || []).map((item: string, j: number) => (
                                 <li key={j} className="flex items-start gap-3">
                                     <span className="text-red-500 text-xl font-bold">-</span>
-                                    <span className="text-lg opacity-80" style={{ color: colors.text }}>{item}</span>
+                                    <EditableElement
+                                        element={{ id: `right-item-${j}`, type: 'text', value: item, path: `${rightItemsPath}[${j}]`, label: `Right Item ${j + 1}` }}
+                                        onSelect={onSelect}
+                                        isSelected={selectedId === `right-item-${j}`}
+                                    >
+                                        <span className="text-lg opacity-80" style={{ color: colors.text }}>{item}</span>
+                                    </EditableElement>
                                 </li>
                             ))}
                         </ul>
@@ -1563,7 +2200,13 @@ const ComparisonLayout = ({ slide, colors, variation = 'balanced-split' }: { sli
 
             <div className="relative z-10 flex flex-col h-full">
                 <div className="text-center pt-16 pb-8">
-                    <h2 className="text-5xl font-bold" style={{ color: colors.text }}>{slide.title}</h2>
+                    <EditableElement
+                        element={{ id: 'title', type: 'text', value: slide.title, path: 'title', label: 'Title' }}
+                        onSelect={onSelect}
+                        isSelected={selectedId === 'title'}
+                    >
+                        <h2 className="text-5xl font-bold" style={{ color: colors.text }}>{slide.title}</h2>
+                    </EditableElement>
                 </div>
 
                 <div className="flex-1 flex w-full h-full pb-20">
@@ -1571,12 +2214,25 @@ const ComparisonLayout = ({ slide, colors, variation = 'balanced-split' }: { sli
                     <div className="w-1/2 flex flex-col justify-start px-20 pt-12 relative border-r" style={{ borderColor: `${colors.text}10` }}>
                         {left && (
                             <>
-                                <h3 className="text-3xl font-bold mb-8 text-center" style={{ color: colors.primary }}>{left.title}</h3>
+                                <EditableElement
+                                    element={{ id: 'left-title', type: 'text', value: left.title, path: leftTitlePath, label: 'Left Title' }}
+                                    onSelect={onSelect}
+                                    isSelected={selectedId === 'left-title'}
+                                    className="mb-8"
+                                >
+                                    <h3 className="text-3xl font-bold text-center" style={{ color: colors.primary }}>{left.title}</h3>
+                                </EditableElement>
                                 <ul className="space-y-6">
                                     {(left.items || []).map((item: string, j: number) => (
                                         <li key={j} className="flex items-start gap-4">
                                             <span className="w-2 h-2 rounded-full mt-2.5 bg-gray-400" />
-                                            <span className="text-xl opacity-90" style={{ color: colors.text }}>{item}</span>
+                                            <EditableElement
+                                                element={{ id: `left-item-${j}`, type: 'text', value: item, path: `${leftItemsPath}[${j}]`, label: `Left Item ${j + 1}` }}
+                                                onSelect={onSelect}
+                                                isSelected={selectedId === `left-item-${j}`}
+                                            >
+                                                <span className="text-xl opacity-90" style={{ color: colors.text }}>{item}</span>
+                                            </EditableElement>
                                         </li>
                                     ))}
                                 </ul>
@@ -1587,12 +2243,25 @@ const ComparisonLayout = ({ slide, colors, variation = 'balanced-split' }: { sli
                     <div className="w-1/2 flex flex-col justify-start px-20 pt-12 relative">
                         {right && (
                             <>
-                                <h3 className="text-3xl font-bold mb-8 text-center" style={{ color: colors.secondary }}>{right.title}</h3>
+                                <EditableElement
+                                    element={{ id: 'right-title', type: 'text', value: right.title, path: rightTitlePath, label: 'Right Title' }}
+                                    onSelect={onSelect}
+                                    isSelected={selectedId === 'right-title'}
+                                    className="mb-8"
+                                >
+                                    <h3 className="text-3xl font-bold text-center" style={{ color: colors.secondary }}>{right.title}</h3>
+                                </EditableElement>
                                 <ul className="space-y-6">
                                     {(right.items || []).map((item: string, j: number) => (
                                         <li key={j} className="flex items-start gap-4">
                                             <span className="w-2 h-2 rounded-full mt-2.5 bg-gray-400" />
-                                            <span className="text-xl opacity-90" style={{ color: colors.text }}>{item}</span>
+                                            <EditableElement
+                                                element={{ id: `right-item-${j}`, type: 'text', value: item, path: `${rightItemsPath}[${j}]`, label: `Right Item ${j + 1}` }}
+                                                onSelect={onSelect}
+                                                isSelected={selectedId === `right-item-${j}`}
+                                            >
+                                                <span className="text-xl opacity-90" style={{ color: colors.text }}>{item}</span>
+                                            </EditableElement>
                                         </li>
                                     ))}
                                 </ul>
@@ -1610,7 +2279,7 @@ const ComparisonLayout = ({ slide, colors, variation = 'balanced-split' }: { sli
 // Infographic layout - Multiple variants for different flow types
 type InfographicVariation = 'funnel' | 'pyramid' | 'process' | 'cycle-flow' | 'hub-spoke';
 
-const InfographicLayout = ({ slide, colors, variation = 'funnel' }: { slide: any; colors: any, variation?: InfographicVariation }) => {
+const InfographicLayout = ({ slide, colors, variation = 'funnel', onSelect, selectedId }: { slide: any; colors: any, variation?: InfographicVariation; onSelect?: any; selectedId?: string | null }) => {
     let infographic = slide.infographic || slide.content?.infographic;
 
     // Support AI format: type and steps directly in content
@@ -1634,6 +2303,12 @@ const InfographicLayout = ({ slide, colors, variation = 'funnel' }: { slide: any
     const steps = infographic?.steps || [];
     // If variation is passed, it overrides the internal type, unless it's default/funnel match
     const type = variation !== 'funnel' ? variation : (infographic?.type || 'funnel');
+
+    // --- PATH RESOLUTION ---
+    let stepsPath = 'content.infographic.steps';
+    if (slide.infographic?.steps) stepsPath = 'infographic.steps';
+    else if (slide.content?.infographic?.steps) stepsPath = 'content.infographic.steps';
+    else if (slide.content?.steps) stepsPath = 'content.steps';
 
     // Use theme chart colors or fallback to generated variations of primary/secondary
     const themeCharts = colors.chartColors || [colors.primary, colors.secondary, colors.accent];
@@ -1666,9 +2341,16 @@ const InfographicLayout = ({ slide, colors, variation = 'funnel' }: { slide: any
             )}
 
             <div className="relative z-10 flex flex-col px-20 pt-16 pb-24 h-full">
-                <h2 className="text-5xl md:text-6xl font-bold mb-12" style={{ color: colors.text }}>
-                    {slide.title}
-                </h2>
+                <EditableElement
+                    element={{ id: 'title', type: 'text', value: slide.title, path: 'title', label: 'Title' }}
+                    onSelect={onSelect}
+                    isSelected={selectedId === 'title'}
+                    className="mb-12"
+                >
+                    <h2 className="text-5xl md:text-6xl font-bold" style={{ color: colors.text }}>
+                        {slide.title}
+                    </h2>
+                </EditableElement>
 
                 <div className="flex-1 flex items-center justify-center">
                     {type === 'funnel' && (
@@ -1687,8 +2369,22 @@ const InfographicLayout = ({ slide, colors, variation = 'funnel' }: { slide: any
                                             color: textColor
                                         }}
                                     >
-                                        <span className="text-3xl font-bold drop-shadow-md">{step.label}</span>
-                                        {step.description && <span className="text-lg opacity-90 font-medium mt-1 drop-shadow-sm" style={{ color: `${textColor}E6` }}>{step.description}</span>}
+                                        <EditableElement
+                                            element={{ id: `step-${i}-label`, type: 'text', value: step.label, path: `content.infographic.steps[${i}}.label`, label: `Step ${i + 1} Label` }}
+                                            onSelect={onSelect}
+                                            isSelected={selectedId === `step-${i}-label`}
+                                        >
+                                            <span className="text-3xl font-bold drop-shadow-md">{step.label}</span>
+                                        </EditableElement>
+                                        {step.description && (
+                                            <EditableElement
+                                                element={{ id: `step-${i}-desc`, type: 'text', value: step.description, path: `${stepsPath}[${i}].description`, label: `Step ${i + 1} Description` }}
+                                                onSelect={onSelect}
+                                                isSelected={selectedId === `step-${i}-desc`}
+                                            >
+                                                <span className="text-lg opacity-90 font-medium mt-1 drop-shadow-sm" style={{ color: `${textColor}E6` }}>{step.description}</span>
+                                            </EditableElement>
+                                        )}
                                     </div>
                                 );
                             })}
@@ -1707,8 +2403,22 @@ const InfographicLayout = ({ slide, colors, variation = 'funnel' }: { slide: any
                                             style={{ backgroundColor: bgColor, color: textColor }}
                                         >
                                             <span className="text-5xl font-extrabold mb-3 opacity-30" style={{ color: textColor }}>{i + 1}</span>
-                                            <span className="text-xl text-center font-bold leading-tight mb-2">{step.label}</span>
-                                            {step.description && <span className="text-sm text-center opacity-90 leading-tight" style={{ color: `${textColor}E6` }}>{step.description}</span>}
+                                            <EditableElement
+                                                element={{ id: `step-${i}-label`, type: 'text', value: step.label, path: `${stepsPath}[${i}].label`, label: `Step ${i + 1} Label` }}
+                                                onSelect={onSelect}
+                                                isSelected={selectedId === `step-${i}-label`}
+                                            >
+                                                <span className="text-xl text-center font-bold leading-tight mb-2">{step.label}</span>
+                                            </EditableElement>
+                                            {step.description && (
+                                                <EditableElement
+                                                    element={{ id: `step-${i}-desc`, type: 'text', value: step.description, path: `${stepsPath}[${i}].description`, label: `Step ${i + 1} Description` }}
+                                                    onSelect={onSelect}
+                                                    isSelected={selectedId === `step-${i}-desc`}
+                                                >
+                                                    <span className="text-sm text-center opacity-90 leading-tight" style={{ color: `${textColor}E6` }}>{step.description}</span>
+                                                </EditableElement>
+                                            )}
                                         </div>
                                         {i < steps.length - 1 && (
                                             <div className="w-16 h-2 mx-4 opacity-20 rounded-full" style={{ backgroundColor: colors.text }} />
@@ -1735,8 +2445,22 @@ const InfographicLayout = ({ slide, colors, variation = 'funnel' }: { slide: any
                                             color: textColor
                                         }}
                                     >
-                                        <span className="text-2xl font-bold">{step.label}</span>
-                                        {step.description && <span className="text-base opacity-90 mt-1" style={{ color: `${textColor}E6` }}>{step.description}</span>}
+                                        <EditableElement
+                                            element={{ id: `step-${i}-label`, type: 'text', value: step.label, path: `${stepsPath}[${i}].label`, label: `Step ${i + 1} Label` }}
+                                            onSelect={onSelect}
+                                            isSelected={selectedId === `step-${i}-label`}
+                                        >
+                                            <span className="text-2xl font-bold">{step.label}</span>
+                                        </EditableElement>
+                                        {step.description && (
+                                            <EditableElement
+                                                element={{ id: `step-${i}-desc`, type: 'text', value: step.description, path: `${stepsPath}[${i}].description`, label: `Step ${i + 1} Description` }}
+                                                onSelect={onSelect}
+                                                isSelected={selectedId === `step-${i}-desc`}
+                                            >
+                                                <span className="text-base opacity-90 mt-1" style={{ color: `${textColor}E6` }}>{step.description}</span>
+                                            </EditableElement>
+                                        )}
                                     </div>
                                 );
                             })}
@@ -1771,9 +2495,16 @@ const InfographicLayout = ({ slide, colors, variation = 'funnel' }: { slide: any
                                             <div className="absolute -right-4 top-1/2 -mt-2 w-0 h-0 border-t-8 border-b-8 border-l-8 border-transparent"
                                                 style={{ borderLeftColor: colors.text, opacity: 0.2, transform: `rotate(${angle + 90}deg)` }} />
                                         </div>
-                                        <span className="text-sm font-bold bg-white/80 backdrop-blur-sm px-2 py-1 rounded-md shadow-sm" style={{ color: colors.text }}>
-                                            {step.label}
-                                        </span>
+                                        <EditableElement
+                                            element={{ id: `step-${i}-label`, type: 'text', value: step.label, path: `${stepsPath}[${i}].label`, label: `Step ${i + 1} Label` }}
+                                            onSelect={onSelect}
+                                            isSelected={selectedId === `step-${i}-label`}
+                                            className="bg-white/80 backdrop-blur-sm px-2 py-1 rounded-md shadow-sm"
+                                        >
+                                            <span className="text-sm font-bold" style={{ color: colors.text }}>
+                                                {step.label}
+                                            </span>
+                                        </EditableElement>
                                     </div>
                                 );
                             })}
@@ -1795,7 +2526,13 @@ const InfographicLayout = ({ slide, colors, variation = 'funnel' }: { slide: any
                                     borderColor: `${colors.primary}20`,
                                     boxShadow: `0 0 80px -20px ${colors.primary}40`
                                 }}>
-                                <h2 className="text-3xl font-bold leading-tight" style={{ color: colors.text }}>{slide.title}</h2>
+                                <EditableElement
+                                    element={{ id: 'title', type: 'text', value: slide.title, path: 'title', label: 'Title' }}
+                                    onSelect={onSelect}
+                                    isSelected={selectedId === 'title'}
+                                >
+                                    <h2 className="text-3xl font-bold leading-tight" style={{ color: colors.text }}>{slide.title}</h2>
+                                </EditableElement>
                                 <div className="mt-4 w-12 h-1 bg-primary rounded-full" style={{ backgroundColor: colors.primary }} />
                             </div>
 
@@ -1803,7 +2540,7 @@ const InfographicLayout = ({ slide, colors, variation = 'funnel' }: { slide: any
                             {steps.slice(0, 6).map((step: any, i: number) => {
                                 const count = Math.min(steps.length, 6);
                                 const angle = (i * (360 / count)) - 90; // Start top
-                                const distance = 350; // Distance from center
+                                const distance = 350; // px
                                 const x = distance * Math.cos((angle * Math.PI) / 180);
                                 const y = distance * Math.sin((angle * Math.PI) / 180);
 
@@ -1830,8 +2567,22 @@ const InfographicLayout = ({ slide, colors, variation = 'funnel' }: { slide: any
                                                 style={{ backgroundColor: getStepColor(i) }}>
                                                 {i + 1}
                                             </div>
-                                            <h3 className="text-lg font-bold text-center leading-tight" style={{ color: colors.text }}>{step.label}</h3>
-                                            {step.description && <p className="text-xs text-center opacity-60" style={{ color: colors.text }}>{step.description}</p>}
+                                            <EditableElement
+                                                element={{ id: `step-${i}-label`, type: 'text', value: step.label, path: `${stepsPath}[${i}].label`, label: `Step ${i + 1} Label` }}
+                                                onSelect={onSelect}
+                                                isSelected={selectedId === `step-${i}-label`}
+                                            >
+                                                <h3 className="text-lg font-bold text-center leading-tight" style={{ color: colors.text }}>{step.label}</h3>
+                                            </EditableElement>
+                                            {step.description && (
+                                                <EditableElement
+                                                    element={{ id: `step-${i}-desc`, type: 'text', value: step.description, path: `${stepsPath}[${i}].description`, label: `Step ${i + 1} Description` }}
+                                                    onSelect={onSelect}
+                                                    isSelected={selectedId === `step-${i}-desc`}
+                                                >
+                                                    <p className="text-xs text-center opacity-60" style={{ color: colors.text }}>{step.description}</p>
+                                                </EditableElement>
+                                            )}
                                         </div>
                                     </React.Fragment>
                                 );
@@ -1853,7 +2604,7 @@ const InfographicLayout = ({ slide, colors, variation = 'funnel' }: { slide: any
 // Text Heavy Layout - 3 Columns with Visual Variants
 type TextColumnVariation = 'classic' | 'modern-cards' | 'numbered-editorial' | 'side-highlight' | 'vertical-separators' | 'bento-text';
 
-const ThreeColumnTextLayout = ({ slide, colors, variation = 'classic' }: { slide: any; colors: any; variation?: TextColumnVariation }) => {
+const ThreeColumnTextLayout = ({ slide, colors, variation = 'classic', onSelect, selectedId }: { slide: any; colors: any; variation?: TextColumnVariation; onSelect?: any; selectedId?: string | null }) => {
     // Support AI format: content.columns with {header, body} or {title, text} objects
     let columns: Array<{ title: string; text: string }> = [];
 
@@ -1877,7 +2628,7 @@ const ThreeColumnTextLayout = ({ slide, colors, variation = 'classic' }: { slide
     } else {
         // Fallback: split long text into chunks
         const content = slide.content?.text || slide.text || slide.description || "";
-        const chunks = Array.isArray(content) ? content : content.split('. ').reduce((acc: any[], sentence: string, i: number) => {
+        const chunks = Array.isArray(content) ? content : (content || "").split('. ').reduce((acc: any[], sentence: string, i: number) => {
             if (i % 3 === 0) acc.push(sentence);
             else acc[acc.length - 1] += '. ' + sentence;
             return acc;
@@ -1892,6 +2643,10 @@ const ThreeColumnTextLayout = ({ slide, colors, variation = 'classic' }: { slide
     // Ensure we have at least 3 columns for some layouts by filling with empty if needed (though usually we just render what we have)
     // For specific layouts like side-highlight, we really want 3 items.
 
+    // --- PATH RESOLUTION ---
+    let columnsPath = 'content.columns';
+    if (slide.content?.['text-columns']) columnsPath = 'content.text-columns';
+
     // --- VARIATION 1: MODERN CARDS (Glassmorphism) ---
     if (variation === 'modern-cards') {
         return (
@@ -1905,7 +2660,14 @@ const ThreeColumnTextLayout = ({ slide, colors, variation = 'classic' }: { slide
 
                 <div className="relative z-10 flex flex-col px-16 py-12 h-full">
                     <div className="text-center mb-12">
-                        <h2 className="text-5xl font-bold mb-4" style={{ color: colors.text }}>{slide.title}</h2>
+                        <EditableElement
+                            element={{ id: 'title', type: 'text', value: slide.title, path: 'title', label: 'Title' }}
+                            onSelect={onSelect}
+                            isSelected={selectedId === 'title'}
+                            className="mb-4"
+                        >
+                            <h2 className="text-5xl font-bold" style={{ color: colors.text }}>{slide.title}</h2>
+                        </EditableElement>
                         {/* Optional divider line */}
                         <div className="h-1 w-24 mx-auto rounded-full" style={{ backgroundColor: colors.primary }} />
                     </div>
@@ -1920,8 +2682,21 @@ const ThreeColumnTextLayout = ({ slide, colors, variation = 'classic' }: { slide
                                     style={{ backgroundColor: `${colors.primary}15`, color: colors.primary }}>
                                     {i + 1}
                                 </div>
-                                {col.title && <h3 className="text-2xl font-bold mb-4" style={{ color: colors.text }}>{col.title}</h3>}
-                                <p className="text-lg leading-relaxed opacity-80" style={{ color: colors.text }}>{col.text}</p>
+                                <EditableElement
+                                    element={{ id: `col-${i}-title`, type: 'text', value: col.title, path: `${columnsPath}[${i}].title`, label: `Column ${i + 1} Title` }}
+                                    onSelect={onSelect}
+                                    isSelected={selectedId === `col-${i}-title`}
+                                    className="mb-4"
+                                >
+                                    {col.title && <h3 className="text-2xl font-bold" style={{ color: colors.text }}>{col.title}</h3>}
+                                </EditableElement>
+                                <EditableElement
+                                    element={{ id: `col-${i}-text`, type: 'text', value: col.text, path: `${columnsPath}[${i}].text`, label: `Column ${i + 1} Text` }}
+                                    onSelect={onSelect}
+                                    isSelected={selectedId === `col-${i}-text`}
+                                >
+                                    <p className="text-lg leading-relaxed opacity-80" style={{ color: colors.text }}>{col.text}</p>
+                                </EditableElement>
                             </div>
                         ))}
                     </div>
@@ -1940,7 +2715,13 @@ const ThreeColumnTextLayout = ({ slide, colors, variation = 'classic' }: { slide
                     style={{ backgroundImage: `radial-gradient(${colors.text} 1px, transparent 1px)`, backgroundSize: '20px 20px' }} />
 
                 <div className="mb-16 border-b pb-8" style={{ borderColor: `${colors.text}20` }}>
-                    <h2 className="text-6xl font-black tracking-tight" style={{ color: colors.text }}>{slide.title}</h2>
+                    <EditableElement
+                        element={{ id: 'title', type: 'text', value: slide.title, path: 'title', label: 'Title' }}
+                        onSelect={onSelect}
+                        isSelected={selectedId === 'title'}
+                    >
+                        <h2 className="text-6xl font-black tracking-tight" style={{ color: colors.text }}>{slide.title}</h2>
+                    </EditableElement>
                 </div>
 
                 <div className="flex-1 grid grid-cols-3 gap-12">
@@ -1953,15 +2734,28 @@ const ThreeColumnTextLayout = ({ slide, colors, variation = 'classic' }: { slide
                             </span>
 
                             <div className="relative z-10">
-                                {col.title && (
-                                    <h3 className="text-3xl font-bold mb-6 flex items-center gap-3" style={{ color: colors.primary }}>
-                                        <span className="w-2 h-8 rounded-full" style={{ backgroundColor: colors.accent }} />
-                                        {col.title}
-                                    </h3>
-                                )}
-                                <p className="text-xl leading-relaxed text-justify opacity-90 font-serif" style={{ color: colors.text }}>
-                                    {col.text}
-                                </p>
+                                <EditableElement
+                                    element={{ id: `col-${i}-title`, type: 'text', value: col.title, path: `${columnsPath}[${i}].title`, label: `Column ${i + 1} Title` }}
+                                    onSelect={onSelect}
+                                    isSelected={selectedId === `col-${i}-title`}
+                                    className="mb-6"
+                                >
+                                    {col.title && (
+                                        <h3 className="text-3xl font-bold flex items-center gap-3" style={{ color: colors.primary }}>
+                                            <span className="w-2 h-8 rounded-full" style={{ backgroundColor: colors.accent }} />
+                                            {col.title}
+                                        </h3>
+                                    )}
+                                </EditableElement>
+                                <EditableElement
+                                    element={{ id: `col-${i}-text`, type: 'text', value: col.text, path: `${columnsPath}[${i}].text`, label: `Column ${i + 1} Text` }}
+                                    onSelect={onSelect}
+                                    isSelected={selectedId === `col-${i}-text`}
+                                >
+                                    <p className="text-xl leading-relaxed text-justify opacity-90 font-serif" style={{ color: colors.text }}>
+                                        {col.text}
+                                    </p>
+                                </EditableElement>
                             </div>
                         </div>
                     ))}
@@ -1990,12 +2784,32 @@ const ThreeColumnTextLayout = ({ slide, colors, variation = 'classic' }: { slide
                     )}
 
                     <div className="relative z-10">
-                        <span className="inline-block px-4 py-1 rounded-full text-xs font-bold uppercase tracking-widest mb-8 bg-white/20 backdrop-blur-md">Key Insight</span>
-                        <h2 className="text-6xl font-bold mb-12 leading-tight">{slide.title}</h2>
+                        <span className="inline-block px-4 py-1 mb-4 rounded-full text-xs font-bold uppercase tracking-widest bg-white/20 backdrop-blur-md">Key Insight</span>
+                        <EditableElement
+                            element={{ id: 'title', type: 'text', value: slide.title, path: 'title', label: 'Title' }}
+                            onSelect={onSelect}
+                            isSelected={selectedId === 'title'}
+                            className="mb-12"
+                        >
+                            <h2 className="text-6xl font-bold leading-tight">{slide.title}</h2>
+                        </EditableElement>
                         {mainCol && (
                             <div className="bg-white/10 backdrop-blur-xl p-8 rounded-3xl border border-white/20">
-                                {mainCol.title && <h3 className="text-3xl font-bold mb-4">{mainCol.title}</h3>}
-                                <p className="text-xl leading-relaxed opacity-90">{mainCol.text}</p>
+                                <EditableElement
+                                    element={{ id: `col-0-title`, type: 'text', value: mainCol.title, path: `content.columns[0].title`, label: `Main Column Title` }}
+                                    onSelect={onSelect}
+                                    isSelected={selectedId === `col-0-title`}
+                                    className="mb-4"
+                                >
+                                    {mainCol.title && <h3 className="text-3xl font-bold">{mainCol.title}</h3>}
+                                </EditableElement>
+                                <EditableElement
+                                    element={{ id: `col-0-text`, type: 'text', value: mainCol.text, path: `content.columns[0].text`, label: `Main Column Text` }}
+                                    onSelect={onSelect}
+                                    isSelected={selectedId === `col-0-text`}
+                                >
+                                    <p className="text-xl leading-relaxed opacity-90">{mainCol.text}</p>
+                                </EditableElement>
                             </div>
                         )}
                     </div>
@@ -2013,8 +2827,21 @@ const ThreeColumnTextLayout = ({ slide, colors, variation = 'classic' }: { slide
                                 {i < sideCols.length - 1 && <div className="w-[2px] flex-1 bg-gray-200 mt-2" style={{ backgroundColor: `${colors.text}20` }} />}
                             </div>
                             <div>
-                                {col.title && <h3 className="text-2xl font-bold mb-3" style={{ color: colors.text }}>{col.title}</h3>}
-                                <p className="text-lg opacity-80 leading-relaxed" style={{ color: colors.text }}>{col.text}</p>
+                                <EditableElement
+                                    element={{ id: `col-${i + 1}-title`, type: 'text', value: col.title, path: `content.columns[${i + 1}].title`, label: `Column ${i + 2} Title` }}
+                                    onSelect={onSelect}
+                                    isSelected={selectedId === `col-${i + 1}-title`}
+                                    className="mb-3"
+                                >
+                                    {col.title && <h3 className="text-2xl font-bold" style={{ color: colors.text }}>{col.title}</h3>}
+                                </EditableElement>
+                                <EditableElement
+                                    element={{ id: `col-${i + 1}-text`, type: 'text', value: col.text, path: `content.columns[${i + 1}].text`, label: `Column ${i + 2} Text` }}
+                                    onSelect={onSelect}
+                                    isSelected={selectedId === `col-${i + 1}-text`}
+                                >
+                                    <p className="text-lg opacity-80 leading-relaxed" style={{ color: colors.text }}>{col.text}</p>
+                                </EditableElement>
                             </div>
                         </div>
                     ))}
@@ -2031,7 +2858,13 @@ const ThreeColumnTextLayout = ({ slide, colors, variation = 'classic' }: { slide
         return (
             <div className="relative w-full h-full overflow-hidden flex flex-col px-20 pt-20 pb-24" style={{ backgroundColor: colors.bg }}>
                 <div className="flex items-end justify-between mb-20 border-b pb-6" style={{ borderColor: `${colors.text}20` }}>
-                    <h2 className="text-5xl font-light" style={{ color: colors.text }}>{slide.title}</h2>
+                    <EditableElement
+                        element={{ id: 'title', type: 'text', value: slide.title, path: 'title', label: 'Title' }}
+                        onSelect={onSelect}
+                        isSelected={selectedId === 'title'}
+                    >
+                        <h2 className="text-5xl font-light" style={{ color: colors.text }}>{slide.title}</h2>
+                    </EditableElement>
                     <div className="flex gap-2">
                         {[1, 2, 3].map(d => <div key={d} className="w-2 h-2 rounded-full" style={{ backgroundColor: d === 1 ? colors.primary : `${colors.text}20` }} />)}
                     </div>
@@ -2046,11 +2879,24 @@ const ThreeColumnTextLayout = ({ slide, colors, variation = 'classic' }: { slide
                                 Point 0{i + 1}
                             </span>
 
-                            {col.title && <h3 className="text-xl font-bold mb-6" style={{ color: colors.text }}>{col.title}</h3>}
+                            <EditableElement
+                                element={{ id: `col-${i}-title`, type: 'text', value: col.title, path: `${columnsPath}[${i}].title`, label: `Column ${i + 1} Title` }}
+                                onSelect={onSelect}
+                                isSelected={selectedId === `col-${i}-title`}
+                                className="mb-6"
+                            >
+                                {col.title && <h3 className="text-xl font-bold" style={{ color: colors.text }}>{col.title}</h3>}
+                            </EditableElement>
 
-                            <p className="text-lg leading-8 opacity-80" style={{ color: colors.text }}>
-                                {col.text}
-                            </p>
+                            <EditableElement
+                                element={{ id: `col-${i}-text`, type: 'text', value: col.text, path: `${columnsPath}[${i}].text`, label: `Column ${i + 1} Text` }}
+                                onSelect={onSelect}
+                                isSelected={selectedId === `col-${i}-text`}
+                            >
+                                <p className="text-lg leading-8 opacity-80" style={{ color: colors.text }}>
+                                    {col.text}
+                                </p>
+                            </EditableElement>
 
                             {/* Decorative element at bottom */}
                             <div className="mt-auto pt-8 opacity-50">
@@ -2077,9 +2923,16 @@ const ThreeColumnTextLayout = ({ slide, colors, variation = 'classic' }: { slide
                         <span className="relative z-10 px-4 py-2 rounded-full bg-white/50 backdrop-blur-sm self-start text-xs font-bold uppercase tracking-widest border border-white/20">
                             Overview
                         </span>
-                        <h2 className="relative z-10 text-5xl font-bold leading-tight mt-4" style={{ color: colors.text }}>
-                            {slide.title}
-                        </h2>
+                        <EditableElement
+                            element={{ id: 'title', type: 'text', value: slide.title, path: 'title', label: 'Title' }}
+                            onSelect={onSelect}
+                            isSelected={selectedId === 'title'}
+                            className="mt-4"
+                        >
+                            <h2 className="relative z-10 text-5xl font-bold leading-tight" style={{ color: colors.text }}>
+                                {slide.title}
+                            </h2>
+                        </EditableElement>
                     </div>
 
                     {/* Content Blocks */}
@@ -2107,14 +2960,27 @@ const ThreeColumnTextLayout = ({ slide, colors, variation = 'classic' }: { slide
                                     <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -mr-16 -mt-16" />
                                 )}
 
-                                {col.title && (
-                                    <h3 className={`text-2xl font-bold mb-4 ${isPrimary ? 'text-white' : ''}`} style={{ color: isPrimary ? '#ffffff' : colors.text }}>
-                                        {col.title}
-                                    </h3>
-                                )}
-                                <p className={`text-lg leading-relaxed ${isPrimary ? 'opacity-90' : 'opacity-70'}`}>
-                                    {col.text}
-                                </p>
+                                <EditableElement
+                                    element={{ id: `col-${i}-title`, type: 'text', value: col.title, path: `${columnsPath}[${i}].title`, label: `Column ${i + 1} Title` }}
+                                    onSelect={onSelect}
+                                    isSelected={selectedId === `col-${i}-title`}
+                                    className="mb-4"
+                                >
+                                    {col.title && (
+                                        <h3 className={`text-2xl font-bold ${isPrimary ? 'text-white' : ''}`} style={{ color: isPrimary ? '#ffffff' : colors.text }}>
+                                            {col.title}
+                                        </h3>
+                                    )}
+                                </EditableElement>
+                                <EditableElement
+                                    element={{ id: `col-${i}-text`, type: 'text', value: col.text, path: `${columnsPath}[${i}].text`, label: `Column ${i + 1} Text` }}
+                                    onSelect={onSelect}
+                                    isSelected={selectedId === `col-${i}-text`}
+                                >
+                                    <p className={`text-lg leading-relaxed ${isPrimary ? 'opacity-90' : 'opacity-70'}`}>
+                                        {col.text}
+                                    </p>
+                                </EditableElement>
                             </div>
                         );
                     })}
@@ -2142,9 +3008,16 @@ const ThreeColumnTextLayout = ({ slide, colors, variation = 'classic' }: { slide
             )}
 
             <div className="relative z-10 flex flex-col px-20 pt-16 pb-24 h-full">
-                <h2 className="text-5xl md:text-6xl font-bold mb-16 text-center" style={{ color: colors.text }}>
-                    {slide.title}
-                </h2>
+                <EditableElement
+                    element={{ id: 'title', type: 'text', value: slide.title, path: 'title', label: 'Title' }}
+                    onSelect={onSelect}
+                    isSelected={selectedId === 'title'}
+                    className="mb-16 text-center"
+                >
+                    <h2 className="text-5xl md:text-6xl font-bold" style={{ color: colors.text }}>
+                        {slide.title}
+                    </h2>
+                </EditableElement>
 
                 <div className="flex-1 grid grid-cols-3 gap-12">
                     {columns.map((col, i) => (
@@ -2153,14 +3026,27 @@ const ThreeColumnTextLayout = ({ slide, colors, variation = 'classic' }: { slide
                             className="bg-surface/60 backdrop-blur-md rounded-3xl p-8 border border-border"
                             style={{ borderColor: `${colors.primary}20` }}
                         >
-                            {col.title && (
-                                <h3 className="text-2xl font-bold mb-4" style={{ color: colors.primary }}>
-                                    {col.title}
-                                </h3>
-                            )}
-                            <p className="text-lg leading-relaxed opacity-90" style={{ color: colors.text }}>
-                                {col.text}
-                            </p>
+                            <EditableElement
+                                element={{ id: `col-${i}-title`, type: 'text', value: col.title, path: `${columnsPath}[${i}].title`, label: `Column ${i + 1} Title` }}
+                                onSelect={onSelect}
+                                isSelected={selectedId === `col-${i}-title`}
+                                className="mb-4"
+                            >
+                                {col.title && (
+                                    <h3 className="text-2xl font-bold" style={{ color: colors.primary }}>
+                                        {col.title}
+                                    </h3>
+                                )}
+                            </EditableElement>
+                            <EditableElement
+                                element={{ id: `col-${i}-text`, type: 'text', value: col.text, path: `${columnsPath}[${i}].text`, label: `Column ${i + 1} Text` }}
+                                onSelect={onSelect}
+                                isSelected={selectedId === `col-${i}-text`}
+                            >
+                                <p className="text-lg leading-relaxed opacity-90" style={{ color: colors.text }}>
+                                    {col.text}
+                                </p>
+                            </EditableElement>
                         </div>
                     ))}
                 </div>
@@ -2177,7 +3063,7 @@ const ThreeColumnTextLayout = ({ slide, colors, variation = 'classic' }: { slide
 // Image focus layout - Splash screens and gallery views
 type ImageFocusVariation = 'default' | 'text-mask' | 'split-curtain' | 'polaroid-pile';
 
-const ImageFocusLayout = ({ slide, colors, variation = 'default' }: { slide: any; colors: any, variation?: ImageFocusVariation }) => {
+const ImageFocusLayout = ({ slide, colors, variation = 'default', onSelect, selectedId }: { slide: any; colors: any, variation?: ImageFocusVariation; onSelect?: any; selectedId?: string | null }) => {
     // Basic shared logic
     const imageUrl = slide.backgroundImage && !slide.backgroundImage.includes('placehold') ? slide.backgroundImage :
         (slide.imageSearchQuery ? `https://source.unsplash.com/1600x900/?${encodeURIComponent(slide.imageSearchQuery)}` : null);
@@ -2191,24 +3077,37 @@ const ImageFocusLayout = ({ slide, colors, variation = 'default' }: { slide: any
                 {/* Approach: Use huge text with background-clip: text */}
                 <div className="absolute inset-0 bg-black" />
 
-                <h2 className="text-[12rem] md:text-[15rem] leading-[0.85] font-black text-center uppercase tracking-tighter select-none"
-                    style={{
-                        backgroundImage: `url(${bgUrl})`,
-                        backgroundSize: 'cover',
-                        backgroundPosition: 'center',
-                        WebkitBackgroundClip: 'text',
-                        WebkitTextFillColor: 'transparent',
-                        filter: 'contrast(1.2)'
-                    }}>
-                    {slide.title}
-                </h2>
+                <EditableElement
+                    element={{ id: 'title', type: 'text', value: slide.title, path: 'title', label: 'Title' }}
+                    onSelect={onSelect}
+                    isSelected={selectedId === 'title'}
+                    className="relative z-10"
+                >
+                    <h2 className="text-[12rem] md:text-[15rem] leading-[0.85] font-black text-center uppercase tracking-tighter select-none"
+                        style={{
+                            backgroundImage: `url(${bgUrl})`,
+                            backgroundSize: 'cover',
+                            backgroundPosition: 'center',
+                            WebkitBackgroundClip: 'text',
+                            WebkitTextFillColor: 'transparent',
+                            filter: 'contrast(1.2)'
+                        }}>
+                        {slide.title}
+                    </h2>
+                </EditableElement>
 
                 {/* Overlay subtext */}
                 {(slide.subtitle || slide.content?.text) && (
                     <div className="absolute bottom-12 left-0 right-0 text-center">
-                        <p className="text-white text-xl font-bold uppercase tracking-[0.5em] opacity-80 backdrop-blur-sm inline-block px-4 py-2 rounded-full border border-white/20">
-                            {slide.subtitle || slide.content?.text}
-                        </p>
+                        <EditableElement
+                            element={{ id: 'subtitle', type: 'text', value: slide.subtitle || slide.content?.text, path: slide.subtitle ? 'subtitle' : 'content.text', label: 'Subtitle' }}
+                            onSelect={onSelect}
+                            isSelected={selectedId === 'subtitle'}
+                        >
+                            <p className="text-white text-xl font-bold uppercase tracking-[0.5em] opacity-80 backdrop-blur-sm inline-block px-4 py-2 rounded-full border border-white/20">
+                                {slide.subtitle || slide.content?.text}
+                            </p>
+                        </EditableElement>
                     </div>
                 )}
             </div>
@@ -2228,14 +3127,37 @@ const ImageFocusLayout = ({ slide, colors, variation = 'default' }: { slide: any
 
                 {/* Text Side (Right) */}
                 <div className="w-1/2 h-full flex flex-col justify-center px-16 relative">
-                    <div className="relative z-10 -ml-32 bg-white/10 backdrop-blur-xl p-12 rounded-3xl border border-white/20 shadow-2xl">
-                        <h2 className="text-6xl font-black mb-8 leading-none" style={{ color: colors.text }}>
-                            {slide.title}
-                        </h2>
-                        <div className="h-2 w-20 mb-8 rounded-full" style={{ backgroundColor: colors.primary }} />
-                        <p className="text-xl leading-relaxed opacity-90" style={{ color: colors.text }}>
-                            {slide.content?.text || slide.subtitle || "A bold statement deserves a bold layout."}
-                        </p>
+                    <div className="w-full flex items-center justify-center p-20 relative z-10" style={{ backgroundColor: colors.bg }}>
+                        <div className="max-w-xl">
+                            <EditableElement
+                                element={{ id: 'subtitle', type: 'text', value: slide.subtitle, path: 'subtitle', label: 'Subtitle' }}
+                                onSelect={onSelect}
+                                isSelected={selectedId === 'subtitle'}
+                            >
+                                <span className="block text-sm font-bold uppercase tracking-[0.3em] mb-8" style={{ color: colors.secondary }}>
+                                    {slide.subtitle || "FEATURED"}
+                                </span>
+                            </EditableElement>
+                            <EditableElement
+                                element={{ id: 'title', type: 'text', value: slide.title, path: 'title', label: 'Title' }}
+                                onSelect={onSelect}
+                                isSelected={selectedId === 'title'}
+                                className="mb-8"
+                            >
+                                <h2 className="text-7xl font-bold leading-tight" style={{ color: colors.text }}>
+                                    {slide.title}
+                                </h2>
+                            </EditableElement>
+                            <EditableElement
+                                element={{ id: 'text', type: 'text', value: slide.content?.text || slide.text, path: slide.content?.text ? 'content.text' : 'text', label: 'Text' }}
+                                onSelect={onSelect}
+                                isSelected={selectedId === 'text'}
+                            >
+                                <p className="text-xl leading-relaxed opacity-80" style={{ color: colors.text }}>
+                                    {slide.content?.text || slide.text}
+                                </p>
+                            </EditableElement>
+                        </div>
                     </div>
                 </div>
                 <SlideFooter title={slide.title} colors={colors} />
@@ -2272,7 +3194,13 @@ const ImageFocusLayout = ({ slide, colors, variation = 'default' }: { slide: any
                                 <div className="w-full aspect-square bg-gray-100 bg-cover bg-center mb-4 inner-shadow"
                                     style={{ backgroundImage: `url(${img || imageUrl})` }} />
                                 <div className="font-handwriting text-center text-gray-600 text-lg opacity-80 min-h-[1.5em]">
-                                    {slide.title} #{i + 1}
+                                    <EditableElement
+                                        element={{ id: `polaroid-${i}-title`, type: 'text', value: `${slide.title} #${i + 1}`, path: 'title', label: `Polaroid Title ${i + 1}` }}
+                                        onSelect={onSelect}
+                                        isSelected={selectedId === `polaroid-${i}-title`}
+                                    >
+                                        {slide.title} #{i + 1}
+                                    </EditableElement>
                                 </div>
                             </div>
                         );
@@ -2280,7 +3208,13 @@ const ImageFocusLayout = ({ slide, colors, variation = 'default' }: { slide: any
 
                     {/* Optional Overlay Title if needed */}
                     <div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-20 z-50 bg-white px-8 py-4 shadow-xl rounded-full">
-                        <h2 className="text-2xl font-bold" style={{ color: colors.text }}>{slide.title}</h2>
+                        <EditableElement
+                            element={{ id: 'overlay-title', type: 'text', value: slide.title, path: 'title', label: 'Overlay Title' }}
+                            onSelect={onSelect}
+                            isSelected={selectedId === 'overlay-title'}
+                        >
+                            <h2 className="text-2xl font-bold" style={{ color: colors.text }}>{slide.title}</h2>
+                        </EditableElement>
                     </div>
                 </div>
             </div>
@@ -2308,18 +3242,38 @@ const ImageFocusLayout = ({ slide, colors, variation = 'default' }: { slide: any
 
             {/* Content */}
             <div className="relative z-10 flex flex-col items-center justify-center h-full px-20 text-center text-white">
-                <h2 className="text-7xl md:text-8xl font-bold mb-8">{slide.title}</h2>
+                <EditableElement
+                    element={{ id: 'title', type: 'text', value: slide.title, path: 'title', label: 'Title' }}
+                    onSelect={onSelect}
+                    isSelected={selectedId === 'title'}
+                    className="mb-8"
+                >
+                    <h2 className="text-7xl md:text-8xl font-bold">{slide.title}</h2>
+                </EditableElement>
                 {/* Subtitle */}
-                {(slide.subtitle || slide.content?.subtitle) && (
-                    <p className="text-3xl font-light mb-8 opacity-90 max-w-4xl uppercase tracking-widest">{slide.subtitle || slide.content?.subtitle}</p>
-                )}
+                <EditableElement
+                    element={{ id: 'subtitle', type: 'text', value: slide.subtitle || slide.content?.subtitle, path: slide.subtitle ? 'subtitle' : 'content.subtitle', label: 'Subtitle' }}
+                    onSelect={onSelect}
+                    isSelected={selectedId === 'subtitle'}
+                    className="mb-8"
+                >
+                    {(slide.subtitle || slide.content?.subtitle) && (
+                        <p className="text-3xl font-light opacity-90 max-w-4xl uppercase tracking-widest">{slide.subtitle || slide.content?.subtitle}</p>
+                    )}
+                </EditableElement>
 
                 {/* Main Text */}
-                {(slide.content?.text || slide.text) && (
-                    <p className="text-xl md:text-2xl max-w-3xl leading-relaxed opacity-90 font-serif italic">
-                        "{slide.content?.text || slide.text}"
-                    </p>
-                )}
+                <EditableElement
+                    element={{ id: 'text', type: 'text', value: slide.content?.text || slide.text, path: slide.content?.text ? 'content.text' : 'text', label: 'Text' }}
+                    onSelect={onSelect}
+                    isSelected={selectedId === 'text'}
+                >
+                    {(slide.content?.text || slide.text) && (
+                        <p className="text-xl md:text-2xl max-w-3xl leading-relaxed opacity-90 font-serif italic">
+                            "{slide.content?.text || slide.text}"
+                        </p>
+                    )}
+                </EditableElement>
             </div>
         </div>
     );
@@ -2329,7 +3283,7 @@ const ImageFocusLayout = ({ slide, colors, variation = 'default' }: { slide: any
 // Section divider layout - Bold typographic transitions
 type SectionVariation = 'default' | 'big-number-outline' | 'minimal-bar' | 'abstract-mesh';
 
-const SectionDividerLayout = ({ slide, colors, variation = 'default' }: { slide: any; colors: any, variation?: SectionVariation }) => {
+const SectionDividerLayout = ({ slide, colors, variation = 'default', onSelect, selectedId }: { slide: any; colors: any, variation?: SectionVariation; onSelect?: any; selectedId?: string | null }) => {
 
     const sectionIndex = slide.index || 1;
     const paddedIndex = sectionIndex < 10 ? `0${sectionIndex}` : `${sectionIndex}`;
@@ -2351,14 +3305,27 @@ const SectionDividerLayout = ({ slide, colors, variation = 'default' }: { slide:
 
                 <div className="relative z-10 text-center">
                     <div className="mb-8 w-24 h-1 bg-primary mx-auto" style={{ backgroundColor: colors.accent }} />
-                    <h2 className="text-7xl font-bold mb-6 tracking-tight relative" style={{ color: colors.text }}>
-                        {slide.title}
-                    </h2>
-                    {slide.subtitle && (
-                        <p className="text-2xl opacity-60 uppercase tracking-[0.3em]" style={{ color: colors.text }}>
-                            {slide.subtitle}
-                        </p>
-                    )}
+                    <EditableElement
+                        element={{ id: 'title', type: 'text', value: slide.title, path: 'title', label: 'Title' }}
+                        onSelect={onSelect}
+                        isSelected={selectedId === 'title'}
+                        className="mb-6"
+                    >
+                        <h2 className="text-7xl font-bold tracking-tight relative" style={{ color: colors.text }}>
+                            {slide.title}
+                        </h2>
+                    </EditableElement>
+                    <EditableElement
+                        element={{ id: 'subtitle', type: 'text', value: slide.subtitle, path: 'subtitle', label: 'Subtitle' }}
+                        onSelect={onSelect}
+                        isSelected={selectedId === 'subtitle'}
+                    >
+                        {slide.subtitle && (
+                            <p className="text-2xl opacity-60 uppercase tracking-[0.3em]" style={{ color: colors.text }}>
+                                {slide.subtitle}
+                            </p>
+                        )}
+                    </EditableElement>
                 </div>
                 <SlideFooter title="" slideNumber={sectionIndex} colors={colors} />
             </div>
@@ -2379,14 +3346,27 @@ const SectionDividerLayout = ({ slide, colors, variation = 'default' }: { slide:
                         <span className="text-xl font-bold uppercase tracking-widest mb-4 opacity-50 block" style={{ color: colors.secondary }}>
                             Part {paddedIndex}
                         </span>
-                        <h2 className="text-7xl md:text-8xl font-bold leading-[0.9] mb-8" style={{ color: colors.text }}>
-                            {slide.title}
-                        </h2>
-                        {slide.subtitle && (
-                            <p className="text-2xl md:text-3xl opacity-80 max-w-2xl font-light leading-snug" style={{ color: colors.text }}>
-                                {slide.subtitle}
-                            </p>
-                        )}
+                        <EditableElement
+                            element={{ id: 'title', type: 'text', value: slide.title, path: 'title', label: 'Title' }}
+                            onSelect={onSelect}
+                            isSelected={selectedId === 'title'}
+                            className="mb-8"
+                        >
+                            <h2 className="text-7xl md:text-8xl font-bold leading-[0.9]" style={{ color: colors.text }}>
+                                {slide.title}
+                            </h2>
+                        </EditableElement>
+                        <EditableElement
+                            element={{ id: 'subtitle', type: 'text', value: slide.subtitle, path: 'subtitle', label: 'Subtitle' }}
+                            onSelect={onSelect}
+                            isSelected={selectedId === 'subtitle'}
+                        >
+                            {slide.subtitle && (
+                                <p className="text-2xl md:text-3xl opacity-80 max-w-2xl font-light leading-snug" style={{ color: colors.text }}>
+                                    {slide.subtitle}
+                                </p>
+                            )}
+                        </EditableElement>
                     </div>
                 </div>
                 <SlideFooter title={slide.title} colors={colors} />
@@ -2408,15 +3388,28 @@ const SectionDividerLayout = ({ slide, colors, variation = 'default' }: { slide:
                 <div className="absolute inset-0 bg-white/40 backdrop-blur-3xl" />
 
                 <div className="relative z-10 text-center border border-white/40 py-20 px-16 max-w-5xl bg-white/20 backdrop-blur-md rounded-[3rem] shadow-2xl">
-                    <h2 className="text-6xl md:text-8xl font-black mb-6 text-white drop-shadow-sm leading-tight mix-blend-hard-light"
-                        style={{ color: colors.text }}>
-                        {slide.title}
-                    </h2>
-                    {slide.subtitle && (
-                        <p className="text-2xl opacity-90 font-medium tracking-wide" style={{ color: colors.text }}>
-                            {slide.subtitle}
-                        </p>
-                    )}
+                    <EditableElement
+                        element={{ id: 'title', type: 'text', value: slide.title, path: 'title', label: 'Title' }}
+                        onSelect={onSelect}
+                        isSelected={selectedId === 'title'}
+                        className="mb-6"
+                    >
+                        <h2 className="text-6xl md:text-8xl font-black text-white drop-shadow-sm leading-tight mix-blend-hard-light"
+                            style={{ color: colors.text }}>
+                            {slide.title}
+                        </h2>
+                    </EditableElement>
+                    <EditableElement
+                        element={{ id: 'subtitle', type: 'text', value: slide.subtitle, path: 'subtitle', label: 'Subtitle' }}
+                        onSelect={onSelect}
+                        isSelected={selectedId === 'subtitle'}
+                    >
+                        {slide.subtitle && (
+                            <p className="text-2xl opacity-90 font-medium tracking-wide" style={{ color: colors.text }}>
+                                {slide.subtitle}
+                            </p>
+                        )}
+                    </EditableElement>
                 </div>
             </div>
         );
@@ -2428,9 +3421,22 @@ const SectionDividerLayout = ({ slide, colors, variation = 'default' }: { slide:
             style={{ backgroundColor: colors.primary }}>
             <div className="absolute inset-0 opacity-20" style={{ backgroundImage: `linear-gradient(45deg, ${colors.secondary}, transparent)` }} />
             <div className="relative z-10 text-center px-12">
-                <h2 className="text-7xl font-bold mb-6">{slide.title}</h2>
+                <EditableElement
+                    element={{ id: 'title', type: 'text', value: slide.title, path: 'title', label: 'Title' }}
+                    onSelect={onSelect}
+                    isSelected={selectedId === 'title'}
+                    className="mb-6"
+                >
+                    <h2 className="text-7xl font-bold">{slide.title}</h2>
+                </EditableElement>
                 <div className="w-32 h-2 bg-white mx-auto rounded-full mb-8" />
-                <p className="text-2xl opacity-80">{slide.subtitle}</p>
+                <EditableElement
+                    element={{ id: 'subtitle', type: 'text', value: slide.subtitle, path: 'subtitle', label: 'Subtitle' }}
+                    onSelect={onSelect}
+                    isSelected={selectedId === 'subtitle'}
+                >
+                    <p className="text-2xl opacity-80">{slide.subtitle}</p>
+                </EditableElement>
             </div>
         </div>
     );
@@ -2440,10 +3446,15 @@ const SectionDividerLayout = ({ slide, colors, variation = 'default' }: { slide:
 // Bento Grid Layout - Modern CSS Grid features
 type BentoVariation = 'default' | 'magazine-grid' | 'feature-focus' | 'asymmetric-masonry';
 
-const BentoGridLayout = ({ slide, colors, variation = 'default' }: { slide: any; colors: any, variation?: BentoVariation }) => {
+const BentoGridLayout = ({ slide, colors, variation = 'default', onSelect, selectedId }: { slide: any; colors: any, variation?: BentoVariation; onSelect?: any; selectedId?: string | null }) => {
     const items = slide.content?.items || slide.items || [];
     // Ensure we have at least 3 items to look good, max 5 for this specific layout
     const displayItems = items.slice(0, 5);
+
+    // --- PATH RESOLUTION ---
+    let itemsPath = 'content.items';
+    if (slide.items) itemsPath = 'items';
+    else if (slide.content?.items) itemsPath = 'content.items';
 
     // --- VARIATION 1: MAGAZINE GRID (Editorial) ---
     if (variation === 'magazine-grid') {
@@ -2466,12 +3477,25 @@ const BentoGridLayout = ({ slide, colors, variation = 'default' }: { slide: any;
                             <span className="inline-block px-4 py-2 bg-white/20 backdrop-blur-md rounded-full text-white text-xs font-bold uppercase tracking-widest mb-6 border border-white/20">
                                 Cover Story
                             </span>
-                            <h2 className="text-5xl font-bold text-white mb-6 leading-tight">
-                                {mainItem?.title || slide.title}
-                            </h2>
-                            <p className="text-xl text-white/80 line-clamp-3 leading-relaxed max-w-2xl">
-                                {mainItem?.description || slide.content?.description || "Detailed analysis of the key trends shaping this narrative."}
-                            </p>
+                            <EditableElement
+                                element={{ id: 'main-title', type: 'text', value: mainItem?.title || slide.title, path: items.length > 0 ? `${itemsPath}[0].title` : 'title', label: 'Main Title' }}
+                                onSelect={onSelect}
+                                isSelected={selectedId === 'main-title'}
+                                className="mb-6"
+                            >
+                                <h2 className="text-5xl font-bold text-white leading-tight">
+                                    {mainItem?.title || slide.title}
+                                </h2>
+                            </EditableElement>
+                            <EditableElement
+                                element={{ id: 'main-desc', type: 'text', value: mainItem?.description || slide.content?.description, path: items.length > 0 ? `${itemsPath}[0].description` : 'content.description', label: 'Main Description' }}
+                                onSelect={onSelect}
+                                isSelected={selectedId === 'main-desc'}
+                            >
+                                <p className="text-xl text-white/80 line-clamp-3 leading-relaxed max-w-2xl">
+                                    {mainItem?.description || slide.content?.description || "Detailed analysis of the key trends shaping this narrative."}
+                                </p>
+                            </EditableElement>
                         </div>
                     </div>
 
@@ -2488,8 +3512,21 @@ const BentoGridLayout = ({ slide, colors, variation = 'default' }: { slide: any;
                                 <div className="w-24 h-24 rounded-xl bg-cover bg-center shrink-0 shadow-md transform group-hover:scale-105 transition-transform duration-500"
                                     style={{ backgroundImage: `url(${item.image || `https://source.unsplash.com/200x200/?${encodeURIComponent(item.title || 'abstract')}`})` }} />
                                 <div className="flex-1 min-w-0">
-                                    <h3 className="text-xl font-bold truncate mb-2 group-hover:text-primary transition-colors" style={{ color: colors.text }}>{item.title}</h3>
-                                    <p className="text-sm opacity-60 line-clamp-2 leading-relaxed" style={{ color: colors.text }}>{item.description}</p>
+                                    <EditableElement
+                                        element={{ id: `side-${i}-title`, type: 'text', value: item.title, path: `${itemsPath}[${i + 1}].title`, label: `Side Item ${i + 1} Title` }}
+                                        onSelect={onSelect}
+                                        isSelected={selectedId === `side-${i}-title`}
+                                        className="mb-2"
+                                    >
+                                        <h3 className="text-xl font-bold truncate group-hover:text-primary transition-colors" style={{ color: colors.text }}>{item.title}</h3>
+                                    </EditableElement>
+                                    <EditableElement
+                                        element={{ id: `side-${i}-desc`, type: 'text', value: item.description, path: `${itemsPath}[${i + 1}].description`, label: `Side Item ${i + 1} Description` }}
+                                        onSelect={onSelect}
+                                        isSelected={selectedId === `side-${i}-desc`}
+                                    >
+                                        <p className="text-sm opacity-60 line-clamp-2 leading-relaxed" style={{ color: colors.text }}>{item.description}</p>
+                                    </EditableElement>
                                 </div>
                                 <div className="w-10 h-10 rounded-full border flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity" style={{ borderColor: colors.primary, color: colors.primary }}>
                                     →
@@ -2528,8 +3565,22 @@ const BentoGridLayout = ({ slide, colors, variation = 'default' }: { slide: any;
                         <div className="flex flex-col gap-24 h-full justify-center">
                             {satellites.slice(0, 2).map((item: any, i: number) => (
                                 <div key={i} className="text-right group transform hover:-translate-x-2 transition-transform">
-                                    <h3 className="text-2xl font-bold mb-2" style={{ color: colors.text }}>{item.title}</h3>
-                                    <p className="text-sm opacity-70 mb-4" style={{ color: colors.text }}>{item.description}</p>
+                                    <EditableElement
+                                        element={{ id: `left-sat-${i}-title`, type: 'text', value: item.title, path: `${itemsPath}[${i + 1}].title`, label: `Left Item ${i + 1} Title` }}
+                                        onSelect={onSelect}
+                                        isSelected={selectedId === `left-sat-${i}-title`}
+                                        className="mb-2"
+                                    >
+                                        <h3 className="text-2xl font-bold" style={{ color: colors.text }}>{item.title}</h3>
+                                    </EditableElement>
+                                    <EditableElement
+                                        element={{ id: `left-sat-${i}-desc`, type: 'text', value: item.description, path: `${itemsPath}[${i + 1}].description`, label: `Left Item ${i + 1} Description` }}
+                                        onSelect={onSelect}
+                                        isSelected={selectedId === `left-sat-${i}-desc`}
+                                        className="mb-4"
+                                    >
+                                        <p className="text-sm opacity-70" style={{ color: colors.text }}>{item.description}</p>
+                                    </EditableElement>
                                     <div className="h-[1px] w-full bg-gradient-to-l from-current to-transparent opacity-30" style={{ color: colors.primary }} />
                                 </div>
                             ))}
@@ -2542,7 +3593,14 @@ const BentoGridLayout = ({ slide, colors, variation = 'default' }: { slide: any;
                                 className="w-full h-full object-cover" alt="" />
                             <div className="absolute bottom-0 left-0 right-0 bg-white/90 backdrop-blur-md p-8 text-center"
                                 style={{ backgroundColor: `${colors.bg}E6` }}>
-                                <h2 className="text-3xl font-black uppercase tracking-tight mb-2" style={{ color: colors.text }}>{centerItem?.title || slide.title}</h2>
+                                <EditableElement
+                                    element={{ id: 'center-title', type: 'text', value: centerItem?.title || slide.title, path: items.length > 0 ? 'content.items[0].title' : 'title', label: 'Center Title' }}
+                                    onSelect={onSelect}
+                                    isSelected={selectedId === 'center-title'}
+                                    className="mb-2"
+                                >
+                                    <h2 className="text-3xl font-black uppercase tracking-tight" style={{ color: colors.text }}>{centerItem?.title || slide.title}</h2>
+                                </EditableElement>
                                 <span className="text-xs font-bold px-3 py-1 rounded-full bg-primary/10 text-primary uppercase tracking-widest"
                                     style={{ backgroundColor: `${colors.primary}15`, color: colors.primary }}>
                                     Feature Spotlight
@@ -2554,8 +3612,21 @@ const BentoGridLayout = ({ slide, colors, variation = 'default' }: { slide: any;
                         <div className="flex flex-col gap-24 h-full justify-center">
                             {satellites.slice(2, 4).map((item: any, i: number) => (
                                 <div key={i} className="text-left group transform hover:translate-x-2 transition-transform">
-                                    <h3 className="text-2xl font-bold mb-2" style={{ color: colors.text }}>{item.title}</h3>
-                                    <p className="text-sm opacity-70 mb-4" style={{ color: colors.text }}>{item.description}</p>
+                                    <EditableElement
+                                        element={{ id: `right-sat-${i}-title`, type: 'text', value: item.title, path: `${itemsPath}[${i + 3}].title`, label: `Right Item ${i + 1} Title` }}
+                                        onSelect={onSelect}
+                                        isSelected={selectedId === `right-sat-${i}-title`}
+                                        className="mb-2"
+                                    >
+                                        <h3 className="text-2xl font-bold" style={{ color: colors.text }}>{item.title}</h3>
+                                    </EditableElement>
+                                    <EditableElement
+                                        element={{ id: `right-sat-${i}-desc`, type: 'text', value: item.description, path: `${itemsPath}[${i + 3}].description`, label: `Right Item ${i + 1} Description` }}
+                                        onSelect={onSelect}
+                                        isSelected={selectedId === `right-sat-${i}-desc`}
+                                    >
+                                        <p className="text-sm opacity-70" style={{ color: colors.text }}>{item.description}</p>
+                                    </EditableElement>
                                     <div className="h-[1px] w-full bg-gradient-to-r from-current to-transparent opacity-30" style={{ color: colors.primary }} />
                                 </div>
                             ))}
@@ -2581,9 +3652,15 @@ const BentoGridLayout = ({ slide, colors, variation = 'default' }: { slide: any;
         return (
             <div className="relative w-full h-full overflow-hidden p-16" style={{ backgroundColor: colors.bg }}>
                 <div className="flex justify-between items-end mb-12">
-                    <h2 className="text-5xl font-bold leading-tight" style={{ color: colors.text }}>
-                        {slide.title}
-                    </h2>
+                    <EditableElement
+                        element={{ id: 'title', type: 'text', value: slide.title, path: 'title', label: 'Title' }}
+                        onSelect={onSelect}
+                        isSelected={selectedId === 'title'}
+                    >
+                        <h2 className="text-5xl font-bold leading-tight" style={{ color: colors.text }}>
+                            {slide.title}
+                        </h2>
+                    </EditableElement>
                     <div className="flex gap-2">
                         <div className="w-3 h-3 rounded-full" style={{ backgroundColor: colors.primary }} />
                         <div className="w-3 h-3 rounded-full opacity-50" style={{ backgroundColor: colors.primary }} />
@@ -2599,20 +3676,35 @@ const BentoGridLayout = ({ slide, colors, variation = 'default' }: { slide: any;
                         return (
                             <div key={i} className={`relative rounded-3xl overflow-hidden group shadow-lg ${spanClass} transition-all hover:-translate-y-1 hover:shadow-xl`}
                                 style={{ backgroundColor: colors.surface || '#f5f5f5' }}>
-                                <img src={item.image || `https://source.unsplash.com/600x${isTall ? '800' : '400'}/?${encodeURIComponent(item.title || 'texture')}`}
+                                <img src={item.image || `https://picsum.photos/seed/${i + (slide.title || 'default')}/600/${isTall ? '800' : '400'}`}
                                     className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" alt="" />
 
-                                <div className="absolute inset-0 bg-black/40 group-hover:bg-black/20 transition-colors" />
+                                <div className="absolute inset-0 p-6 flex flex-col justify-end group-hover:justify-center transition-all duration-500 z-10">
+                                    <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent group-hover:via-black/80 group-hover:to-black/80 transition-all duration-500 -z-10" />
 
-                                <div className="absolute bottom-0 left-0 p-6 w-full transform translate-y-4 group-hover:translate-y-0 transition-transform">
-                                    <h3 className="text-white text-xl font-bold mb-1 shadow-sm">{item.title}</h3>
-                                    <p className="text-white/80 text-sm opacity-0 group-hover:opacity-100 transition-opacity delay-100 line-clamp-2">
-                                        {item.description}
-                                    </p>
+                                    <div className="transform translate-y-4 group-hover:translate-y-0 transition-transform duration-500">
+                                        <EditableElement
+                                            element={{ id: `mesonry-${i}-title`, type: 'text', value: item.title, path: `${itemsPath}[${i}].title`, label: `Item ${i + 1} Title` }}
+                                            onSelect={onSelect}
+                                            isSelected={selectedId === `mesonry-${i}-title`}
+                                            className="mb-2"
+                                        >
+                                            <h3 className="text-white text-2xl font-bold shadow-sm group-hover:text-3xl transition-all duration-300">{item.title}</h3>
+                                        </EditableElement>
+                                        <EditableElement
+                                            element={{ id: `mesonry-${i}-desc`, type: 'text', value: item.description, path: `${itemsPath}[${i}].description`, label: `Item ${i + 1} Description` }}
+                                            onSelect={onSelect}
+                                            isSelected={selectedId === `mesonry-${i}-desc`}
+                                        >
+                                            <p className="text-white/80 text-base opacity-0 group-hover:opacity-100 transition-opacity duration-500 delay-100 line-clamp-4">
+                                                {item.description}
+                                            </p>
+                                        </EditableElement>
+                                    </div>
                                 </div>
 
-                                {/* Number badge */}
-                                <div className="absolute top-4 right-4 w-8 h-8 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center text-white text-xs font-bold border border-white/20">
+                                {/* Number badge - Move to z-20 to stay on top */}
+                                <div className="absolute top-4 right-4 w-8 h-8 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center text-white text-xs font-bold border border-white/20 z-20">
                                     {i + 1}
                                 </div>
                             </div>
@@ -2643,9 +3735,16 @@ const BentoGridLayout = ({ slide, colors, variation = 'default' }: { slide: any;
             )}
 
             <div className="relative z-10 flex flex-col px-16 py-12 h-full">
-                <h2 className="text-5xl font-bold mb-8" style={{ color: colors.text }}>
-                    {slide.title}
-                </h2>
+                <EditableElement
+                    element={{ id: 'title', type: 'text', value: slide.title, path: 'title', label: 'Title' }}
+                    onSelect={onSelect}
+                    isSelected={selectedId === 'title'}
+                    className="mb-8"
+                >
+                    <h2 className="text-5xl font-bold" style={{ color: colors.text }}>
+                        {slide.title}
+                    </h2>
+                </EditableElement>
 
                 <div className="flex-1 grid grid-cols-6 grid-rows-2 gap-6">
                     {displayItems.map((item: any, i: number) => {
@@ -2691,14 +3790,27 @@ const BentoGridLayout = ({ slide, colors, variation = 'default' }: { slide: any;
                                     </div>
 
                                     <div>
-                                        <h3 className="text-2xl lg:text-3xl font-bold mb-3 text-white shadow-md leading-tight">
-                                            {item.title}
-                                        </h3>
-                                        {item.description && (
-                                            <p className="text-lg text-white/90 leading-relaxed font-medium shadow-sm line-clamp-3">
-                                                {item.description}
-                                            </p>
-                                        )}
+                                        <EditableElement
+                                            element={{ id: `mesonry-${i}-title`, type: 'text', value: item.title, path: `${itemsPath}[${i}].title`, label: `Item ${i + 1} Title` }}
+                                            onSelect={onSelect}
+                                            isSelected={selectedId === `mesonry-${i}-title`}
+                                            className="mb-3"
+                                        >
+                                            <h3 className="text-2xl lg:text-3xl font-bold text-white shadow-md leading-tight">
+                                                {item.title}
+                                            </h3>
+                                        </EditableElement>
+                                        <EditableElement
+                                            element={{ id: `mesonry-${i}-desc`, type: 'text', value: item.description, path: `content.items[${i}].description`, label: `Item ${i + 1} Description` }}
+                                            onSelect={onSelect}
+                                            isSelected={selectedId === `mesonry-${i}-desc`}
+                                        >
+                                            {item.description && (
+                                                <p className="text-lg text-white/90 leading-relaxed font-medium shadow-sm line-clamp-3">
+                                                    {item.description}
+                                                </p>
+                                            )}
+                                        </EditableElement>
                                     </div>
                                 </div>
                             </div>
@@ -2714,10 +3826,15 @@ const BentoGridLayout = ({ slide, colors, variation = 'default' }: { slide: any;
 // Product Showcase Layout - Tech focused
 type ShowcaseVariation = 'default' | 'lifestyle-split' | 'app-mockup' | 'exploded-view';
 
-const ProductShowcaseLayout = ({ slide, colors, variation = 'default' }: { slide: any; colors: any, variation?: ShowcaseVariation }) => {
+const ProductShowcaseLayout = ({ slide, colors, variation = 'default', onSelect, selectedId }: { slide: any; colors: any, variation?: ShowcaseVariation; onSelect?: any; selectedId?: string | null }) => {
     const items = slide.content?.items || slide.items || [];
     // Ensure we have an image
     const mainImage = slide.backgroundImage || (slide.imageSearchQuery ? `https://source.unsplash.com/1600x900/?${encodeURIComponent(slide.imageSearchQuery)}` : null);
+
+    // --- PATH RESOLUTION ---
+    let itemsPath = 'content.items';
+    if (slide.items) itemsPath = 'items';
+    else if (slide.content?.items) itemsPath = 'content.items';
 
     // --- VARIATION 1: LIFESTYLE SPLIT (Emotional) ---
     if (variation === 'lifestyle-split') {
@@ -2739,33 +3856,58 @@ const ProductShowcaseLayout = ({ slide, colors, variation = 'default' }: { slide
                         <span className="inline-block px-3 py-1 mb-4 border border-white/30 rounded-full text-xs uppercase tracking-[0.2em] backdrop-blur-sm">
                             Lifestyle Collection
                         </span>
-                        <h2 className="text-6xl font-bold leading-none mb-4">{slide.title}</h2>
+                        <EditableElement
+                            element={{ id: 'title', type: 'text', value: slide.title, path: 'title', label: 'Title' }}
+                            onSelect={onSelect}
+                            isSelected={selectedId === 'title'}
+                        >
+                            <h2 className="text-6xl font-bold leading-none mb-4">{slide.title}</h2>
+                        </EditableElement>
                     </div>
                 </div>
 
                 {/* Right Content Side (40%) */}
                 <div className="w-[40%] h-full p-16 flex flex-col justify-center relative bg-white/5 backdrop-blur-sm">
-                    {slide.subtitle && (
-                        <p className="text-xl mb-12 opacity-80 font-light leading-relaxed" style={{ color: colors.text }}>
-                            {slide.subtitle}
-                        </p>
-                    )}
+                    <EditableElement
+                        element={{ id: 'subtitle', type: 'text', value: slide.subtitle, path: 'subtitle', label: 'Subtitle' }}
+                        onSelect={onSelect}
+                        isSelected={selectedId === 'subtitle'}
+                        className="mb-12"
+                    >
+                        {slide.subtitle && (
+                            <p className="text-xl opacity-80 font-light leading-relaxed" style={{ color: colors.text }}>
+                                {slide.subtitle}
+                            </p>
+                        )}
+                    </EditableElement>
 
                     <div className="space-y-8">
                         {items.slice(0, 3).map((item: any, i: number) => (
                             <div key={i} className="group cursor-pointer">
                                 <div className="flex items-center justify-between mb-2 border-b pb-2 transition-colors duration-300"
                                     style={{ borderColor: `${colors.text}20` }}>
-                                    <h3 className="text-xl font-bold group-hover:translate-x-2 transition-transform"
-                                        style={{ color: colors.text }}>
-                                        {item.title}
-                                    </h3>
+                                    <EditableElement
+                                        element={{ id: `item-${i}-title`, type: 'text', value: item.title, path: `${itemsPath}[${i}].title`, label: `Item ${i + 1} Title` }}
+                                        onSelect={onSelect}
+                                        isSelected={selectedId === `item-${i}-title`}
+                                    >
+                                        <h3 className="text-xl font-bold group-hover:translate-x-2 transition-transform"
+                                            style={{ color: colors.text }}>
+                                            {item.title}
+                                        </h3>
+                                    </EditableElement>
                                     <span className="opacity-0 group-hover:opacity-100 transition-opacity" style={{ color: colors.primary }}>→</span>
                                 </div>
-                                <p className="text-sm opacity-60 pl-4 border-l-2 border-transparent group-hover:border-current transition-all"
-                                    style={{ color: colors.text, borderColor: 'transparent' }}>
-                                    {item.description}
-                                </p>
+                                <EditableElement
+                                    element={{ id: `item-${i}-desc`, type: 'text', value: item.description, path: `${itemsPath}[${i}].description`, label: `Item ${i + 1} Description` }}
+                                    onSelect={onSelect}
+                                    isSelected={selectedId === `item-${i}-desc`}
+                                >
+                                    <p className="text-sm opacity-60 pl-4 border-l-2 border-transparent group-hover:border-current transition-all"
+                                        style={{ color: colors.text, borderColor: 'transparent' }}>
+                                        {item.description}
+                                    </p>
+                                </EditableElement>
                             </div>
                         ))}
                     </div>
@@ -2784,7 +3926,14 @@ const ProductShowcaseLayout = ({ slide, colors, variation = 'default' }: { slide
                     <span className="text-xs font-bold uppercase tracking-widest opacity-60" style={{ color: colors.text }}>
                         Platform Overview
                     </span>
-                    <h2 className="text-4xl font-bold mt-2" style={{ color: colors.text }}>{slide.title}</h2>
+                    <EditableElement
+                        element={{ id: 'title', type: 'text', value: slide.title, path: 'title', label: 'Title' }}
+                        onSelect={onSelect}
+                        isSelected={selectedId === 'title'}
+                        className="mt-2"
+                    >
+                        <h2 className="text-4xl font-bold" style={{ color: colors.text }}>{slide.title}</h2>
+                    </EditableElement>
                 </div>
 
                 <div className="flex-1 flex items-center justify-center w-full max-w-7xl mx-auto relative z-10">
@@ -2795,9 +3944,23 @@ const ProductShowcaseLayout = ({ slide, colors, variation = 'default' }: { slide
                                 <div className="w-12 h-12 mb-4 ml-auto rounded-xl flex items-center justify-center shadow-lg transition-transform group-hover:scale-110"
                                     style={{ backgroundColor: colors.surface || 'white', color: colors.primary }}>
                                     {i + 1}
+                                    {i + 1}
                                 </div>
-                                <h3 className="text-lg font-bold mb-1" style={{ color: colors.text }}>{item.title}</h3>
-                                <p className="text-sm opacity-60" style={{ color: colors.text }}>{item.description}</p>
+                                <EditableElement
+                                    element={{ id: `left-item-${i}-title`, type: 'text', value: item.title, path: `${itemsPath}[${i}].title`, label: `Left Item ${i + 1} Title` }}
+                                    onSelect={onSelect}
+                                    isSelected={selectedId === `left-item-${i}-title`}
+                                    className="mb-1"
+                                >
+                                    <h3 className="text-lg font-bold" style={{ color: colors.text }}>{item.title}</h3>
+                                </EditableElement>
+                                <EditableElement
+                                    element={{ id: `left-item-${i}-desc`, type: 'text', value: item.description, path: `${itemsPath}[${i}].description`, label: `Left Item ${i + 1} Description` }}
+                                    onSelect={onSelect}
+                                    isSelected={selectedId === `left-item-${i}-desc`}
+                                >
+                                    <p className="text-sm opacity-60" style={{ color: colors.text }}>{item.description}</p>
+                                </EditableElement>
                             </div>
                         ))}
                     </div>
@@ -2829,9 +3992,23 @@ const ProductShowcaseLayout = ({ slide, colors, variation = 'default' }: { slide
                                 <div className="w-12 h-12 mb-4 mr-auto rounded-xl flex items-center justify-center shadow-lg transition-transform group-hover:scale-110"
                                     style={{ backgroundColor: colors.surface || 'white', color: colors.primary }}>
                                     {i + 3}
+                                    {i + 3}
                                 </div>
-                                <h3 className="text-lg font-bold mb-1" style={{ color: colors.text }}>{item.title}</h3>
-                                <p className="text-sm opacity-60" style={{ color: colors.text }}>{item.description}</p>
+                                <EditableElement
+                                    element={{ id: `right-item-${i}-title`, type: 'text', value: item.title, path: `${itemsPath}[${i + 2}].title`, label: `Right Item ${i + 1} Title` }}
+                                    onSelect={onSelect}
+                                    isSelected={selectedId === `right-item-${i}-title`}
+                                    className="mb-1"
+                                >
+                                    <h3 className="text-lg font-bold" style={{ color: colors.text }}>{item.title}</h3>
+                                </EditableElement>
+                                <EditableElement
+                                    element={{ id: `right-item-${i}-desc`, type: 'text', value: item.description, path: `${itemsPath}[${i + 2}].description`, label: `Right Item ${i + 1} Description` }}
+                                    onSelect={onSelect}
+                                    isSelected={selectedId === `right-item-${i}-desc`}
+                                >
+                                    <p className="text-sm opacity-60" style={{ color: colors.text }}>{item.description}</p>
+                                </EditableElement>
                             </div>
                         ))}
                     </div>
@@ -2856,12 +4033,25 @@ const ProductShowcaseLayout = ({ slide, colors, variation = 'default' }: { slide
 
                 <div className="relative z-10 flex flex-col h-full px-16 py-12">
                     <div className="text-center mb-12">
-                        <h2 className="text-5xl font-bold uppercase tracking-widest mb-4" style={{ color: colors.primary }}>
-                            {slide.title}
-                        </h2>
-                        {slide.subtitle && (
-                            <p className="text-xl opacity-80" style={{ color: colors.text }}>{slide.subtitle}</p>
-                        )}
+                        <EditableElement
+                            element={{ id: 'title', type: 'text', value: slide.title, path: 'title', label: 'Title' }}
+                            onSelect={onSelect}
+                            isSelected={selectedId === 'title'}
+                            className="mb-4"
+                        >
+                            <h2 className="text-5xl font-bold uppercase tracking-widest" style={{ color: colors.primary }}>
+                                {slide.title}
+                            </h2>
+                        </EditableElement>
+                        <EditableElement
+                            element={{ id: 'subtitle', type: 'text', value: slide.subtitle, path: 'subtitle', label: 'Subtitle' }}
+                            onSelect={onSelect}
+                            isSelected={selectedId === 'subtitle'}
+                        >
+                            {slide.subtitle && (
+                                <p className="text-xl opacity-80" style={{ color: colors.text }}>{slide.subtitle}</p>
+                            )}
+                        </EditableElement>
                     </div>
 
                     <div className="flex-1 relative flex items-center justify-center perspective-[2000px]">
@@ -2905,11 +4095,23 @@ const ProductShowcaseLayout = ({ slide, colors, variation = 'default' }: { slide
                                                     style={{ backgroundColor: colors.primary }}>
                                                     {i + 1}
                                                 </div>
-                                                <h4 className="font-bold text-sm uppercase tracking-wider" style={{ color: colors.text }}>{item.title}</h4>
+                                                <EditableElement
+                                                    element={{ id: `orbit-item-${i}-title`, type: 'text', value: item.title, path: `${itemsPath}[${i}].title`, label: `Item ${i + 1} Title` }}
+                                                    onSelect={onSelect}
+                                                    isSelected={selectedId === `orbit-item-${i}-title`}
+                                                >
+                                                    <h4 className="font-bold text-sm uppercase tracking-wider" style={{ color: colors.text }}>{item.title}</h4>
+                                                </EditableElement>
                                             </div>
-                                            <p className="text-xs opacity-80 leading-relaxed" style={{ color: colors.text }}>
-                                                {item.description || item.value || "Technical specification details."}
-                                            </p>
+                                            <EditableElement
+                                                element={{ id: `orbit-item-${i}-desc`, type: 'text', value: item.description || item.value, path: item.description ? `content.items[${i}].description` : `content.items[${i}].value`, label: `Item ${i + 1} Description` }}
+                                                onSelect={onSelect}
+                                                isSelected={selectedId === `orbit-item-${i}-desc`}
+                                            >
+                                                <p className="text-xs opacity-80 leading-relaxed" style={{ color: colors.text }}>
+                                                    {item.description || item.value || "Technical specification details."}
+                                                </p>
+                                            </EditableElement>
                                         </div>
                                         {/* Connector Line */}
                                         <div className={`absolute w-full h-[1px] bg-gradient-to-r from-transparent via-current to-transparent opacity-30 ${i < 2 ? 'top-full mt-4' : 'bottom-full mb-4'}`}
@@ -2934,7 +4136,7 @@ const ProductShowcaseLayout = ({ slide, colors, variation = 'default' }: { slide
 // Supports: Classic, Split Card, Hero Block, Minimal Offset, Magazine
 type MasterVariation = 'classic' | 'split-card' | 'hero-block' | 'minimal-offset' | 'magazine';
 
-const MasterContentLayout = ({ slide, colors, variation = 'classic' }: { slide: any; colors: any; variation?: MasterVariation }) => {
+const MasterContentLayout = ({ slide, colors, variation = 'classic', onSelect, selectedId }: { slide: any; colors: any; variation?: MasterVariation; onSelect?: any; selectedId?: string | null }) => {
     // Determine content
     const bullets = slide.bullets || slide.content?.bullets || [];
     const text = slide.text || slide.content?.text || slide.content?.description;
@@ -2948,13 +4150,37 @@ const MasterContentLayout = ({ slide, colors, variation = 'classic' }: { slide: 
                 <AbstractShapes colors={colors} />
                 <div className="relative z-10 grid grid-cols-2 h-full">
                     <div className="p-20 flex flex-col justify-center">
-                        <h2 className="text-5xl font-bold mb-8" style={{ color: colors.text }}>{slide.title}</h2>
-                        {text && <p className="text-xl mb-6 opacity-90" style={{ color: colors.text }}>{text}</p>}
+                        <EditableElement
+                            element={{ id: 'title', type: 'text', value: slide.title, path: 'title', label: 'Title' }}
+                            onSelect={onSelect}
+                            isSelected={selectedId === 'title'}
+                            className="mb-8"
+                        >
+                            <h2 className="text-5xl font-bold" style={{ color: colors.text }}>{slide.title}</h2>
+                        </EditableElement>
+
+                        {text && (
+                            <EditableElement
+                                element={{ id: 'text', type: 'text', value: text, path: slide.text ? 'text' : (slide.content?.description ? 'content.description' : 'content.text'), label: 'Body Text' }}
+                                onSelect={onSelect}
+                                isSelected={selectedId === 'text'}
+                                className="mb-6"
+                            >
+                                <p className="text-xl opacity-90" style={{ color: colors.text }}>{text}</p>
+                            </EditableElement>
+                        )}
+
                         <ul className="space-y-4">
                             {bullets.map((b: string, i: number) => (
                                 <li key={i} className="flex items-start gap-4">
                                     <div className="w-2 h-2 rounded-full mt-3 flex-shrink-0" style={{ backgroundColor: colors.primary }} />
-                                    <span className="text-xl" style={{ color: colors.text }}>{b}</span>
+                                    <EditableElement
+                                        element={{ id: `bullet-${i}`, type: 'text', value: b, path: slide.bullets ? `bullets[${i}]` : `content.bullets[${i}]`, label: `Bullet ${i + 1}` }}
+                                        onSelect={onSelect}
+                                        isSelected={selectedId === `bullet-${i}`}
+                                    >
+                                        <span className="text-lg" style={{ color: colors.text }}>{b}</span>
+                                    </EditableElement>
                                 </li>
                             ))}
                         </ul>
@@ -2988,12 +4214,24 @@ const MasterContentLayout = ({ slide, colors, variation = 'classic' }: { slide: 
                     {/* Content Side */}
                     <div className="w-3/5 p-16 flex flex-col justify-center">
                         <span className="text-sm font-bold tracking-widest uppercase mb-4 opacity-50" style={{ color: '#000000' }}>KEY INSIGHTS</span>
-                        <h2 className="text-4xl font-bold mb-8" style={{ color: '#000000' }}>{slide.title}</h2>
+                        <EditableElement
+                            element={{ id: 'title', type: 'text', value: slide.title, path: 'title', label: 'Title' }}
+                            onSelect={onSelect}
+                            isSelected={selectedId === 'title'}
+                        >
+                            <h2 className="text-4xl font-bold mb-8" style={{ color: '#000000' }}>{slide.title}</h2>
+                        </EditableElement>
                         <ul className="space-y-6">
                             {bullets.map((b: string, i: number) => (
                                 <li key={i} className="flex items-center gap-4 p-4 rounded-xl hover:bg-black/5 transition-colors">
                                     <span className="w-8 h-8 rounded-full flex items-center justify-center font-bold shadow-lg" style={{ backgroundColor: colors.secondary, color: '#ffffff' }}>{i + 1}</span>
-                                    <span className="text-lg font-medium opacity-80" style={{ color: '#000000' }}>{b}</span>
+                                    <EditableElement
+                                        element={{ id: `bullet-${i}`, type: 'text', value: b, path: `bullets[${i}]`, label: `Bullet ${i + 1}` }}
+                                        onSelect={onSelect}
+                                        isSelected={selectedId === `bullet-${i}`}
+                                    >
+                                        <span className="text-lg font-medium opacity-80" style={{ color: '#000000' }}>{b}</span>
+                                    </EditableElement>
                                 </li>
                             ))}
                         </ul>
@@ -3010,14 +4248,26 @@ const MasterContentLayout = ({ slide, colors, variation = 'classic' }: { slide: 
                 <div className="h-1/2 relative w-full overflow-hidden">
                     {imageSrc && <img src={imageSrc} className="w-full h-full object-cover" alt="" />}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent flex items-end p-16">
-                        <h2 className="text-6xl font-bold shadow-sm" style={{ color: '#ffffff' }}>{slide.title}</h2>
+                        <EditableElement
+                            element={{ id: 'title', type: 'text', value: slide.title, path: 'title', label: 'Title' }}
+                            onSelect={onSelect}
+                            isSelected={selectedId === 'title'}
+                        >
+                            <h2 className="text-6xl font-bold shadow-sm" style={{ color: '#ffffff' }}>{slide.title}</h2>
+                        </EditableElement>
                     </div>
                 </div>
                 <div className="flex-1 p-12 grid grid-cols-3 gap-8 items-start">
                     {bullets.slice(0, 3).map((b: string, i: number) => (
                         <div key={i} className="p-8 rounded-2xl border h-full" style={{ borderColor: `${colors.text}20`, backgroundColor: `${colors.bg}` }}>
                             <div className="w-12 h-1 h-1 mb-6" style={{ backgroundColor: colors.accent }} />
-                            <p className="text-xl leading-relaxed" style={{ color: colors.text }}>{b}</p>
+                            <EditableElement
+                                element={{ id: `bullet-${i}`, type: 'text', value: b, path: `bullets[${i}]`, label: `Bullet ${i + 1}` }}
+                                onSelect={onSelect}
+                                isSelected={selectedId === `bullet-${i}`}
+                            >
+                                <p className="text-xl leading-relaxed" style={{ color: colors.text }}>{b}</p>
+                            </EditableElement>
                         </div>
                     ))}
                 </div>
@@ -3033,11 +4283,17 @@ const MasterContentLayout = ({ slide, colors, variation = 'classic' }: { slide: 
                 <div className="w-full border-t-4 mb-12" style={{ borderColor: colors.primary }} />
                 <div className="flex-1 grid grid-cols-12 gap-12">
                     <div className="col-span-5 flex flex-col">
-                        <h2 className="text-7xl font-black leading-tight mb-8" style={{ color: colors.text }}>
-                            {slide.title.split(' ').map((word: string, i: number) => (
-                                <span key={i} className="block">{word}</span>
-                            ))}
-                        </h2>
+                        <EditableElement
+                            element={{ id: 'title', type: 'text', value: slide.title, path: 'title', label: 'Title' }}
+                            onSelect={onSelect}
+                            isSelected={selectedId === 'title'}
+                        >
+                            <h2 className="text-7xl font-black leading-tight mb-8" style={{ color: colors.text }}>
+                                {slide.title.split(' ').map((word: string, i: number) => (
+                                    <span key={i} className="block">{word}</span>
+                                ))}
+                            </h2>
+                        </EditableElement>
                         <p className="text-lg opacity-60 mt-auto" style={{ color: colors.text }}>ISSUE 01 • {new Date().getFullYear()}</p>
                     </div>
                     <div className="col-span-7 relative">
@@ -3050,7 +4306,13 @@ const MasterContentLayout = ({ slide, colors, variation = 'classic' }: { slide: 
                             {bullets.map((b: string, i: number) => (
                                 <div key={i} className="flex gap-6 border-b pb-6" style={{ borderColor: `${colors.text}20` }}>
                                     <span className="text-4xl font-serif italic opacity-30" style={{ color: colors.secondary }}>0{i + 1}</span>
-                                    <p className="text-2xl font-medium pt-2" style={{ color: colors.text }}>{b}</p>
+                                    <EditableElement
+                                        element={{ id: `bullet-${i}`, type: 'text', value: b, path: `bullets[${i}]`, label: `Bullet ${i + 1}` }}
+                                        onSelect={onSelect}
+                                        isSelected={selectedId === `bullet-${i}`}
+                                    >
+                                        <p className="text-2xl font-medium pt-2" style={{ color: colors.text }}>{b}</p>
+                                    </EditableElement>
                                 </div>
                             ))}
                         </div>
@@ -3068,18 +4330,78 @@ const MasterContentLayout = ({ slide, colors, variation = 'classic' }: { slide: 
 
             <div className="relative z-10 h-full p-24 flex flex-col justify-center max-w-5xl">
                 <span className="text-sm tracking-[0.3em] font-bold uppercase mb-6" style={{ color: colors.secondary }}>Overview</span>
-                <h2 className="text-5xl font-light mb-16 leading-tight" style={{ color: colors.text }}>
-                    {slide.title}
-                </h2>
+                <EditableElement
+                    element={{ id: 'title', type: 'text', value: slide.title, path: 'title', label: 'Title' }}
+                    onSelect={onSelect}
+                    isSelected={selectedId === 'title'}
+                    className="mb-16"
+                >
+                    <h2 className="text-5xl font-light leading-tight" style={{ color: colors.text }}>
+                        {slide.title}
+                    </h2>
+                </EditableElement>
+
                 <div className="grid grid-cols-2 gap-16">
                     {bullets.map((b: string, i: number) => (
                         <div key={i} className="flex flex-col">
                             <div className="w-full h-[1px] mb-4 opacity-30" style={{ backgroundColor: colors.text }} />
-                            <p className="text-xl" style={{ color: colors.text }}>{b}</p>
+                            <EditableElement
+                                element={{ id: `bullet-${i}`, type: 'text', value: b, path: `bullets[${i}]`, label: `Bullet ${i + 1}` }}
+                                onSelect={onSelect}
+                                isSelected={selectedId === `bullet-${i}`}
+                            >
+                                <p className="text-xl" style={{ color: colors.text }}>{b}</p>
+                            </EditableElement>
                         </div>
                     ))}
                 </div>
             </div>
+        </div>
+    );
+};
+
+const ContentBulletsLayout = ({ slide, colors, onSelect, selectedId }: { slide: any; colors: any; onSelect?: any; selectedId?: string | null }) => {
+    const bullets = slide.bullets || slide.content?.bullets || [];
+    return (
+        <div className="relative w-full h-full overflow-hidden p-16 flex flex-col justify-center" style={{ backgroundColor: colors.bg }}>
+            <AbstractShapes colors={colors} />
+            <div className="relative z-10 max-w-4xl">
+                <EditableElement
+                    element={{ id: 'title', type: 'text', value: slide.title, path: 'title', label: 'Title' }}
+                    onSelect={onSelect}
+                    isSelected={selectedId === 'title'}
+                    className="mb-8"
+                >
+                    <h2 className="text-5xl font-bold" style={{ color: colors.text }}>{slide.title}</h2>
+                </EditableElement>
+
+                {slide.content?.text && (
+                    <EditableElement
+                        element={{ id: 'text', type: 'text', value: slide.content.text, path: 'content.text', label: 'Body Text' }}
+                        onSelect={onSelect}
+                        isSelected={selectedId === 'text'}
+                        className="mb-8"
+                    >
+                        <p className="text-xl opacity-90 leading-relaxed" style={{ color: colors.text }}>{slide.content.text}</p>
+                    </EditableElement>
+                )}
+
+                <ul className="space-y-6">
+                    {bullets.map((b: string, i: number) => (
+                        <li key={i} className="flex items-start gap-4">
+                            <div className="w-3 h-3 rounded-full mt-2 flex-shrink-0" style={{ backgroundColor: colors.primary }} />
+                            <EditableElement
+                                element={{ id: `bullet-${i}`, type: 'text', value: b, path: `bullets[${i}]`, label: `Bullet ${i + 1}` }}
+                                onSelect={onSelect}
+                                isSelected={selectedId === `bullet-${i}`}
+                            >
+                                <span className="text-xl font-medium" style={{ color: colors.text }}>{b}</span>
+                            </EditableElement>
+                        </li>
+                    ))}
+                </ul>
+            </div>
+            <SlideFooter title={slide.title} slideNumber={slide.index || 1} colors={colors} />
         </div>
     );
 };
@@ -3089,7 +4411,7 @@ const MasterContentLayout = ({ slide, colors, variation = 'classic' }: { slide: 
 // ============================================
 type CoverVariation = 'centered-minimal' | 'full-split' | 'diagonal-hero' | 'typographic-giant' | 'boxed-modern' | 'gradient-mesh' | 'dark-tech' | 'offset-gallery' | 'floating-glass' | 'cinematic';
 
-const MasterCoverLayout = ({ slide, colors, variation = 'centered-minimal' }: { slide: any; colors: any; variation?: CoverVariation }) => {
+const MasterCoverLayout = ({ slide, colors, variation = 'centered-minimal', onSelect, selectedId }: { slide: any; colors: any; variation?: CoverVariation; onSelect?: any; selectedId?: string | null }) => {
     const subtitle = slide.subtitle || slide.content?.subtitle || slide.title?.split(':')[1] || "";
     const mainTitle = slide.title?.split(':')[0] || slide.title || "Untitled Presentation";
     const bullets = slide.bullets || slide.content?.bullets || [];
@@ -3114,15 +4436,38 @@ const MasterCoverLayout = ({ slide, colors, variation = 'centered-minimal' }: { 
                 <AbstractShapes colors={colors} />
                 <div className="relative z-10 max-w-4xl">
                     <div className="w-24 h-1 mb-12 mx-auto" style={{ backgroundColor: colors.primary }} />
-                    <h1 className="text-7xl font-bold mb-8 tracking-tight drop-shadow-lg" style={{ color: getReadableColor(colors.text, colors.bg) }}>{mainTitle}</h1>
-                    {subtitle && <p className="text-3xl font-light opacity-90 leading-relaxed mb-10" style={{ color: getReadableColor(colors.text, colors.bg) }}>{subtitle}</p>}
+                    <EditableElement
+                        element={{ id: 'title', type: 'text', value: mainTitle, path: 'title', label: 'Title' }}
+                        onSelect={onSelect}
+                        isSelected={selectedId === 'title'}
+                        className="mb-8"
+                    >
+                        <h1 className="text-7xl font-bold tracking-tight drop-shadow-lg" style={{ color: getReadableColor(colors.text, colors.bg) }}>{mainTitle}</h1>
+                    </EditableElement>
+
+                    {subtitle && (
+                        <EditableElement
+                            element={{ id: 'subtitle', type: 'text', value: subtitle, path: 'subtitle', label: 'Subtitle' }}
+                            onSelect={onSelect}
+                            isSelected={selectedId === 'subtitle'}
+                            className="mb-10"
+                        >
+                            <p className="text-3xl font-light opacity-90 leading-relaxed" style={{ color: getReadableColor(colors.text, colors.bg) }}>{subtitle}</p>
+                        </EditableElement>
+                    )}
 
                     {bullets.length > 0 && (
                         <div className="flex flex-wrap justify-center gap-6 mt-6">
-                            {bullets.slice(0, 3).map((b, i) => (
+                            {bullets.slice(0, 3).map((b: string, i: number) => (
                                 <div key={i} className="flex items-center gap-3 bg-white/10 backdrop-blur-md px-6 py-3 rounded-full border border-white/20">
                                     <div className="w-2 h-2 rounded-full" style={{ backgroundColor: colors.accent }} />
-                                    <span className="text-xl font-medium" style={{ color: getReadableColor(colors.text, colors.bg) }}>{b}</span>
+                                    <EditableElement
+                                        element={{ id: `bullet-${i}`, type: 'text', value: b, path: `bullets[${i}]`, label: `Tag ${i + 1}` }}
+                                        onSelect={onSelect}
+                                        isSelected={selectedId === `bullet-${i}`}
+                                    >
+                                        <span className="text-xl font-medium" style={{ color: getReadableColor(colors.text, colors.bg) }}>{b}</span>
+                                    </EditableElement>
                                 </div>
                             ))}
                         </div>
@@ -3145,8 +4490,24 @@ const MasterCoverLayout = ({ slide, colors, variation = 'centered-minimal' }: { 
                     <div className="absolute inset-0 bg-black/20" />
                 </div>
                 <div className="h-full flex flex-col justify-center p-20">
-                    <h1 className="text-7xl font-black mb-8 leading-tight" style={{ color: getReadableColor(colors.text, colors.bg) }}>{mainTitle}</h1>
-                    {subtitle && <p className="text-2xl opacity-70 mb-12" style={{ color: getReadableColor(colors.text, colors.bg) }}>{subtitle}</p>}
+                    <EditableElement
+                        element={{ id: 'title', type: 'text', value: mainTitle, path: 'title', label: 'Title' }}
+                        onSelect={onSelect}
+                        isSelected={selectedId === 'title'}
+                        className="mb-8"
+                    >
+                        <h1 className="text-7xl font-black leading-tight" style={{ color: getReadableColor(colors.text, colors.bg) }}>{mainTitle}</h1>
+                    </EditableElement>
+                    {subtitle && (
+                        <EditableElement
+                            element={{ id: 'subtitle', type: 'text', value: subtitle, path: 'subtitle', label: 'Subtitle' }}
+                            onSelect={onSelect}
+                            isSelected={selectedId === 'subtitle'}
+                            className="mb-12"
+                        >
+                            <p className="text-2xl opacity-70" style={{ color: getReadableColor(colors.text, colors.bg) }}>{subtitle}</p>
+                        </EditableElement>
+                    )}
                     <div className="w-full h-px opacity-20 mb-8" style={{ backgroundColor: colors.text }} />
 
                     {bullets.length > 0 && (
@@ -3154,7 +4515,13 @@ const MasterCoverLayout = ({ slide, colors, variation = 'centered-minimal' }: { 
                             {bullets.slice(0, 3).map((b, i) => (
                                 <li key={i} className="flex items-center gap-4">
                                     <div className="w-2 h-2 rounded-full" style={{ backgroundColor: colors.primary }} />
-                                    <span className="text-xl font-medium opacity-80" style={{ color: getReadableColor(colors.text, colors.bg) }}>{b}</span>
+                                    <EditableElement
+                                        element={{ id: `bullet-${i}`, type: 'text', value: b, path: `bullets[${i}]`, label: `Bullet ${i + 1}` }}
+                                        onSelect={onSelect}
+                                        isSelected={selectedId === `bullet-${i}`}
+                                    >
+                                        <span className="text-xl font-medium opacity-80" style={{ color: getReadableColor(colors.text, colors.bg) }}>{b}</span>
+                                    </EditableElement>
                                 </li>
                             ))}
                         </ul>
@@ -3175,15 +4542,35 @@ const MasterCoverLayout = ({ slide, colors, variation = 'centered-minimal' }: { 
             <div className="relative w-full h-full overflow-hidden" style={{ backgroundColor: colors.primary }}>
                 <div className="absolute inset-0 w-full h-full bg-white z-0" style={{ clipPath: 'polygon(0 0, 100% 0, 100% 85%, 0 45%)', backgroundColor: colors.bg }} />
                 <div className="absolute z-10 top-20 left-20 max-w-3xl">
-                    <h1 className="text-8xl font-black mb-4 drop-shadow-sm" style={{ color: getReadableColor(colors.text, colors.bg) }}>{mainTitle}</h1>
-                    <p className="text-3xl font-medium mb-8" style={{ color: colors.secondary }}>{subtitle}</p>
+                    <EditableElement
+                        element={{ id: 'title', type: 'text', value: mainTitle, path: 'title', label: 'Title' }}
+                        onSelect={onSelect}
+                        isSelected={selectedId === 'title'}
+                        className="mb-4"
+                    >
+                        <h1 className="text-8xl font-black drop-shadow-sm" style={{ color: getReadableColor(colors.text, colors.bg) }}>{mainTitle}</h1>
+                    </EditableElement>
+                    <EditableElement
+                        element={{ id: 'subtitle', type: 'text', value: subtitle, path: 'subtitle', label: 'Subtitle' }}
+                        onSelect={onSelect}
+                        isSelected={selectedId === 'subtitle'}
+                        className="mb-8"
+                    >
+                        <p className="text-3xl font-medium" style={{ color: colors.secondary }}>{subtitle}</p>
+                    </EditableElement>
 
                     {bullets.length > 0 && (
                         <ul className="space-y-4">
                             {bullets.slice(0, 3).map((b, i) => (
                                 <li key={i} className="flex items-center gap-4">
                                     <div className="w-12 h-[2px]" style={{ backgroundColor: colors.accent }} />
-                                    <span className="text-2xl font-bold opacity-80" style={{ color: getReadableColor(colors.text, colors.bg) }}>{b}</span>
+                                    <EditableElement
+                                        element={{ id: `bullet-${i}`, type: 'text', value: b, path: `bullets[${i}]`, label: `Bullet ${i + 1}` }}
+                                        onSelect={onSelect}
+                                        isSelected={selectedId === `bullet-${i}`}
+                                    >
+                                        <span className="text-2xl font-bold opacity-80" style={{ color: getReadableColor(colors.text, colors.bg) }}>{b}</span>
+                                    </EditableElement>
                                 </li>
                             ))}
                         </ul>
@@ -3207,10 +4594,22 @@ const MasterCoverLayout = ({ slide, colors, variation = 'centered-minimal' }: { 
                         <span className="text-2xl font-mono" style={{ color: colors.bg }}>EST. {new Date().getFullYear()}</span>
                         <div className="w-20 h-20 rounded-full animate-spin-slow" style={{ border: `2px dashed ${colors.bg}` }} />
                     </div>
-                    <h1 className="text-[9rem] leading-[0.8] font-bold tracking-tighter" style={{ color: colors.bg }}>
-                        {mainTitle}
-                    </h1>
-                    <p className="text-3xl font-mono text-right" style={{ color: colors.bg }}>// {subtitle}</p>
+                    <EditableElement
+                        element={{ id: 'title', type: 'text', value: mainTitle, path: 'title', label: 'Title' }}
+                        onSelect={onSelect}
+                        isSelected={selectedId === 'title'}
+                    >
+                        <h1 className="text-[9rem] leading-[0.8] font-bold tracking-tighter" style={{ color: colors.bg }}>
+                            {mainTitle}
+                        </h1>
+                    </EditableElement>
+                    <EditableElement
+                        element={{ id: 'subtitle', type: 'text', value: subtitle, path: 'subtitle', label: 'Subtitle' }}
+                        onSelect={onSelect}
+                        isSelected={selectedId === 'subtitle'}
+                    >
+                        <p className="text-3xl font-mono text-right" style={{ color: colors.bg }}>// {subtitle}</p>
+                    </EditableElement>
                 </div>
             </div>
         );
@@ -3223,16 +4622,37 @@ const MasterCoverLayout = ({ slide, colors, variation = 'centered-minimal' }: { 
                 {imageSrc && <img src={imageSrc} className="absolute inset-0 w-full h-full object-cover opacity-50 blur-sm" alt="" />}
                 <div className="relative z-10 bg-white p-24 shadow-2xl max-w-4xl text-center" style={{ backgroundColor: colors.bg }}>
                     <div className="border-4 p-8 mb-8 inline-block" style={{ borderColor: colors.primary }}>
-                        <h1 className="text-6xl font-bold uppercase tracking-widest" style={{ color: getReadableColor(colors.text, colors.bg) }}>{mainTitle}</h1>
+                        <EditableElement
+                            element={{ id: 'title', type: 'text', value: mainTitle, path: 'title', label: 'Title' }}
+                            onSelect={onSelect}
+                            isSelected={selectedId === 'title'}
+                        >
+                            <h1 className="text-6xl font-bold uppercase tracking-widest" style={{ color: getReadableColor(colors.text, colors.bg) }}>{mainTitle}</h1>
+                        </EditableElement>
                     </div>
-                    {subtitle && <p className="text-xl tracking-widest uppercase font-bold mb-8" style={{ color: colors.accent }}>{subtitle}</p>}
+                    {subtitle && (
+                        <EditableElement
+                            element={{ id: 'subtitle', type: 'text', value: subtitle, path: 'subtitle', label: 'Subtitle' }}
+                            onSelect={onSelect}
+                            isSelected={selectedId === 'subtitle'}
+                            className="mb-8"
+                        >
+                            <p className="text-xl tracking-widest uppercase font-bold" style={{ color: colors.accent }}>{subtitle}</p>
+                        </EditableElement>
+                    )}
 
                     {bullets.length > 0 && (
                         <div className="flex justify-center gap-8 mt-4 border-t pt-8" style={{ borderColor: `${colors.text}10` }}>
                             {bullets.slice(0, 3).map((b, i) => (
                                 <div key={i} className="flex flex-col items-center">
                                     <span className="text-sm font-bold opacity-40 mb-2" style={{ color: colors.text }}>0{i + 1}</span>
-                                    <span className="text-lg font-medium" style={{ color: getReadableColor(colors.text, colors.bg) }}>{b}</span>
+                                    <EditableElement
+                                        element={{ id: `bullet-${i}`, type: 'text', value: b, path: `bullets[${i}]`, label: `Bullet ${i + 1}` }}
+                                        onSelect={onSelect}
+                                        isSelected={selectedId === `bullet-${i}`}
+                                    >
+                                        <span className="text-lg font-medium" style={{ color: getReadableColor(colors.text, colors.bg) }}>{b}</span>
+                                    </EditableElement>
                                 </div>
                             ))}
                         </div>
@@ -3261,8 +4681,24 @@ const MasterCoverLayout = ({ slide, colors, variation = 'centered-minimal' }: { 
                 <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full blur-[120px] ${blobOpacity} ${centerBlend}`} style={{ backgroundColor: colors.accent }} />
 
                 <div className="relative z-10 backdrop-blur-xl bg-white/20 p-16 rounded-[3rem] border border-white/30 max-w-5xl shadow-2xl">
-                    <h1 className="text-8xl font-bold mb-6 tracking-tight" style={{ color: getReadableColor(colors.text, colors.bg) }}>{mainTitle}</h1>
-                    {subtitle && <p className="text-3xl font-light mb-8 opacity-90" style={{ color: getReadableColor(colors.text, colors.bg) }}>{subtitle}</p>}
+                    <EditableElement
+                        element={{ id: 'title', type: 'text', value: mainTitle, path: 'title', label: 'Title' }}
+                        onSelect={onSelect}
+                        isSelected={selectedId === 'title'}
+                        className="mb-6"
+                    >
+                        <h1 className="text-8xl font-bold tracking-tight" style={{ color: getReadableColor(colors.text, colors.bg) }}>{mainTitle}</h1>
+                    </EditableElement>
+                    {subtitle && (
+                        <EditableElement
+                            element={{ id: 'subtitle', type: 'text', value: subtitle, path: 'subtitle', label: 'Subtitle' }}
+                            onSelect={onSelect}
+                            isSelected={selectedId === 'subtitle'}
+                            className="mb-8"
+                        >
+                            <p className="text-3xl font-light opacity-90" style={{ color: getReadableColor(colors.text, colors.bg) }}>{subtitle}</p>
+                        </EditableElement>
+                    )}
                     <div className="h-1.5 w-40 rounded-full mb-10" style={{ backgroundColor: colors.accent }} />
 
                     {bullets.length > 0 && (
@@ -3270,7 +4706,13 @@ const MasterCoverLayout = ({ slide, colors, variation = 'centered-minimal' }: { 
                             {bullets.slice(0, 3).map((b, i) => (
                                 <div key={i} className="flex items-center gap-6 group">
                                     <div className="w-4 h-4 rounded-full transition-all group-hover:scale-125" style={{ backgroundColor: colors.primary }} />
-                                    <span className="text-2xl font-medium tracking-wide" style={{ color: getReadableColor(colors.text, colors.bg) }}>{b}</span>
+                                    <EditableElement
+                                        element={{ id: `bullet-${i}`, type: 'text', value: b, path: `bullets[${i}]`, label: `Bullet ${i + 1}` }}
+                                        onSelect={onSelect}
+                                        isSelected={selectedId === `bullet-${i}`}
+                                    >
+                                        <span className="text-2xl font-medium tracking-wide" style={{ color: getReadableColor(colors.text, colors.bg) }}>{b}</span>
+                                    </EditableElement>
                                 </div>
                             ))}
                         </div>
@@ -3287,17 +4729,37 @@ const MasterCoverLayout = ({ slide, colors, variation = 'centered-minimal' }: { 
                 <div className="absolute inset-0" style={{ backgroundImage: `radial-gradient(circle at 50% 50%, ${colors.primary}20 0%, transparent 50%)` }} />
                 <div className="grid grid-cols-12 gap-8 w-full z-10">
                     <div className="col-span-8">
-                        <h1 className="text-8xl font-bold text-transparent bg-clip-text mb-8" style={{ backgroundImage: `linear-gradient(to right, #ffffff, ${colors.primary})` }}>
-                            {mainTitle}
-                        </h1>
-                        <p className="text-2xl font-mono border-l-2 border-gray-600 pl-6 mb-12" style={{ color: '#9ca3af' }}>{subtitle}</p>
+                        <EditableElement
+                            element={{ id: 'title', type: 'text', value: mainTitle, path: 'title', label: 'Title' }}
+                            onSelect={onSelect}
+                            isSelected={selectedId === 'title'}
+                            className="mb-8"
+                        >
+                            <h1 className="text-8xl font-bold text-transparent bg-clip-text" style={{ backgroundImage: `linear-gradient(to right, #ffffff, ${colors.primary})` }}>
+                                {mainTitle}
+                            </h1>
+                        </EditableElement>
+                        <EditableElement
+                            element={{ id: 'subtitle', type: 'text', value: subtitle, path: 'subtitle', label: 'Subtitle' }}
+                            onSelect={onSelect}
+                            isSelected={selectedId === 'subtitle'}
+                            className="mb-12"
+                        >
+                            <p className="text-2xl font-mono border-l-2 border-gray-600 pl-6" style={{ color: '#9ca3af' }}>{subtitle}</p>
+                        </EditableElement>
 
                         {bullets.length > 0 && (
                             <div className="flex gap-12 ml-6">
                                 {bullets.slice(0, 3).map((b, i) => (
                                     <div key={i} className="flex flex-col gap-2">
                                         <div className="w-8 h-[1px] bg-primary" style={{ backgroundColor: colors.primary }} />
-                                        <span className="text-sm font-mono uppercase tracking-tighter opacity-70" style={{ color: '#ffffff' }}>[{b}]</span>
+                                        <EditableElement
+                                            element={{ id: `bullet-${i}`, type: 'text', value: b, path: `bullets[${i}]`, label: `Bullet ${i + 1}` }}
+                                            onSelect={onSelect}
+                                            isSelected={selectedId === `bullet-${i}`}
+                                        >
+                                            <span className="text-sm font-mono uppercase tracking-tighter opacity-70" style={{ color: '#ffffff' }}>[{b}]</span>
+                                        </EditableElement>
                                     </div>
                                 ))}
                             </div>
@@ -3318,19 +4780,47 @@ const MasterCoverLayout = ({ slide, colors, variation = 'centered-minimal' }: { 
                 <div className="col-span-8 row-span-2 relative rounded-3xl overflow-hidden">
                     {imageSrc ? <img src={imageSrc} className="w-full h-full object-cover" alt="" /> : <div className="w-full h-full bg-gray-200" />}
                     <div className="absolute bottom-0 left-0 p-12 bg-white/90 m-6 rounded-2xl">
-                        <h1 className="text-5xl font-bold mb-4" style={{ color: getReadableColor(colors.primary, '#ffffff') }}>{mainTitle}</h1>
+                        <EditableElement
+                            element={{ id: 'title', type: 'text', value: mainTitle, path: 'title', label: 'Title' }}
+                            onSelect={onSelect}
+                            isSelected={selectedId === 'title'}
+                            className="mb-4"
+                        >
+                            <h1 className="text-5xl font-bold" style={{ color: getReadableColor(colors.primary, '#ffffff') }}>{mainTitle}</h1>
+                        </EditableElement>
                         {bullets.length > 0 && (
                             <div className="flex gap-4">
                                 {bullets.slice(0, 2).map((b, i) => (
-                                    <span key={i} className="text-sm font-bold opacity-60 px-3 py-1 rounded-full bg-gray-100">{b}</span>
+                                    <EditableElement
+                                        element={{ id: `bullet-${i}`, type: 'text', value: b, path: `bullets[${i}]`, label: `Bullet ${i + 1}` }}
+                                        onSelect={onSelect}
+                                        isSelected={selectedId === `bullet-${i}`}
+                                    >
+                                        <span className="text-sm font-bold opacity-60 px-3 py-1 rounded-full bg-gray-100">{b}</span>
+                                    </EditableElement>
                                 ))}
                             </div>
                         )}
                     </div>
                 </div>
                 <div className="col-span-4 bg-black rounded-3xl p-8 flex flex-col justify-end" style={{ backgroundColor: colors.secondary }}>
-                    <p className="text-3xl font-medium leading-tight text-white mb-4">{subtitle}</p>
-                    {bullets.length > 2 && <p className="text-sm text-white/60 italic">{bullets[2]}</p>}
+                    <EditableElement
+                        element={{ id: 'subtitle', type: 'text', value: subtitle, path: 'subtitle', label: 'Subtitle' }}
+                        onSelect={onSelect}
+                        isSelected={selectedId === 'subtitle'}
+                        className="mb-4"
+                    >
+                        <p className="text-3xl font-medium leading-tight text-white">{subtitle}</p>
+                    </EditableElement>
+                    {bullets.length > 2 && (
+                        <EditableElement
+                            element={{ id: 'bullet-2', type: 'text', value: bullets[2], path: 'bullets[2]', label: 'Tag 3' }}
+                            onSelect={onSelect}
+                            isSelected={selectedId === 'bullet-2'}
+                        >
+                            <p className="text-sm text-white/60 italic">{bullets[2]}</p>
+                        </EditableElement>
+                    )}
                 </div>
                 <div className="col-span-4 rounded-3xl opacity-20" style={{ backgroundColor: colors.primary }} />
             </div>
@@ -3344,15 +4834,37 @@ const MasterCoverLayout = ({ slide, colors, variation = 'centered-minimal' }: { 
                 {imageSrc && <img src={imageSrc} className="absolute inset-0 w-full h-full object-cover opacity-60 mix-blend-overlay" alt="" />}
                 <div className="relative w-[90%] h-[80%] rounded-3xl border border-white/30 bg-white/10 backdrop-blur-lg shadow-2xl flex flex-col items-center justify-center text-center p-20">
                     <span className="tracking-[0.5em] text-sm font-bold mb-12" style={{ color: '#ffffff' }}>PRESENTATION</span>
-                    <h1 className="text-8xl font-serif mb-8 drop-shadow-lg text-white">{mainTitle}</h1>
-                    {subtitle && <p className="text-2xl font-light mb-12 opacity-80 text-white italic">{subtitle}</p>}
+                    <EditableElement
+                        element={{ id: 'title', type: 'text', value: mainTitle, path: 'title', label: 'Title' }}
+                        onSelect={onSelect}
+                        isSelected={selectedId === 'title'}
+                        className="mb-8"
+                    >
+                        <h1 className="text-8xl font-serif drop-shadow-lg text-white">{mainTitle}</h1>
+                    </EditableElement>
+                    {subtitle && (
+                        <EditableElement
+                            element={{ id: 'subtitle', type: 'text', value: subtitle, path: 'subtitle', label: 'Subtitle' }}
+                            onSelect={onSelect}
+                            isSelected={selectedId === 'subtitle'}
+                            className="mb-12"
+                        >
+                            <p className="text-2xl font-light opacity-80 text-white italic">{subtitle}</p>
+                        </EditableElement>
+                    )}
 
                     {bullets.length > 0 && (
                         <div className="flex gap-12 mb-16">
                             {bullets.slice(0, 3).map((b, i) => (
                                 <div key={i} className="flex flex-col items-center gap-2">
                                     <div className="w-1 h-1 rounded-full bg-white" />
-                                    <span className="text-sm uppercase tracking-widest text-white/70">{b}</span>
+                                    <EditableElement
+                                        element={{ id: `bullet-${i}`, type: 'text', value: b, path: `bullets[${i}]`, label: `Bullet ${i + 1}` }}
+                                        onSelect={onSelect}
+                                        isSelected={selectedId === `bullet-${i}`}
+                                    >
+                                        <span className="text-sm uppercase tracking-widest text-white/70">{b}</span>
+                                    </EditableElement>
                                 </div>
                             ))}
                         </div>
@@ -3374,15 +4886,36 @@ const MasterCoverLayout = ({ slide, colors, variation = 'centered-minimal' }: { 
             <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent" />
 
             <div className="relative z-10 border-l-8 pl-12" style={{ borderColor: colors.primary }}>
-                <h1 className="text-8xl font-bold mb-6 uppercase tracking-tight text-white">{mainTitle}</h1>
-                <p className="text-4xl font-light mr-12 mb-10 text-gray-300">{subtitle} <span className="text-sm align-top opacity-50">©2025</span></p>
+                <EditableElement
+                    element={{ id: 'title', type: 'text', value: mainTitle, path: 'title', label: 'Title' }}
+                    onSelect={onSelect}
+                    isSelected={selectedId === 'title'}
+                    className="mb-6"
+                >
+                    <h1 className="text-8xl font-bold uppercase tracking-tight text-white">{mainTitle}</h1>
+                </EditableElement>
+                <EditableElement
+                    element={{ id: 'subtitle', type: 'text', value: subtitle, path: 'subtitle', label: 'Subtitle' }}
+                    onSelect={onSelect}
+                    isSelected={selectedId === 'subtitle'}
+                    className="mb-10 mr-12"
+                >
+                    <p className="text-4xl font-light text-gray-300">{subtitle} <span className="text-sm align-top opacity-50">©2025</span></p>
+                </EditableElement>
 
                 {bullets.length > 0 && (
                     <div className="flex gap-8 opacity-60">
                         {bullets.slice(0, 3).map((b, i) => (
-                            <span key={i} className="text-sm font-bold uppercase tracking-[0.2em] text-white">
-                                {b} {i < bullets.slice(0, 3).length - 1 && "•"}
-                            </span>
+                            <div key={i} className="text-sm font-bold uppercase tracking-[0.2em] text-white flex items-center gap-2">
+                                <EditableElement
+                                    element={{ id: `bullet-${i}`, type: 'text', value: b, path: `bullets[${i}]`, label: `Bullet ${i + 1}` }}
+                                    onSelect={onSelect}
+                                    isSelected={selectedId === `bullet-${i}`}
+                                >
+                                    {b}
+                                </EditableElement>
+                                {i < bullets.slice(0, 3).length - 1 && <span>•</span>}
+                            </div>
                         ))}
                     </div>
                 )}
@@ -3395,7 +4928,7 @@ const MasterCoverLayout = ({ slide, colors, variation = 'centered-minimal' }: { 
 // MAIN COMPONENT
 // ============================================
 
-export const ModernSlideRenderer = ({ slide, theme, className, colorPalette }: SlideRendererProps) => {
+export const ModernSlideRenderer = ({ slide, theme, className, colorPalette, onElementSelect, selectedElementId }: SlideRendererProps) => {
     // Get template colors
     const template = getTemplateById(theme);
 
@@ -3854,13 +5387,13 @@ export const ModernSlideRenderer = ({ slide, theme, className, colorPalette }: S
         // PRIORITY 1: Content-based detection (what data actually exists)
         if (hasChart) {
             console.log('  → Matched: ChartLayout (has chart data)');
-            LayoutComponent = ChartLayout;
+            return <ChartLayout slide={slide} colors={colors} variation={getChartVariation()} onSelect={onElementSelect} selectedId={selectedElementId} />;
         } else if (hasInfographic) {
             console.log('  → Matched: InfographicLayout (has infographic data)');
-            return <InfographicLayout slide={slide} colors={colors} variation={getInfographicVariation()} />;
+            return <InfographicLayout slide={slide} colors={colors} variation={getInfographicVariation()} onSelect={onElementSelect} selectedId={selectedElementId} />;
         } else if (hasTimeline) {
             console.log('  → Matched: TimelineLayout (has timeline data)');
-            return <TimelineLayout slide={slide} colors={colors} variation={getTimelineVariation()} />;
+            return <TimelineLayout slide={slide} colors={colors} variation={getTimelineVariation()} onSelect={onElementSelect} selectedId={selectedElementId} />;
         }
         if (hasTable) {
             console.log('  → Matched: TableLayout (has table data)');
@@ -3868,44 +5401,44 @@ export const ModernSlideRenderer = ({ slide, theme, className, colorPalette }: S
         }
         if (hasComparison) {
             console.log('  → Matched: ComparisonLayout (has comparison data)');
-            return <ComparisonLayout slide={slide} colors={colors} />;
+            return <ComparisonLayout slide={slide} colors={colors} onSelect={onElementSelect} selectedId={selectedElementId} />;
         }
         if (hasStats) {
             console.log('  → Matched: StatsLayout (has stats data)');
-            return <StatsLayout slide={slide} colors={colors} variation={getStatsVariation()} />;
+            return <StatsLayout slide={slide} colors={colors} variation={getStatsVariation()} onSelect={onElementSelect} selectedId={selectedElementId} />;
         }
         if (hasTextColumns) {
             console.log('  → Matched: ThreeColumnTextLayout (has columns data)');
-            return <ThreeColumnTextLayout slide={slide} colors={colors} variation={getMultiColumnVariation()} />;
+            return <ThreeColumnTextLayout slide={slide} colors={colors} variation={getMultiColumnVariation()} onSelect={onElementSelect} selectedId={selectedElementId} />;
         }
         if (hasItems && (normalizedType.includes('bento') || normalizedType.includes('grid'))) {
             console.log('  → Matched: BentoGridLayout (has items + bento/grid type)');
-            return <BentoGridLayout slide={slide} colors={colors} variation={getBentoVariation()} />;
+            return <BentoGridLayout slide={slide} colors={colors} variation={getBentoVariation()} onSelect={onElementSelect} selectedId={selectedElementId} />;
         }
         const itemsArray = slide.content?.items || [];
         if (hasItems && itemsArray.length >= 3) {
             // Fallback to Bento if has items but not explicitly requested, 30% chance or if type is 'features'
             if (normalizedType.includes('feature') || Math.random() > 0.7) {
                 console.log('  → Matched: BentoGridLayout (smart inference)');
-                return <BentoGridLayout slide={slide} colors={colors} variation={getBentoVariation()} />;
+                return <BentoGridLayout slide={slide} colors={colors} variation={getBentoVariation()} onSelect={onElementSelect} selectedId={selectedElementId} />;
             }
         }
         if (hasQuote) {
             console.log('  → Matched: ThreeColumnTextLayout (was QuoteLargeLayout)');
-            return <ThreeColumnTextLayout slide={slide} colors={colors} variation={getMultiColumnVariation()} />;
+            return <ThreeColumnTextLayout slide={slide} colors={colors} variation={getMultiColumnVariation()} onSelect={onElementSelect} selectedId={selectedElementId} />;
         }
 
         // PRIORITY 2: Layout type string matching (fallback)
         if (normalizedType.includes('showcase') || normalizedType.includes('product')) {
             console.log('  → Matched: ProductShowcaseLayout (explicit)');
-            return <ProductShowcaseLayout slide={slide} colors={colors} variation={getShowcaseVariation()} />;
+            return <ProductShowcaseLayout slide={slide} colors={colors} variation={getShowcaseVariation()} onSelect={onElementSelect} selectedId={selectedElementId} />;
         }
 
         // Smart Injection: If theme is 'tech' or 'product' and has items, use Showcase occasionally
         if ((theme.includes('tech') || theme.includes('product')) && hasItems && itemsArray.length >= 3) {
             if (Math.random() > 0.6) {
                 console.log('  → Matched: ProductShowcaseLayout (smart theme injection)');
-                return <ProductShowcaseLayout slide={slide} colors={colors} variation={getShowcaseVariation()} />;
+                return <ProductShowcaseLayout slide={slide} colors={colors} variation={getShowcaseVariation()} onSelect={onElementSelect} selectedId={selectedElementId} />;
             }
         }
 
@@ -3954,15 +5487,15 @@ export const ModernSlideRenderer = ({ slide, theme, className, colorPalette }: S
             }
 
             console.log(`  → Picked variation: ${picked}`);
-            return <MasterContentLayout slide={slide} colors={colors} variation={picked} />;
+            return <MasterContentLayout slide={slide} colors={colors} variation={picked} onSelect={onElementSelect} selectedId={selectedElementId} />;
         }
 
         // Cover / Hero layouts
         if (normalizedType.includes('cover') || normalizedType.includes('hero')) {
             console.log('  → Matched: MasterCoverLayout (Smart Variation Engine)');
 
-            // Use combination of slide index + title for variety
-            const salt = slide.id || slide.title || 'cover';
+            // Use combination of slide index + title + subtitle for variety
+            const salt = (slide.id || slide.title || 'cover') + (slide.subtitle || '');
             const slideIndex = slide.index || 0;
 
             // Robust hashing function (FNV-1a variant)
@@ -3979,11 +5512,18 @@ export const ModernSlideRenderer = ({ slide, theme, className, colorPalette }: S
             const baseHash = hashString(salt + slideIndex + 'cover');
             const themeHash = hashString(salt + slideIndex + 'theme');
 
-            const variations: CoverVariation[] = [
+            let variations: CoverVariation[] = [
                 'centered-minimal', 'full-split', 'diagonal-hero', 'typographic-giant',
                 'boxed-modern', 'gradient-mesh', 'dark-tech', 'offset-gallery',
                 'floating-glass', 'cinematic'
             ];
+
+            // Filter out "Force Dark" layouts if the theme is light
+            // This prevents jarring black slides in a white/light presentation
+            if (!isDarkTheme) {
+                // dark-tech and cinematic force black backgrounds
+                variations = variations.filter(v => v !== 'dark-tech' && v !== 'cinematic');
+            }
 
             // Deterministic pseudo-random number for theme decision
             const pseudoRandom = (themeHash % 100) / 100;
@@ -3999,25 +5539,25 @@ export const ModernSlideRenderer = ({ slide, theme, className, colorPalette }: S
                 else if (theme.includes('creative')) picked = variations[(pickedIndex + offset + 2) % variations.length]; // Prefers giant, mesh, gallery
                 else if (theme.includes('minimal')) picked = variations[(pickedIndex + offset + 4) % variations.length]; // Prefers centered, boxed
                 else if (theme.includes('corporate') || theme.includes('consulting')) picked = variations[themeHash % 2 === 0 ? 0 : 1]; // centered-minimal or full-split
-                else if (theme.includes('marketing') || theme.includes('product')) picked = variations[themeHash % 2 === 0 ? 5 : 9]; // gradient-mesh or cinematic
+                else if (theme.includes('marketing') || theme.includes('product')) picked = variations[themeHash % 2 === 0 ? 5 : (variations.includes('cinematic') ? 9 : 5)]; // gradient-mesh or cinematic (if available)
                 else if (theme.includes('startup')) picked = variations[themeHash % 2 === 0 ? 2 : 4]; // diagonal-hero or boxed-modern
             }
 
             console.log(`  → Picked cover variation: ${picked}`);
-            return <MasterCoverLayout slide={slide} colors={colors} variation={picked} />;
+            return <MasterCoverLayout slide={slide} colors={colors} variation={picked} onSelect={onElementSelect} selectedId={selectedElementId} />;
         }
 
         // Section divider
         if (normalizedType.includes('section') || normalizedType.includes('divider')) {
             console.log('  → Matched: SectionDividerLayout (type contains section/divider)');
-            return <SectionDividerLayout slide={slide} colors={colors} variation={getSectionVariation()} />;
+            return <SectionDividerLayout slide={slide} colors={colors} variation={getSectionVariation()} onSelect={onElementSelect} selectedId={selectedElementId} />;
         }
 
         // Stats/Metrics by type - STRICT CHECK
         if (normalizedType.includes('stat') || normalizedType.includes('metric') || normalizedType.includes('kpi')) {
             if (hasStats) {
                 console.log('  → Matched: StatsLayout (type match + data verified)');
-                return <StatsLayout slide={slide} colors={colors} variation={getStatsVariation()} />;
+                return <StatsLayout slide={slide} colors={colors} variation={getStatsVariation()} onSelect={onElementSelect} selectedId={selectedElementId} />;
             }
             console.log('  → Fallback: Stats layout requested but no data -> transitioning to text layout');
         }
@@ -4026,7 +5566,7 @@ export const ModernSlideRenderer = ({ slide, theme, className, colorPalette }: S
         if (normalizedType.includes('chart') || normalizedType.includes('graph')) {
             if (hasChart) {
                 console.log('  → Matched: ChartLayout (type match + data verified)');
-                return <ChartLayout slide={slide} colors={colors} variation={getChartVariation()} />;
+                return <ChartLayout slide={slide} colors={colors} variation={getChartVariation()} onSelect={onElementSelect} selectedId={selectedElementId} />;
             } else {
                 console.log('  → Fallback: Chart type requested but no data -> defaulting to Content/ThreeCol');
                 // Fall through to default content handler
@@ -4037,9 +5577,9 @@ export const ModernSlideRenderer = ({ slide, theme, className, colorPalette }: S
         if (normalizedType.includes('timeline') || normalizedType.includes('roadmap') || normalizedType.includes('process')) {
             if (hasTimeline) {
                 console.log('  → Matched: TimelineLayout (type match + data verified)');
-                return <TimelineLayout slide={slide} colors={colors} variation={getTimelineVariation()} />;
+                return <TimelineLayout slide={slide} colors={colors} variation={getTimelineVariation()} onSelect={onElementSelect} selectedId={selectedElementId} />;
             } else if (hasInfographic) {
-                return <InfographicLayout slide={slide} colors={colors} />;
+                return <InfographicLayout slide={slide} colors={colors} onSelect={onElementSelect} selectedId={selectedElementId} />;
             }
             // Fallback if no timeline data
             console.log('  → Fallback: Timeline type requested but no data -> defaulting to Content/ThreeCol');
@@ -4099,7 +5639,7 @@ export const ModernSlideRenderer = ({ slide, theme, className, colorPalette }: S
 
         // Default: Content with bullets
         console.log('  → Matched: ContentBulletsLayout (default fallback)');
-        return <ContentBulletsLayout slide={slide} colors={colors} />;
+        return <ContentBulletsLayout slide={slide} colors={colors} onSelect={onElementSelect} selectedId={selectedElementId} />;
     };
 
     return (
@@ -4115,6 +5655,17 @@ export const ModernSlideRenderer = ({ slide, theme, className, colorPalette }: S
             } as React.CSSProperties}
         >
             {renderLayout()}
+
+            {/* Custom Floating Elements Layer */}
+            {slide.elements && slide.elements.map((el: any) => (
+                <FloatingElement
+                    key={el.id}
+                    element={el}
+                    colors={colors}
+                    onSelect={onElementSelect}
+                    isSelected={selectedElementId === el.id}
+                />
+            ))}
         </div>
     );
 };

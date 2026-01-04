@@ -4,10 +4,10 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { SlideThumbnail } from "@/components/slides/SlideThumbnail";
-import { Plus, Search, FolderOpen, Copy, Trash2, Calendar, Eye, Loader2 } from "lucide-react";
+import { Plus, Search, FolderOpen, Copy, Trash2, Calendar, Loader2, Users } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/contexts/AuthContext";
+import { api } from "@/lib/api";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -27,48 +27,46 @@ interface Presentation {
   slides: any;
   theme: string;
   status: string;
-  created_at: string;
+  createdAt: string;
 }
+
+type TabType = "owned" | "shared";
 
 export default function Dashboard() {
   const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("all");
   const [sortBy, setSortBy] = useState("recent");
+  const [activeTab, setActiveTab] = useState<TabType>("owned");
   const { toast } = useToast();
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [presentations, setPresentations] = useState<Presentation[]>([]);
+  const [ownedPresentations, setOwnedPresentations] = useState<Presentation[]>([]);
+  const [sharedPresentations, setSharedPresentations] = useState<Presentation[]>([]);
 
-  // Load presentations from Supabase (filtered by current user)
+  // Load presentations via API
   useEffect(() => {
     const fetchPresentations = async () => {
       setIsLoading(true);
 
-      // Get current user
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { session } } = await supabase.auth.getSession();
 
-      if (!user) {
+      if (!session) {
         navigate("/auth");
         return;
       }
 
-      // Fetch ONLY this user's presentations
-      const { data, error } = await supabase
-        .from('presentations')
-        .select('*')
-        .eq('user_id', user.id)  // ⚠️ CRITICAL: Filter by user ID
-        .order('created_at', { ascending: false });
-
-      if (error) {
+      try {
+        const result = await api.getPresentations(session.access_token);
+        setOwnedPresentations(result.owned || []);
+        setSharedPresentations(result.shared || []);
+      } catch (error: any) {
         console.error('Error fetching presentations:', error);
         toast({
           title: "Erreur",
           description: "Impossible de charger vos présentations",
           variant: "destructive",
         });
-      } else {
-        setPresentations(data || []);
       }
 
       setIsLoading(false);
@@ -81,7 +79,7 @@ export default function Dashboard() {
     try {
       setDeletingId(id);
 
-      // Delete from Supabase
+      // Delete from Supabase (we keep this direct for now as delete is owner-only)
       const { error } = await supabase
         .from('presentations')
         .delete()
@@ -90,7 +88,7 @@ export default function Dashboard() {
       if (error) throw error;
 
       // Update local state
-      setPresentations(prev => prev.filter(p => p.id !== id));
+      setOwnedPresentations(prev => prev.filter(p => p.id !== id));
 
       toast({
         title: "Présentation supprimée",
@@ -107,25 +105,28 @@ export default function Dashboard() {
     }
   };
 
+  // Get the current list based on active tab
+  const currentList = activeTab === "owned" ? ownedPresentations : sharedPresentations;
+
   // Filters + sorting (client-side)
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
 
-    let list = presentations.filter((p) => {
+    let list = currentList.filter((p) => {
       const matchText = p.title.toLowerCase().includes(q);
       const matchTheme = filter === "all" ? true : p.theme?.toLowerCase()?.includes(filter);
       return matchText && matchTheme;
     });
 
     list = list.sort((a, b) => {
-      if (sortBy === "recent") return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
-      if (sortBy === "oldest") return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+      if (sortBy === "recent") return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      if (sortBy === "oldest") return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
       if (sortBy === "name") return a.title.localeCompare(b.title);
       return 0;
     });
 
     return list;
-  }, [presentations, search, filter, sortBy]);
+  }, [currentList, search, filter, sortBy]);
 
   if (isLoading) {
     return (
@@ -141,15 +142,45 @@ export default function Dashboard() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 animate-fade-in-up">
         <div>
           <h1 className="text-4xl md:text-5xl font-bold mb-2 text-gradient">
-            Mes Présentations
+            Tableau de Bord
           </h1>
-          <p className="text-muted-foreground text-base">Gérez et organisez vos présentations</p>
+          <p className="text-muted-foreground text-base">Gérez vos présentations</p>
         </div>
         <Button size="lg" asChild variant="solid">
           <Link to="/create">
             <Plus className="mr-2 h-5 w-5" />
             Nouvelle Présentation
           </Link>
+        </Button>
+      </div>
+
+      {/* Tabs */}
+      <div className="flex gap-2 border-b border-border pb-2">
+        <Button
+          variant={activeTab === "owned" ? "solid" : "ghost"}
+          onClick={() => setActiveTab("owned")}
+          className="rounded-b-none"
+        >
+          <FolderOpen className="w-4 h-4 mr-2" />
+          Mes Présentations
+          {ownedPresentations.length > 0 && (
+            <span className="ml-2 px-2 py-0.5 text-xs bg-muted rounded-full">
+              {ownedPresentations.length}
+            </span>
+          )}
+        </Button>
+        <Button
+          variant={activeTab === "shared" ? "solid" : "ghost"}
+          onClick={() => setActiveTab("shared")}
+          className="rounded-b-none"
+        >
+          <Users className="w-4 h-4 mr-2" />
+          Partagées avec moi
+          {sharedPresentations.length > 0 && (
+            <span className="ml-2 px-2 py-0.5 text-xs bg-muted rounded-full">
+              {sharedPresentations.length}
+            </span>
+          )}
         </Button>
       </div>
 
@@ -212,6 +243,11 @@ export default function Dashboard() {
                 <div className="absolute top-3 right-3 px-3 py-1.5 rounded-full bg-surface/80 backdrop-blur-sm border border-border text-xs font-semibold">
                   {presentation.slides?.slides?.length || 0} slides
                 </div>
+                {activeTab === "shared" && (
+                  <div className="absolute top-3 left-3 px-2 py-1 rounded-full bg-blue-500/20 border border-blue-500/50 text-blue-400 text-xs font-medium flex items-center gap-1">
+                    <Users className="w-3 h-3" /> Partagée
+                  </div>
+                )}
               </div>
 
               {/* Info */}
@@ -229,7 +265,7 @@ export default function Dashboard() {
                 <div className="flex items-center justify-between text-xs text-muted-foreground">
                   <div className="flex items-center space-x-1.5">
                     <Calendar className="h-3.5 w-3.5" />
-                    <span>{new Date(presentation.created_at).toLocaleDateString('fr-FR')}</span>
+                    <span>{new Date(presentation.createdAt).toLocaleDateString('fr-FR')}</span>
                   </div>
                   <div className="px-2 py-1 rounded-full bg-green-500/10 text-green-500 text-xs font-medium">
                     {presentation.status}
@@ -249,40 +285,43 @@ export default function Dashboard() {
                     <Copy className="h-4 w-4" />
                   </Button>
 
-                  <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="hover:bg-destructive/20 hover:border-destructive hover:text-destructive"
-                        title="Delete"
-                        disabled={deletingId === presentation.id}
-                      >
-                        {deletingId === presentation.id ? (
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                        ) : (
-                          <Trash2 className="h-4 w-4" />
-                        )}
-                      </Button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>Êtes-vous sûr ?</AlertDialogTitle>
-                        <AlertDialogDescription>
-                          Cette action est irréversible. Cela supprimera définitivement la présentation "{presentation.title}".
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>Annuler</AlertDialogCancel>
-                        <AlertDialogAction
-                          onClick={() => handleDelete(presentation.id)}
-                          className="bg-destructive hover:bg-destructive/90 text-white"
+                  {/* Only show delete for owned presentations */}
+                  {activeTab === "owned" && (
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="hover:bg-destructive/20 hover:border-destructive hover:text-destructive"
+                          title="Delete"
+                          disabled={deletingId === presentation.id}
                         >
-                          Supprimer
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
+                          {deletingId === presentation.id ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <Trash2 className="h-4 w-4" />
+                          )}
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Êtes-vous sûr ?</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Cette action est irréversible. Cela supprimera définitivement la présentation "{presentation.title}".
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Annuler</AlertDialogCancel>
+                          <AlertDialogAction
+                            onClick={() => handleDelete(presentation.id)}
+                            className="bg-destructive hover:bg-destructive/90 text-white"
+                          >
+                            Supprimer
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  )}
                 </div>
               </div>
             </CardContent>
@@ -294,16 +333,28 @@ export default function Dashboard() {
       {filtered.length === 0 && (
         <div className="text-center py-20">
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-r from-primary to-secondary mb-6">
-            <FolderOpen className="h-8 w-8 text-white" />
+            {activeTab === "owned" ? (
+              <FolderOpen className="h-8 w-8 text-white" />
+            ) : (
+              <Users className="h-8 w-8 text-white" />
+            )}
           </div>
-          <h3 className="text-2xl font-bold mb-2">Aucune présentation</h3>
-          <p className="text-muted-foreground mb-6">Créez votre première présentation IA</p>
-          <Button size="lg" asChild variant="solid">
-            <Link to="/create">
-              <Plus className="mr-2 h-5 w-5" />
-              Créer une présentation
-            </Link>
-          </Button>
+          <h3 className="text-2xl font-bold mb-2">
+            {activeTab === "owned" ? "Aucune présentation" : "Aucune présentation partagée"}
+          </h3>
+          <p className="text-muted-foreground mb-6">
+            {activeTab === "owned"
+              ? "Créez votre première présentation IA"
+              : "Demandez à vos collègues de vous partager leurs présentations"}
+          </p>
+          {activeTab === "owned" && (
+            <Button size="lg" asChild variant="solid">
+              <Link to="/create">
+                <Plus className="mr-2 h-5 w-5" />
+                Créer une présentation
+              </Link>
+            </Button>
+          )}
         </div>
       )}
     </div>

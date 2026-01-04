@@ -18,6 +18,7 @@ import { PrismaService } from './prisma.service.js';
 import { AuditMiddleware } from './common/audit.middleware.js';
 import { UploadController } from './upload/upload.controller.js'; // ✅ ajoute bien .js à la fin
 import { SubscriptionModule } from './subscription/subscription.module.js';
+import { PresentationModule } from './presentation/presentation.module.js';
 let AppModule = class AppModule {
     configure(consumer) {
         consumer.apply(AuditMiddleware).forRoutes('*');
@@ -33,6 +34,7 @@ AppModule = __decorate([
             GenerateModule,
             ExportModule,
             SubscriptionModule,
+            PresentationModule,
         ],
         controllers: [
             HealthController,

@@ -82,14 +82,18 @@ model Subscription {
 
 // === PRESENTATIONS ===
 model Presentation {
-  id        String   @id @default(uuid())
-  user_id   String   // Links to Supabase Auth user ID
-  title     String
-  slides    Json     // Full deck JSON including slides array
-  theme     String?
-  status    String   @default("ready") // 'processing', 'ready', 'failed'
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  id                String   @id @default(uuid())
+  user_id           String   // Links to Supabase Auth user ID (owner)
+  title             String
+  slides            Json     // Full deck JSON including slides array
+  theme             String?
+  status            String   @default("ready") // 'processing', 'ready', 'failed'
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+
+  // === SHARING ===
+  sharedWithUserIds String[] @default([]) @map("shared_with_user_ids") // User IDs who can view/edit
+  shareToken        String?  @unique @map("share_token")              // Secret token for share link
 
   @@map("presentations") // Map to snake_case table name
 }

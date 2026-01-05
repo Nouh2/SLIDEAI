@@ -62,22 +62,23 @@ const adaptDeck = (deck: any) => {
       imageSearchQuery: s.imageSearchQuery, // Used by some layouts as fallback
 
       // Legacy content fields
-      bullets: s.content?.bullets || s.bullets || [],
-      quote: s.content?.quote || s.quote,
-      metrics: s.content?.metrics || s.metrics,
-      columns: s.content?.columns || s.columns,
-      description: s.content?.description || s.description,
-      benefits: s.content?.benefits || s.benefits,
+      // Legacy content fields
+      bullets: s.bullets || s.content?.bullets || [],
+      quote: s.quote || s.content?.quote,
+      metrics: s.metrics || s.content?.metrics,
+      columns: s.columns || s.content?.columns,
+      description: s.description || s.content?.description,
+      benefits: s.benefits || s.content?.benefits,
 
       // NEW: Rich content types
-      chart: s.content?.chart || s.chart,
-      table: s.content?.table || s.table,
-      timeline: s.content?.timeline || s.timeline,
-      infographic: s.content?.infographic || s.infographic,
-      comparison: s.content?.comparison || s.comparison,
-      stats: s.content?.stats || s.stats,
-      items: s.content?.items || s.items,
-      text: s.content?.text || s.text,
+      chart: s.chart || s.content?.chart,
+      table: s.table || s.content?.table,
+      timeline: s.timeline || s.content?.timeline,
+      infographic: s.infographic || s.content?.infographic,
+      comparison: s.comparison || s.content?.comparison,
+      stats: s.stats || s.content?.stats,
+      items: s.items || s.content?.items,
+      text: s.text || s.content?.text,
 
       // Pass through the entire content object as fallback
       content: s.content,

@@ -8,6 +8,8 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { AnimatedBackground } from "@/components/layout/AnimatedBackground";
 import { AnimatedRoutes } from "@/components/layout/AnimatedRoutes";
 
+import { Toaster } from "@/components/ui/toaster";
+
 export default function App() {
   return (
     <ThemeProvider>
@@ -21,6 +23,7 @@ export default function App() {
             </main>
             <Footer />
           </div>
+          <Toaster />
         </BrowserRouter>
       </AuthProvider>
     </ThemeProvider>

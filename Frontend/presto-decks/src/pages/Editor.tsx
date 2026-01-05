@@ -411,6 +411,81 @@ export default function Editor() {
     setCurrentProject(newProject);
   };
 
+  const handleTableAction = (action: 'add-row' | 'delete-row', cellPath: string) => {
+    if (!currentProject) return;
+
+    // Regex to get row index
+    const rowMatch = cellPath.match(/\[(\d+)\]\[\d+\]$/);
+    const targetRowIdx = rowMatch ? parseInt(rowMatch[1]) : -1;
+
+    // 1. Identify which rows array we are dealing with.
+    const rowsPathString = cellPath.replace(/\[\d+\]\[\d+\]$/, '');
+
+    // Safety check
+    if (rowsPathString === cellPath) {
+      console.warn("Could not determine rows path from", cellPath);
+      return;
+    }
+
+    // 2. Locate the rows array
+    const pathParts = rowsPathString.replace(/\]/g, '').split(/[\.\[]/);
+
+    const slides = [...currentProject.slides];
+    const slide = slides[selectedSlide];
+
+    let current: any = slide;
+    let valid = true;
+    for (const part of pathParts) {
+      if (current && current[part] !== undefined) {
+        current = current[part];
+      } else {
+        valid = false;
+        break;
+      }
+    }
+    const rows = current;
+
+    if (valid && Array.isArray(rows) && rows.length > 0) {
+      if (action === 'delete-row') {
+        if (targetRowIdx === -1) return;
+
+        if (rows.length <= 1) {
+          toast({ title: "Action impossible", description: "Le tableau doit contenir au moins une ligne.", variant: "destructive" });
+          return;
+        }
+
+        const newRows = rows.filter((_, i) => i !== targetRowIdx);
+        const updatedSlide = updateDeep(slide, pathParts, newRows);
+        slides[selectedSlide] = updatedSlide;
+        setCurrentProject({ ...currentProject, slides });
+
+        toast({ title: "Ligne supprimée", description: "La ligne a été supprimée." });
+        setSelectedElement(null);
+        return;
+      }
+
+      const colCount = rows[0].length;
+      const newRow = Array(colCount).fill("Nouveau");
+
+      const newRows = [...rows, newRow];
+
+      // Update state
+      const updatedSlide = updateDeep(slide, pathParts, newRows);
+      slides[selectedSlide] = updatedSlide;
+
+      setCurrentProject({ ...currentProject, slides });
+
+      toast({
+        title: "Ligne ajoutée",
+        description: "Une nouvelle ligne a été ajoutée au tableau.",
+      });
+    } else {
+      console.error("Failed to find valid rows array at", rowsPathString, rows);
+    }
+  };
+
+
+
 
   const handleAddElement = (type: 'text' | 'image' | 'shape') => {
     if (!currentProject) return;
@@ -639,8 +714,8 @@ export default function Editor() {
                 theme={currentProject.theme}
                 colorPalette={currentProject.colorScheme}
                 className="w-full h-full bg-white"
-                onElementSelect={handleElementSelect}
-                selectedElementId={selectedElement ? selectedElement.id.split('-').slice(1).join('-') : null}
+                onElementSelect={isFullscreen ? undefined : handleElementSelect}
+                selectedElementId={!isFullscreen && selectedElement ? selectedElement.id.split('-').slice(1).join('-') : null}
               />
             </div>
           </div>
@@ -685,6 +760,7 @@ export default function Editor() {
           <PropertiesPanel
             element={selectedElement}
             onUpdate={handleElementUpdate}
+            onTableAction={handleTableAction}
             onClose={() => setSelectedElement(null)}
           />
         )}

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { X, Type, List, Image as ImageIcon } from "lucide-react";
+import { X, Type, List, Image as ImageIcon, Plus, Table, Trash2 } from "lucide-react";
 
 export interface SelectedElement {
     id: string; // Unique ID composed of slideIndex + path
@@ -15,10 +15,11 @@ export interface SelectedElement {
 interface PropertiesPanelProps {
     element: SelectedElement | null;
     onUpdate: (path: string, value: any) => void;
+    onTableAction?: (action: 'add-row' | 'delete-row', path: string) => void;
     onClose: () => void;
 }
 
-export function PropertiesPanel({ element, onUpdate, onClose }: PropertiesPanelProps) {
+export function PropertiesPanel({ element, onUpdate, onTableAction, onClose }: PropertiesPanelProps) {
     const [localValue, setLocalValue] = useState<string>("");
 
     useEffect(() => {
@@ -50,14 +51,42 @@ export function PropertiesPanel({ element, onUpdate, onClose }: PropertiesPanelP
 
             <div className="space-y-4 flex-1 overflow-y-auto">
                 {element.type === 'text' || element.type === 'list' ? (
-                    <div className="space-y-2">
-                        <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Content</Label>
-                        <Textarea
-                            value={localValue}
-                            onChange={handleChange}
-                            className="min-h-[200px] bg-background/50 resize-none focus-visible:ring-primary"
-                            placeholder="Enter text..."
-                        />
+                    <div className="space-y-6">
+                        <div className="space-y-2">
+                            <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Content</Label>
+                            <Textarea
+                                value={localValue}
+                                onChange={handleChange}
+                                className="min-h-[200px] bg-background/50 resize-none focus-visible:ring-primary"
+                                placeholder="Enter text..."
+                            />
+                        </div>
+
+                        {onTableAction && element.path.includes('rows') && element.path.includes('[') && (
+                            <div className="p-4 border border-border/50 rounded-xl bg-muted/20 space-y-3">
+                                <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
+                                    <Table className="w-3 h-3" /> Structure du tableau
+                                </Label>
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="w-full justify-start gap-2 h-9 border-dashed hover:border-primary hover:text-primary hover:bg-primary/5 transition-colors"
+                                    onClick={() => onTableAction('add-row', element.path)}
+                                >
+                                    <Plus className="w-4 h-4" />
+                                    Ajouter une ligne
+                                </Button>
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="w-full justify-start gap-2 h-9 border-dashed border-red-200 text-red-600 hover:border-red-500 hover:bg-red-50 transition-colors"
+                                    onClick={() => onTableAction('delete-row', element.path)}
+                                >
+                                    <Trash2 className="w-4 h-4" />
+                                    Supprimer cette ligne
+                                </Button>
+                            </div>
+                        )}
                     </div>
                 ) : (
                     <div className="text-sm text-muted-foreground p-4 border border-dashed rounded-lg text-center">

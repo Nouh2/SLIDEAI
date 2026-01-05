@@ -1254,18 +1254,18 @@ const TableLayout = ({ slide, colors, variation = 'default', onSelect, selectedI
                         isSelected={selectedId === 'title'}
                         className="mb-4"
                     >
-                        <h2 className="text-5xl font-bold" style={{ color: colors.text }}>{slide.title}</h2>
+                        <h2 className="text-6xl font-bold" style={{ color: colors.text }}>{slide.title}</h2>
                     </EditableElement>
-                    <div className="w-24 h-1 mx-auto rounded-full" style={{ backgroundColor: colors.primary }} />
+                    <div className="w-24 h-2 mx-auto rounded-full" style={{ backgroundColor: colors.primary }} />
                 </div>
 
-                <div className="w-full max-w-5xl mx-auto overflow-hidden rounded-2xl shadow-xl border"
+                <div className="w-full max-w-[90vw] mx-auto overflow-hidden rounded-2xl shadow-xl border"
                     style={{ borderColor: `${colors.primary}20`, backgroundColor: 'white' }}>
                     <table className="w-full">
                         <thead>
                             <tr style={{ backgroundColor: colors.primary, color: '#ffffff' }}>
                                 {table?.columns?.map((col: string, i: number) => (
-                                    <th key={i} className="px-6 py-5 text-left text-lg font-bold first:w-1/3">
+                                    <th key={i} className="px-8 py-6 text-left text-2xl font-black first:w-1/3 tracking-tight">
                                         <EditableElement
                                             element={{ id: `header-${i}`, type: 'text', value: col, path: `${colsPath}[${i}]`, label: `Header ${i + 1}` }}
                                             onSelect={onSelect}
@@ -1286,7 +1286,7 @@ const TableLayout = ({ slide, colors, variation = 'default', onSelect, selectedI
                                         const isCross = cell.toLowerCase() === 'false' || cell === '✗' || cell.toLowerCase() === 'no';
 
                                         return (
-                                            <td key={cellIdx} className={`px-6 py-4 border-b ${isFirstCol ? 'font-bold text-gray-800' : 'text-center'}`}
+                                            <td key={cellIdx} className={`px-8 py-6 border-b text-xl ${isFirstCol ? 'font-bold text-gray-900' : 'text-center'}`}
                                                 style={{ borderColor: 'rgba(0,0,0,0.05)' }}>
                                                 {isFirstCol ? (
                                                     <EditableElement
@@ -1302,9 +1302,9 @@ const TableLayout = ({ slide, colors, variation = 'default', onSelect, selectedI
                                                         onSelect={onSelect}
                                                         isSelected={selectedId === `cell-${rowIdx}-${cellIdx}`}
                                                     >
-                                                        {isCheck ? <span className="text-green-500 font-bold text-xl">✓</span> :
-                                                            isCross ? <span className="text-gray-300 font-bold text-xl">•</span> : // or X
-                                                                <span className="text-gray-600">{cell}</span>
+                                                        {isCheck ? <span className="text-green-500 font-bold text-2xl">✓</span> :
+                                                            isCross ? <span className="text-gray-300 font-bold text-2xl">•</span> : // or X
+                                                                <span className="text-gray-700">{cell}</span>
                                                         }
                                                     </EditableElement>
                                                 )}
@@ -1339,7 +1339,7 @@ const TableLayout = ({ slide, colors, variation = 'default', onSelect, selectedI
                 </>
             )}
 
-            <div className="relative z-10 flex flex-col items-center justify-center px-16 py-12 h-full">
+            <div className="relative z-10 flex flex-col items-center justify-center px-8 py-12 h-full">
                 <EditableElement
                     element={{ id: 'title', type: 'text', value: slide.title, path: 'title', label: 'Title' }}
                     onSelect={onSelect}
@@ -1352,7 +1352,7 @@ const TableLayout = ({ slide, colors, variation = 'default', onSelect, selectedI
                 </EditableElement>
 
                 {table ? (
-                    <div className="w-full max-w-6xl overflow-hidden rounded-3xl shadow-2xl border backdrop-blur-md"
+                    <div className="w-full max-w-[90%] overflow-hidden rounded-3xl shadow-2xl border backdrop-blur-md"
                         style={{
                             backgroundColor: `${colors.bg}90`,
                             borderColor: `${colors.primary}30`,
@@ -1364,7 +1364,7 @@ const TableLayout = ({ slide, colors, variation = 'default', onSelect, selectedI
                                     {table.columns?.map((col: string, i: number) => (
                                         <th
                                             key={i}
-                                            className="px-8 py-6 text-left text-lg font-bold uppercase tracking-wider text-white"
+                                            className="px-10 py-8 text-left text-2xl font-bold uppercase tracking-wider text-white"
                                         >
                                             <EditableElement
                                                 element={{ id: `header-${i}`, type: 'text', value: col, path: `${colsPath}[${i}]`, label: `Header ${i + 1}` }}
@@ -1389,7 +1389,7 @@ const TableLayout = ({ slide, colors, variation = 'default', onSelect, selectedI
                                         {row.map((cell: string, cellIdx: number) => (
                                             <td
                                                 key={cellIdx}
-                                                className="px-8 py-5 text-lg"
+                                                className="px-10 py-6 text-xl"
                                                 style={{ color: colors.text }}
                                             >
                                                 <EditableElement
@@ -2370,7 +2370,7 @@ const InfographicLayout = ({ slide, colors, variation = 'funnel', onSelect, sele
                                         }}
                                     >
                                         <EditableElement
-                                            element={{ id: `step-${i}-label`, type: 'text', value: step.label, path: `content.infographic.steps[${i}}.label`, label: `Step ${i + 1} Label` }}
+                                            element={{ id: `step-${i}-label`, type: 'text', value: step.label, path: `${stepsPath}[${i}].label`, label: `Step ${i + 1} Label` }}
                                             onSelect={onSelect}
                                             isSelected={selectedId === `step-${i}-label`}
                                         >
@@ -2432,8 +2432,10 @@ const InfographicLayout = ({ slide, colors, variation = 'funnel', onSelect, sele
                     {type === 'pyramid' && (
                         <div className="flex flex-col items-center gap-6 w-full max-w-4xl">
                             {steps.slice(0, 5).reverse().map((step: any, i: number) => {
+                                const count = Math.min(steps.length, 5);
+                                const realIndex = count - 1 - i;
                                 const widthPercent = 30 + i * 15;
-                                const bgColor = getStepColor(steps.length - 1 - i);
+                                const bgColor = getStepColor(realIndex);
                                 const textColor = getContrastColor(bgColor);
                                 return (
                                     <div
@@ -2446,17 +2448,17 @@ const InfographicLayout = ({ slide, colors, variation = 'funnel', onSelect, sele
                                         }}
                                     >
                                         <EditableElement
-                                            element={{ id: `step-${i}-label`, type: 'text', value: step.label, path: `${stepsPath}[${i}].label`, label: `Step ${i + 1} Label` }}
+                                            element={{ id: `step-${realIndex}-label`, type: 'text', value: step.label, path: `${stepsPath}[${realIndex}].label`, label: `Step ${realIndex + 1} Label` }}
                                             onSelect={onSelect}
-                                            isSelected={selectedId === `step-${i}-label`}
+                                            isSelected={selectedId === `step-${realIndex}-label`}
                                         >
                                             <span className="text-2xl font-bold">{step.label}</span>
                                         </EditableElement>
                                         {step.description && (
                                             <EditableElement
-                                                element={{ id: `step-${i}-desc`, type: 'text', value: step.description, path: `${stepsPath}[${i}].description`, label: `Step ${i + 1} Description` }}
+                                                element={{ id: `step-${realIndex}-desc`, type: 'text', value: step.description, path: `${stepsPath}[${realIndex}].description`, label: `Step ${realIndex + 1} Description` }}
                                                 onSelect={onSelect}
-                                                isSelected={selectedId === `step-${i}-desc`}
+                                                isSelected={selectedId === `step-${realIndex}-desc`}
                                             >
                                                 <span className="text-base opacity-90 mt-1" style={{ color: `${textColor}E6` }}>{step.description}</span>
                                             </EditableElement>
@@ -3640,8 +3642,12 @@ const BentoGridLayout = ({ slide, colors, variation = 'default', onSelect, selec
 
     // --- VARIATION 3: ASYMMETRIC MASONRY (Pinterest) ---
     if (variation === 'asymmetric-masonry') {
+        const isThreeItems = displayItems.length === 3;
+
         // Generate random-looking heights for a pinterest effect deterministically
         const getSpan = (idx: number) => {
+            if (isThreeItems) return idx === 0 ? 'row-span-2' : 'row-span-1';
+
             const patterns = [
                 'row-span-2', 'row-span-1', 'row-span-1',
                 'row-span-1', 'row-span-2'
@@ -3649,9 +3655,11 @@ const BentoGridLayout = ({ slide, colors, variation = 'default', onSelect, selec
             return patterns[idx % patterns.length];
         };
 
+        const gridClass = isThreeItems ? "grid-cols-2 grid-rows-2" : "grid-cols-4 grid-rows-3";
+
         return (
-            <div className="relative w-full h-full overflow-hidden p-16" style={{ backgroundColor: colors.bg }}>
-                <div className="flex justify-between items-end mb-12">
+            <div className="relative w-full h-full overflow-hidden p-16 flex flex-col" style={{ backgroundColor: colors.bg }}>
+                <div className="flex justify-between items-end mb-12 shrink-0">
                     <EditableElement
                         element={{ id: 'title', type: 'text', value: slide.title, path: 'title', label: 'Title' }}
                         onSelect={onSelect}
@@ -3668,7 +3676,7 @@ const BentoGridLayout = ({ slide, colors, variation = 'default', onSelect, selec
                     </div>
                 </div>
 
-                <div className="grid grid-cols-4 grid-rows-3 gap-6 h-[70vh]">
+                <div className={`grid ${gridClass} gap-6 flex-1 min-h-0`}>
                     {displayItems.map((item: any, i: number) => {
                         const spanClass = getSpan(i);
                         const isTall = spanClass === 'row-span-2';
@@ -3687,16 +3695,16 @@ const BentoGridLayout = ({ slide, colors, variation = 'default', onSelect, selec
                                             element={{ id: `mesonry-${i}-title`, type: 'text', value: item.title, path: `${itemsPath}[${i}].title`, label: `Item ${i + 1} Title` }}
                                             onSelect={onSelect}
                                             isSelected={selectedId === `mesonry-${i}-title`}
-                                            className="mb-2"
+                                            className="mb-3"
                                         >
-                                            <h3 className="text-white text-2xl font-bold shadow-sm group-hover:text-3xl transition-all duration-300">{item.title}</h3>
+                                            <h3 className="text-white text-3xl md:text-4xl font-black shadow-md leading-tight">{item.title}</h3>
                                         </EditableElement>
                                         <EditableElement
                                             element={{ id: `mesonry-${i}-desc`, type: 'text', value: item.description, path: `${itemsPath}[${i}].description`, label: `Item ${i + 1} Description` }}
                                             onSelect={onSelect}
                                             isSelected={selectedId === `mesonry-${i}-desc`}
                                         >
-                                            <p className="text-white/80 text-base opacity-0 group-hover:opacity-100 transition-opacity duration-500 delay-100 line-clamp-4">
+                                            <p className="text-white/90 text-lg md:text-xl font-medium leading-relaxed line-clamp-4 shadow-sm">
                                                 {item.description}
                                             </p>
                                         </EditableElement>
@@ -5397,7 +5405,7 @@ export const ModernSlideRenderer = ({ slide, theme, className, colorPalette, onE
         }
         if (hasTable) {
             console.log('  → Matched: TableLayout (has table data)');
-            return <TableLayout slide={slide} colors={colors} variation={getTableVariation()} />;
+            return <TableLayout slide={slide} colors={colors} variation={getTableVariation()} onSelect={onElementSelect} selectedId={selectedElementId} />;
         }
         if (hasComparison) {
             console.log('  → Matched: ComparisonLayout (has comparison data)');
@@ -5589,7 +5597,7 @@ export const ModernSlideRenderer = ({ slide, theme, className, colorPalette, onE
         if (normalizedType.includes('comparison') || normalizedType.includes('versus') || normalizedType.includes('before')) {
             if (hasComparison) {
                 console.log('  → Matched: ComparisonLayout (type match + data verified)');
-                return <ComparisonLayout slide={slide} colors={colors} variation={getComparisonVariation()} />;
+                return <ComparisonLayout slide={slide} colors={colors} variation={getComparisonVariation()} onSelect={onElementSelect} selectedId={selectedElementId} />;
             }
             console.log('  → Fallback: Comparison layout requested but no data -> transitioning to text layout');
         }
@@ -5597,44 +5605,44 @@ export const ModernSlideRenderer = ({ slide, theme, className, colorPalette, onE
         // Infographic
         if (normalizedType.includes('infographic') || normalizedType.includes('funnel') || normalizedType.includes('pyramid')) {
             console.log('  → Matched: InfographicLayout (type contains infographic/funnel/pyramid)');
-            return <InfographicLayout slide={slide} colors={colors} />;
+            return <InfographicLayout slide={slide} colors={colors} onSelect={onElementSelect} selectedId={selectedElementId} />;
         }
 
         // Quote
         // Quote - Redirect to Text Columns
         if (normalizedType.includes('quote') || normalizedType.includes('testimonial')) {
             console.log('  → Matched: ThreeColumnTextLayout (was QuoteLargeLayout)');
-            return <ThreeColumnTextLayout slide={slide} colors={colors} variation={getMultiColumnVariation()} />;
+            return <ThreeColumnTextLayout slide={slide} colors={colors} variation={getMultiColumnVariation()} onSelect={onElementSelect} selectedId={selectedElementId} />;
         }
 
         // Bento grid
         if (normalizedType.includes('bento') || normalizedType.includes('grid') || normalizedType.includes('feature')) {
             console.log('  → Matched: BentoGridLayout (type contains bento/grid/feature)');
-            return <BentoGridLayout slide={slide} colors={colors} variation={getBentoVariation()} />;
+            return <BentoGridLayout slide={slide} colors={colors} variation={getBentoVariation()} onSelect={onElementSelect} selectedId={selectedElementId} />;
         }
 
         // Image focus
         if (normalizedType.includes('image') || normalizedType.includes('splash') || normalizedType.includes('full')) {
             console.log('  → Matched: ImageFocusLayout (type contains image/splash/full)');
-            return <ImageFocusLayout slide={slide} colors={colors} variation={getImageFocusVariation()} />;
+            return <ImageFocusLayout slide={slide} colors={colors} variation={getImageFocusVariation()} onSelect={onElementSelect} selectedId={selectedElementId} />;
         }
 
         // Text Columns (explicit type match fallback)
         if (normalizedType.includes('text') && normalizedType.includes('column')) {
             console.log('  → Matched: ThreeColumnTextLayout (explicit text-column type)');
-            return <ThreeColumnTextLayout slide={slide} colors={colors} variation={getMultiColumnVariation()} />;
+            return <ThreeColumnTextLayout slide={slide} colors={colors} variation={getMultiColumnVariation()} onSelect={onElementSelect} selectedId={selectedElementId} />;
         }
 
         // Columns layout (legacy support) - Strict exclusion of text-columns
         if (normalizedType.includes('column') && !normalizedType.includes('text')) {
             console.log('  → Matched: ComparisonLayout (type contains column - legacy)');
-            return <ComparisonLayout slide={slide} colors={colors} variation={getComparisonVariation()} />;
+            return <ComparisonLayout slide={slide} colors={colors} variation={getComparisonVariation()} onSelect={onElementSelect} selectedId={selectedElementId} />;
         }
 
         // Bento fallback for items
         if (hasItems) {
             console.log('  → Matched: BentoGridLayout (has items data, fallback)');
-            return <BentoGridLayout slide={slide} colors={colors} variation={getBentoVariation()} />;
+            return <BentoGridLayout slide={slide} colors={colors} variation={getBentoVariation()} onSelect={onElementSelect} selectedId={selectedElementId} />;
         }
 
         // Default: Content with bullets

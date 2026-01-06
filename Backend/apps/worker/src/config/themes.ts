@@ -46,6 +46,9 @@ export interface ThemeConfig {
 
     // Icon style preference
     iconStyle: 'thin' | 'regular' | 'bold' | 'duotone';
+
+    // Content density preference
+    preferredDensity?: 'minimal' | 'standard' | 'dense';
 }
 
 /**
@@ -86,6 +89,7 @@ export const THEMES: Record<string, ThemeConfig> = {
         },
         imageKeywords: 'technology futuristic neon cyberpunk dark abstract',
         iconStyle: 'regular',
+        preferredDensity: 'standard',
     },
 
     'creative-portfolio': {
@@ -112,6 +116,7 @@ export const THEMES: Record<string, ThemeConfig> = {
         },
         imageKeywords: 'artistic colorful abstract creative vibrant design',
         iconStyle: 'bold',
+        preferredDensity: 'minimal',
     },
 
     'consulting': {
@@ -138,6 +143,7 @@ export const THEMES: Record<string, ThemeConfig> = {
         },
         imageKeywords: 'business professional executive premium corporate',
         iconStyle: 'regular',
+        preferredDensity: 'dense',
     },
 
     // ============================================
@@ -168,6 +174,7 @@ export const THEMES: Record<string, ThemeConfig> = {
         },
         imageKeywords: 'startup office modern professional clean bright',
         iconStyle: 'regular',
+        preferredDensity: 'standard',
     },
 
     'minimal-elegant': {
@@ -194,6 +201,7 @@ export const THEMES: Record<string, ThemeConfig> = {
         },
         imageKeywords: 'minimalist architecture white abstract aesthetic clean',
         iconStyle: 'thin',
+        preferredDensity: 'minimal',
     },
 
     'corporate-report': {
@@ -220,6 +228,7 @@ export const THEMES: Record<string, ThemeConfig> = {
         },
         imageKeywords: 'corporate business chart office professional data',
         iconStyle: 'regular',
+        preferredDensity: 'dense',
     },
 
     'product-launch': {
@@ -251,6 +260,7 @@ export const THEMES: Record<string, ThemeConfig> = {
         },
         imageKeywords: 'product launch tech device innovation energetic',
         iconStyle: 'bold',
+        preferredDensity: 'standard',
     },
 
     'educational': {
@@ -277,6 +287,7 @@ export const THEMES: Record<string, ThemeConfig> = {
         },
         imageKeywords: 'education learning school study academic students',
         iconStyle: 'regular',
+        preferredDensity: 'dense',
     },
 
     'health-medical': {
@@ -303,6 +314,7 @@ export const THEMES: Record<string, ThemeConfig> = {
         },
         imageKeywords: 'healthcare medical health clinic doctor hospital',
         iconStyle: 'regular',
+        preferredDensity: 'dense',
     },
 
     'sustainability': {
@@ -329,6 +341,7 @@ export const THEMES: Record<string, ThemeConfig> = {
         },
         imageKeywords: 'nature sustainability green eco environment earth',
         iconStyle: 'regular',
+        preferredDensity: 'dense',
     },
 
     'marketing-campaign': {
@@ -355,6 +368,7 @@ export const THEMES: Record<string, ThemeConfig> = {
         },
         imageKeywords: 'marketing advertising campaign social media creative',
         iconStyle: 'bold',
+        preferredDensity: 'standard',
     },
 };
 

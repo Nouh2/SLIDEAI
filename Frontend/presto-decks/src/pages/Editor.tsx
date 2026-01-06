@@ -20,8 +20,11 @@ import {
   Save,
   Share2,
   AlertCircle,
-  Sparkles
+  Sparkles,
+  Trash2,
+  GripVertical
 } from "lucide-react";
+import { Reorder, AnimatePresence } from "framer-motion";
 import { PresentationBuilderLoader } from "@/components/layout/PresentationBuilderLoader";
 import {
   Dialog,
@@ -543,6 +546,61 @@ export default function Editor() {
     }
   };
 
+  const handleDeleteSlide = (index: number, e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent slide selection when clicking delete
+
+    if (!currentProject) return;
+
+    // Prevent deleting the last slide
+    if (currentProject.slides.length <= 1) {
+      toast({
+        title: "Action impossible",
+        description: "La présentation doit contenir au moins une slide.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const newProject = { ...currentProject };
+    const newSlides = [...newProject.slides];
+
+    // Remove the slide
+    newSlides.splice(index, 1);
+    newProject.slides = newSlides;
+
+    // Update local state
+    setCurrentProject(newProject);
+
+    // Adjust selection if needed
+    if (selectedSlide >= newSlides.length) {
+      setSelectedSlide(newSlides.length - 1);
+    } else if (selectedSlide === index) {
+      // If we deleted the current slide, we're already at the correct index for the next one
+      // unless we were at the end, which is handled above.
+      // But we should probably just keep the index unless it's out of bounds.
+    }
+
+    setSelectedElement(null);
+    toast({ title: "Slide supprimée", description: "La diapositive a été supprimée." });
+  };
+
+  const handleReorderSlides = (newSlides: any[]) => {
+    if (!currentProject) return;
+
+    // Find where the selected slide went
+    const selectedSlideId = currentProject.slides[selectedSlide].id;
+    const newIndex = newSlides.findIndex((s: any) => s.id === selectedSlideId);
+
+    setCurrentProject({
+      ...currentProject,
+      slides: newSlides
+    });
+
+    if (newIndex !== -1) {
+      setSelectedSlide(newIndex);
+    }
+  };
+
   // Loading Screen
   if (isLoading || !currentProject) {
     if (error) {
@@ -642,39 +700,69 @@ export default function Editor() {
             </div>
 
             <div className="flex-1 overflow-y-auto overflow-x-hidden p-4 space-y-4 custom-scrollbar">
-              {currentProject.slides.map((slide: any, idx: number) => (
-                <div
-                  key={idx}
-                  onClick={() => { setSelectedSlide(idx); setSelectedElement(null); }}
-                  className={`group relative cursor-pointer outline-none`}
-                >
-                  {/* Slide Number Indicator */}
-                  <div className="absolute -left-2 top-1/2 -translate-y-1/2 w-1 h-8 bg-primary rounded-r-full transition-all duration-300 origin-left scale-x-0 group-hover:scale-x-100 mb-1" style={{ opacity: selectedSlide === idx ? 1 : undefined, transform: selectedSlide === idx ? 'scaleX(1)' : undefined }}></div>
+              <Reorder.Group
+                axis="y"
+                values={currentProject.slides}
+                onReorder={handleReorderSlides}
+                className="space-y-4"
+              >
+                {currentProject.slides.map((slide: any, idx: number) => (
+                  <Reorder.Item
+                    key={slide.id}
+                    value={slide}
+                    className="relative"
+                  >
+                    <div
+                      onClick={() => { setSelectedSlide(idx); setSelectedElement(null); }}
+                      className={`group relative cursor-pointer outline-none touch-none`}
+                    >
+                      {/* Slide Number Indicator */}
+                      <div className="absolute -left-2 top-1/2 -translate-y-1/2 w-1 h-8 bg-primary rounded-r-full transition-all duration-300 origin-left scale-x-0 group-hover:scale-x-100 mb-1" style={{ opacity: selectedSlide === idx ? 1 : undefined, transform: selectedSlide === idx ? 'scaleX(1)' : undefined }}></div>
 
-                  <div className={`relative aspect-video w-full rounded-lg overflow-hidden border transition-all duration-200 ${selectedSlide === idx
-                    ? "border-primary ring-2 ring-primary/10 shadow-lg scale-[1.02]"
-                    : "border-border hover:border-primary/50 hover:shadow-md"
-                    }`}>
-                    <div className="w-full h-full bg-surface relative pointer-events-none">
-                      {/* Scaled preview of the slide */}
-                      <div className="absolute top-0 left-0 w-[1920px] h-[1080px] origin-top-left" style={{ transform: `scale(${220 / 1920})` /* Approx scale for sidebar width */ }}>
-                        <ModernSlideRenderer
-                          slide={slide}
-                          theme={currentProject.theme}
-                          colorPalette={currentProject.colorScheme}
-                          className="w-full h-full"
-                        />
+                      <div className={`relative aspect-video w-full rounded-lg overflow-hidden border transition-all duration-200 ${selectedSlide === idx
+                        ? "border-primary ring-2 ring-primary/10 shadow-lg scale-[1.02]"
+                        : "border-border hover:border-primary/50 hover:shadow-md"
+                        }`}>
+                        <div className="w-full h-full bg-surface relative pointer-events-none">
+                          {/* Scaled preview of the slide */}
+                          <div className="absolute top-0 left-0 w-[1920px] h-[1080px] origin-top-left" style={{ transform: `scale(${220 / 1920})` /* Approx scale for sidebar width */ }}>
+                            <ModernSlideRenderer
+                              slide={slide}
+                              theme={currentProject.theme}
+                              colorPalette={currentProject.colorScheme}
+                              className="w-full h-full"
+                            />
+                          </div>
+                        </div>
+
+                        {/* Drag Handle Overlay */}
+                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors flex justify-end p-2 opacity-0 group-hover:opacity-100">
+                          <Button
+                            variant="destructive"
+                            size="icon"
+                            className="h-6 w-6 rounded shadow-sm opacity-0 group-hover:opacity-100 transition-opacity z-10"
+                            onClick={(e) => handleDeleteSlide(idx, e)}
+                            title="Supprimer la slide"
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </Button>
+                        </div>
+
+                        {/* Drag Indicator */}
+                        <div className="absolute left-2 top-2 p-1 bg-background/50 backdrop-blur rounded opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing">
+                          <GripVertical className="h-3 w-3 text-foreground/50" />
+                        </div>
+                      </div>
+
+                      <div className="mt-1.5 flex items-center justify-between px-1">
+                        <span className={`text-[10px] font-medium transition-colors ${selectedSlide === idx ? "text-primary" : "text-muted-foreground"}`}>
+                          {idx + 1}. {slide.title || "Untitled Slide"}
+                        </span>
                       </div>
                     </div>
-                  </div>
-
-                  <div className="mt-1.5 flex items-center justify-between px-1">
-                    <span className={`text-[10px] font-medium transition-colors ${selectedSlide === idx ? "text-primary" : "text-muted-foreground"}`}>
-                      {idx + 1}. {slide.title || "Untitled Slide"}
-                    </span>
-                  </div>
-                </div>
-              ))}
+                  </Reorder.Item>
+                ))}
+              </Reorder.Group>
 
               <div className="h-10"></div> {/* Spacer */}
             </div>

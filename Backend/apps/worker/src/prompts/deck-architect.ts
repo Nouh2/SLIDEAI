@@ -354,6 +354,34 @@ function getThemeInstruction(themeId: string): string {
 }
 
 /**
+ * Get specific instruction based on content density
+ */
+function getDensityInstruction(density: 'minimal' | 'standard' | 'dense' = 'standard'): string {
+  if (density === 'dense') {
+    return `
+      **CONTENT DENSITY: HIGH (VERBOSE)**
+      - **Instruction**: Be extremely verbose and detailed. 
+      - **Bullets**: Use long, explanatory paragraphs (2-3 sentences per bullet). 
+      - **Depth**: Extract deep insights, technical details, and specific results.
+      - **Layouts**: Prioritize "text-columns", "table", and "bento" for maximum information density.
+      - **Space**: No empty space allowed. Fill every corner with actionable content.
+    `;
+  }
+
+  if (density === 'minimal') {
+    return `
+      **CONTENT DENSITY: MINIMAL (ELÉGANT)**
+      - **Instruction**: Be extremely concise. Less is more.
+      - **Bullets**: Use one-word or very short phrase bullets only.
+      - **Focus**: Large typography, impact, and white space.
+      - **Layouts**: Prioritize "cover", "section", and "image-focus" for maximum visual impact.
+    `;
+  }
+
+  return ''; // Standard density doesn't need extra instructions
+}
+
+/**
  * Generate the user message for the AI
  * @param prompt - User's prompt/instruction
  * @param slideCount - Requested number of slides
@@ -375,7 +403,9 @@ export function buildUserPrompt(
         ? 'Responde en español.'
         : 'Respond in English.';
 
-  const themeInstruction = getThemeInstruction(theme || 'startup-pitch');
+  const themeConfig = THEMES[theme || 'startup-pitch'] || THEMES['startup-pitch'];
+  const themeInstruction = getThemeInstruction(themeConfig.id);
+  const densityInstruction = getDensityInstruction(themeConfig.preferredDensity);
 
   // Base prompt structure
   let userPrompt = `
@@ -384,6 +414,8 @@ Topic: ${prompt}
 Requested slides: ${slideCount || 8}
 
 ${themeInstruction}
+
+${densityInstruction}
 
 ${langInstruction}
 

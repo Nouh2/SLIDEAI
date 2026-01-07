@@ -8,6 +8,8 @@
  * - Adapt to the user-selected theme
  * - Create professional narrative flow
  */
+import { THEMES } from '../config/themes';
+
 export const DECK_ARCHITECT_PROMPT = `
 You are **SlideAI Opus Deck Architect**, an expert presentation designer.
 

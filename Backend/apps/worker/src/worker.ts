@@ -17,6 +17,7 @@ import { createClient } from '@supabase/supabase-js';
 // Local modules
 import { THEMES, normalizeTheme, type ThemeConfig } from './config/themes';
 import { DECK_ARCHITECT_PROMPT, buildUserPrompt } from './prompts/deck-architect';
+import { SLIDE_REGENERATOR_PROMPT, buildSlideRegeneratorPrompt } from './prompts/slide-regenerator';
 import { getUnsplashImage } from './utils/unsplash';
 import { sanitizeDeck, type Deck, type Slide } from './utils/sanitize';
 import { renderSlide, defineThemeMasters } from './renderers';
@@ -365,6 +366,8 @@ const generateWorker = new Worker(
             console.error('[Generate] ❌ Failed to save to Supabase:', saveError.message);
           } else {
             console.log('[Generate] ✅ Saved to Supabase ID:', savedDeck.id);
+            // Update deck ID with the real DB ID
+            deck.id = savedDeck.id;
           }
         } catch (err: any) {
           console.error('[Generate] ❌ Supabase Save Exception:', err.message);
@@ -378,7 +381,10 @@ const generateWorker = new Worker(
       await setJob(traceId, {
         status: 'succeeded',
         type: 'generate',
-        deck,
+        deck: {
+          ...deck,
+          id: deck.id // This should now be the UUID from Supabase if save was successful
+        },
         finishedAt: Date.now(),
       });
 
@@ -484,6 +490,257 @@ const exportWorker = new Worker(
         finishedAt: Date.now(),
       });
       throw e;
+    }
+  },
+  { connection }
+);
+
+// ============================================
+// WORKER: REGENERATE SLIDE
+// ============================================
+
+const regenerateSlideWorker = new Worker(
+  'regenerate-slide',
+  async (job) => {
+    const { traceId, presentationId, slideIndex, prompt, mode, context, user } = job.data as any;
+    const userId = user?.sub || 'anonymous';
+
+    console.log(`\n========== REGENERATE SLIDE JOB: ${traceId} ==========`);
+    console.log(`[RegenerateSlide] User ID: ${userId}`);
+    console.log(`[RegenerateSlide] Presentation: ${presentationId}, Slide Index: ${slideIndex}`);
+    console.log(`[RegenerateSlide] Mode: ${mode || 'default'}, Custom Prompt: "${prompt?.slice(0, 100) || 'none'}"`);
+
+    await setJob(traceId, {
+      status: 'processing',
+      type: 'regenerate-slide',
+      startedAt: Date.now(),
+      slideIndex,
+      userId,
+    });
+
+    try {
+      // Build the prompt for slide regeneration
+      const userMessage = buildSlideRegeneratorPrompt(context, slideIndex, prompt, mode);
+
+      // Create Gemini model with JSON response mode
+      const geminiModel = genAI.getGenerativeModel({
+        model,
+        generationConfig: {
+          temperature: 0.8, // Slightly higher for more variety
+          maxOutputTokens: 2000, // Single slide doesn't need much
+          responseMimeType: 'application/json',
+        },
+      });
+
+      const fullPrompt = `${SLIDE_REGENERATOR_PROMPT}\n\n---\n\n${userMessage}`;
+      const response = await geminiModel.generateContent(fullPrompt);
+      const raw = response.response.text();
+
+      // Log token usage
+      const usageMetadata = response.response.usageMetadata;
+      const inputTokens = usageMetadata?.promptTokenCount || 0;
+      const outputTokens = usageMetadata?.candidatesTokenCount || 0;
+      const totalCost = (inputTokens / 1_000_000) * 0.50 + (outputTokens / 1_000_000) * 3.00;
+      console.log(`[RegenerateSlide] 📊 Tokens: ${inputTokens} in / ${outputTokens} out`);
+      console.log(`[RegenerateSlide] 💰 Cost: $${totalCost.toFixed(6)}`);
+
+      if (!raw) throw new Error('Empty AI response');
+
+      // Parse the single slide JSON
+      let newSlide: Slide;
+      try {
+        newSlide = JSON.parse(raw);
+      } catch (parseError) {
+        console.error('[RegenerateSlide] JSON parse error:', parseError);
+        throw new Error('Invalid JSON from AI');
+      }
+
+      // Fetch background image
+      const themeConfig = context.themeConfig || normalizeTheme(context.theme);
+      if (newSlide.imageSearchQuery) {
+        newSlide.backgroundImage = await getUnsplashImage(
+          newSlide.imageSearchQuery,
+          themeConfig.imageKeywords
+        );
+      }
+
+      // Assign a new ID to the slide
+      newSlide.id = `slide-${slideIndex}-${Date.now()}`;
+
+      console.log(`[RegenerateSlide] ✅ New slide generated: layout="${newSlide.layout}", title="${newSlide.title}"`);
+
+      // Update presentation in Supabase
+      if (supabase) {
+        try {
+          // Fetch the current presentation
+          const { data: presentation, error: fetchError } = await supabase
+            .from('presentations')
+            .select('slides')
+            .eq('id', presentationId)
+            .single();
+
+          if (fetchError) {
+            console.error('[RegenerateSlide] ❌ Failed to fetch presentation:', fetchError.message);
+          } else if (presentation) {
+            // The slides field contains the full deck object
+            const deckData = presentation.slides;
+            const slidesArray = deckData.slides || [];
+
+            // Replace the slide at the given index
+            if (slideIndex >= 0 && slideIndex < slidesArray.length) {
+              slidesArray[slideIndex] = newSlide;
+              deckData.slides = slidesArray;
+
+              const { error: updateError } = await supabase
+                .from('presentations')
+                .update({
+                  slides: deckData,
+                  updated_at: new Date().toISOString(),
+                })
+                .eq('id', presentationId);
+
+              if (updateError) {
+                console.error('[RegenerateSlide] ❌ Failed to update presentation:', updateError.message);
+              } else {
+                console.log('[RegenerateSlide] ✅ Presentation updated in Supabase');
+              }
+            }
+          }
+        } catch (err: any) {
+          console.error('[RegenerateSlide] ❌ Supabase exception:', err.message);
+        }
+      }
+
+      await setJob(traceId, {
+        status: 'succeeded',
+        type: 'regenerate-slide',
+        slideIndex,
+        newSlide,
+        finishedAt: Date.now(),
+      });
+
+      return { traceId, slideIndex, newSlide };
+    } catch (err: any) {
+      console.error('[RegenerateSlide] ❌ Error:', err.message);
+      await setJob(traceId, {
+        status: 'failed',
+        type: 'regenerate-slide',
+        error: err.message,
+        slideIndex,
+        finishedAt: Date.now(),
+      });
+      throw err;
+    }
+  },
+  { connection }
+);
+
+// ============================================
+// MODIFY COLOR PALETTE WORKER
+// ============================================
+import { COLOR_PALETTE_MODIFIER_PROMPT, buildColorPalettePrompt } from './prompts/color-palette-modifier';
+
+const modifyColorPaletteWorker = new Worker(
+  'modify-color-palette',
+  async (job: Job) => {
+    const { traceId, presentationId, prompt, currentPalette, currentTheme, presentationTitle, user } = job.data;
+    console.log(`[ModifyColorPalette] 🎨 Starting palette modification for presentation: ${presentationId}`);
+    console.log(`[ModifyColorPalette] User instruction: "${prompt}"`);
+
+    await setJob(traceId, {
+      status: 'processing',
+      type: 'modify-color-palette',
+      startedAt: Date.now(),
+    });
+
+    try {
+      // Build the prompt
+      const userPrompt = buildColorPalettePrompt(currentPalette, presentationTitle, currentTheme, prompt);
+
+      // Call Gemini
+      const geminiModelPalette = genAI.getGenerativeModel({ model });
+      const result = await geminiModelPalette.generateContent({
+        contents: [
+          { role: 'user', parts: [{ text: COLOR_PALETTE_MODIFIER_PROMPT }] },
+          { role: 'model', parts: [{ text: 'I understand. I will generate a harmonious color palette based on the user instruction. Please provide the current palette and instruction.' }] },
+          { role: 'user', parts: [{ text: userPrompt }] },
+        ],
+        generationConfig: {
+          temperature: 0.7,
+          maxOutputTokens: 1000,
+        },
+      });
+
+      const text = result.response.text();
+      console.log('[ModifyColorPalette] Raw AI response:', text.substring(0, 500));
+
+      // Parse JSON
+      const jsonMatch = text.match(/\{[\s\S]*\}/);
+      if (!jsonMatch) {
+        throw new Error('No valid JSON found in AI response');
+      }
+
+      const parsed = JSON.parse(jsonMatch[0]);
+      const newPalette = parsed.colorPalette || parsed;
+
+      console.log('[ModifyColorPalette] New palette:', JSON.stringify(newPalette, null, 2));
+
+      // Update presentation in Supabase
+      if (supabase) {
+        try {
+          // First fetch the current presentation data
+          const { data: presentation, error: fetchError } = await supabase
+            .from('presentations')
+            .select('slides')
+            .eq('id', presentationId)
+            .single();
+
+          if (fetchError) {
+            console.error('[ModifyColorPalette] ❌ Failed to fetch presentation:', fetchError.message);
+          } else if (presentation) {
+            // Update the colorPalette in the slides data
+            const slidesData = presentation.slides as any;
+
+            // Handle both array and object formats
+            const isArray = Array.isArray(slidesData);
+            const deckData = isArray ? { slides: slidesData, colorPalette: newPalette } : { ...slidesData, colorPalette: newPalette };
+
+            const { error: updateError } = await supabase
+              .from('presentations')
+              .update({
+                slides: deckData,
+                updated_at: new Date().toISOString(),
+              })
+              .eq('id', presentationId);
+
+            if (updateError) {
+              console.error('[ModifyColorPalette] ❌ Failed to update presentation:', updateError.message);
+            } else {
+              console.log('[ModifyColorPalette] ✅ Presentation updated in Supabase');
+            }
+          }
+        } catch (err: any) {
+          console.error('[ModifyColorPalette] ❌ Supabase exception:', err.message);
+        }
+      }
+
+      await setJob(traceId, {
+        status: 'succeeded',
+        type: 'modify-color-palette',
+        newPalette,
+        finishedAt: Date.now(),
+      });
+
+      return { traceId, newPalette };
+    } catch (err: any) {
+      console.error('[ModifyColorPalette] ❌ Error:', err.message);
+      await setJob(traceId, {
+        status: 'failed',
+        type: 'modify-color-palette',
+        error: err.message,
+        finishedAt: Date.now(),
+      });
+      throw err;
     }
   },
   { connection }

@@ -153,4 +153,97 @@ export class SubscriptionService {
     getPlanLimits(plan: string) {
         return PLAN_LIMITS[plan] || PLAN_LIMITS.free;
     }
+
+    /**
+     * Gère les événements reçus de Stripe.
+     */
+    async handleStripeEvent(event: any) {
+        console.log(`[Stripe Webhook] Handling event: ${event.type}`);
+
+        switch (event.type) {
+            case 'checkout.session.completed': {
+                const session = event.data.object;
+                const userId = session.client_reference_id || session.metadata?.userId;
+                const stripeCustomerId = session.customer;
+                const stripeSubscriptionId = session.subscription;
+
+                if (!userId) {
+                    console.error('[Stripe Webhook] No userId found in session', session.id);
+                    return;
+                }
+
+                // Récupérer le plan correspondant au prix Stripe
+                // Pour l'instant on fait simple ou on stocke le plan dans la metadata
+                const plan = session.metadata?.plan || 'starter';
+
+                // Ensure user exists (Fix for potential FK constraint error)
+                await this.prisma.user.upsert({
+                    where: { id: userId },
+                    update: {},
+                    create: { id: userId, email: session.customer_email || `${userId}@placeholder.local` }
+                });
+
+                await this.prisma.subscription.upsert({
+                    where: { userId },
+                    update: {
+                        stripeCustomerId,
+                        stripeSubscriptionId,
+                        plan: plan,
+                        status: 'active',
+                        creditsRemaining: PLAN_LIMITS[plan]?.creditsPerMonth || 0,
+                    },
+                    create: {
+                        userId,
+                        stripeCustomerId,
+                        stripeSubscriptionId,
+                        plan: plan,
+                        status: 'active',
+                        creditsRemaining: PLAN_LIMITS[plan]?.creditsPerMonth || 0,
+                    },
+                });
+                break;
+            }
+
+            case 'customer.subscription.updated': {
+                const subscription = event.data.object;
+                const userId = await this.getUserIdByStripeCustomerId(subscription.customer);
+
+                if (userId) {
+                    await this.prisma.subscription.update({
+                        where: { userId },
+                        data: {
+                            status: subscription.status,
+                            currentPeriodEnd: new Date(subscription.current_period_end * 1000),
+                        },
+                    });
+                }
+                break;
+            }
+
+            case 'customer.subscription.deleted': {
+                const subscription = event.data.object;
+                const userId = await this.getUserIdByStripeCustomerId(subscription.customer);
+
+                if (userId) {
+                    await this.prisma.subscription.update({
+                        where: { userId },
+                        data: {
+                            plan: 'free',
+                            status: 'canceled',
+                            stripeSubscriptionId: null,
+                            creditsRemaining: PLAN_LIMITS.free.creditsPerMonth,
+                        },
+                    });
+                }
+                break;
+            }
+        }
+    }
+
+    private async getUserIdByStripeCustomerId(customerId: string): Promise<string | null> {
+        const sub = await this.prisma.subscription.findFirst({
+            where: { stripeCustomerId: customerId },
+        });
+        return sub?.userId || null;
+    }
 }

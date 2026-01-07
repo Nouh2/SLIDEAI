@@ -37,6 +37,10 @@ import {
 import { AddElementMenu } from "@/components/editor/AddElementMenu";
 import { PropertiesPanel, SelectedElement } from "@/components/editor/PropertiesPanel";
 import { ShareDialog } from "@/components/editor/ShareDialog";
+import { RegenerateSlideDialog } from "@/components/editor/RegenerateSlideDialog";
+import { LayoutSwitcher } from "@/components/editor/LayoutSwitcher";
+import { ColorPaletteDialog } from "@/components/editor/ColorPaletteDialog";
+import { Wand2, Palette } from "lucide-react";
 
 
 
@@ -273,6 +277,16 @@ export default function Editor() {
           setStatus(res.status);
 
           if (res.status === "succeeded" && res.deck) {
+            const realId = res.deck.id;
+
+            // Update URL without reloading
+            if (realId && realId !== "generated") {
+              const newUrl = new URL(window.location.href);
+              newUrl.searchParams.delete("traceId");
+              newUrl.searchParams.set("id", realId);
+              window.history.replaceState({}, "", newUrl.toString());
+            }
+
             setCurrentProject(adaptDeck(res.deck));
             setIsLoading(false);
             return true; // Stop polling
@@ -679,6 +693,21 @@ export default function Editor() {
                   accessToken={accessToken}
                 />
               )}
+              {currentProject && accessToken && (
+                <ColorPaletteDialog
+                  presentationId={currentProject.id}
+                  accessToken={accessToken}
+                  currentPalette={currentProject.colorScheme}
+                  onSuccess={(newPalette) => {
+                    // Update the local colorScheme
+                    setCurrentProject({ ...currentProject, colorScheme: newPalette });
+                  }}
+                >
+                  <Button variant="ghost" title="Modifier la palette de couleurs">
+                    <Palette className="w-4 h-4" />
+                  </Button>
+                </ColorPaletteDialog>
+              )}
               <AddElementMenu onAdd={handleAddElement} />
               <Button variant="outline" onClick={() => setIsExportDialogOpen(true)}>
                 <Download className="w-4 h-4 mr-2" />
@@ -736,7 +765,44 @@ export default function Editor() {
                         </div>
 
                         {/* Drag Handle Overlay */}
-                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors flex justify-end p-2 opacity-0 group-hover:opacity-100">
+                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors flex justify-end gap-1 p-2 opacity-0 group-hover:opacity-100">
+                          {/* Regenerate Button */}
+                          {accessToken && (
+                            <RegenerateSlideDialog
+                              presentationId={currentProject.id}
+                              slideIndex={idx}
+                              slideTitle={slide.title}
+                              accessToken={accessToken}
+                              onSuccess={(newSlide) => {
+                                // Replace the slide at this index
+                                const newSlides = [...currentProject.slides];
+                                newSlides[idx] = {
+                                  ...newSlide,
+                                  id: newSlide.id || `slide-${idx}-${Date.now()}`,
+                                  bullets: newSlide.bullets || newSlide.content?.bullets || [],
+                                  chart: newSlide.chart || newSlide.content?.chart,
+                                  table: newSlide.table || newSlide.content?.table,
+                                  timeline: newSlide.timeline || newSlide.content?.timeline,
+                                  infographic: newSlide.infographic || newSlide.content?.infographic,
+                                  comparison: newSlide.comparison || newSlide.content?.comparison,
+                                  stats: newSlide.stats || newSlide.content?.stats,
+                                  items: newSlide.items || newSlide.content?.items,
+                                  content: newSlide.content,
+                                };
+                                setCurrentProject({ ...currentProject, slides: newSlides });
+                              }}
+                            >
+                              <Button
+                                variant="secondary"
+                                size="icon"
+                                className="h-6 w-6 rounded shadow-sm opacity-0 group-hover:opacity-100 transition-opacity z-10"
+                                onClick={(e) => e.stopPropagation()}
+                                title="Régénérer la slide"
+                              >
+                                <Wand2 className="h-3 w-3" />
+                              </Button>
+                            </RegenerateSlideDialog>
+                          )}
                           <Button
                             variant="destructive"
                             size="icon"
@@ -802,7 +868,7 @@ export default function Editor() {
                 slide={currentProject.slides[selectedSlide]}
                 theme={currentProject.theme}
                 colorPalette={currentProject.colorScheme}
-                className="w-full h-full bg-white"
+                className="w-full h-full"
                 onElementSelect={isFullscreen ? undefined : handleElementSelect}
                 selectedElementId={!isFullscreen && selectedElement ? selectedElement.id.split('-').slice(1).join('-') : null}
               />
@@ -844,14 +910,33 @@ export default function Editor() {
           )}
         </div>
 
-        {/* 4. Properties Panel */}
-        {!isFullscreen && selectedElement && (
-          <PropertiesPanel
-            element={selectedElement}
-            onUpdate={handleElementUpdate}
-            onTableAction={handleTableAction}
-            onClose={() => setSelectedElement(null)}
-          />
+        {/* 4. Right Sidebar: Layout Switcher or Properties */}
+        {!isFullscreen && (
+          <div className="w-[280px] border-l border-border bg-surface/50 backdrop-blur-sm z-30 flex flex-col shrink-0">
+            {selectedElement ? (
+              <PropertiesPanel
+                element={selectedElement}
+                onUpdate={handleElementUpdate}
+                onTableAction={handleTableAction}
+                onClose={() => setSelectedElement(null)}
+              />
+            ) : (
+              <LayoutSwitcher
+                currentSlide={currentProject.slides[selectedSlide]}
+                theme={currentProject.theme}
+                colors={currentProject.colorScheme}
+                onUpdateSlide={(newSlideData) => {
+                  const newSlides = [...currentProject.slides];
+                  // Merge new layout data but keep key IDs if needed, though partial update is usually handled by adapter
+                  newSlides[selectedSlide] = {
+                    ...newSlides[selectedSlide],
+                    ...newSlideData
+                  };
+                  setCurrentProject({ ...currentProject, slides: newSlides });
+                }}
+              />
+            )}
+          </div>
         )}
 
       </div>

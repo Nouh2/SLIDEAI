@@ -5,26 +5,26 @@ export declare class ProjectsController {
     list(req: any): import(".prisma/client").Prisma.PrismaPromise<{
         id: string;
         title: string;
-        description: string;
         createdAt: Date;
+        description: string;
     }[]>;
     create(req: any, body: any): import(".prisma/client").Prisma.Prisma__ProjectClient<{
         id: string;
         title: string;
-        description: string;
         createdAt: Date;
+        description: string;
     }, never, import("@prisma/client/runtime/library").DefaultArgs>;
     get(req: any, id: string): Promise<{
         id: string;
         title: string;
-        description: string;
         createdAt: Date;
+        description: string;
     }>;
     update(req: any, id: string, body: any): Promise<{
         id: string;
         title: string;
-        description: string;
         createdAt: Date;
+        description: string;
     }>;
     remove(req: any, id: string): Promise<{
         ok: boolean;

@@ -10,8 +10,8 @@ import { ConfigService } from '@nestjs/config';
 async function bootstrap() {
   const app = await NestFactory.create<NestFastifyApplication>(
     AppModule,
-    new FastifyAdapter({ logger: false }),
-    { snapshot: true },
+    new FastifyAdapter({ logger: false, rawBody: true } as any),
+    { snapshot: true, rawBody: true },
   );
 
   const config = app.get(ConfigService);

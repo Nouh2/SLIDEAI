@@ -39,10 +39,15 @@ export interface GenerateResponse {
 
 export interface JobStatusResponse {
   status: "processing" | "succeeded" | "failed";
-  type: "generate" | "export";
+  type: "generate" | "export" | "regenerate-slide" | "modify-color-palette";
   deck?: DeckData;
   url?: string;
   error?: string;
+  // For regenerate-slide jobs
+  newSlide?: any;
+  slideIndex?: number;
+  // For modify-color-palette jobs
+  newPalette?: any;
 }
 
 export interface DeckData {
@@ -355,6 +360,67 @@ export const api = {
       const err = await response.json().catch(() => ({ message: 'Lien invalide' }));
       throw new Error(err.message || 'Lien de partage invalide');
     }
+    return response.json();
+  },
+
+  /**
+   * Regenerate a single slide with AI
+   * POST /v1/presentations/:id/slides/:index/regenerate
+   */
+  async regenerateSlide(
+    presentationId: string,
+    slideIndex: number,
+    options: { prompt?: string; mode?: 'visual' | 'detailed' | 'chart' },
+    accessToken: string
+  ): Promise<{ traceId: string }> {
+    const response = await fetch(
+      `${API_BASE_URL}/presentations/${presentationId}/slides/${slideIndex}/regenerate`,
+      {
+        method: 'POST',
+        headers: buildHeaders(accessToken, 'application/json'),
+        body: JSON.stringify(options),
+      }
+    );
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({ message: 'Erreur' }));
+      throw new Error(err.message || 'Impossible de régénérer la slide');
+    }
+    return response.json();
+  },
+
+  /**
+   * Modify the color palette of a presentation with AI
+   * POST /v1/presentations/:id/color-palette
+   */
+  async modifyColorPalette(
+    presentationId: string,
+    prompt: string,
+    accessToken: string
+  ): Promise<{ traceId: string }> {
+    const response = await fetch(
+      `${API_BASE_URL}/presentations/${presentationId}/color-palette`,
+      {
+        method: 'POST',
+        headers: buildHeaders(accessToken, 'application/json'),
+        body: JSON.stringify({ prompt }),
+      }
+    );
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({ message: 'Erreur' }));
+      throw new Error(err.message || 'Impossible de modifier la palette');
+    }
+    return response.json();
+  },
+
+  /**
+   * Get the current user's subscription details
+   * GET /v1/subscription
+   */
+  async getMySubscription(accessToken: string): Promise<any> {
+    const response = await fetch(`${API_BASE_URL}/subscription`, {
+      headers: buildHeaders(accessToken),
+    });
+    if (!response.ok) throw new Error('Impossible de charger l\'abonnement');
     return response.json();
   },
 };

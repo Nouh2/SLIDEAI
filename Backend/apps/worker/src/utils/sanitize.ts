@@ -44,6 +44,7 @@ export interface SlideContent {
 }
 
 export interface Slide {
+    id?: string;
     layout: string;
     title: string;
     imageSearchQuery?: string;
@@ -52,6 +53,7 @@ export interface Slide {
 }
 
 export interface Deck {
+    id?: string;
     title: string;
     theme: string;
     colorPalette?: {

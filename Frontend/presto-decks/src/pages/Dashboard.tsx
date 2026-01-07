@@ -1,10 +1,10 @@
 import { useMemo, useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Search, FolderOpen, Copy, Trash2, Calendar, Loader2, Users } from "lucide-react";
+import { Plus, Search, FolderOpen, Copy, Trash2, Calendar, Loader2, Users, Zap } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/contexts/AuthContext";
 import { api } from "@/lib/api";
@@ -43,6 +43,23 @@ export default function Dashboard() {
   const [isLoading, setIsLoading] = useState(true);
   const [ownedPresentations, setOwnedPresentations] = useState<Presentation[]>([]);
   const [sharedPresentations, setSharedPresentations] = useState<Presentation[]>([]);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [subscription, setSubscription] = useState<any>(null);
+
+  // Check for successful payment
+  useEffect(() => {
+    const sessionId = searchParams.get("session_id");
+    if (sessionId) {
+      toast({
+        title: "Paiement réussi ! 🎉",
+        description: "Votre abonnement est activé. Merci de votre confiance !",
+        className: "bg-green-500/10 border-green-500/50 text-green-500",
+      });
+      // Clean URL
+      searchParams.delete("session_id");
+      setSearchParams(searchParams);
+    }
+  }, [searchParams, setSearchParams, toast]);
 
   // Load presentations via API
   useEffect(() => {
@@ -57,9 +74,13 @@ export default function Dashboard() {
       }
 
       try {
-        const result = await api.getPresentations(session.access_token);
+        const [result, subResult] = await Promise.all([
+          api.getPresentations(session.access_token),
+          api.getMySubscription(session.access_token)
+        ]);
         setOwnedPresentations(result.owned || []);
         setSharedPresentations(result.shared || []);
+        setSubscription(subResult);
       } catch (error: any) {
         console.error('Error fetching presentations:', error);
         toast({
@@ -144,7 +165,24 @@ export default function Dashboard() {
           <h1 className="text-4xl md:text-5xl font-bold mb-2 text-gradient">
             Tableau de Bord
           </h1>
-          <p className="text-muted-foreground text-base">Gérez vos présentations</p>
+          <div className="flex items-center gap-3 mt-1">
+            <p className="text-muted-foreground text-base">Gérez vos présentations</p>
+            {subscription && (
+              <div className="flex items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+                <div className="px-3 py-1 rounded-full bg-primary/10 border border-primary/20 flex items-center gap-2 transition-all hover:bg-primary/20 cursor-default group">
+                  <Zap className="w-3.5 h-3.5 text-primary group-hover:scale-110 transition-transform" />
+                  <span className="text-xs font-bold uppercase tracking-wider text-primary">
+                    Plan {subscription.plan}
+                  </span>
+                  <span className="w-px h-3 bg-primary/20 mx-1" />
+                  <span className="text-xs font-medium text-primary/80">
+                    {subscription.creditsRemaining === -1 ? "Présentations Illimitées" : `${subscription.creditsRemaining} présentations`}
+                  </span>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
         <Button size="lg" asChild variant="solid">
           <Link to="/create">

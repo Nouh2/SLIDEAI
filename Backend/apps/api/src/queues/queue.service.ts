@@ -43,8 +43,10 @@ connection.on('error', (err) => {
 export class QueueService {
   readonly generateQueue = new Queue('generate', { connection });
   readonly exportQueue = new Queue('export', { connection });
+  readonly regenerateSlideQueue = new Queue('regenerate-slide', { connection });
   readonly generateEvents = new QueueEvents('generate', { connection });
   readonly exportEvents = new QueueEvents('export', { connection });
+  readonly regenerateSlideEvents = new QueueEvents('regenerate-slide', { connection });
 
   async addGenerate(payload: any, opts: JobsOptions = {}) {
     console.log('[QueueService] Adding job to generate queue...');
@@ -68,5 +70,33 @@ export class QueueService {
 
   addExport(payload: any, opts: JobsOptions = {}) {
     return this.exportQueue.add('export', payload, { attempts: 3, removeOnComplete: 1000, ...opts });
+  }
+
+  async addRegenerateSlide(payload: any, opts: JobsOptions = {}) {
+    console.log('[QueueService] Adding job to regenerate-slide queue...');
+    try {
+      const job = await this.regenerateSlideQueue.add('regenerate-slide', payload, { attempts: 3, removeOnComplete: 1000, ...opts });
+      console.log('[QueueService] Regenerate slide job added:', job.id);
+      return job;
+    } catch (error: any) {
+      console.error('[QueueService] Error adding regenerate-slide job:', error.message);
+      throw error;
+    }
+  }
+
+  // === COLOR PALETTE MODIFICATION ===
+  readonly modifyColorPaletteQueue = new Queue('modify-color-palette', { connection });
+  readonly modifyColorPaletteEvents = new QueueEvents('modify-color-palette', { connection });
+
+  async addModifyColorPalette(payload: any, opts: JobsOptions = {}) {
+    console.log('[QueueService] Adding job to modify-color-palette queue...');
+    try {
+      const job = await this.modifyColorPaletteQueue.add('modify-color-palette', payload, { attempts: 3, removeOnComplete: 1000, ...opts });
+      console.log('[QueueService] Modify color palette job added:', job.id);
+      return job;
+    } catch (error: any) {
+      console.error('[QueueService] Error adding modify-color-palette job:', error.message);
+      throw error;
+    }
   }
 }

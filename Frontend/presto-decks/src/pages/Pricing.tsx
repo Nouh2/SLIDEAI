@@ -1,11 +1,79 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { CheckCircle2, Sparkles, Zap, Layers, HelpCircle } from "lucide-react";
+import { CheckCircle2, Sparkles, Zap, Layers, HelpCircle, Loader2 } from "lucide-react";
+import { supabase } from "@/contexts/AuthContext";
+import { toast } from "sonner";
 
 export default function Pricing() {
   const [billingCycle, setBillingCycle] = useState<"monthly" | "yearly">("yearly");
+  const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
+  const navigate = useNavigate();
+
+  // Mapping plans to Stripe Price IDs (REPLACE WITH YOUR TEST PRICE IDs)
+  const STRIPE_PRICE_IDS: Record<string, { monthly: string; yearly: string }> = {
+    Starter: {
+      monthly: "price_1Sn5Iw5KgGKgF82ebXEDerSL",
+      yearly: "price_1Sn5Jx5KgGKgF82e7TVoKqcJ",
+    },
+    Pro: {
+      monthly: "price_1Sn5IN5KgGKgF82elQlvSUIf",
+      yearly: "price_1Sn5Jd5KgGKgF82erWwaHW8G",
+    },
+    Business: {
+      monthly: "price_1Sn5JB5KgGKgF82egl8duDWF",
+      yearly: "price_1Sn5KK5KgGKgF82eSgoyWSnS",
+    },
+  };
+
+  const handleSubscribe = async (planName: string) => {
+    if (planName === "Free") {
+      navigate("/app");
+      return;
+    }
+
+    if (planName === "Business") {
+      window.location.href = "mailto:contact@slideai.com";
+      return;
+    }
+
+    setLoadingPlan(planName);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        toast.error("Veuillez vous connecter pour souscrire");
+        navigate("/join");
+        return;
+      }
+
+      const priceId = STRIPE_PRICE_IDS[planName][billingCycle];
+
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/subscription/checkout`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({
+          priceId,
+          plan: planName.toLowerCase()
+        }),
+      });
+
+      const data = await response.json();
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        throw new Error("Erreur lors de la création de la session de paiement");
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error("Une erreur est survenue. Veuillez réessayer.");
+    } finally {
+      setLoadingPlan(null);
+    }
+  };
 
   const plans = [
     {
@@ -218,9 +286,14 @@ export default function Pricing() {
                     ? 'shadow-lg shadow-primary/20 hover:shadow-primary/40'
                     : ''
                     }`}
-                  asChild
+                  onClick={() => handleSubscribe(plan.name)}
+                  disabled={loadingPlan === plan.name}
                 >
-                  <Link to="/app">{plan.cta}</Link>
+                  {loadingPlan === plan.name ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    plan.cta
+                  )}
                 </Button>
 
                 <div className="space-y-3 flex-1">

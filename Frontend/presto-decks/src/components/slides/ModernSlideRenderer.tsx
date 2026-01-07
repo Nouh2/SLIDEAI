@@ -254,7 +254,7 @@ const CoverHeroLayout = ({ slide, colors, onSelect, selectedId }: { slide: any; 
                 isSelected={selectedId === 'title'}
             >
                 <h1 className="text-8xl md:text-9xl font-bold mb-10 leading-tight">
-                    {slide.title?.split(' ').map((word: string, i: number) => {
+                    {(slide.title || 'Untitled').split(' ').map((word: string, i: number) => {
                         const isKeyword = ['vision', 'pitch', 'strategy', 'innovation', 'future', 'ai', 'tech'].some(kw =>
                             word.toLowerCase().includes(kw)
                         );
@@ -3293,7 +3293,11 @@ const SectionDividerLayout = ({ slide, colors, variation = 'default', onSelect, 
     // --- VARIATION 1: BIG NUMBER OUTLINE (Bold) ---
     if (variation === 'big-number-outline') {
         return (
-            <div className="relative w-full h-full overflow-hidden flex flex-col items-center justify-center bg-white p-20">
+            <div className="relative w-full h-full overflow-hidden flex flex-col items-center justify-center p-20"
+                style={{
+                    background: `linear-gradient(135deg, ${colors.bg} 0%, ${colors.primary}10 100%)`,
+                    backgroundColor: colors.bg
+                }}>
                 {/* Giant Outline Number */}
                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 select-none z-0 pointer-events-none">
                     <span className="text-[400px] font-black leading-none opacity-5"
@@ -3381,13 +3385,13 @@ const SectionDividerLayout = ({ slide, colors, variation = 'default', onSelect, 
         return (
             <div className="relative w-full h-full overflow-hidden flex flex-col items-center justify-center p-20"
                 style={{
-                    background: `radial-gradient(circle at 10% 20%, ${colors.primary} 0%, transparent 40%), 
+                    backgroundColor: colors.bg,
+                    backgroundImage: `radial-gradient(circle at 10% 20%, ${colors.primary} 0%, transparent 40%), 
                                   radial-gradient(circle at 90% 10%, ${colors.secondary} 0%, transparent 40%), 
                                   radial-gradient(circle at 80% 90%, ${colors.accent} 0%, transparent 40%), 
-                                  radial-gradient(circle at 0% 100%, ${colors.primary} 0%, transparent 40%),
-                                  ${colors.bg}`
+                                  radial-gradient(circle at 0% 100%, ${colors.primary} 0%, transparent 40%)`
                 }}>
-                <div className="absolute inset-0 bg-white/40 backdrop-blur-3xl" />
+                <div className="absolute inset-0 bg-white/10 backdrop-blur-3xl" />
 
                 <div className="relative z-10 text-center border border-white/40 py-20 px-16 max-w-5xl bg-white/20 backdrop-blur-md rounded-[3rem] shadow-2xl">
                     <EditableElement
@@ -4297,11 +4301,25 @@ const MasterContentLayout = ({ slide, colors, variation = 'classic', onSelect, s
                             isSelected={selectedId === 'title'}
                         >
                             <h2 className="text-7xl font-black leading-tight mb-8" style={{ color: colors.text }}>
-                                {slide.title.split(' ').map((word: string, i: number) => (
+                                {(slide.title || 'Untitled').split(' ').map((word: string, i: number) => (
                                     <span key={i} className="block">{word}</span>
                                 ))}
                             </h2>
                         </EditableElement>
+
+                        {(slide.subtitle || slide.content?.subtitle) && (
+                            <EditableElement
+                                element={{ id: 'subtitle', type: 'text', value: slide.subtitle || slide.content?.subtitle, path: slide.subtitle ? 'subtitle' : 'content.subtitle', label: 'Subtitle' }}
+                                onSelect={onSelect}
+                                isSelected={selectedId === 'subtitle'}
+                                className="mb-8"
+                            >
+                                <p className="text-2xl font-light italic opacity-80" style={{ color: colors.text }}>
+                                    {slide.subtitle || slide.content?.subtitle}
+                                </p>
+                            </EditableElement>
+                        )}
+
                         <p className="text-lg opacity-60 mt-auto" style={{ color: colors.text }}>ISSUE 01 • {new Date().getFullYear()}</p>
                     </div>
                     <div className="col-span-7 relative">
@@ -4959,6 +4977,9 @@ export const ModernSlideRenderer = ({ slide, theme, className, colorPalette, onE
 
     const renderLayout = () => {
         const getComparisonVariation = (): ComparisonVariation => {
+            // 0. Manual Override
+            if (slide.variation && ['balanced-split', 'versus-cards', 'feature-grid', 'before-after', 'pros-cons'].includes(slide.variation)) return slide.variation as ComparisonVariation;
+
             // 1. Theme-based preference
             const isTech = theme.includes('tech') || theme.includes('modern') || theme.includes('startup');
             const isCorporate = theme.includes('corporate') || theme.includes('consulting') || theme.includes('finance');
@@ -4990,6 +5011,9 @@ export const ModernSlideRenderer = ({ slide, theme, className, colorPalette, onE
         };
 
         const getChartVariation = (): ChartVariation => {
+            // 0. Manual Override
+            if (slide.variation && ['default-container', 'split-detail', 'floating-card', 'full-bleed-hero', 'minimal-stat'].includes(slide.variation)) return slide.variation as ChartVariation;
+
             // 1. Theme-based preference
             const isTech = theme.includes('tech') || theme.includes('modern') || theme.includes('startup');
             const isDark = theme.includes('dark') || theme.includes('black') || theme.includes('night');
@@ -5074,6 +5098,8 @@ export const ModernSlideRenderer = ({ slide, theme, className, colorPalette, onE
 
         // Helper to pick a variation for text columns
         const getMultiColumnVariation = (): TextColumnVariation => {
+            if (slide.variation && ['default', 'cards', 'process', 'magazine-cols'].includes(slide.variation)) return slide.variation as TextColumnVariation;
+
             const salt = slide.id || slide.title || 'cols';
             const slideIndex = slide.index || 0;
 
@@ -5107,6 +5133,8 @@ export const ModernSlideRenderer = ({ slide, theme, className, colorPalette, onE
 
         // Helper to pick a variation for stats
         const getStatsVariation = (): StatsVariation => {
+            if (slide.variation && ['default', 'grid', 'highlight', 'bento'].includes(slide.variation)) return slide.variation as StatsVariation;
+
             const salt = slide.id || slide.title || 'stats';
             const slideIndex = slide.index || 0;
 
@@ -5145,6 +5173,8 @@ export const ModernSlideRenderer = ({ slide, theme, className, colorPalette, onE
 
         // Helper to pick a variation for timeline
         const getTimelineVariation = (): TimelineVariation => {
+            if (slide.variation && ['horizontal-line', 'vertical-alternating', 'connected-cards', 'stepped-process', 'minimal-list'].includes(slide.variation)) return slide.variation as TimelineVariation;
+
             const salt = slide.id || slide.title || 'timeline';
             const slideIndex = slide.index || 0;
 
@@ -5182,6 +5212,8 @@ export const ModernSlideRenderer = ({ slide, theme, className, colorPalette, onE
 
         // Helper to pick a variation for bento/grid
         const getBentoVariation = (): BentoVariation => {
+            if (slide.variation && ['default', 'feature-grid', 'masonry', 'interactive-cards'].includes(slide.variation)) return slide.variation as BentoVariation;
+
             const salt = slide.id || slide.title || 'bento';
             const slideIndex = slide.index || 0;
 
@@ -5216,6 +5248,8 @@ export const ModernSlideRenderer = ({ slide, theme, className, colorPalette, onE
 
         // Helper to pick a variation for product showcase
         const getShowcaseVariation = (): ShowcaseVariation => {
+            if (slide.variation && ['default', 'split', 'floating', 'minimal'].includes(slide.variation)) return slide.variation as ShowcaseVariation;
+
             const salt = slide.id || slide.title || 'showcase';
             const slideIndex = slide.index || 0;
 
@@ -5247,6 +5281,8 @@ export const ModernSlideRenderer = ({ slide, theme, className, colorPalette, onE
 
         // Helper to pick a variation for infographic
         const getInfographicVariation = (): InfographicVariation => {
+            if (slide.variation && ['funnel', 'process', 'pyramid', 'cycle-flow', 'hub-spoke'].includes(slide.variation)) return slide.variation as InfographicVariation;
+
             const salt = slide.id || slide.title || 'infographic';
             const slideIndex = slide.index || 0;
 
@@ -5283,6 +5319,8 @@ export const ModernSlideRenderer = ({ slide, theme, className, colorPalette, onE
 
         // Helper to pick a variation for section divider
         const getSectionVariation = (): SectionVariation => {
+            if (slide.variation && ['default', 'big-number-outline', 'minimal-bar', 'abstract-mesh'].includes(slide.variation)) return slide.variation as SectionVariation;
+
             const salt = slide.id || slide.title || 'section';
             const slideIndex = slide.index || 0;
 
@@ -5316,11 +5354,15 @@ export const ModernSlideRenderer = ({ slide, theme, className, colorPalette, onE
             }
 
             const pickedIndex = baseHash % variations.length;
-            return variations[pickedIndex];
+            const finalPick = variations[pickedIndex];
+            console.log(`[SectionVar] ID:${slide.id} Title:${slide.title?.substring(0, 10)}... Theme:${theme} -> Picked:${finalPick} (Rand:${pseudoRandom.toFixed(2)})`);
+            return finalPick;
         };
 
         // Helper to pick a variation for image focus
         const getImageFocusVariation = (): ImageFocusVariation => {
+            if (slide.variation && ['default', 'text-mask', 'split-curtain', 'polaroid-pile'].includes(slide.variation)) return slide.variation as ImageFocusVariation;
+
             const salt = slide.id || slide.title || 'image';
             const slideIndex = slide.index || 0;
 
@@ -5358,6 +5400,8 @@ export const ModernSlideRenderer = ({ slide, theme, className, colorPalette, onE
 
         // Helper to pick a variation for table
         const getTableVariation = (): TableVariation => {
+            if (slide.variation && ['default', 'data-grid', 'feature-matrix', 'pricing-tiers'].includes(slide.variation)) return slide.variation as TableVariation;
+
             const salt = slide.id || slide.title || 'table';
             const slideIndex = slide.index || 0;
 
@@ -5485,13 +5529,18 @@ export const ModernSlideRenderer = ({ slide, theme, className, colorPalette, onE
             let pickedIndex = baseHash % variations.length;
             let picked: MasterVariation = variations[pickedIndex];
 
-            // Theme affinities are now SUGGESTIONS (70% chance to use theme suggestion)
-            if (pseudoRandom > 0.3) {
-                if (theme.includes('tech')) picked = variations[(pickedIndex + 1) % variations.length]; // Affinity for more "structured" looks
-                else if (theme.includes('minimal') || theme.includes('corporate')) picked = variations[baseHash % 2 === 0 ? 0 : 4]; // classic or minimal-offset
-                else if (theme.includes('creative') || theme.includes('marketing')) picked = variations[baseHash % 2 === 0 ? 1 : 3]; // split-card or magazine
-                else if (theme.includes('startup') || theme.includes('product')) picked = variations[baseHash % 2 === 0 ? 1 : 2]; // split-card or hero-block
-                else if (theme.includes('consulting')) picked = variations[baseHash % 2 === 0 ? 0 : 2]; // classic or hero-block
+            // 0. Manual Override (Check variations list validity)
+            if (slide.variation && variations.includes(slide.variation as MasterVariation)) {
+                picked = slide.variation as MasterVariation;
+            } else {
+                // Theme affinities are now SUGGESTIONS (70% chance to use theme suggestion)
+                if (pseudoRandom > 0.3) {
+                    if (theme.includes('tech')) picked = variations[(pickedIndex + 1) % variations.length]; // Affinity for more "structured" looks
+                    else if (theme.includes('minimal') || theme.includes('corporate')) picked = variations[baseHash % 2 === 0 ? 0 : 4]; // classic or minimal-offset
+                    else if (theme.includes('creative') || theme.includes('marketing')) picked = variations[baseHash % 2 === 0 ? 1 : 3]; // split-card or magazine
+                    else if (theme.includes('startup') || theme.includes('product')) picked = variations[baseHash % 2 === 0 ? 1 : 2]; // split-card or hero-block
+                    else if (theme.includes('consulting')) picked = variations[baseHash % 2 === 0 ? 0 : 2]; // classic or hero-block
+                }
             }
 
             console.log(`  → Picked variation: ${picked}`);
@@ -5537,15 +5586,17 @@ export const ModernSlideRenderer = ({ slide, theme, className, colorPalette, onE
             const pseudoRandom = (themeHash % 100) / 100;
 
             // Base choice based on baseHash
-            let pickedIndex = baseHash % variations.length;
-            let picked: CoverVariation = variations[pickedIndex];
+            let coverPickedIndex = baseHash % variations.length;
+            let picked: CoverVariation = variations[coverPickedIndex];
 
             // Theme affinities are now SUGGESTIONS (70% chance)
-            if (pseudoRandom > 0.3) {
+            if (slide.variation && variations.includes(slide.variation as CoverVariation)) {
+                picked = slide.variation as CoverVariation;
+            } else if (pseudoRandom > 0.3) {
                 const offset = themeHash % 3;
-                if (theme.includes('tech')) picked = variations[(pickedIndex + offset) % variations.length]; // Prefers tech, glass, dark
-                else if (theme.includes('creative')) picked = variations[(pickedIndex + offset + 2) % variations.length]; // Prefers giant, mesh, gallery
-                else if (theme.includes('minimal')) picked = variations[(pickedIndex + offset + 4) % variations.length]; // Prefers centered, boxed
+                if (theme.includes('tech')) picked = variations[(coverPickedIndex + offset) % variations.length]; // Prefers tech, glass, dark
+                else if (theme.includes('creative')) picked = variations[(coverPickedIndex + offset + 2) % variations.length]; // Prefers giant, mesh, gallery
+                else if (theme.includes('minimal')) picked = variations[(coverPickedIndex + offset + 4) % variations.length]; // Prefers centered, boxed
                 else if (theme.includes('corporate') || theme.includes('consulting')) picked = variations[themeHash % 2 === 0 ? 0 : 1]; // centered-minimal or full-split
                 else if (theme.includes('marketing') || theme.includes('product')) picked = variations[themeHash % 2 === 0 ? 5 : (variations.includes('cinematic') ? 9 : 5)]; // gradient-mesh or cinematic (if available)
                 else if (theme.includes('startup')) picked = variations[themeHash % 2 === 0 ? 2 : 4]; // diagonal-hero or boxed-modern

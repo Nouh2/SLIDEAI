@@ -102,4 +102,53 @@ export class PresentationController {
         const presentation = await this.presentationService.joinByToken(token, userId);
         return { presentationId: presentation.id };
     }
+
+    /**
+     * POST /v1/presentations/:id/slides/:index/regenerate
+     * Regenerate a single slide with AI
+     */
+    @Post(':id/slides/:index/regenerate')
+    async regenerateSlide(
+        @Param('id') id: string,
+        @Param('index') index: string,
+        @Body() body: unknown,
+        @Req() req: FastifyRequest & { user: any },
+    ) {
+        const userId = req.user.sub;
+        const slideIndex = parseInt(index, 10);
+
+        if (isNaN(slideIndex) || slideIndex < 0) {
+            throw new Error('Index de slide invalide');
+        }
+
+        // Parse body - optional prompt and mode
+        const regenerateSchema = z.object({
+            prompt: z.string().optional(),
+            mode: z.enum(['visual', 'detailed', 'chart']).optional(),
+        });
+        const data = regenerateSchema.parse(body || {});
+
+        return this.presentationService.regenerateSlide(id, slideIndex, userId, data);
+    }
+
+    /**
+     * POST /v1/presentations/:id/color-palette
+     * Modify the color palette of a presentation with AI
+     */
+    @Post(':id/color-palette')
+    async modifyColorPalette(
+        @Param('id') id: string,
+        @Body() body: unknown,
+        @Req() req: FastifyRequest & { user: any },
+    ) {
+        const userId = req.user.sub;
+
+        const paletteSchema = z.object({
+            prompt: z.string().min(1, 'Une instruction est requise'),
+        });
+        const data = paletteSchema.parse(body);
+
+        return this.presentationService.modifyColorPalette(id, userId, data.prompt);
+    }
 }
+

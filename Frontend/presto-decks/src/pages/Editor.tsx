@@ -26,20 +26,14 @@ import {
 } from "lucide-react";
 import { Reorder, AnimatePresence } from "framer-motion";
 import { PresentationBuilderLoader } from "@/components/layout/PresentationBuilderLoader";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+
 import { AddElementMenu } from "@/components/editor/AddElementMenu";
 import { PropertiesPanel, SelectedElement } from "@/components/editor/PropertiesPanel";
 import { ShareDialog } from "@/components/editor/ShareDialog";
 import { RegenerateSlideDialog } from "@/components/editor/RegenerateSlideDialog";
 import { LayoutSwitcher } from "@/components/editor/LayoutSwitcher";
 import { ColorPaletteDialog } from "@/components/editor/ColorPaletteDialog";
+import { ExportDialog } from "@/components/editor/ExportDialog";
 import { Wand2, Palette } from "lucide-react";
 
 
@@ -86,6 +80,9 @@ const adaptDeck = (deck: any) => {
       stats: s.stats || s.content?.stats,
       items: s.items || s.content?.items,
       text: s.text || s.content?.text,
+
+      // Layout variation selection (user choice from LayoutSwitcher)
+      variation: s.variation,
 
       // Pass through the entire content object as fallback
       content: s.content,
@@ -364,17 +361,7 @@ export default function Editor() {
     }
   };
 
-  const handleExportClick = () => {
-    setIsExportDialogOpen(true);
-  };
 
-  const handleNotifyMe = () => {
-    toast({
-      title: "C'est noté !",
-      description: "Vous serez prévenu dès que l'export sera disponible.",
-    });
-    setIsExportDialogOpen(false);
-  };
 
   const handleElementSelect = (element: any) => {
     // Add slide index to ID to make it unique across deck
@@ -941,26 +928,12 @@ export default function Editor() {
 
       </div>
 
-      <Dialog open={isExportDialogOpen} onOpenChange={setIsExportDialogOpen}>
-        <DialogContent className="sm:max-w-[425px] border-border bg-background/95 backdrop-blur-xl shadow-2xl">
-          <DialogHeader>
-            <DialogTitle className="text-xl font-bold flex items-center gap-2">
-              <Sparkles className="h-5 w-5 text-primary" />
-              L'export PPTX arrive très bientôt !
-            </DialogTitle>
-            <DialogDescription className="pt-2 text-base text-foreground/80 leading-relaxed">
-              On travaille jour et nuit pour vous offrir un export parfait.
-              <br /><br />
-              En attendant, profitez de la <strong>visionneuse plein écran</strong> pour vos présentations ou partagez votre <strong>lien unique</strong>.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter className="mt-4">
-            <Button onClick={handleNotifyMe} className="w-full font-bold shadow-lg shadow-primary/20">
-              Être prévenu de la sortie
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      {/* Export Dialog */}
+      <ExportDialog
+        open={isExportDialogOpen}
+        onOpenChange={setIsExportDialogOpen}
+        presentation={currentProject}
+      />
     </div>
   );
 }

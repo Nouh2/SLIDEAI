@@ -1774,6 +1774,7 @@ const TimelineLayout = ({ slide, colors, variation = 'horizontal-line', onSelect
 type ComparisonVariation = 'balanced-split' | 'versus-cards' | 'feature-grid' | 'before-after' | 'pros-cons';
 
 const ComparisonLayout = ({ slide, colors, variation = 'balanced-split', onSelect, selectedId }: { slide: any; colors: any, variation?: ComparisonVariation; onSelect?: any; selectedId?: string | null }) => {
+    console.log(`[ComparisonLayout] Render with variation: ${variation}`);
     const comparison = slide.comparison || slide.content?.comparison;
     const columns = slide.columns || slide.content?.columns;
 
@@ -2301,8 +2302,10 @@ const InfographicLayout = ({ slide, colors, variation = 'funnel', onSelect, sele
     }
 
     const steps = infographic?.steps || [];
-    // If variation is passed, it overrides the internal type, unless it's default/funnel match
-    const type = variation !== 'funnel' ? variation : (infographic?.type || 'funnel');
+    // If variation is passed, we should trust it effectively as ModernSlideRenderer handles the 'smart' selection
+    const type = variation || infographic?.type || 'funnel';
+
+    console.log(`[InfographicLayout] Rendering variation: ${type} (prop: ${variation}, internal: ${infographic?.type})`);
 
     // --- PATH RESOLUTION ---
     let stepsPath = 'content.infographic.steps';
@@ -4978,7 +4981,10 @@ export const ModernSlideRenderer = ({ slide, theme, className, colorPalette, onE
     const renderLayout = () => {
         const getComparisonVariation = (): ComparisonVariation => {
             // 0. Manual Override
-            if (slide.variation && ['balanced-split', 'versus-cards', 'feature-grid', 'before-after', 'pros-cons'].includes(slide.variation)) return slide.variation as ComparisonVariation;
+            if (slide.variation && ['balanced-split', 'versus-cards', 'feature-grid', 'before-after', 'pros-cons'].includes(slide.variation)) {
+                console.log(`[getComparisonVariation] Using manual variation: ${slide.variation}`);
+                return slide.variation as ComparisonVariation;
+            }
 
             // 1. Theme-based preference
             const isTech = theme.includes('tech') || theme.includes('modern') || theme.includes('startup');
@@ -5071,7 +5077,7 @@ export const ModernSlideRenderer = ({ slide, theme, className, colorPalette, onE
             slide.infographic?.steps?.length > 0 ||
             slide.content?.infographic?.steps?.length > 0 ||
             // AI format: type + steps (but steps are strings, not date objects)
-            (slide.content?.type && slide.content?.steps?.length > 0 && !slide.content?.steps?.[0]?.date)
+            ((slide.content?.type || normalizedType.includes('infographic')) && slide.content?.steps?.length > 0 && !slide.content?.steps?.[0]?.date)
         );
         const hasComparison = (
             !normalizedType.includes('text') && // Prevent text-columns from being hijacked as comparison
@@ -5098,7 +5104,7 @@ export const ModernSlideRenderer = ({ slide, theme, className, colorPalette, onE
 
         // Helper to pick a variation for text columns
         const getMultiColumnVariation = (): TextColumnVariation => {
-            if (slide.variation && ['default', 'cards', 'process', 'magazine-cols'].includes(slide.variation)) return slide.variation as TextColumnVariation;
+            if (slide.variation && ['default', 'cards', 'process', 'magazine-cols', 'classic', 'modern-cards', 'numbered-editorial', 'side-highlight', 'vertical-separators', 'bento-text'].includes(slide.variation)) return slide.variation as TextColumnVariation;
 
             const salt = slide.id || slide.title || 'cols';
             const slideIndex = slide.index || 0;
@@ -5133,7 +5139,7 @@ export const ModernSlideRenderer = ({ slide, theme, className, colorPalette, onE
 
         // Helper to pick a variation for stats
         const getStatsVariation = (): StatsVariation => {
-            if (slide.variation && ['default', 'grid', 'highlight', 'bento'].includes(slide.variation)) return slide.variation as StatsVariation;
+            if (slide.variation && ['classic-grid', 'metric-cards', 'big-hero-stat', 'data-progress', 'trend-focus'].includes(slide.variation)) return slide.variation as StatsVariation;
 
             const salt = slide.id || slide.title || 'stats';
             const slideIndex = slide.index || 0;
@@ -5212,7 +5218,7 @@ export const ModernSlideRenderer = ({ slide, theme, className, colorPalette, onE
 
         // Helper to pick a variation for bento/grid
         const getBentoVariation = (): BentoVariation => {
-            if (slide.variation && ['default', 'feature-grid', 'masonry', 'interactive-cards'].includes(slide.variation)) return slide.variation as BentoVariation;
+            if (slide.variation && ['default', 'magazine-grid', 'feature-focus', 'asymmetric-masonry'].includes(slide.variation)) return slide.variation as BentoVariation;
 
             const salt = slide.id || slide.title || 'bento';
             const slideIndex = slide.index || 0;
@@ -5434,6 +5440,7 @@ export const ModernSlideRenderer = ({ slide, theme, className, colorPalette, onE
             return variations[pickedIndex];
         };
 
+
         let LayoutComponent: React.ComponentType<any> = MasterContentLayout; // Default to MasterContentLayout
 
         // PRIORITY 1: Content-based detection (what data actually exists)
@@ -5453,7 +5460,7 @@ export const ModernSlideRenderer = ({ slide, theme, className, colorPalette, onE
         }
         if (hasComparison) {
             console.log('  → Matched: ComparisonLayout (has comparison data)');
-            return <ComparisonLayout slide={slide} colors={colors} onSelect={onElementSelect} selectedId={selectedElementId} />;
+            return <ComparisonLayout slide={slide} colors={colors} variation={getComparisonVariation()} onSelect={onElementSelect} selectedId={selectedElementId} />;
         }
         if (hasStats) {
             console.log('  → Matched: StatsLayout (has stats data)');
@@ -5622,7 +5629,7 @@ export const ModernSlideRenderer = ({ slide, theme, className, colorPalette, onE
         }
 
         // Chart by type - STRICT CHECK: Only if data exists, otherwise fallback to text
-        if (normalizedType.includes('chart') || normalizedType.includes('graph')) {
+        if (normalizedType.includes('chart') || (normalizedType.includes('graph') && !normalizedType.includes('infographic'))) {
             if (hasChart) {
                 console.log('  → Matched: ChartLayout (type match + data verified)');
                 return <ChartLayout slide={slide} colors={colors} variation={getChartVariation()} onSelect={onElementSelect} selectedId={selectedElementId} />;
@@ -5638,7 +5645,7 @@ export const ModernSlideRenderer = ({ slide, theme, className, colorPalette, onE
                 console.log('  → Matched: TimelineLayout (type match + data verified)');
                 return <TimelineLayout slide={slide} colors={colors} variation={getTimelineVariation()} onSelect={onElementSelect} selectedId={selectedElementId} />;
             } else if (hasInfographic) {
-                return <InfographicLayout slide={slide} colors={colors} onSelect={onElementSelect} selectedId={selectedElementId} />;
+                return <InfographicLayout slide={slide} colors={colors} variation={getInfographicVariation()} onSelect={onElementSelect} selectedId={selectedElementId} />;
             }
             // Fallback if no timeline data
             console.log('  → Fallback: Timeline type requested but no data -> defaulting to Content/ThreeCol');
@@ -5656,7 +5663,7 @@ export const ModernSlideRenderer = ({ slide, theme, className, colorPalette, onE
         // Infographic
         if (normalizedType.includes('infographic') || normalizedType.includes('funnel') || normalizedType.includes('pyramid')) {
             console.log('  → Matched: InfographicLayout (type contains infographic/funnel/pyramid)');
-            return <InfographicLayout slide={slide} colors={colors} onSelect={onElementSelect} selectedId={selectedElementId} />;
+            return <InfographicLayout slide={slide} colors={colors} variation={getInfographicVariation()} onSelect={onElementSelect} selectedId={selectedElementId} />;
         }
 
         // Quote

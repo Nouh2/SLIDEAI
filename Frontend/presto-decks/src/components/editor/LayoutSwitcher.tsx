@@ -33,7 +33,7 @@ export function LayoutSwitcher({ currentSlide, theme, colors, onUpdateSlide }: L
 
         // Priority 1: Strict Types
         if (type === 'table' || type.includes('pricing') || (slide.content?.table && !slide.content.chart)) return 'table';
-        if (type.includes('chart') || type.includes('graph')) return 'chart';
+        if (type.includes('chart') || (type.includes('graph') && !type.includes('infographic'))) return 'chart';
         if (type.includes('start') || type.includes('cover') || type.includes('hero')) return 'cover';
         if (type.includes('section') || type.includes('divider')) return 'section';
 
@@ -48,6 +48,7 @@ export function LayoutSwitcher({ currentSlide, theme, colors, onUpdateSlide }: L
 
         // Priority 3: Content Fallback
         if (type.includes('quote')) return 'content'; // Quote fits in content columns usually
+        if (type.includes('text') && type.includes('column')) return 'text-columns'; // Explicit text columns
         if (type.includes('content') || type.includes('bullet') || type.includes('text') || slide.content?.bullets) return 'content';
 
         return 'content'; // Default fallback
@@ -66,6 +67,15 @@ export function LayoutSwitcher({ currentSlide, theme, colors, onUpdateSlide }: L
                     { id: 'magazine', label: 'Magazine', icon: Columns },
                     { id: 'minimal-offset', label: 'Minimal', icon: List },
                 ];
+            case 'text-columns':
+                return [
+                    { id: 'classic', label: 'Classic', icon: Columns },
+                    { id: 'modern-cards', label: 'Modern Cards', icon: LayoutGrid },
+                    { id: 'numbered-editorial', label: 'Editorial', icon: List },
+                    { id: 'side-highlight', label: 'Highlight', icon: Columns },
+                    { id: 'vertical-separators', label: 'Vertical', icon: Columns },
+                    { id: 'bento-text', label: 'Bento Text', icon: LayoutGrid },
+                ];
             case 'section':
                 return [
                     { id: 'default', label: 'Clean', icon: Maximize },
@@ -75,19 +85,18 @@ export function LayoutSwitcher({ currentSlide, theme, colors, onUpdateSlide }: L
                 ];
             case 'stats':
                 return [
-                    { id: 'default', label: 'Simple', icon: List },
-                    { id: 'grid', label: 'Grid', icon: LayoutGrid },
-                    { id: 'highlight', label: 'Highlight', icon: Maximize },
-                    { id: 'bento', label: 'Bento', icon: LayoutGrid },
-                    { id: 'trend-focus', label: 'Trend', icon: BarChart },
+                    { id: 'classic-grid', label: 'Classic Grid', icon: LayoutGrid },
+                    { id: 'metric-cards', label: 'Metric Cards', icon: List },
+                    { id: 'big-hero-stat', label: 'Hero Stat', icon: Maximize },
+                    { id: 'data-progress', label: 'Progress', icon: BarChart },
+                    { id: 'trend-focus', label: 'Trend Focus', icon: BarChart },
                 ];
-            case 'chart':
+            case 'bento':
                 return [
-                    { id: 'default-container', label: 'Standard', icon: BarChart },
-                    { id: 'split-detail', label: 'Split Detail', icon: Columns },
-                    { id: 'floating-card', label: 'Floating', icon: LayoutGrid },
-                    { id: 'full-bleed-hero', label: 'Full Bleed', icon: Maximize },
-                    { id: 'minimal-stat', label: 'Minimal', icon: List },
+                    { id: 'default', label: 'Classic Grid', icon: LayoutGrid },
+                    { id: 'magazine-grid', label: 'Magazine', icon: Columns },
+                    { id: 'feature-focus', label: 'Feature List', icon: List },
+                    { id: 'asymmetric-masonry', label: 'Masonry', icon: LayoutGrid },
                 ];
             case 'table':
                 return [
@@ -204,7 +213,7 @@ export function LayoutSwitcher({ currentSlide, theme, colors, onUpdateSlide }: L
                             // Check type
                             isActive = (v.id === 'bullets' && (currentSlide.type === 'content')) ||
                                 (v.id === 'bento' && currentSlide.type === 'bento') ||
-                                (v.id === 'columns' && currentSlide.type === 'text-column');
+                                (v.id === 'columns' && currentSlide.type === 'text-column' && !['classic', 'modern-cards'].includes(currentSlide.variation || ''));
                         } else {
                             // Check variation prop
                             isActive = currentSlide.variation === v.id;
@@ -225,7 +234,8 @@ export function LayoutSwitcher({ currentSlide, theme, colors, onUpdateSlide }: L
                                     </span>
                                 </div>
 
-                                <button
+                                <div
+                                    role="button"
                                     onClick={() => handleSelectVariation(v)}
                                     className={`w-full aspect-video rounded-lg overflow-hidden border-2 transition-all relative group text-left
                                         ${isActive ? 'border-primary ring-2 ring-primary/20' : 'border-transparent hover:border-primary/50'}
@@ -246,7 +256,7 @@ export function LayoutSwitcher({ currentSlide, theme, colors, onUpdateSlide }: L
 
                                     {/* Hover overlay */}
                                     <div className="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 transition-opacity" />
-                                </button>
+                                </div>
                             </div>
                         );
                     })}

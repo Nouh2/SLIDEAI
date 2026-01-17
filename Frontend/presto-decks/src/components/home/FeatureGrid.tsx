@@ -60,24 +60,24 @@ const features = [
 
 export function FeatureGrid() {
   return (
-    <section className="relative py-20 md:py-32 px-4 overflow-hidden">
+    <section className="relative py-12 md:py-32 px-4 overflow-hidden">
       {/* Background */}
       <div className="absolute inset-0 -z-10">
-        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-secondary/10 rounded-full blur-3xl animate-float-slow opacity-40" />
+        <div className="absolute bottom-0 right-1/4 w-60 md:w-96 h-60 md:h-96 bg-secondary/10 rounded-full blur-3xl animate-float-slow opacity-40" />
       </div>
 
       <div className="max-w-7xl mx-auto">
         {/* Section Header */}
-        <div className="text-center mb-16 space-y-4">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass-premium text-sm">
-            <Layers className="w-4 h-4 text-secondary" />
+        <div className="text-center mb-10 md:mb-16 space-y-4">
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 md:px-4 md:py-2 rounded-full glass-premium text-xs md:text-sm">
+            <Layers className="w-3.5 h-3.5 md:w-4 md:h-4 text-secondary" />
             <span className="text-foreground/80">Capacités</span>
           </div>
-          <h2 className="text-4xl md:text-5xl font-bold">
+          <h2 className="text-3xl md:text-5xl font-bold">
             Des outils puissants<br />
             <span className="text-gradient-secondary">conçus pour vous</span>
           </h2>
-          <p className="text-lg text-foreground/60 max-w-2xl mx-auto mt-4">
+          <p className="text-base md:text-lg text-foreground/60 max-w-2xl mx-auto mt-4 px-2">
             Tout ce dont vous avez besoin pour créer des présentations professionnelles sans effort
           </p>
         </div>
@@ -87,7 +87,7 @@ export function FeatureGrid() {
           {features.map((feature, index) => {
             const Icon = feature.icon;
             const isLarge = feature.size.includes("md:col-span-2");
-            
+
             return (
               <motion.div
                 key={feature.id}
@@ -99,13 +99,13 @@ export function FeatureGrid() {
                 <div className={`glass-premium p-6 md:p-8 h-full rounded-2xl border border-primary/10 hover:border-primary/30 transition-all duration-300 cursor-pointer overflow-hidden relative`}>
                   {/* Background gradient */}
                   <div className={`absolute inset-0 bg-gradient-to-br ${feature.gradient} opacity-0 group-hover:opacity-100 transition-opacity duration-300 -z-10`} />
-                  
+
                   {/* Animated accent line */}
                   <div className={`absolute top-0 left-0 h-1 bg-gradient-to-r from-${feature.accent} to-transparent w-full opacity-0 group-hover:opacity-100 transition-opacity duration-300`} />
 
                   {/* Content */}
                   <div className="relative z-10 space-y-4">
-                    <motion.div 
+                    <motion.div
                       className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-primary/10 text-primary group-hover:bg-primary/20 group-hover:scale-110 transition-all duration-300"
                       whileHover={{ rotate: 10 }}
                     >
@@ -122,7 +122,7 @@ export function FeatureGrid() {
                     </div>
 
                     {/* Hover indicator */}
-                    <motion.div 
+                    <motion.div
                       className="flex items-center gap-2 text-sm text-primary/60 opacity-0 group-hover:opacity-100 transition-opacity"
                       initial={{ x: -10 }}
                       whileHover={{ x: 0 }}
@@ -143,7 +143,7 @@ export function FeatureGrid() {
         </div>
 
         {/* CTA Section */}
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.6 }}

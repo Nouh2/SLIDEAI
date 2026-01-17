@@ -7,10 +7,12 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 // apps/api/src/export/export.module.ts
 import { Module } from '@nestjs/common';
 import { ExportController } from './export.controller.js';
+import { SubscriptionModule } from '../subscription/subscription.module.js';
 let ExportModule = class ExportModule {
 };
 ExportModule = __decorate([
     Module({
+        imports: [SubscriptionModule],
         controllers: [ExportController],
     })
 ], ExportModule);

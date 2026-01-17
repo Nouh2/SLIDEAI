@@ -181,22 +181,22 @@ export default function Pricing() {
   ];
 
   return (
-    <div className="py-20">
+    <div className="py-12 md:py-20">
       <section className="container px-4 md:px-6">
-        <div className="text-center space-y-6 mb-16 animate-fade-in-up">
-          <div className="inline-flex items-center space-x-2 rounded-full glass px-6 py-3 text-sm mb-4">
-            <Zap className="h-5 w-5 text-accent animate-pulse" />
+        <div className="text-center space-y-6 mb-12 md:mb-16 animate-fade-in-up">
+          <div className="inline-flex items-center space-x-2 rounded-full glass px-4 py-2 md:px-6 md:py-3 text-xs md:text-sm mb-4">
+            <Zap className="h-4 w-4 md:h-5 md:w-5 text-accent animate-pulse" />
             <span className="text-foreground/90 font-medium">Simple, transparent, scalable</span>
           </div>
-          <h1 className="text-4xl md:text-6xl font-bold">
+          <h1 className="text-3xl md:text-6xl font-bold">
             <span className="text-gradient-animated">Tarifs</span> adaptés à vos besoins
           </h1>
-          <p className="text-xl text-foreground/70 max-w-2xl mx-auto">
+          <p className="text-base md:text-xl text-foreground/70 max-w-2xl mx-auto px-2">
             Commencez gratuitement, passez à la vitesse supérieure quand vous êtes prêt.
           </p>
 
           {/* Billing Cycle Toggle */}
-          <div className="flex items-center justify-center mt-12 mb-12">
+          <div className="flex items-center justify-center mt-8 md:mt-12 mb-8 md:mb-12">
             <div className="relative inline-flex items-center p-1.5 rounded-full bg-secondary/30 border border-border backdrop-blur-sm">
               {/* Sliding Background Pill */}
               <div
@@ -206,7 +206,7 @@ export default function Pricing() {
 
               <button
                 onClick={() => setBillingCycle("monthly")}
-                className={`relative z-10 px-8 py-2.5 rounded-full text-sm font-semibold transition-colors duration-300 ${billingCycle === "monthly"
+                className={`relative z-10 px-6 md:px-8 py-2 md:py-2.5 rounded-full text-xs md:text-sm font-semibold transition-colors duration-300 ${billingCycle === "monthly"
                   ? "text-foreground"
                   : "text-muted-foreground hover:text-foreground/80"
                   }`}
@@ -215,7 +215,7 @@ export default function Pricing() {
               </button>
               <button
                 onClick={() => setBillingCycle("yearly")}
-                className={`relative z-10 px-8 py-2.5 rounded-full text-sm font-semibold transition-colors duration-300 ${billingCycle === "yearly"
+                className={`relative z-10 px-6 md:px-8 py-2 md:py-2.5 rounded-full text-xs md:text-sm font-semibold transition-colors duration-300 ${billingCycle === "yearly"
                   ? "text-foreground"
                   : "text-muted-foreground hover:text-foreground/80"
                   }`}
@@ -223,9 +223,9 @@ export default function Pricing() {
                 Annuel
               </button>
 
-              {/* Modern Badge - Only visible when Yearly is selected */}
+              {/* Modern Badge - Only visible when Yearly is selected and on larger screens */}
               <div
-                className={`absolute left-full ml-4 top-1/2 -translate-y-1/2 hidden sm:flex items-center transition-all duration-300 ${billingCycle === "yearly"
+                className={`absolute left-full ml-4 top-1/2 -translate-y-1/2 hidden lg:flex items-center transition-all duration-300 ${billingCycle === "yearly"
                   ? "opacity-100 translate-x-0"
                   : "opacity-0 -translate-x-2 pointer-events-none"
                   }`}

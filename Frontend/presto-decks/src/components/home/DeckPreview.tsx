@@ -3,28 +3,28 @@ import { Sparkles, Zap } from "lucide-react";
 
 export function DeckPreview() {
     return (
-        <section className="relative w-full py-20 px-4 overflow-hidden">
+        <section className="relative w-full py-12 md:py-20 px-4 overflow-hidden">
             {/* Section Background */}
             <div className="absolute inset-0 -z-10">
                 <div className="absolute inset-0 bg-gradient-to-b from-transparent via-primary/5 to-transparent" />
-                <div className="absolute top-1/2 left-1/4 w-96 h-96 bg-primary/10 rounded-full blur-3xl animate-float-slow opacity-30" />
+                <div className="absolute top-1/2 left-1/4 w-60 md:w-96 h-60 md:h-96 bg-primary/10 rounded-full blur-3xl animate-float-slow opacity-30" />
             </div>
 
             <div className="max-w-7xl mx-auto">
                 {/* Section Header */}
-                <div className="text-center mb-16 space-y-4">
-                    <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass-premium text-sm">
-                        <Zap className="w-4 h-4 text-secondary" />
+                <div className="text-center mb-10 md:mb-16 space-y-4">
+                    <div className="inline-flex items-center gap-2 px-3 py-1.5 md:px-4 md:py-2 rounded-full glass-premium text-xs md:text-sm">
+                        <Zap className="w-3.5 h-3.5 md:w-4 md:h-4 text-secondary" />
                         <span className="text-foreground/80">Aperçu en Direct</span>
                     </div>
-                    <h2 className="text-4xl md:text-5xl font-bold">
+                    <h2 className="text-3xl md:text-5xl font-bold">
                         Voici ce que vous<br />
                         <span className="text-gradient-secondary">créerez avec SlideAI</span>
                     </h2>
                 </div>
 
                 {/* 3D Deck Preview */}
-                <div className="relative w-full max-w-5xl mx-auto h-[300px] md:h-[500px] perspective-1000">
+                <div className="relative w-full max-w-5xl mx-auto h-[280px] md:h-[500px] perspective-1000">
                     <div className="absolute inset-0 flex items-center justify-center" style={{
                         perspective: "1200px",
                     }}>

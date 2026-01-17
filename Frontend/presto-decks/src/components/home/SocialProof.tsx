@@ -36,16 +36,16 @@ const stats = [
 
 export function SocialProof() {
   return (
-    <section className="relative py-20 md:py-32 px-4 overflow-hidden">
+    <section className="relative py-12 md:py-32 px-4 overflow-hidden">
       {/* Background */}
       <div className="absolute inset-0 -z-10">
-        <div className="absolute top-1/3 left-1/4 w-96 h-96 bg-primary/5 rounded-full blur-3xl" />
-        <div className="absolute bottom-0 right-1/3 w-80 h-80 bg-secondary/5 rounded-full blur-3xl" />
+        <div className="absolute top-1/3 left-1/4 w-60 md:w-96 h-60 md:h-96 bg-primary/5 rounded-full blur-3xl" />
+        <div className="absolute bottom-0 right-1/3 w-60 md:w-80 h-60 md:h-80 bg-secondary/5 rounded-full blur-3xl" />
       </div>
 
-      <div className="max-w-7xl mx-auto space-y-20">
+      <div className="max-w-7xl mx-auto space-y-12 md:space-y-20">
         {/* Stats Section */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
           {stats.map((stat, index) => {
             const Icon = stat.icon;
             return (
@@ -54,17 +54,17 @@ export function SocialProof() {
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.1 }}
-                className="glass-premium rounded-2xl p-8 text-center border border-primary/10 group hover:border-primary/30 transition-all"
+                className="glass-premium rounded-2xl p-6 md:p-8 text-center border border-primary/10 group hover:border-primary/30 transition-all"
               >
-                <motion.div 
+                <motion.div
                   className="flex justify-center mb-4"
                   whileHover={{ scale: 1.2, rotate: 10 }}
                 >
-                  <div className="inline-flex items-center justify-center w-14 h-14 rounded-xl bg-primary/10 text-primary">
-                    <Icon className="w-7 h-7" />
+                  <div className="inline-flex items-center justify-center w-12 h-12 md:w-14 md:h-14 rounded-xl bg-primary/10 text-primary">
+                    <Icon className="w-6 h-6 md:w-7 md:h-7" />
                   </div>
                 </motion.div>
-                <p className="text-4xl md:text-5xl font-bold text-gradient mb-3">
+                <p className="text-3xl md:text-5xl font-bold text-gradient mb-2 md:mb-3">
                   {stat.value}
                 </p>
                 <p className="text-foreground/60 text-sm md:text-base font-medium">
@@ -78,11 +78,11 @@ export function SocialProof() {
         {/* Testimonials */}
         <div className="space-y-8">
           <div className="text-center space-y-4">
-            <h2 className="text-4xl md:text-5xl font-bold">
+            <h2 className="text-3xl md:text-5xl font-bold">
               Aimé par les<br />
               <span className="text-gradient-secondary">équipes créatives</span>
             </h2>
-            <p className="text-lg text-foreground/60 max-w-2xl mx-auto">
+            <p className="text-base md:text-lg text-foreground/60 max-w-2xl mx-auto px-2">
               Découvrez comment SlideAI a aidé des milliers de professionnels à créer des présentations exceptionnelles
             </p>
           </div>
@@ -131,7 +131,7 @@ export function SocialProof() {
         </div>
 
         {/* Trust badges */}
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
           transition={{ delay: 0.6 }}

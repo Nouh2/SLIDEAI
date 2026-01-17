@@ -59,17 +59,17 @@ export default function Examples() {
 
   return (
     <div className="min-h-screen flex flex-col">
-      <section className="py-20">
+      <section className="py-12 md:py-20">
         <div className="container">
-          <div className="text-center space-y-6 mb-20">
-            <div className="inline-flex items-center space-x-2 rounded-full glass px-6 py-3 text-sm mb-4">
-              <Sparkles className="h-5 w-5 text-accent" />
+          <div className="text-center space-y-6 mb-10 md:mb-20">
+            <div className="inline-flex items-center space-x-2 rounded-full glass px-4 py-2 md:px-6 md:py-3 text-xs md:text-sm mb-2">
+              <Sparkles className="h-4 w-4 md:h-5 md:w-5 text-accent" />
               <span className="text-foreground/90 font-medium">Inspiré par l'IA</span>
             </div>
-            <h1 className="text-5xl md:text-7xl font-bold">
+            <h1 className="text-4xl md:text-7xl font-bold">
               <span className="text-gradient-animated">Galerie</span> d'exemples
             </h1>
-            <p className="text-xl md:text-2xl text-foreground/70 max-w-2xl mx-auto">
+            <p className="text-lg md:text-2xl text-foreground/70 max-w-2xl mx-auto px-2">
               Découvrez ce que vous pouvez créer avec SlideAI
             </p>
           </div>

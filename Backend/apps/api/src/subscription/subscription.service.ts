@@ -3,22 +3,56 @@ import { Injectable, ForbiddenException } from '@nestjs/common';
 import { PrismaService } from '../prisma.service.js';
 
 // === Plan Limits Configuration ===
-const PLAN_LIMITS: Record<string, { creditsPerMonth: number; features: string[] }> = {
+// === Plan Limits Configuration ===
+const PLAN_LIMITS: Record<string, {
+    creditsPerMonth: number;
+    features: string[];
+    limits: {
+        pdfPages: number;
+        maxProjects: number;
+        aiAddPerPresentation: number;
+        aiWandPerPresentation: number;
+    }
+}> = {
     free: {
-        creditsPerMonth: 1,
-        features: ['web_viewer', 'pdf_import_5_pages', 'watermark'],
+        creditsPerMonth: 2,
+        features: ['watermark'],
+        limits: {
+            pdfPages: 10,
+            maxProjects: 3,
+            aiAddPerPresentation: 2,
+            aiWandPerPresentation: 3,
+        }
     },
     starter: {
         creditsPerMonth: 15,
-        features: ['web_viewer', 'pdf_import_full', 'public_link', 'no_watermark'],
+        features: ['web_viewer', 'public_link', 'no_watermark', 'export_pdf'],
+        limits: {
+            pdfPages: 50,
+            maxProjects: 20,
+            aiAddPerPresentation: 5,
+            aiWandPerPresentation: -1,
+        }
     },
     pro: {
         creditsPerMonth: -1, // Unlimited
-        features: ['web_viewer', 'pdf_import_full', 'public_link', 'no_watermark', 'brand_kit', 'ai_priority', 'export_beta'],
+        features: ['web_viewer', 'public_link', 'no_watermark', 'brand_kit', 'ai_priority', 'export_beta', 'export_pdf', 'support_priority'],
+        limits: {
+            pdfPages: 200,
+            maxProjects: -1,
+            aiAddPerPresentation: -1,
+            aiWandPerPresentation: -1,
+        }
     },
     business: {
         creditsPerMonth: -1, // Unlimited
-        features: ['web_viewer', 'pdf_import_full', 'public_link', 'no_watermark', 'brand_kit', 'ai_priority', 'export_beta', 'team_workspace', 'sso', 'analytics'],
+        features: ['web_viewer', 'public_link', 'no_watermark', 'brand_kit', 'ai_priority', 'export_beta', 'team_workspace', 'sso', 'analytics', 'export_pdf'],
+        limits: {
+            pdfPages: 500,
+            maxProjects: -1,
+            aiAddPerPresentation: -1,
+            aiWandPerPresentation: -1,
+        }
     },
 };
 
@@ -240,10 +274,94 @@ export class SubscriptionService {
         }
     }
 
-    private async getUserIdByStripeCustomerId(customerId: string): Promise<string | null> {
+    async getUserIdByStripeCustomerId(customerId: string): Promise<string | null> {
         const sub = await this.prisma.subscription.findFirst({
             where: { stripeCustomerId: customerId },
         });
         return sub?.userId || null;
+    }
+
+    /**
+     * Vérifie si l'utilisateur peut créer un nouveau projet (limite de stockage).
+     */
+    async checkProjectLimit(userId: string): Promise<boolean> {
+        const sub = await this.getOrCreateSubscription(userId);
+        const limits = PLAN_LIMITS[sub.plan]?.limits || PLAN_LIMITS.free.limits;
+
+        if (limits.maxProjects === -1) return true;
+
+        // Note: Presentation = Project in this context roughly, but wait, schema has Project and Presentation.
+        // "Stockage (Dashboard) 3 projets max".
+        // The dashboard lists 'presentations', so we should count Presentations.
+        // But there is also a 'Project' model. The user prompt says "Stockage (Dashboard), 3 projets max".
+        // Dashboard.tsx fetches `api.getPresentations`. So it's likely Presentations.
+        // However, let's look at schema. Presentation model exists. Project model exists.
+        // Dashboard shows Presentations. So I should count Presentations.
+        // Let's count Presentations as "Projects" for the user facing term
+        const presentationCount = await this.prisma.presentation.count({
+            where: { user_id: userId },
+        });
+
+        if (presentationCount >= limits.maxProjects) {
+            throw new ForbiddenException(
+                `Limite de plan atteinte : vous ne pouvez avoir que ${limits.maxProjects} présentations actives. Supprimez-en une ou passez au plan supérieur.`
+            );
+        }
+
+        return true;
+    }
+
+    /**
+     * Vérifie la limite de pages pour l'import PDF.
+     */
+    async checkPdfPageLimit(userId: string, pageCount: number): Promise<boolean> {
+        const sub = await this.getOrCreateSubscription(userId);
+        const limits = PLAN_LIMITS[sub.plan]?.limits || PLAN_LIMITS.free.limits;
+
+        if (limits.pdfPages === -1) return true;
+
+        if (pageCount > limits.pdfPages) {
+            throw new ForbiddenException(
+                `Ce PDF dépasse la limite de ${limits.pdfPages} pages de votre plan. Passez au plan supérieur pour importer des documents plus longs.`
+            );
+        }
+
+        return true;
+    }
+
+    /**
+     * Vérifie la limite d'ajout de slides par IA pour une présentation.
+     */
+    async checkAiAddLimit(userId: string, currentUsage: number): Promise<boolean> {
+        const sub = await this.getOrCreateSubscription(userId);
+        const limits = PLAN_LIMITS[sub.plan]?.limits || PLAN_LIMITS.free.limits;
+
+        if (limits.aiAddPerPresentation === -1) return true;
+
+        if (currentUsage >= limits.aiAddPerPresentation) {
+            throw new ForbiddenException(
+                `Limite atteinte : vous ne pouvez ajouter que ${limits.aiAddPerPresentation} slides par IA par présentation avec ce plan.`
+            );
+        }
+
+        return true;
+    }
+
+    /**
+     * Vérifie la limite de régénération (Wand) par présentation.
+     */
+    async checkAiWandLimit(userId: string, currentUsage: number): Promise<boolean> {
+        const sub = await this.getOrCreateSubscription(userId);
+        const limits = PLAN_LIMITS[sub.plan]?.limits || PLAN_LIMITS.free.limits;
+
+        if (limits.aiWandPerPresentation === -1) return true;
+
+        if (currentUsage >= limits.aiWandPerPresentation) {
+            throw new ForbiddenException(
+                `Limite atteinte : vous ne pouvez régénérer que ${limits.aiWandPerPresentation} fois par présentation avec ce plan.`
+            );
+        }
+
+        return true;
     }
 }

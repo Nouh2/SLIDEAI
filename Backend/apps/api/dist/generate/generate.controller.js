@@ -49,11 +49,11 @@ async function extractTextFromPDF(buffer) {
                 .join(' ');
             fullText += pageText + '\n';
         }
-        return fullText;
+        return { text: fullText, pageCount: pdf.numPages };
     }
     catch (error) {
         console.warn('[PDF] Extraction failed:', error.message);
-        return '';
+        return { text: '', pageCount: 0 };
     }
 }
 /**
@@ -63,11 +63,12 @@ async function extractTextFromDOCX(buffer) {
     try {
         const mammoth = await import('mammoth');
         const result = await mammoth.extractRawText({ buffer });
-        return result.value || '';
+        // Approx page count for DOCX? Hard to get accurately without rendering.
+        return { text: result.value || '', pageCount: 0 };
     }
     catch (error) {
         console.warn('[DOCX] Extraction failed:', error.message);
-        return '';
+        return { text: '', pageCount: 0 };
     }
 }
 /**
@@ -75,11 +76,11 @@ async function extractTextFromDOCX(buffer) {
  */
 function extractTextFromTXT(buffer) {
     try {
-        return buffer.toString('utf-8');
+        return { text: buffer.toString('utf-8'), pageCount: 1 };
     }
     catch (error) {
         console.warn('[TXT] Extraction failed:', error.message);
-        return '';
+        return { text: '', pageCount: 0 };
     }
 }
 /**
@@ -107,29 +108,29 @@ async function extractDocumentText(buffer, mimetype, filename) {
     const mimeType = mimetype?.toLowerCase() || '';
     const fname = filename?.toLowerCase() || '';
     console.log(`[Extract] Processing file: ${filename} (${mimeType}, ${buffer.length} bytes)`);
-    let rawText = '';
+    let result = { text: '', pageCount: 0 };
     if (mimeType === 'application/pdf' || fname.endsWith('.pdf')) {
-        rawText = await extractTextFromPDF(buffer);
+        result = await extractTextFromPDF(buffer);
     }
     else if (mimeType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ||
         mimeType === 'application/msword' ||
         fname.endsWith('.docx') ||
         fname.endsWith('.doc')) {
-        rawText = await extractTextFromDOCX(buffer);
+        result = await extractTextFromDOCX(buffer);
     }
     else if (mimeType === 'text/plain' ||
         fname.endsWith('.txt') ||
         fname.endsWith('.md')) {
-        rawText = extractTextFromTXT(buffer);
+        result = extractTextFromTXT(buffer);
     }
     else {
         console.warn(`[Extract] Unsupported file type: ${mimeType} (${filename})`);
-        return '';
+        return { text: '', pageCount: 0 };
     }
-    rawText = rawText.replace(/\s+/g, ' ').trim();
-    const truncatedText = smartTruncate(rawText);
-    console.log(`[Extract] Extracted ${rawText.length} chars, truncated to ${truncatedText.length} chars`);
-    return truncatedText;
+    result.text = result.text.replace(/\s+/g, ' ').trim();
+    const truncatedText = smartTruncate(result.text);
+    console.log(`[Extract] Extracted ${result.text.length} chars, truncated to ${truncatedText.length} chars. Pages: ${result.pageCount}`);
+    return { text: truncatedText, pageCount: result.pageCount };
 }
 // ============================================
 // ZOD SCHEMA
@@ -220,18 +221,29 @@ let GenerateController = class GenerateController {
         const data = generateSchema.parse(formFields);
         const traceId = ulid();
         const userId = req.user.sub;
-        // === CHECK SUBSCRIPTION CREDITS ===
+        // === CHECK SUBSCRIPTION CREDITS & LIMITS ===
         await this.subscriptionService.canGenerate(userId, req.user.email);
+        // Check project/storage limit
+        await this.subscriptionService.checkProjectLimit(userId);
         // Extract text from document (if provided)
         let documentText = '';
         if (fileBuffer) {
             try {
-                documentText = await extractDocumentText(fileBuffer, fileMimetype, fileFilename);
+                const result = await extractDocumentText(fileBuffer, fileMimetype, fileFilename);
+                documentText = result.text;
+                // Enforce PDF page limit
+                if (result.pageCount > 0) {
+                    await this.subscriptionService.checkPdfPageLimit(userId, result.pageCount);
+                }
                 console.log(`[DEBUG] Document text extracted: ${documentText.length} characters`);
             }
             catch (error) {
+                // If it's a forbidden exception (limit reached), rethrow it
+                if (error.status === 403) {
+                    throw error;
+                }
                 console.error('[DEBUG] Document extraction error:', error.message);
-                // Continue without document - silent failure
+                // Continue without document - silent failure for other errors
             }
         }
         // Store initial job state

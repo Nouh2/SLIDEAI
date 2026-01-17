@@ -30,7 +30,7 @@ const MAX_DOCUMENT_CHARS = 60000;
 /**
  * Extract text from PDF using pdfjs-dist v3 (Node 18 compatible)
  */
-async function extractTextFromPDF(buffer: Buffer): Promise<string> {
+async function extractTextFromPDF(buffer: Buffer): Promise<{ text: string; pageCount: number }> {
   try {
     // Use createRequire for pdfjs-dist in ESM context
     const require = createRequire(import.meta.url);
@@ -55,36 +55,37 @@ async function extractTextFromPDF(buffer: Buffer): Promise<string> {
       fullText += pageText + '\n';
     }
 
-    return fullText;
+    return { text: fullText, pageCount: pdf.numPages };
   } catch (error: any) {
     console.warn('[PDF] Extraction failed:', error.message);
-    return '';
+    return { text: '', pageCount: 0 };
   }
 }
 
 /**
  * Extract text from DOCX using mammoth
  */
-async function extractTextFromDOCX(buffer: Buffer): Promise<string> {
+async function extractTextFromDOCX(buffer: Buffer): Promise<{ text: string; pageCount: number }> {
   try {
     const mammoth = await import('mammoth');
     const result = await mammoth.extractRawText({ buffer });
-    return result.value || '';
+    // Approx page count for DOCX? Hard to get accurately without rendering.
+    return { text: result.value || '', pageCount: 0 };
   } catch (error: any) {
     console.warn('[DOCX] Extraction failed:', error.message);
-    return '';
+    return { text: '', pageCount: 0 };
   }
 }
 
 /**
  * Extract text from plain text file
  */
-function extractTextFromTXT(buffer: Buffer): string {
+function extractTextFromTXT(buffer: Buffer): { text: string; pageCount: number } {
   try {
-    return buffer.toString('utf-8');
+    return { text: buffer.toString('utf-8'), pageCount: 1 };
   } catch (error: any) {
     console.warn('[TXT] Extraction failed:', error.message);
-    return '';
+    return { text: '', pageCount: 0 };
   }
 }
 
@@ -112,40 +113,40 @@ function smartTruncate(text: string, maxChars: number = MAX_DOCUMENT_CHARS): str
 /**
  * Extract text from uploaded file based on MIME type or filename
  */
-async function extractDocumentText(buffer: Buffer, mimetype: string, filename: string): Promise<string> {
+async function extractDocumentText(buffer: Buffer, mimetype: string, filename: string): Promise<{ text: string; pageCount: number }> {
   const mimeType = mimetype?.toLowerCase() || '';
   const fname = filename?.toLowerCase() || '';
 
   console.log(`[Extract] Processing file: ${filename} (${mimeType}, ${buffer.length} bytes)`);
 
-  let rawText = '';
+  let result = { text: '', pageCount: 0 };
 
   if (mimeType === 'application/pdf' || fname.endsWith('.pdf')) {
-    rawText = await extractTextFromPDF(buffer);
+    result = await extractTextFromPDF(buffer);
   } else if (
     mimeType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ||
     mimeType === 'application/msword' ||
     fname.endsWith('.docx') ||
     fname.endsWith('.doc')
   ) {
-    rawText = await extractTextFromDOCX(buffer);
+    result = await extractTextFromDOCX(buffer);
   } else if (
     mimeType === 'text/plain' ||
     fname.endsWith('.txt') ||
     fname.endsWith('.md')
   ) {
-    rawText = extractTextFromTXT(buffer);
+    result = extractTextFromTXT(buffer);
   } else {
     console.warn(`[Extract] Unsupported file type: ${mimeType} (${filename})`);
-    return '';
+    return { text: '', pageCount: 0 };
   }
 
-  rawText = rawText.replace(/\s+/g, ' ').trim();
-  const truncatedText = smartTruncate(rawText);
+  result.text = result.text.replace(/\s+/g, ' ').trim();
+  const truncatedText = smartTruncate(result.text);
 
-  console.log(`[Extract] Extracted ${rawText.length} chars, truncated to ${truncatedText.length} chars`);
+  console.log(`[Extract] Extracted ${result.text.length} chars, truncated to ${truncatedText.length} chars. Pages: ${result.pageCount}`);
 
-  return truncatedText;
+  return { text: truncatedText, pageCount: result.pageCount };
 }
 
 // ============================================
@@ -250,18 +251,31 @@ export class GenerateController {
     const traceId = ulid();
     const userId = req.user.sub;
 
-    // === CHECK SUBSCRIPTION CREDITS ===
+    // === CHECK SUBSCRIPTION CREDITS & LIMITS ===
     await this.subscriptionService.canGenerate(userId, req.user.email);
+    // Check project/storage limit
+    await this.subscriptionService.checkProjectLimit(userId);
 
     // Extract text from document (if provided)
     let documentText = '';
     if (fileBuffer) {
       try {
-        documentText = await extractDocumentText(fileBuffer, fileMimetype, fileFilename);
+        const result = await extractDocumentText(fileBuffer, fileMimetype, fileFilename);
+        documentText = result.text;
+
+        // Enforce PDF page limit
+        if (result.pageCount > 0) {
+          await this.subscriptionService.checkPdfPageLimit(userId, result.pageCount);
+        }
+
         console.log(`[DEBUG] Document text extracted: ${documentText.length} characters`);
       } catch (error: any) {
+        // If it's a forbidden exception (limit reached), rethrow it
+        if (error.status === 403) {
+          throw error;
+        }
         console.error('[DEBUG] Document extraction error:', error.message);
-        // Continue without document - silent failure
+        // Continue without document - silent failure for other errors
       }
     }
 

@@ -218,9 +218,7 @@ export class PresentationService {
         // Verify access
         const presentation = await this.findOne(presentationId, userId);
 
-        // Get the slides data - handle both formats:
-        // Format 1: slides is the full deck object { slides: [...], theme, colorPalette, ... }
-        // Format 2: slides is directly an array [slide1, slide2, ...]
+        // Get the slides data
         const rawSlides = presentation.slides as any;
         const isArray = Array.isArray(rawSlides);
         const deckData = isArray ? { slides: rawSlides } : rawSlides;
@@ -229,6 +227,21 @@ export class PresentationService {
         if (slideIndex < 0 || slideIndex >= slidesArray.length) {
             throw new NotFoundException(`Slide ${slideIndex} introuvable`);
         }
+
+        // === ENFORCE LIMITS ===
+        const meta = deckData.meta || {};
+        const currentUsage = meta.aiRegeneratedCount || 0;
+        await this.subscriptionService.checkAiWandLimit(userId, currentUsage);
+
+        // Increment usage immediately
+        const newMeta = { ...meta, aiRegeneratedCount: currentUsage + 1 };
+        const newDeckData = { ...deckData, meta: newMeta };
+
+        // Update DB with usage count
+        await this.prisma.presentation.update({
+            where: { id: presentationId },
+            data: { slides: newDeckData },
+        });
 
         // Build context for the worker
         const context = {
@@ -273,6 +286,21 @@ export class PresentationService {
         const isArray = Array.isArray(rawSlides);
         const deckData = isArray ? { slides: rawSlides } : rawSlides;
         const slidesArray = isArray ? rawSlides : (rawSlides?.slides || []);
+
+        // === ENFORCE LIMITS ===
+        const meta = deckData.meta || {};
+        const currentUsage = meta.aiAddedCount || 0;
+        await this.subscriptionService.checkAiAddLimit(userId, currentUsage);
+
+        // Increment usage immediately
+        const newMeta = { ...meta, aiAddedCount: currentUsage + 1 };
+        const newDeckData = { ...deckData, meta: newMeta };
+
+        // Update DB with usage count
+        await this.prisma.presentation.update({
+            where: { id: presentationId },
+            data: { slides: newDeckData },
+        });
 
         // Build context for the worker
         const context = {

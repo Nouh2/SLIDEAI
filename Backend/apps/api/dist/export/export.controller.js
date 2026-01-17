@@ -10,11 +10,11 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
-// apps/api/src/export/export.controller.ts
-import { Body, Controller, Post, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Post, Req, UseGuards, ForbiddenException } from '@nestjs/common';
 import { SupabaseGuard } from '../auth/supabase.guard.js';
 import { z } from 'zod';
 import { QueueService } from '../queues/queue.service.js';
+import { SubscriptionService } from '../subscription/subscription.service.js';
 import { ulid } from 'ulid';
 const exportSchema = z.object({
     projectId: z.string().min(1).optional(),
@@ -33,11 +33,20 @@ const exportSchema = z.object({
 });
 let ExportController = class ExportController {
     queues;
-    constructor(queues) {
+    subscriptionService;
+    constructor(queues, subscriptionService) {
         this.queues = queues;
+        this.subscriptionService = subscriptionService;
     }
     async export(req, body) {
         const data = exportSchema.parse(body);
+        const userId = req.user.sub;
+        if (data.format === 'pdf') {
+            const canExportPdf = await this.subscriptionService.hasFeature(userId, 'export_pdf');
+            if (!canExportPdf) {
+                throw new ForbiddenException('L\'export PDF n\'est pas disponible dans votre plan. Veuillez passer à un plan supérieur.');
+            }
+        }
         const traceId = ulid();
         await this.queues.addExport({ traceId, user: { sub: req.user.sub, org: req.user.org_id }, data });
         // Le worker produira une URL signée (Cloudflare R2) et pourra la logguer / insérer en DB.
@@ -55,6 +64,7 @@ __decorate([
 ExportController = __decorate([
     Controller('/v1'),
     UseGuards(SupabaseGuard),
-    __metadata("design:paramtypes", [QueueService])
+    __metadata("design:paramtypes", [QueueService,
+        SubscriptionService])
 ], ExportController);
 export { ExportController };

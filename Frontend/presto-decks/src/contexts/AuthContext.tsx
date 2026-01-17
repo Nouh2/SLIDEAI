@@ -29,16 +29,37 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
+        // Sync user with backend database (creates User + Subscription if missing)
+        const syncUserWithBackend = async (accessToken: string) => {
+            try {
+                const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:3000/v1";
+                await fetch(`${API_BASE_URL}/subscription`, {
+                    headers: { 'Authorization': `Bearer ${accessToken}` },
+                });
+                console.log('[Auth] User synced with backend');
+            } catch (err) {
+                console.warn('[Auth] Failed to sync user with backend:', err);
+            }
+        };
+
         // Check initial session
-        supabase.auth.getUser().then(({ data: { user } }) => {
-            setUser(user);
+        supabase.auth.getSession().then(({ data: { session } }) => {
+            setUser(session?.user ?? null);
             setLoading(false);
+            // Sync with backend if user is logged in
+            if (session?.access_token) {
+                syncUserWithBackend(session.access_token);
+            }
         });
 
         // Listen for auth changes
-        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
             setUser(session?.user ?? null);
             setLoading(false);
+            // Sync with backend on sign in
+            if (event === 'SIGNED_IN' && session?.access_token) {
+                syncUserWithBackend(session.access_token);
+            }
         });
 
         return () => {

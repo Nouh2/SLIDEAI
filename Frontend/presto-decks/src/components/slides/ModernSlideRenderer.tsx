@@ -18,6 +18,7 @@ interface SlideRendererProps {
     };
     onElementSelect?: (element: { id: string; type: 'text' | 'image' | 'list' | 'chart'; path: string; value: any; label: string }) => void;
     selectedElementId?: string | null;
+    showWatermark?: boolean;
 }
 
 // Helper wrapper for editable elements
@@ -4957,7 +4958,7 @@ const MasterCoverLayout = ({ slide, colors, variation = 'centered-minimal', onSe
 // MAIN COMPONENT
 // ============================================
 
-export const ModernSlideRenderer = ({ slide, theme, className, colorPalette, onElementSelect, selectedElementId }: SlideRendererProps) => {
+export const ModernSlideRenderer = ({ slide, theme, className, colorPalette, onElementSelect, selectedElementId, showWatermark }: SlideRendererProps) => {
     // Get template colors
     const template = getTemplateById(theme);
 
@@ -5732,6 +5733,18 @@ export const ModernSlideRenderer = ({ slide, theme, className, colorPalette, onE
                     isSelected={selectedElementId === el.id}
                 />
             ))}
+
+            {/* Watermark for Free Users */}
+            {showWatermark && (
+                <div className="absolute bottom-3 right-4 z-50 pointer-events-none select-none opacity-60">
+                    <span
+                        className="text-xs font-medium tracking-wide px-2 py-1 rounded bg-black/10 backdrop-blur-sm"
+                        style={{ color: colors.text }}
+                    >
+                        Generated with SlideAI
+                    </span>
+                </div>
+            )}
         </div>
     );
 };

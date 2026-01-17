@@ -13,4 +13,7 @@ export declare class QueueService {
     readonly modifyColorPaletteQueue: Queue<any, any, string, any, any, string>;
     readonly modifyColorPaletteEvents: QueueEvents;
     addModifyColorPalette(payload: any, opts?: JobsOptions): Promise<import("bullmq").Job<any, any, string>>;
+    readonly addSlideQueue: Queue<any, any, string, any, any, string>;
+    readonly addSlideEvents: QueueEvents;
+    addAddSlide(payload: any, opts?: JobsOptions): Promise<import("bullmq").Job<any, any, string>>;
 }

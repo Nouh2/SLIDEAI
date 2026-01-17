@@ -22,7 +22,10 @@ import {
   AlertCircle,
   Sparkles,
   Trash2,
-  GripVertical
+  GripVertical,
+  Wand2,
+  Palette,
+  Plus,
 } from "lucide-react";
 import { Reorder, AnimatePresence } from "framer-motion";
 import { PresentationBuilderLoader } from "@/components/layout/PresentationBuilderLoader";
@@ -31,10 +34,10 @@ import { AddElementMenu } from "@/components/editor/AddElementMenu";
 import { PropertiesPanel, SelectedElement } from "@/components/editor/PropertiesPanel";
 import { ShareDialog } from "@/components/editor/ShareDialog";
 import { RegenerateSlideDialog } from "@/components/editor/RegenerateSlideDialog";
+import { AddSlideDialog } from "@/components/editor/AddSlideDialog";
 import { LayoutSwitcher } from "@/components/editor/LayoutSwitcher";
 import { ColorPaletteDialog } from "@/components/editor/ColorPaletteDialog";
 import { ExportDialog } from "@/components/editor/ExportDialog";
-import { Wand2, Palette } from "lucide-react";
 
 
 
@@ -131,6 +134,7 @@ export default function Editor() {
   const [error, setError] = useState<string | null>(null);
   const [isExportDialogOpen, setIsExportDialogOpen] = useState(false);
   const [accessToken, setAccessToken] = useState<string | null>(null);
+  const [showWatermark, setShowWatermark] = useState(false);
 
   // Get access token on mount
   useEffect(() => {
@@ -248,6 +252,7 @@ export default function Editor() {
             theme: data.theme,
           });
           setCurrentProject(adapted);
+          setShowWatermark(data.showWatermark ?? false);
           setIsLoading(false);
         } catch (err: any) {
           console.error("API fetch error:", err);
@@ -784,9 +789,9 @@ export default function Editor() {
                               }}
                             >
                               <Button
-                                variant="secondary"
+                                variant="ghost"
                                 size="icon"
-                                className="h-6 w-6 rounded shadow-sm opacity-0 group-hover:opacity-100 transition-opacity z-10"
+                                className="h-6 w-6 rounded shadow-sm opacity-0 group-hover:opacity-100 transition-opacity z-10 bg-white text-black hover:bg-gray-100"
                                 onClick={(e) => e.stopPropagation()}
                                 title="Régénérer la slide"
                               >
@@ -820,6 +825,41 @@ export default function Editor() {
                   </Reorder.Item>
                 ))}
               </Reorder.Group>
+
+
+
+              {/* Add Slide Ghost Card */}
+              {!isFullscreen && accessToken && currentProject?.id && (
+                <AddSlideDialog
+                  presentationId={currentProject.id}
+                  accessToken={accessToken}
+                  onSuccess={(newSlide) => {
+                    const newSlides = [...currentProject.slides, {
+                      ...newSlide,
+                      id: newSlide.id || `slide-${currentProject.slides.length}-${Date.now()}`,
+                      bullets: newSlide.bullets || newSlide.content?.bullets || [],
+                      chart: newSlide.chart || newSlide.content?.chart,
+                      table: newSlide.table || newSlide.content?.table,
+                      timeline: newSlide.timeline || newSlide.content?.timeline,
+                      infographic: newSlide.infographic || newSlide.content?.infographic,
+                      comparison: newSlide.comparison || newSlide.content?.comparison,
+                      stats: newSlide.stats || newSlide.content?.stats,
+                      items: newSlide.items || newSlide.content?.items,
+                      content: newSlide.content,
+                    }];
+                    setCurrentProject({ ...currentProject, slides: newSlides });
+                    // Select the new slide
+                    setSelectedSlide(newSlides.length - 1);
+                  }}
+                >
+                  <div className="group relative aspect-[16/9] rounded-lg border-2 border-dashed border-muted-foreground/20 hover:border-primary/50 bg-muted/5 hover:bg-muted/10 transition-all cursor-pointer flex flex-col items-center justify-center gap-2 mt-4 ml-2 mr-2">
+                    <div className="h-8 w-8 rounded-full bg-muted group-hover:bg-primary/10 flex items-center justify-center transition-colors">
+                      <Plus className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
+                    </div>
+                    <span className="text-xs font-medium text-muted-foreground group-hover:text-primary transition-colors">Ajouter une slide</span>
+                  </div>
+                </AddSlideDialog>
+              )}
 
               <div className="h-10"></div> {/* Spacer */}
             </div>
@@ -862,6 +902,7 @@ export default function Editor() {
                 className="w-full h-full"
                 onElementSelect={isFullscreen ? undefined : handleElementSelect}
                 selectedElementId={!isFullscreen && selectedElement ? selectedElement.id.split('-').slice(1).join('-') : null}
+                showWatermark={showWatermark}
               />
             </div>
           </div>
@@ -938,7 +979,7 @@ export default function Editor() {
         onOpenChange={setIsExportDialogOpen}
         presentation={currentProject}
       />
-    </div>
+    </div >
   );
 }
 

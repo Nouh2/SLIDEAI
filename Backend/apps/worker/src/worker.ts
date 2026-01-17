@@ -18,6 +18,7 @@ import { createClient } from '@supabase/supabase-js';
 import { THEMES, normalizeTheme, type ThemeConfig } from './config/themes';
 import { DECK_ARCHITECT_PROMPT, buildUserPrompt } from './prompts/deck-architect';
 import { SLIDE_REGENERATOR_PROMPT, buildSlideRegeneratorPrompt } from './prompts/slide-regenerator';
+import { SLIDE_ADDER_PROMPT, buildSlideAdderPrompt } from './prompts/slide-adder';
 import { getUnsplashImage } from './utils/unsplash';
 import { sanitizeDeck, type Deck, type Slide } from './utils/sanitize';
 import { renderSlide, defineThemeMasters } from './renderers';
@@ -747,6 +748,115 @@ const modifyColorPaletteWorker = new Worker(
 );
 
 // ============================================
+// WORKER: ADD SLIDE
+// ============================================
+
+const addSlideWorker = new Worker(
+  'add-slide',
+  async (job) => {
+    const { traceId, presentationId, prompt, context, user } = job.data as any;
+    const userId = user?.sub || 'anonymous';
+
+    console.log(`\n========== ADD SLIDE JOB: ${traceId} ==========`);
+    console.log(`[AddSlide] User ID: ${userId}`);
+    console.log(`[AddSlide] Presentation: ${presentationId}`);
+    console.log(`[AddSlide] Custom Prompt: "${prompt?.slice(0, 100) || 'none'}"`);
+
+    await setJob(traceId, {
+      status: 'processing',
+      type: 'add-slide',
+      startedAt: Date.now(),
+      userId,
+    });
+
+    try {
+      const userMessage = buildSlideAdderPrompt(context, prompt);
+
+      const geminiModel = genAI.getGenerativeModel({
+        model,
+        generationConfig: {
+          temperature: 0.8,
+          maxOutputTokens: 2000,
+          responseMimeType: 'application/json',
+        },
+      });
+
+      const fullPrompt = `${SLIDE_ADDER_PROMPT}\n\n---\n\n${userMessage}`;
+      const response = await geminiModel.generateContent(fullPrompt);
+      const raw = response.response.text();
+
+      if (!raw) throw new Error('Empty AI response');
+
+      let newSlide: Slide;
+      try {
+        newSlide = JSON.parse(raw);
+      } catch (parseError) {
+        throw new Error('Invalid JSON from AI');
+      }
+
+      const themeConfig = context.themeConfig || normalizeTheme(context.theme);
+      if (newSlide.imageSearchQuery) {
+        newSlide.backgroundImage = await getUnsplashImage(
+          newSlide.imageSearchQuery,
+          themeConfig.imageKeywords
+        );
+      }
+
+      newSlide.id = `slide-${Date.now()}`;
+
+      console.log(`[AddSlide] ✅ New slide generated: layout="${newSlide.layout}"`);
+
+      if (supabase) {
+        const { data: presentation } = await supabase
+          .from('presentations')
+          .select('slides')
+          .eq('id', presentationId)
+          .single();
+
+        if (presentation) {
+          const rawSlides = presentation.slides as any;
+          const isArray = Array.isArray(rawSlides);
+          const deckData = isArray ? { slides: rawSlides } : rawSlides;
+          const slidesArray = isArray ? rawSlides : (rawSlides?.slides || []);
+
+          slidesArray.push(newSlide);
+          deckData.slides = slidesArray;
+
+          await supabase
+            .from('presentations')
+            .update({
+              slides: deckData,
+              updated_at: new Date().toISOString(),
+            })
+            .eq('id', presentationId);
+          console.log('[AddSlide] ✅ Presentation updated in Supabase');
+        }
+      }
+
+      await setJob(traceId, {
+        status: 'succeeded',
+        type: 'add-slide',
+        newSlide,
+        finishedAt: Date.now(),
+      });
+
+      return { traceId, newSlide };
+    } catch (err: any) {
+      console.error('[AddSlide] ❌ Error:', err.message);
+      await setJob(traceId, {
+        status: 'failed',
+        type: 'add-slide',
+        error: err.message,
+        finishedAt: Date.now(),
+      });
+      throw err;
+    }
+  },
+  { connection }
+);
+
+
+// ============================================
 // STARTUP
 // ============================================
 
@@ -799,6 +909,18 @@ exportWorker.on('ready', () => {
 
 exportWorker.on('error', (err) => {
   console.error('❌ [Export Worker] ERROR:', err);
+});
+
+addSlideWorker.on('ready', () => {
+  console.log('✅ [AddSlide Worker] READY - Connected and listening');
+});
+
+addSlideWorker.on('completed', (job) => {
+  console.log(`✅ [AddSlide Worker] COMPLETED - Job ${job.id} finished successfully`);
+});
+
+addSlideWorker.on('failed', (job, err) => {
+  console.error(`❌ [AddSlide Worker] FAILED - Job ${job?.id} failed:`, err.message);
 });
 
 console.log('[Worker] Waiting for jobs...');

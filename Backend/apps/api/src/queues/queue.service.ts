@@ -99,4 +99,21 @@ export class QueueService {
       throw error;
     }
   }
+
+
+  // === ADD SLIDE ===
+  readonly addSlideQueue = new Queue('add-slide', { connection });
+  readonly addSlideEvents = new QueueEvents('add-slide', { connection });
+
+  async addAddSlide(payload: any, opts: JobsOptions = {}) {
+    console.log('[QueueService] Adding job to add-slide queue...');
+    try {
+      const job = await this.addSlideQueue.add('add-slide', payload, { attempts: 3, removeOnComplete: 1000, ...opts });
+      console.log('[QueueService] Add slide job added:', job.id);
+      return job;
+    } catch (error: any) {
+      console.error('[QueueService] Error adding add-slide job:', error.message);
+      throw error;
+    }
+  }
 }

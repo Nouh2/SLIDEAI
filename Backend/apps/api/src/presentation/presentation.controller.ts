@@ -126,6 +126,27 @@ export class PresentationController {
         return { presentationId: presentation.id };
     }
 
+
+    /**
+     * POST /v1/presentations/:id/slides/add
+     * Add a new slide with AI
+     */
+    @Post(':id/slides/add')
+    async addSlide(
+        @Param('id') id: string,
+        @Body() body: unknown,
+        @Req() req: FastifyRequest & { user: any },
+    ) {
+        const userId = req.user.sub;
+
+        const addSchema = z.object({
+            prompt: z.string().min(1, 'Une instruction est requise'),
+        });
+        const data = addSchema.parse(body || {});
+
+        return this.presentationService.addSlide(id, userId, data.prompt);
+    }
+
     /**
      * POST /v1/presentations/:id/slides/:index/regenerate
      * Regenerate a single slide with AI

@@ -383,6 +383,30 @@ export const api = {
   },
 
   /**
+   * Add a new slide with AI
+   * POST /v1/presentations/:id/slides/add
+   */
+  async addSlide(
+    presentationId: string,
+    options: { prompt: string },
+    accessToken: string
+  ): Promise<{ traceId: string }> {
+    const response = await fetch(
+      `${API_BASE_URL}/presentations/${presentationId}/slides/add`,
+      {
+        method: 'POST',
+        headers: buildHeaders(accessToken, 'application/json'),
+        body: JSON.stringify(options),
+      }
+    );
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({ message: 'Erreur lors de la génération' }));
+      throw new Error(err.message || 'Impossible de générer la slide');
+    }
+    return response.json();
+  },
+
+  /**
    * Regenerate a single slide with AI
    * POST /v1/presentations/:id/slides/:index/regenerate
    */

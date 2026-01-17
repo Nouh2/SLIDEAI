@@ -66,6 +66,7 @@ export default function ViewPage() {
     const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
     const [isFullscreen, setIsFullscreen] = useState(false);
     const [slideScale, setSlideScale] = useState(1);
+    const [showWatermark, setShowWatermark] = useState(false);
 
     // Keyboard navigation
     useEffect(() => {
@@ -184,6 +185,7 @@ export default function ViewPage() {
                 });
 
                 setProject(adapted);
+                setShowWatermark(presentationData.showWatermark ?? false);
                 setStatus("viewing");
             } catch (error: any) {
                 setStatus("error");
@@ -356,6 +358,7 @@ export default function ViewPage() {
                                 theme={project.theme}
                                 colorPalette={project.colorScheme}
                                 className="w-full h-full"
+                                showWatermark={showWatermark}
                             />
                         )}
                     </div>

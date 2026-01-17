@@ -38,6 +38,7 @@ export class PresentationService {
 
     /**
      * Get a single presentation if user has access
+     * Returns showWatermark: true if the OWNER is on a Free plan (no 'no_watermark' feature)
      */
     async findOne(id: string, userId: string) {
         const presentation = await this.prisma.presentation.findUnique({
@@ -57,7 +58,13 @@ export class PresentationService {
             throw new ForbiddenException('Accès refusé à cette présentation');
         }
 
-        return presentation;
+        // Check if owner has 'no_watermark' feature (starter, pro, business)
+        const ownerHasNoWatermark = await this.subscriptionService.hasFeature(presentation.user_id, 'no_watermark');
+
+        return {
+            ...presentation,
+            showWatermark: !ownerHasNoWatermark,
+        };
     }
 
     /**
@@ -242,6 +249,48 @@ export class PresentationService {
             slideIndex,
             prompt: options.prompt,
             mode: options.mode,
+            context,
+            user: { sub: userId },
+        });
+
+        return { traceId };
+    }
+
+    /**
+     * Add a new slide with AI
+     * Requires: user has access to the presentation
+     */
+    async addSlide(
+        presentationId: string,
+        userId: string,
+        prompt: string
+    ) {
+        // Verify access
+        const presentation = await this.findOne(presentationId, userId);
+
+        // Get the slides data
+        const rawSlides = presentation.slides as any;
+        const isArray = Array.isArray(rawSlides);
+        const deckData = isArray ? { slides: rawSlides } : rawSlides;
+        const slidesArray = isArray ? rawSlides : (rawSlides?.slides || []);
+
+        // Build context for the worker
+        const context = {
+            title: deckData.title || presentation.title,
+            subtitle: deckData.subtitle,
+            theme: deckData.theme || presentation.theme,
+            colorPalette: deckData.colorPalette,
+            themeConfig: deckData.themeConfig,
+            slides: slidesArray,
+        };
+
+        const traceId = ulid();
+
+        // Enqueue the add slide job
+        await this.queueService.addAddSlide({
+            traceId,
+            presentationId,
+            prompt,
             context,
             user: { sub: userId },
         });

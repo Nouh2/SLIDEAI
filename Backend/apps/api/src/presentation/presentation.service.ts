@@ -15,10 +15,10 @@ export class PresentationService {
     ) { }
 
     /**
-     * Get all presentations accessible to the user (owned + shared)
+     * Get all presentations accessible to the user (owned + shared + viewOnly)
      */
     async findAllForUser(userId: string) {
-        const [owned, shared] = await Promise.all([
+        const [owned, shared, viewOnly] = await Promise.all([
             this.prisma.presentation.findMany({
                 where: { user_id: userId },
                 orderBy: { createdAt: 'desc' },
@@ -27,9 +27,13 @@ export class PresentationService {
                 where: { sharedWithUserIds: { has: userId } },
                 orderBy: { createdAt: 'desc' },
             }),
+            this.prisma.presentation.findMany({
+                where: { viewOnlyUserIds: { has: userId } },
+                orderBy: { createdAt: 'desc' },
+            }),
         ]);
 
-        return { owned, shared };
+        return { owned, shared, viewOnly };
     }
 
     /**
@@ -44,8 +48,12 @@ export class PresentationService {
             throw new NotFoundException('Présentation introuvable');
         }
 
-        // Check access: owner or shared
-        if (presentation.user_id !== userId && !presentation.sharedWithUserIds.includes(userId)) {
+        // Check access: owner, shared (edit), or view-only
+        const isOwner = presentation.user_id === userId;
+        const hasEditAccess = presentation.sharedWithUserIds.includes(userId);
+        const hasViewAccess = presentation.viewOnlyUserIds.includes(userId);
+
+        if (!isOwner && !hasEditAccess && !hasViewAccess) {
             throw new ForbiddenException('Accès refusé à cette présentation');
         }
 
@@ -71,8 +79,9 @@ export class PresentationService {
     /**
      * Generate a share link for a presentation
      * Requires: user is owner AND has 'public_link' feature (starter, pro, business)
+     * @param mode - 'edit' for collaborative access, 'view' for read-only access
      */
-    async generateShareLink(id: string, userId: string, userEmail?: string) {
+    async generateShareLink(id: string, userId: string, userEmail?: string, mode: 'edit' | 'view' = 'edit') {
         const presentation = await this.prisma.presentation.findUnique({
             where: { id },
         });
@@ -94,17 +103,28 @@ export class PresentationService {
             );
         }
 
-        // Generate a token if not already exists
-        let token = presentation.shareToken;
-        if (!token) {
-            token = randomBytes(16).toString('hex'); // 32-char hex string
-            await this.prisma.presentation.update({
-                where: { id },
-                data: { shareToken: token },
-            });
+        // Generate the appropriate token based on mode
+        if (mode === 'view') {
+            let token = presentation.viewOnlyToken;
+            if (!token) {
+                token = randomBytes(16).toString('hex');
+                await this.prisma.presentation.update({
+                    where: { id },
+                    data: { viewOnlyToken: token },
+                });
+            }
+            return { token, mode: 'view' };
+        } else {
+            let token = presentation.shareToken;
+            if (!token) {
+                token = randomBytes(16).toString('hex');
+                await this.prisma.presentation.update({
+                    where: { id },
+                    data: { shareToken: token },
+                });
+            }
+            return { token, mode: 'edit' };
         }
-
-        return { token };
     }
 
     /**
@@ -135,6 +155,41 @@ export class PresentationService {
             where: { id: presentation.id },
             data: {
                 sharedWithUserIds: {
+                    push: userId,
+                },
+            },
+        });
+
+        return updatedPresentation;
+    }
+
+    /**
+     * Join a presentation via view-only token (read-only access)
+     */
+    async joinViewOnly(token: string, userId: string) {
+        const presentation = await this.prisma.presentation.findUnique({
+            where: { viewOnlyToken: token },
+        });
+
+        if (!presentation) {
+            throw new NotFoundException('Lien de partage invalide ou expiré');
+        }
+
+        // Check if already owner
+        if (presentation.user_id === userId) {
+            return presentation;
+        }
+
+        // Check if already has view-only access
+        if (presentation.viewOnlyUserIds.includes(userId)) {
+            return presentation;
+        }
+
+        // Add user to view-only list
+        const updatedPresentation = await this.prisma.presentation.update({
+            where: { id: presentation.id },
+            data: {
+                viewOnlyUserIds: {
                     push: userId,
                 },
             },

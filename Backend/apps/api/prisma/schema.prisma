@@ -91,9 +91,13 @@ model Presentation {
   createdAt         DateTime @default(now()) @map("created_at")
   updatedAt         DateTime @updatedAt @map("updated_at")
 
-  // === SHARING ===
+  // === SHARING (EDIT MODE) ===
   sharedWithUserIds String[] @default([]) @map("shared_with_user_ids") // User IDs who can view/edit
-  shareToken        String?  @unique @map("share_token")              // Secret token for share link
+  shareToken        String?  @unique @map("share_token")              // Secret token for edit share link
+
+  // === SHARING (VIEW-ONLY MODE) ===
+  viewOnlyUserIds   String[] @default([]) @map("view_only_user_ids")  // User IDs with read-only access
+  viewOnlyToken     String?  @unique @map("view_only_token")          // Secret token for view-only share link
 
   @@map("presentations") // Map to snake_case table name
 }

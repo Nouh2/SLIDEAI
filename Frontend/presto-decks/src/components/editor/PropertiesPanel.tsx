@@ -36,7 +36,7 @@ export function PropertiesPanel({ element, onUpdate, onTableAction, onClose }: P
     };
 
     return (
-        <div className="w-80 h-full border-l border-border bg-surface/50 backdrop-blur-xl p-6 flex flex-col shadow-xl z-40 animate-in slide-in-from-right duration-300">
+        <div className="w-full h-full border-l border-border bg-surface/50 backdrop-blur-xl p-6 flex flex-col shadow-xl z-40 animate-in slide-in-from-right duration-300">
             <div className="flex items-center justify-between mb-6">
                 <h3 className="font-bold text-lg flex items-center gap-2">
                     {element.type === 'text' && <Type className="w-4 h-4 text-primary" />}

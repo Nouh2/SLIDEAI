@@ -86,19 +86,19 @@ export function DeckPreview() {
                             <div className="w-full h-full bg-gradient-accent rounded-2xl overflow-hidden relative group">
                                 {/* Animated background elements */}
                                 <div className="absolute inset-0">
-                                    <motion.div 
+                                    <motion.div
                                         className="absolute top-0 right-0 w-80 h-80 bg-primary/20 rounded-full blur-3xl"
-                                        animate={{ 
-                                            x: [0, 20, 0], 
-                                            y: [0, -20, 0] 
+                                        animate={{
+                                            x: [0, 20, 0],
+                                            y: [0, -20, 0]
                                         }}
                                         transition={{ duration: 8, repeat: Infinity }}
                                     />
-                                    <motion.div 
+                                    <motion.div
                                         className="absolute bottom-0 left-0 w-72 h-72 bg-secondary/20 rounded-full blur-3xl"
-                                        animate={{ 
-                                            x: [0, -20, 0], 
-                                            y: [0, 20, 0] 
+                                        animate={{
+                                            x: [0, -20, 0],
+                                            y: [0, 20, 0]
                                         }}
                                         transition={{ duration: 8, repeat: Infinity, delay: 1 }}
                                     />
@@ -106,38 +106,38 @@ export function DeckPreview() {
 
                                 {/* Content */}
                                 <div className="absolute inset-0 p-6 md:p-10 flex flex-col justify-center items-center text-center space-y-4 md:space-y-6 z-10">
-                                    <motion.div 
-                                        className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/15 backdrop-blur-md border border-white/20"
+                                    <motion.div
+                                        className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/40 backdrop-blur-md border border-white/50 shadow-sm"
                                         animate={{ scale: [1, 1.05, 1] }}
                                         transition={{ duration: 3, repeat: Infinity }}
                                     >
-                                        <Sparkles className="w-4 h-4 text-white" />
-                                        <span className="text-white text-xs md:text-sm font-bold tracking-widest uppercase">SlideAI</span>
+                                        <Sparkles className="w-4 h-4 text-primary" />
+                                        <span className="text-primary text-xs md:text-sm font-bold tracking-widest uppercase">SlideAI</span>
                                     </motion.div>
 
-                                    <h2 className="text-2xl md:text-4xl font-bold text-white leading-tight">
+                                    <h2 className="text-2xl md:text-4xl font-bold text-foreground leading-tight">
                                         Présentations<br />
-                                        <span className="text-gradient-secondary">Intelligentes</span>
+                                        <span className="text-gradient-primary">Intelligentes</span>
                                     </h2>
 
-                                    <p className="text-white/80 text-sm md:text-base max-w-md leading-relaxed">
+                                    <p className="text-muted-foreground text-sm md:text-base max-w-md leading-relaxed font-medium">
                                         Générez du contenu pertinent et un design captivant instantanément.
                                     </p>
 
                                     {/* Indicators */}
                                     <div className="flex gap-3 mt-4 md:mt-6">
-                                        <motion.div 
-                                            className="h-3 w-3 rounded-full bg-white"
+                                        <motion.div
+                                            className="h-3 w-3 rounded-full bg-primary"
                                             animate={{ scale: [1, 1.2, 1] }}
                                             transition={{ duration: 2, repeat: Infinity }}
                                         />
-                                        <motion.div 
-                                            className="h-3 w-3 rounded-full bg-white/60"
+                                        <motion.div
+                                            className="h-3 w-3 rounded-full bg-primary/60"
                                             animate={{ scale: [1, 1.2, 1] }}
                                             transition={{ duration: 2, repeat: Infinity, delay: 0.3 }}
                                         />
-                                        <motion.div 
-                                            className="h-3 w-3 rounded-full bg-white/30"
+                                        <motion.div
+                                            className="h-3 w-3 rounded-full bg-primary/30"
                                             animate={{ scale: [1, 1.2, 1] }}
                                             transition={{ duration: 2, repeat: Infinity, delay: 0.6 }}
                                         />
@@ -149,7 +149,7 @@ export function DeckPreview() {
                 </div>
 
                 {/* Bottom Info */}
-                <motion.div 
+                <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.6 }}

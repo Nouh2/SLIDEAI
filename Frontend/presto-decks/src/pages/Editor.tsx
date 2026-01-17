@@ -274,7 +274,7 @@ export default function Editor() {
           setStatus(res.status);
 
           if (res.status === "succeeded" && res.deck) {
-            const realId = res.deck.id;
+            const realId = (res.deck as any).id;
 
             // Update URL without reloading
             if (realId && realId !== "generated") {
@@ -663,9 +663,9 @@ export default function Editor() {
 
             <Button
               onClick={toggleFullscreen}
-              className="h-9 px-5 rounded-lg bg-primary hover:bg-[#1F1F1F] text-white shadow-lg shadow-primary/20 border border-border font-medium transition-all hover:scale-105"
+              className="h-10 px-5 rounded-xl bg-primary hover:bg-primary/90 text-white shadow-lg shadow-primary/20 font-medium transition-all duration-300 hover:scale-105 hover:-translate-y-0.5"
             >
-              <Play className="h-3.5 w-3.5 mr-2 fill-current" />
+              <Play className="h-4 w-4 mr-2 fill-current" />
               Diaporama
             </Button>
 
@@ -696,7 +696,11 @@ export default function Editor() {
                 </ColorPaletteDialog>
               )}
               <AddElementMenu onAdd={handleAddElement} />
-              <Button variant="outline" onClick={() => setIsExportDialogOpen(true)}>
+              <Button
+                variant="outline"
+                onClick={() => setIsExportDialogOpen(true)}
+                className="h-10 px-5 rounded-xl border-2 hover:border-primary hover:text-primary hover:bg-primary/5 transition-all duration-300 hover:scale-105 hover:-translate-y-0.5"
+              >
                 <Download className="w-4 h-4 mr-2" />
                 Export
               </Button>

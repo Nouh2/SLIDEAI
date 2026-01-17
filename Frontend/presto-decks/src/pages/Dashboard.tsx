@@ -43,6 +43,7 @@ export default function Dashboard() {
   const [isLoading, setIsLoading] = useState(true);
   const [ownedPresentations, setOwnedPresentations] = useState<Presentation[]>([]);
   const [sharedPresentations, setSharedPresentations] = useState<Presentation[]>([]);
+  const [viewOnlyPresentations, setViewOnlyPresentations] = useState<Presentation[]>([]);
   const [searchParams, setSearchParams] = useSearchParams();
   const [subscription, setSubscription] = useState<any>(null);
 
@@ -80,6 +81,7 @@ export default function Dashboard() {
         ]);
         setOwnedPresentations(result.owned || []);
         setSharedPresentations(result.shared || []);
+        setViewOnlyPresentations(result.viewOnly || []);
         setSubscription(subResult);
       } catch (error: any) {
         console.error('Error fetching presentations:', error);
@@ -127,7 +129,13 @@ export default function Dashboard() {
   };
 
   // Get the current list based on active tab
-  const currentList = activeTab === "owned" ? ownedPresentations : sharedPresentations;
+  // For shared tab, combine shared and viewOnly but track which is which
+  const currentList = activeTab === "owned"
+    ? ownedPresentations
+    : [...sharedPresentations.map(p => ({ ...p, _accessType: 'edit' as const })),
+    ...viewOnlyPresentations.map(p => ({ ...p, _accessType: 'view' as const }))];
+
+  const totalSharedCount = sharedPresentations.length + viewOnlyPresentations.length;
 
   // Filters + sorting (client-side)
   const filtered = useMemo(() => {
@@ -214,9 +222,9 @@ export default function Dashboard() {
         >
           <Users className="w-4 h-4 mr-2" />
           Partagées avec moi
-          {sharedPresentations.length > 0 && (
+          {totalSharedCount > 0 && (
             <span className="ml-2 px-2 py-0.5 text-xs bg-muted rounded-full">
-              {sharedPresentations.length}
+              {totalSharedCount}
             </span>
           )}
         </Button>
@@ -282,8 +290,12 @@ export default function Dashboard() {
                   {presentation.slides?.slides?.length || 0} slides
                 </div>
                 {activeTab === "shared" && (
-                  <div className="absolute top-3 left-3 px-2 py-1 rounded-full bg-blue-500/20 border border-blue-500/50 text-blue-400 text-xs font-medium flex items-center gap-1">
-                    <Users className="w-3 h-3" /> Partagée
+                  <div className={`absolute top-3 left-3 px-2 py-1 rounded-full text-xs font-medium flex items-center gap-1 ${(presentation as any)._accessType === 'view'
+                    ? 'bg-violet-500/20 border border-violet-500/50 text-violet-400'
+                    : 'bg-blue-500/20 border border-blue-500/50 text-blue-400'
+                    }`}>
+                    <Users className="w-3 h-3" />
+                    {(presentation as any)._accessType === 'view' ? 'Lecture seule' : 'Collaboratif'}
                   </div>
                 )}
               </div>
@@ -312,12 +324,21 @@ export default function Dashboard() {
 
                 {/* Actions */}
                 <div className="flex gap-2 pt-2 border-t border-border">
-                  <Button size="sm" variant="solid" asChild className="flex-1">
-                    <Link to={`/editor?id=${presentation.id}`}>
-                      <FolderOpen className="mr-1 h-4 w-4" />
-                      Ouvrir
-                    </Link>
-                  </Button>
+                  {activeTab === "shared" && (presentation as any)._accessType === 'view' ? (
+                    <Button size="sm" variant="solid" asChild className="flex-1">
+                      <Link to={`/viewer?id=${presentation.id}`}>
+                        <FolderOpen className="mr-1 h-4 w-4" />
+                        Visualiser
+                      </Link>
+                    </Button>
+                  ) : (
+                    <Button size="sm" variant="solid" asChild className="flex-1">
+                      <Link to={`/editor?id=${presentation.id}`}>
+                        <FolderOpen className="mr-1 h-4 w-4" />
+                        Ouvrir
+                      </Link>
+                    </Button>
+                  )}
 
                   <Button size="sm" variant="outline" title="Duplicate">
                     <Copy className="h-4 w-4" />

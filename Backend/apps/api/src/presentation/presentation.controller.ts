@@ -24,6 +24,10 @@ const joinSchema = z.object({
     token: z.string().min(1),
 });
 
+const shareSchema = z.object({
+    mode: z.enum(['edit', 'view']).optional().default('edit'),
+});
+
 @Controller('/v1/presentations')
 @UseGuards(SupabaseGuard)
 export class PresentationController {
@@ -70,22 +74,26 @@ export class PresentationController {
     /**
      * POST /v1/presentations/:id/share
      * Generate a share link (owner only, requires subscription feature)
+     * @param mode - 'edit' for collaborative access, 'view' for read-only access
      */
     @Post(':id/share')
     async sharePresentation(
         @Param('id') id: string,
+        @Body() body: unknown,
         @Req() req: FastifyRequest & { user: any },
     ) {
         const userId = req.user.sub;
         const userEmail = req.user.email;
-        const { token } = await this.presentationService.generateShareLink(id, userId, userEmail);
+        const { mode } = shareSchema.parse(body || {});
+        const { token, mode: resultMode } = await this.presentationService.generateShareLink(id, userId, userEmail, mode);
 
         // Build a full share URL (frontend will handle this route)
-        // FRONTEND_URL should be set in .env for production (e.g., https://slideai.com)
         const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:8080';
-        const shareUrl = `${frontendUrl}/share/${token}`;
+        const shareUrl = resultMode === 'view'
+            ? `${frontendUrl}/view/${token}`
+            : `${frontendUrl}/share/${token}`;
 
-        return { shareUrl, token };
+        return { shareUrl, token, mode: resultMode };
     }
 
     /**
@@ -100,6 +108,21 @@ export class PresentationController {
         const userId = req.user.sub;
         const { token } = joinSchema.parse(body);
         const presentation = await this.presentationService.joinByToken(token, userId);
+        return { presentationId: presentation.id };
+    }
+
+    /**
+     * POST /v1/presentations/join-view
+     * Join a presentation using a view-only share token
+     */
+    @Post('join-view')
+    async joinViewPresentation(
+        @Body() body: unknown,
+        @Req() req: FastifyRequest & { user: any },
+    ) {
+        const userId = req.user.sub;
+        const { token } = joinSchema.parse(body);
+        const presentation = await this.presentationService.joinViewOnly(token, userId);
         return { presentationId: presentation.id };
     }
 

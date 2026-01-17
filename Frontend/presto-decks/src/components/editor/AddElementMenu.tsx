@@ -14,7 +14,10 @@ export function AddElementMenu({ onAdd }: { onAdd: (type: 'text' | 'image' | 'sh
     return (
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
-                <Button variant="default" size="sm" className="gap-2 bg-primary hover:bg-primary/90 text-white shadow-md">
+                <Button
+                    variant="default"
+                    className="h-10 px-5 rounded-xl gap-2 bg-primary hover:bg-primary/90 text-white shadow-lg shadow-primary/20 transition-all duration-300 hover:scale-105 hover:-translate-y-0.5"
+                >
                     <Plus className="w-4 h-4" />
                     Add
                 </Button>

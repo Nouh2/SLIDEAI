@@ -293,10 +293,10 @@ export const api = {
   // ============================================
 
   /**
-   * Get all presentations for the current user (owned + shared)
+   * Get all presentations for the current user (owned + shared + viewOnly)
    * GET /v1/presentations
    */
-  async getPresentations(accessToken: string): Promise<{ owned: any[]; shared: any[] }> {
+  async getPresentations(accessToken: string): Promise<{ owned: any[]; shared: any[]; viewOnly: any[] }> {
     const response = await fetch(`${API_BASE_URL}/presentations`, {
       headers: buildHeaders(accessToken),
     });
@@ -333,11 +333,13 @@ export const api = {
   /**
    * Generate a share link for a presentation
    * POST /v1/presentations/:id/share
+   * @param mode - 'edit' for collaborative access, 'view' for read-only access
    */
-  async sharePresentation(id: string, accessToken: string): Promise<{ shareUrl: string; token: string }> {
+  async sharePresentation(id: string, accessToken: string, mode: 'edit' | 'view' = 'edit'): Promise<{ shareUrl: string; token: string; mode: 'edit' | 'view' }> {
     const response = await fetch(`${API_BASE_URL}/presentations/${id}/share`, {
       method: 'POST',
-      headers: buildHeaders(accessToken),
+      headers: buildHeaders(accessToken, 'application/json'),
+      body: JSON.stringify({ mode }),
     });
     if (!response.ok) {
       const err = await response.json().catch(() => ({ message: 'Erreur' }));
@@ -352,6 +354,23 @@ export const api = {
    */
   async joinPresentation(token: string, accessToken: string): Promise<{ presentationId: string }> {
     const response = await fetch(`${API_BASE_URL}/presentations/join`, {
+      method: 'POST',
+      headers: buildHeaders(accessToken, 'application/json'),
+      body: JSON.stringify({ token }),
+    });
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({ message: 'Lien invalide' }));
+      throw new Error(err.message || 'Lien de partage invalide');
+    }
+    return response.json();
+  },
+
+  /**
+   * Join a presentation using a view-only share token
+   * POST /v1/presentations/join-view
+   */
+  async joinViewOnlyPresentation(token: string, accessToken: string): Promise<{ presentationId: string }> {
+    const response = await fetch(`${API_BASE_URL}/presentations/join-view`, {
       method: 'POST',
       headers: buildHeaders(accessToken, 'application/json'),
       body: JSON.stringify({ token }),

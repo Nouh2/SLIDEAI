@@ -1,5 +1,6 @@
 // src/lib/export/pdfExporter.ts
 // PDF export utility using html2canvas and jsPDF
+// Optimized for speed and file size
 
 import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
@@ -9,21 +10,30 @@ import { ExportProgressCallback } from './types';
 const SLIDE_WIDTH = 1920;
 const SLIDE_HEIGHT = 1080;
 
+// Export settings - optimized for small file size
+const EXPORT_SETTINGS = {
+    scale: 1.2,           // Lower scale for smaller files (still decent quality)
+    imageFormat: 'JPEG',  // JPEG is ~10x smaller than PNG
+    imageQuality: 0.65,   // Lower quality = smaller size (still looks good)
+    batchSize: 4,         // Capture 4 slides in parallel
+};
+
 /**
  * Creates a hidden container to render slides for export
  */
-const createRenderContainer = (): HTMLDivElement => {
+const createRenderContainer = (id: string): HTMLDivElement => {
     const container = document.createElement('div');
+    container.id = `render-container-${id}`;
     container.style.cssText = `
-    position: fixed;
-    left: -9999px;
-    top: 0;
-    width: ${SLIDE_WIDTH}px;
-    height: ${SLIDE_HEIGHT}px;
-    overflow: hidden;
-    background: white;
-    z-index: -9999;
-  `;
+        position: fixed;
+        left: -9999px;
+        top: 0;
+        width: ${SLIDE_WIDTH}px;
+        height: ${SLIDE_HEIGHT}px;
+        overflow: hidden;
+        background: white;
+        z-index: -9999;
+    `;
     document.body.appendChild(container);
     return container;
 };
@@ -31,59 +41,94 @@ const createRenderContainer = (): HTMLDivElement => {
 /**
  * Clones a slide element for rendering
  */
-const cloneSlideForRender = (slideElement: HTMLElement, container: HTMLDivElement): HTMLElement => {
+const cloneSlideForRender = (slideElement: HTMLElement, container: HTMLDivElement): void => {
     // Clone the slide
     const clone = slideElement.cloneNode(true) as HTMLElement;
 
     // Set to exact slide dimensions
     clone.style.cssText = `
-    width: ${SLIDE_WIDTH}px !important;
-    height: ${SLIDE_HEIGHT}px !important;
-    transform: none !important;
-    position: relative !important;
-    overflow: hidden !important;
-  `;
+        width: ${SLIDE_WIDTH}px !important;
+        height: ${SLIDE_HEIGHT}px !important;
+        transform: none !important;
+        position: relative !important;
+        overflow: hidden !important;
+    `;
 
     // Clear and append
     container.innerHTML = '';
     container.appendChild(clone);
-
-    return clone;
 };
 
 /**
- * Captures a slide element as a canvas
+ * Captures a single slide element as image data
  */
-const captureSlideAsCanvas = async (
+const captureSlideAsImageData = async (
     slideElement: HTMLElement,
-    container: HTMLDivElement
-): Promise<HTMLCanvasElement> => {
-    // Clone slide into render container
-    cloneSlideForRender(slideElement, container);
+    containerId: string
+): Promise<string> => {
+    // Create dedicated container for this capture
+    const container = createRenderContainer(containerId);
 
-    // Wait for images to load
-    await new Promise(resolve => setTimeout(resolve, 100));
+    try {
+        // Clone slide into render container
+        cloneSlideForRender(slideElement, container);
 
-    // Capture with html2canvas
-    const canvas = await html2canvas(container, {
-        width: SLIDE_WIDTH,
-        height: SLIDE_HEIGHT,
-        scale: 2, // Higher resolution for better quality
-        useCORS: true, // Allow cross-origin images
-        allowTaint: true,
-        backgroundColor: null,
-        logging: false,
-        imageTimeout: 15000,
-        onclone: (clonedDoc) => {
-            // Ensure fonts are loaded in cloned document
-            const clonedContainer = clonedDoc.body.querySelector('div');
-            if (clonedContainer) {
-                clonedContainer.style.fontFamily = 'Inter, system-ui, sans-serif';
-            }
+        // Small delay to ensure styles are applied
+        await new Promise(resolve => setTimeout(resolve, 50));
+
+        // Capture with html2canvas
+        const canvas = await html2canvas(container, {
+            width: SLIDE_WIDTH,
+            height: SLIDE_HEIGHT,
+            scale: EXPORT_SETTINGS.scale,
+            useCORS: true,
+            allowTaint: true,
+            backgroundColor: '#FFFFFF',
+            logging: false,
+            imageTimeout: 10000,
+        });
+
+        // Convert to JPEG for much smaller file size
+        return canvas.toDataURL(`image/jpeg`, EXPORT_SETTINGS.imageQuality);
+
+    } finally {
+        // Cleanup container
+        if (container.parentNode) {
+            container.parentNode.removeChild(container);
         }
-    });
+    }
+};
 
-    return canvas;
+/**
+ * Process slides in batches for faster export
+ */
+const captureSlidesInBatches = async (
+    slideElements: HTMLElement[],
+    onProgress?: ExportProgressCallback
+): Promise<string[]> => {
+    const results: string[] = [];
+    const batchSize = EXPORT_SETTINGS.batchSize;
+
+    for (let i = 0; i < slideElements.length; i += batchSize) {
+        const batch = slideElements.slice(i, i + batchSize);
+
+        onProgress?.({
+            current: i,
+            total: slideElements.length,
+            status: 'rendering',
+            message: `Capture des slides ${i + 1}-${Math.min(i + batchSize, slideElements.length)}/${slideElements.length}...`
+        });
+
+        // Capture batch in parallel
+        const batchPromises = batch.map((slide, idx) =>
+            captureSlideAsImageData(slide, `batch-${i}-${idx}`)
+        );
+
+        const batchResults = await Promise.all(batchPromises);
+        results.push(...batchResults);
+    }
+
+    return results;
 };
 
 /**
@@ -102,47 +147,16 @@ export const exportToPDF = async (
         throw new Error('No slides to export');
     }
 
-    // Create PDF with landscape orientation
-    const pdf = new jsPDF({
-        orientation: 'landscape',
-        unit: 'px',
-        format: [SLIDE_WIDTH, SLIDE_HEIGHT],
-        hotfixes: ['px_scaling']
+    onProgress?.({
+        current: 0,
+        total: slideElements.length,
+        status: 'preparing',
+        message: 'Préparation de l\'export...'
     });
 
-    // Create hidden render container
-    const renderContainer = createRenderContainer();
-
     try {
-        onProgress?.({
-            current: 0,
-            total: slideElements.length,
-            status: 'preparing',
-            message: 'Préparation de l\'export...'
-        });
-
-        for (let i = 0; i < slideElements.length; i++) {
-            onProgress?.({
-                current: i,
-                total: slideElements.length,
-                status: 'rendering',
-                message: `Capture de la slide ${i + 1}/${slideElements.length}...`
-            });
-
-            // Capture slide as canvas
-            const canvas = await captureSlideAsCanvas(slideElements[i], renderContainer);
-
-            // Convert to image data
-            const imgData = canvas.toDataURL('image/png', 1.0);
-
-            // Add new page for slides after the first
-            if (i > 0) {
-                pdf.addPage([SLIDE_WIDTH, SLIDE_HEIGHT], 'landscape');
-            }
-
-            // Add image to PDF
-            pdf.addImage(imgData, 'PNG', 0, 0, SLIDE_WIDTH, SLIDE_HEIGHT);
-        }
+        // Capture all slides (in batches for speed)
+        const imageDataArray = await captureSlidesInBatches(slideElements, onProgress);
 
         onProgress?.({
             current: slideElements.length,
@@ -150,6 +164,32 @@ export const exportToPDF = async (
             status: 'generating',
             message: 'Génération du PDF...'
         });
+
+        // Create PDF with landscape orientation
+        const pdf = new jsPDF({
+            orientation: 'landscape',
+            unit: 'px',
+            format: [SLIDE_WIDTH, SLIDE_HEIGHT],
+            hotfixes: ['px_scaling'],
+            compress: true, // Enable compression
+        });
+
+        // Add all captured slides to PDF
+        for (let i = 0; i < imageDataArray.length; i++) {
+            if (i > 0) {
+                pdf.addPage([SLIDE_WIDTH, SLIDE_HEIGHT], 'landscape');
+            }
+            pdf.addImage(
+                imageDataArray[i],
+                'JPEG',
+                0,
+                0,
+                SLIDE_WIDTH,
+                SLIDE_HEIGHT,
+                undefined,
+                'FAST' // Fast compression
+            );
+        }
 
         // Sanitize filename
         const sanitizedTitle = title.replace(/[^a-zA-Z0-9-_\s]/g, '').trim() || 'presentation';
@@ -164,11 +204,9 @@ export const exportToPDF = async (
             message: 'Export terminé !'
         });
 
-    } finally {
-        // Cleanup render container
-        if (renderContainer.parentNode) {
-            renderContainer.parentNode.removeChild(renderContainer);
-        }
+    } catch (error) {
+        console.error('PDF export error:', error);
+        throw error;
     }
 };
 

@@ -13,6 +13,7 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { FileText, FileSpreadsheet, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
 import { exportToPDF } from '@/lib/export';
+import { exportToPPTX } from '@/lib/export/pptx';
 import { ModernSlideRenderer } from '@/components/slides/ModernSlideRenderer';
 import type { ExportProgress } from '@/lib/export';
 
@@ -20,6 +21,7 @@ interface ExportDialogProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;
     presentation: {
+        id?: string;
         title: string;
         slides: any[];
         theme: string;
@@ -70,10 +72,41 @@ export function ExportDialog({ open, onOpenChange, presentation }: ExportDialogP
         }
     }, [presentation, onOpenChange]);
 
-    const handlePPTXExport = useCallback(() => {
-        // Phase 2 - placeholder for now
-        setError('L\'export PowerPoint arrive bientôt !');
-    }, []);
+    const handlePPTXExport = useCallback(async () => {
+        if (!presentation) return;
+
+        setError(null);
+        setExportProgress({
+            current: 0,
+            total: presentation.slides.length,
+            status: 'preparing',
+            message: 'Initialisation...'
+        });
+
+        try {
+            await exportToPPTX(
+                {
+                    id: presentation.id || 'export',
+                    title: presentation.title,
+                    slides: presentation.slides,
+                    theme: presentation.theme,
+                    colorScheme: presentation.colorScheme,
+                },
+                setExportProgress
+            );
+
+            // Keep success state visible briefly
+            setTimeout(() => {
+                setExportProgress(null);
+                onOpenChange(false);
+            }, 1500);
+
+        } catch (err: any) {
+            console.error('PPTX export error:', err);
+            setError(err.message || 'Erreur lors de l\'export PowerPoint');
+            setExportProgress(null);
+        }
+    }, [presentation, onOpenChange]);
 
     const isExporting = exportProgress !== null && exportProgress.status !== 'complete';
     const isComplete = exportProgress?.status === 'complete';
@@ -109,23 +142,24 @@ export function ExportDialog({ open, onOpenChange, presentation }: ExportDialogP
                             </span>
                         </button>
 
-                        {/* PPTX Option */}
-                        <button
-                            onClick={handlePPTXExport}
-                            disabled={isExporting}
-                            className="group relative flex flex-col items-center p-6 rounded-2xl border-2 border-border bg-surface/50 hover:border-orange-500 hover:bg-orange-500/5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 opacity-70"
+                        {/* PPTX Option - Coming Soon */}
+                        <div
+                            className="group relative flex flex-col items-center p-6 rounded-2xl border-2 border-border bg-surface/50 opacity-60 cursor-not-allowed"
                         >
-                            <div className="w-14 h-14 rounded-xl bg-orange-500/10 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                                <FileSpreadsheet className="w-7 h-7 text-orange-500" />
+                            <div className="w-14 h-14 rounded-xl bg-orange-500/10 flex items-center justify-center mb-4">
+                                <FileSpreadsheet className="w-7 h-7 text-orange-400" />
                             </div>
-                            <h3 className="font-bold text-foreground mb-1">PowerPoint</h3>
+                            <h3 className="font-bold text-muted-foreground mb-1">PowerPoint</h3>
                             <p className="text-xs text-muted-foreground text-center">
-                                Fichier éditable (.pptx)
+                                Bientôt disponible
                             </p>
                             <span className="absolute top-3 right-3 text-[10px] font-bold uppercase tracking-wider text-amber-500 bg-amber-500/10 px-2 py-0.5 rounded-full">
-                                Bientôt
+                                Beta
                             </span>
-                        </button>
+                            <p className="text-[10px] text-muted-foreground text-center mt-2">
+                                On y travaille ! 🚀
+                            </p>
+                        </div>
                     </div>
                 )}
 

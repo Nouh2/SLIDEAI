@@ -38,6 +38,7 @@ import { AddSlideDialog } from "@/components/editor/AddSlideDialog";
 import { LayoutSwitcher } from "@/components/editor/LayoutSwitcher";
 import { ColorPaletteDialog } from "@/components/editor/ColorPaletteDialog";
 import { ExportDialog } from "@/components/editor/ExportDialog";
+import { BugReportDialog } from "@/components/editor/BugReportDialog";
 
 
 
@@ -679,6 +680,17 @@ export default function Editor() {
               <Button variant="ghost" onClick={handleSave} title="Sauvegarder">
                 <Save className="w-4 h-4" />
               </Button>
+              {currentProject && (
+                <BugReportDialog
+                  presentationId={currentProject.id}
+                  presentationTitle={currentProject.title}
+                  currentSlide={currentProject.slides[selectedSlide]}
+                  slideIndex={selectedSlide}
+                  allSlides={currentProject.slides}
+                  theme={currentProject.theme}
+                  colorPalette={currentProject.colorScheme}
+                />
+              )}
               {currentProject && accessToken && (
                 <ShareDialog
                   presentationId={currentProject.id}

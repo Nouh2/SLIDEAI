@@ -102,3 +102,23 @@ model Presentation {
   @@map("presentations") // Map to snake_case table name
 }
 
+// === TOKEN USAGE TRACKING ===
+model TokenUsage {
+  id              String   @id @default(cuid())
+  userId          String   @map("user_id")
+  presentationId  String?  @map("presentation_id")
+  jobType         String   @map("job_type") // 'generate', 'regenerate-slide', 'add-slide', 'modify-color-palette'
+  traceId         String?  @map("trace_id")
+  inputTokens     Int      @default(0) @map("input_tokens")
+  outputTokens    Int      @default(0) @map("output_tokens")
+  totalTokens     Int      @default(0) @map("total_tokens")
+  inputCost       Float    @default(0) @map("input_cost")   // Cost in USD
+  outputCost      Float    @default(0) @map("output_cost")  // Cost in USD
+  totalCost       Float    @default(0) @map("total_cost")   // Cost in USD
+  model           String   @default("gemini-3-flash")       // AI model used
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  @@index([userId])
+  @@index([createdAt])
+  @@map("token_usage")
+}

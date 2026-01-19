@@ -132,6 +132,50 @@ async function setJob(traceId: string, value: any, ttlSec = 3600) {
 }
 
 /**
+ * Save token usage to database for cost tracking
+ */
+async function saveTokenUsage(params: {
+  userId: string;
+  presentationId?: string;
+  jobType: string;
+  traceId?: string;
+  inputTokens: number;
+  outputTokens: number;
+  model?: string;
+}) {
+  if (!supabase) return;
+
+  const inputCost = (params.inputTokens / 1_000_000) * 0.50;
+  const outputCost = (params.outputTokens / 1_000_000) * 3.00;
+  const totalCost = inputCost + outputCost;
+
+  try {
+    const { error } = await supabase.from('token_usage').insert({
+      user_id: params.userId,
+      presentation_id: params.presentationId || null,
+      job_type: params.jobType,
+      trace_id: params.traceId || null,
+      input_tokens: params.inputTokens,
+      output_tokens: params.outputTokens,
+      total_tokens: params.inputTokens + params.outputTokens,
+      input_cost: inputCost,
+      output_cost: outputCost,
+      total_cost: totalCost,
+      model: params.model || model,
+      created_at: new Date().toISOString(),
+    });
+
+    if (error) {
+      console.error('[TokenUsage] ❌ Failed to save:', error.message);
+    } else {
+      console.log(`[TokenUsage] ✅ Saved: ${params.inputTokens} in / ${params.outputTokens} out = $${totalCost.toFixed(6)}`);
+    }
+  } catch (err: any) {
+    console.error('[TokenUsage] ❌ Exception:', err.message);
+  }
+}
+
+/**
  * Determine theme based on prompt keywords if not specified
  */
 function inferThemeFromPrompt(prompt: string, explicitTheme?: string): string {
@@ -282,6 +326,15 @@ const generateWorker = new Worker(
 
       console.log(`[Generate] 📊 Tokens: ${inputTokens} in / ${outputTokens} out (${totalTokens} total)`);
       console.log(`[Generate] 💰 Cost: $${totalCost.toFixed(6)} ($${inputCost.toFixed(6)} in + $${outputCost.toFixed(6)} out)`);
+
+      // Save token usage to database
+      await saveTokenUsage({
+        userId,
+        jobType: 'generate',
+        traceId,
+        inputTokens,
+        outputTokens,
+      });
 
       if (!raw) throw new Error('Empty AI response');
 
@@ -545,6 +598,16 @@ const regenerateSlideWorker = new Worker(
       console.log(`[RegenerateSlide] 📊 Tokens: ${inputTokens} in / ${outputTokens} out`);
       console.log(`[RegenerateSlide] 💰 Cost: $${totalCost.toFixed(6)}`);
 
+      // Save token usage to database
+      await saveTokenUsage({
+        userId,
+        presentationId,
+        jobType: 'regenerate-slide',
+        traceId,
+        inputTokens,
+        outputTokens,
+      });
+
       if (!raw) throw new Error('Empty AI response');
 
       // Parse the single slide JSON
@@ -784,6 +847,20 @@ const addSlideWorker = new Worker(
       const fullPrompt = `${SLIDE_ADDER_PROMPT}\n\n---\n\n${userMessage}`;
       const response = await geminiModel.generateContent(fullPrompt);
       const raw = response.response.text();
+
+      // Track token usage
+      const usageMetadata = response.response.usageMetadata;
+      const inputTokens = usageMetadata?.promptTokenCount || 0;
+      const outputTokens = usageMetadata?.candidatesTokenCount || 0;
+
+      await saveTokenUsage({
+        userId,
+        presentationId,
+        jobType: 'add-slide',
+        traceId,
+        inputTokens,
+        outputTokens,
+      });
 
       if (!raw) throw new Error('Empty AI response');
 

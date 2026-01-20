@@ -1,5 +1,6 @@
 import { useMemo, useState, useEffect } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { ProjectThumbnail } from "@/components/dashboard/ProjectThumbnail";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -280,17 +281,16 @@ export default function Dashboard() {
             <CardContent className="p-0">
               {/* Thumbnail */}
               <div className="relative overflow-hidden bg-muted aspect-video">
-                <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-primary/20 to-secondary/20">
-                  <span className="text-4xl font-bold text-primary/30">
-                    {presentation.title.charAt(0).toUpperCase()}
-                  </span>
-                </div>
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-60 group-hover:opacity-80 transition-opacity" />
-                <div className="absolute top-3 right-3 px-3 py-1.5 rounded-full bg-surface/80 backdrop-blur-sm border border-border text-xs font-semibold">
+                <ProjectThumbnail presentation={presentation} />
+
+                {/* Overlays */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-60 group-hover:opacity-80 transition-opacity pointer-events-none" />
+
+                <div className="absolute top-3 right-3 px-3 py-1.5 rounded-full bg-surface/80 backdrop-blur-sm border border-border text-xs font-semibold z-10">
                   {presentation.slides?.slides?.length || 0} slides
                 </div>
                 {activeTab === "shared" && (
-                  <div className={`absolute top-3 left-3 px-2 py-1 rounded-full text-xs font-medium flex items-center gap-1 ${(presentation as any)._accessType === 'view'
+                  <div className={`absolute top-3 left-3 px-2 py-1 rounded-full text-xs font-medium flex items-center gap-1 z-10 ${(presentation as any)._accessType === 'view'
                     ? 'bg-violet-500/20 border border-violet-500/50 text-violet-400'
                     : 'bg-blue-500/20 border border-blue-500/50 text-blue-400'
                     }`}>

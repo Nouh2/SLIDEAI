@@ -12,6 +12,7 @@ import { TemplateSelector } from "@/components/create/TemplateSelector";
 import { getTemplateById } from "@/data/slideTemplates";
 import { projectService } from "@/lib/projects";
 import { supabase } from "@/contexts/AuthContext";
+import { OutOfCreditsModal } from "@/components/OutOfCreditsModal";
 
 
 
@@ -27,6 +28,7 @@ export default function Create() {
 
 
     const [isDragging, setIsDragging] = useState(false);
+    const [showOutOfCreditsModal, setShowOutOfCreditsModal] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const navigate = useNavigate();
     const { toast } = useToast();
@@ -141,11 +143,17 @@ export default function Create() {
 
             navigate(`/editor/${traceId}`);
         } catch (e: any) {
-            toast({
-                title: "Erreur",
-                description: e?.message ?? "Impossible de lancer la génération",
-                variant: "destructive",
-            });
+            // Check if this is a credit limit error
+            const errorMessage = e?.message ?? "Impossible de lancer la génération";
+            if (errorMessage.includes("limite") || errorMessage.includes("crédit") || e?.status === 403) {
+                setShowOutOfCreditsModal(true);
+            } else {
+                toast({
+                    title: "Erreur",
+                    description: errorMessage,
+                    variant: "destructive",
+                });
+            }
         } finally {
             setIsGenerating(false);
         }
@@ -399,6 +407,12 @@ export default function Create() {
                     )}
                 </AnimatePresence>
             </motion.div>
+
+            {/* Out of Credits Modal */}
+            <OutOfCreditsModal
+                isOpen={showOutOfCreditsModal}
+                onClose={() => setShowOutOfCreditsModal(false)}
+            />
         </div>
     );
 }

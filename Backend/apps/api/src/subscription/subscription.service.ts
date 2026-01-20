@@ -56,6 +56,12 @@ const PLAN_LIMITS: Record<string, {
     },
 };
 
+// === Credit Pack Configuration (one-time purchases) ===
+const CREDIT_PACKS: Record<string, number> = {
+    'pack_decouverte': 5,
+    'pack_power': 15,
+};
+
 @Injectable()
 export class SubscriptionService {
     constructor(private prisma: PrismaService) { }
@@ -99,6 +105,22 @@ export class SubscriptionService {
             ...subscription,
             limits: PLAN_LIMITS[subscription.plan] || PLAN_LIMITS.free,
         };
+    }
+
+    /**
+     * Retrieves the Stripe Subscription ID for cancellation.
+     * Throws if no active subscription exists.
+     */
+    async getSubscriptionIdForCancellation(userId: string): Promise<string> {
+        const sub = await this.prisma.subscription.findUnique({
+            where: { userId },
+        });
+
+        if (!sub || !sub.stripeSubscriptionId) {
+            throw new ForbiddenException("Aucun abonnement actif trouvé à résilier.");
+        }
+
+        return sub.stripeSubscriptionId;
     }
 
     /**
@@ -206,16 +228,37 @@ export class SubscriptionService {
                     return;
                 }
 
-                // Récupérer le plan correspondant au prix Stripe
-                // Pour l'instant on fait simple ou on stocke le plan dans la metadata
-                const plan = session.metadata?.plan || 'starter';
-
                 // Ensure user exists (Fix for potential FK constraint error)
                 await this.prisma.user.upsert({
                     where: { id: userId },
                     update: {},
                     create: { id: userId, email: session.customer_email || `${userId}@placeholder.local` }
                 });
+
+                // === CREDIT PACK PURCHASE (one-time payment, no subscription) ===
+                if (!stripeSubscriptionId && session.metadata?.packType) {
+                    const packType = session.metadata.packType;
+                    const creditsToAdd = CREDIT_PACKS[packType] || 0;
+
+                    if (creditsToAdd > 0) {
+                        // Make sure user has a subscription record to add credits to
+                        await this.getOrCreateSubscription(userId, session.customer_email);
+
+                        await this.prisma.subscription.update({
+                            where: { userId },
+                            data: {
+                                creditsRemaining: { increment: creditsToAdd },
+                            },
+                        });
+                        console.log(`[Stripe Webhook] Added ${creditsToAdd} credits for pack: ${packType} to user: ${userId}`);
+                    } else {
+                        console.warn(`[Stripe Webhook] Unknown packType: ${packType}`);
+                    }
+                    break;
+                }
+
+                // === SUBSCRIPTION PURCHASE ===
+                const plan = session.metadata?.plan || 'starter';
 
                 await this.prisma.subscription.upsert({
                     where: { userId },

@@ -40,6 +40,22 @@ export class SubscriptionController {
     }
 
     /**
+     * POST /subscription/checkout-pack
+     * Crée une session de paiement Stripe pour un pack de crédits (paiement unique).
+     */
+    @Post('checkout-pack')
+    @UseGuards(SupabaseGuard)
+    async createPackCheckout(@Req() req: any, @Body() body: { priceId: string; packType: string }) {
+        const userId = req.user.sub;
+        const userEmail = req.user.email;
+
+        if (!body.priceId) throw new ForbiddenException('priceId is required');
+        if (!body.packType) throw new ForbiddenException('packType is required');
+
+        return this.stripeService.createCreditPackCheckout(userId, userEmail, body.priceId, body.packType);
+    }
+
+    /**
      * POST /subscription/webhook
      * Reçoit les événements de Stripe (paiements réussis, annulations).
      * Note: Ce endpoint doit être public (pas de SupabaseGuard).
@@ -74,5 +90,22 @@ export class SubscriptionController {
             console.error(err.stack);
             throw new ForbiddenException(`Webhook Error: ${err.message}`);
         }
+    }
+    /**
+     * POST /subscription/cancel
+     * Résilie l'abonnement en cours (à la fin de la période).
+     */
+    @Post('cancel')
+    @UseGuards(SupabaseGuard)
+    async cancelSubscription(@Req() req: any) {
+        const userId = req.user.sub;
+
+        // 1. Get Subscription ID
+        const stripeSubscriptionId = await this.subscriptionService.getSubscriptionIdForCancellation(userId);
+
+        // 2. Call Stripe
+        await this.stripeService.cancelSubscription(stripeSubscriptionId);
+
+        return { success: true, message: "Abonnement résilié à la fin de la période." };
     }
 }

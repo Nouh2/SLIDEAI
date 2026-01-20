@@ -145,13 +145,7 @@ export function LayoutSwitcher({ currentSlide, theme, colors, onUpdateSlide }: L
                     { id: 'split-curtain', label: 'Curtain', icon: Columns },
                     { id: 'polaroid-pile', label: 'Polaroids', icon: LayoutGrid },
                 ];
-            case 'bento':
-                return [
-                    { id: 'default', label: 'Standard', icon: LayoutGrid },
-                    { id: 'feature-grid', label: 'Feature Grid', icon: Table },
-                    { id: 'masonry', label: 'Masonry', icon: LayoutGrid },
-                    { id: 'interactive-cards', label: 'Active Cards', icon: Maximize },
-                ];
+
             case 'showcase':
                 return [
                     { id: 'default', label: 'Standard', icon: Maximize },

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,9 +9,12 @@ import { toast } from "sonner";
 export default function Pricing() {
   const [billingCycle, setBillingCycle] = useState<"monthly" | "yearly">("yearly");
   const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
+  const [loadingPack, setLoadingPack] = useState<string | null>(null);
+  const [currentPlan, setCurrentPlan] = useState<string | null>(null);
+  const [subscription, setSubscription] = useState<any>(null);
   const navigate = useNavigate();
 
-  // Mapping plans to Stripe Price IDs (REPLACE WITH YOUR TEST PRICE IDs)
+  // Mapping plans to Stripe Price IDs
   const STRIPE_PRICE_IDS: Record<string, { monthly: string; yearly: string }> = {
     Starter: {
       monthly: "price_1Sn5Iw5KgGKgF82ebXEDerSL",
@@ -26,6 +29,43 @@ export default function Pricing() {
       yearly: "price_1Sn5KK5KgGKgF82eSgoyWSnS",
     },
   };
+
+  // Mapping credit packs to Stripe Price IDs
+  const PACK_PRICE_IDS: Record<string, { priceId: string; packType: string }> = {
+    'Pack Découverte': { priceId: 'price_1SrfAT5KgGKgF82eZbPykn70', packType: 'pack_decouverte' },
+    'Pack Power': { priceId: 'price_1SrfB45KgGKgF82e2AnTxmqf', packType: 'pack_power' },
+  };
+
+  const getPlanLevel = (planName: string) => {
+    switch (planName.toLowerCase()) {
+      case 'business': return 3;
+      case 'pro': return 2;
+      case 'starter': return 1;
+      case 'free': return 0;
+      default: return 0;
+    }
+  };
+
+  useEffect(() => {
+    const fetchSubscription = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+
+      try {
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/subscription`, {
+          headers: { 'Authorization': `Bearer ${session.access_token}` }
+        });
+        if (response.ok) {
+          const data = await response.json();
+          setSubscription(data);
+          setCurrentPlan(data.plan);
+        }
+      } catch (error) {
+        console.error("Error fetching subscription:", error);
+      }
+    };
+    fetchSubscription();
+  }, []);
 
   const handleSubscribe = async (planName: string) => {
     if (planName === "Free") {
@@ -73,6 +113,141 @@ export default function Pricing() {
     } finally {
       setLoadingPlan(null);
     }
+  };
+
+  const handleCancelSubscription = async () => {
+    if (!confirm("Êtes-vous sûr de vouloir résilier votre abonnement ? Vous conserverez vos avantages jusqu'à la fin de la période en cours.")) return;
+
+    setLoadingPlan('cancel');
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/subscription/cancel`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`,
+        },
+      });
+
+      const data = await response.json();
+      if (response.ok) {
+        toast.success(data.message || "Abonnement résilié avec succès.");
+        // Refresh subscription state
+        const subResponse = await fetch(`${import.meta.env.VITE_API_URL}/subscription`, {
+          headers: { 'Authorization': `Bearer ${session.access_token}` }
+        });
+        if (subResponse.ok) {
+          const subData = await subResponse.json();
+          setSubscription(subData);
+          // Update plan if needed, or keep it active but show cancelled state? 
+          // Usually plan status remains active until period end.
+        }
+      } else {
+        throw new Error(data.message || "Erreur lors de la résiliation");
+      }
+    } catch (error: any) {
+      console.error(error);
+      toast.error(error.message || "Erreur lors de la résiliation.");
+    } finally {
+      setLoadingPlan(null);
+    }
+  };
+
+  const handlePackPurchase = async (packName: string) => {
+    setLoadingPack(packName);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        toast.error("Veuillez vous connecter pour acheter");
+        navigate("/join");
+        return;
+      }
+
+      const packInfo = PACK_PRICE_IDS[packName];
+      if (!packInfo) {
+        toast.error("Pack non reconnu");
+        return;
+      }
+
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/subscription/checkout-pack`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({
+          priceId: packInfo.priceId,
+          packType: packInfo.packType,
+        }),
+      });
+
+      const data = await response.json();
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        throw new Error("Erreur lors de la création de la session de paiement");
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error("Une erreur est survenue. Veuillez réessayer.");
+    } finally {
+      setLoadingPack(null);
+    }
+  };
+
+  const currentPlanLevel = currentPlan ? getPlanLevel(currentPlan) : 0;
+
+  const getPlanButton = (plan: any) => {
+    const planLevel = getPlanLevel(plan.name);
+    const isCurrentPlan = currentPlan === plan.name.toLowerCase();
+
+    // Case 1: Active Plan
+    if (isCurrentPlan) {
+      return (
+        <Button
+          variant="outline"
+          className="w-full rounded-xl font-bold border-red-200 text-red-500 hover:bg-red-50 hover:text-red-600 hover:border-red-300 transition-colors"
+          onClick={handleCancelSubscription}
+          disabled={loadingPlan === 'cancel'}
+        >
+          {loadingPlan === 'cancel' ? <Loader2 className="h-4 w-4 animate-spin" /> : "Se désabonner"}
+        </Button>
+      );
+    }
+
+    // Case 2: Lower Tier (Grayed out)
+    if (planLevel < currentPlanLevel) {
+      return (
+        <Button
+          variant="ghost"
+          className="w-full rounded-xl font-bold text-muted-foreground bg-muted/50 cursor-not-allowed"
+          disabled={true}
+        >
+          Inclus
+        </Button>
+      );
+    }
+
+    // Case 3: Upgrade (Standard behavior)
+    return (
+      <Button
+        variant={plan.popular ? "solid" : plan.variant}
+        className={`w-full rounded-xl font-bold ${plan.popular
+          ? 'shadow-lg shadow-primary/20 hover:shadow-primary/40'
+          : ''
+          }`}
+        onClick={() => handleSubscribe(plan.name)}
+        disabled={loadingPlan === plan.name}
+      >
+        {loadingPlan === plan.name ? (
+          <Loader2 className="h-4 w-4 animate-spin" />
+        ) : (
+          plan.cta
+        )}
+      </Button>
+    );
   };
 
   const plans = [
@@ -166,7 +341,7 @@ export default function Pricing() {
   const packs = [
     {
       name: "Pack Découverte",
-      price: "7€",
+      price: "5€",
       credits: "5 présentations",
       icon: Layers,
       cta: "Acheter 5 crédits",
@@ -252,6 +427,7 @@ export default function Pricing() {
               className={`relative flex flex-col rounded-2xl transition-all duration-500 ${plan.popular
                 ? "border-primary/50 shadow-glow scale-105 z-10"
                 : "border-border/50 hover:border-primary/30 hover:shadow-card hover:-translate-y-1"
+                } ${getPlanLevel(plan.name) < currentPlanLevel ? "opacity-60 grayscale-[0.5]" : ""
                 }`}
             >
               {(plan.popular || plan.badge) && (
@@ -262,6 +438,8 @@ export default function Pricing() {
                   </div>
                 </div>
               )}
+
+
 
               <CardHeader className="text-center pb-2 pt-8">
                 <CardTitle className="text-xl font-bold mb-2">
@@ -287,21 +465,8 @@ export default function Pricing() {
               </CardHeader>
 
               <CardContent className="flex flex-col flex-1 gap-6">
-                <Button
-                  variant={plan.popular ? "solid" : plan.variant}
-                  className={`w-full rounded-xl font-bold ${plan.popular
-                    ? 'shadow-lg shadow-primary/20 hover:shadow-primary/40'
-                    : ''
-                    }`}
-                  onClick={() => handleSubscribe(plan.name)}
-                  disabled={loadingPlan === plan.name}
-                >
-                  {loadingPlan === plan.name ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    plan.cta
-                  )}
-                </Button>
+
+                {getPlanButton(plan)}
 
                 <div className="space-y-3 flex-1">
                   {plan.features.map((feature, i) => (
@@ -360,8 +525,17 @@ export default function Pricing() {
                     <span className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-foreground to-foreground/70">{pack.price}</span>
                   </div>
 
-                  <Button variant="outline" className="w-full rounded-xl font-bold hover:bg-primary hover:text-primary-foreground border-primary/20 hover:border-primary transition-all duration-300">
-                    {pack.cta}
+                  <Button
+                    variant="outline"
+                    className="w-full rounded-xl font-bold hover:bg-primary hover:text-primary-foreground border-primary/20 hover:border-primary transition-all duration-300"
+                    onClick={() => handlePackPurchase(pack.name)}
+                    disabled={loadingPack === pack.name}
+                  >
+                    {loadingPack === pack.name ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      pack.cta
+                    )}
                   </Button>
                 </CardContent>
               </Card>

@@ -23,8 +23,11 @@ export class StripeService implements OnModuleInit {
     /**
      * Creates a checkout session for a customer to subscribe to a plan.
      */
-    async createCheckoutSession(userId: string, userEmail: string, priceId: string, plan: string) {
+    async createCheckoutSession(userId: string, userEmail: string, priceId: string, plan: string, origin?: string) {
         if (!this.stripe) throw new Error('Stripe is not initialized');
+
+        // Use the request origin if permitted (handled by CORS in main.ts), otherwise fallback to env
+        const frontendUrl = origin || this.configService.get('FRONTEND_URL');
 
         const session = await this.stripe.checkout.sessions.create({
             payment_method_types: ['card'],
@@ -37,8 +40,8 @@ export class StripeService implements OnModuleInit {
             mode: 'subscription',
             customer_email: userEmail,
             client_reference_id: userId,
-            success_url: `${this.configService.get('FRONTEND_URL')}/app?session_id={CHECKOUT_SESSION_ID}`,
-            cancel_url: `${this.configService.get('FRONTEND_URL')}/pricing`,
+            success_url: `${frontendUrl}/app?session_id={CHECKOUT_SESSION_ID}`,
+            cancel_url: `${frontendUrl}/pricing`,
             metadata: {
                 userId,
                 plan,
@@ -61,8 +64,11 @@ export class StripeService implements OnModuleInit {
     /**
      * Creates a checkout session for a one-time credit pack purchase.
      */
-    async createCreditPackCheckout(userId: string, userEmail: string, priceId: string, packType: string) {
+    async createCreditPackCheckout(userId: string, userEmail: string, priceId: string, packType: string, origin?: string) {
         if (!this.stripe) throw new Error('Stripe is not initialized');
+
+        // Use the request origin if permitted (handled by CORS in main.ts), otherwise fallback to env
+        const frontendUrl = origin || this.configService.get('FRONTEND_URL');
 
         const session = await this.stripe.checkout.sessions.create({
             payment_method_types: ['card'],
@@ -75,8 +81,8 @@ export class StripeService implements OnModuleInit {
             mode: 'payment', // One-time payment, not subscription
             customer_email: userEmail,
             client_reference_id: userId,
-            success_url: `${this.configService.get('FRONTEND_URL')}/app?pack_success=true`,
-            cancel_url: `${this.configService.get('FRONTEND_URL')}/pricing`,
+            success_url: `${frontendUrl}/app?pack_success=true`,
+            cancel_url: `${frontendUrl}/pricing`,
             metadata: {
                 userId,
                 packType,

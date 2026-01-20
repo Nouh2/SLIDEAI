@@ -7,6 +7,7 @@ import { examples, type Example } from "@/data/examples";
 import { useToast } from "@/hooks/use-toast";
 import { ModernSlideRenderer } from "@/components/slides/ModernSlideRenderer";
 import { SlideThumbnail } from "@/components/slides/SlideThumbnail";
+import { ScalableSlidePreview } from "@/components/slides/ScalableSlidePreview";
 
 export default function Examples() {
   const [selectedExample, setSelectedExample] = useState<Example | null>(null);
@@ -14,8 +15,6 @@ export default function Examples() {
   const [currentTheme, setCurrentTheme] = useState<string>("");
   const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
   const { toast } = useToast();
-
-  const themes = ["Modern-01", "Minimal-Grid", "Bold-Contrast"];
 
   const handleCopyPrompt = () => {
     if (selectedExample) {
@@ -33,16 +32,6 @@ export default function Examples() {
     setSelectedExample(example);
     setCurrentTheme(example.theme);
     setCurrentSlideIndex(0);
-  };
-
-  const handleChangeTheme = () => {
-    const currentIndex = themes.indexOf(currentTheme);
-    const nextIndex = (currentIndex + 1) % themes.length;
-    setCurrentTheme(themes[nextIndex]);
-    toast({
-      title: "Thème changé",
-      description: `Nouveau thème : ${themes[nextIndex]}`,
-    });
   };
 
   const handleNextSlide = () => {
@@ -92,10 +81,7 @@ export default function Examples() {
                     <p className="text-xs md:text-sm text-muted-foreground line-clamp-2">
                       {example.prompt}
                     </p>
-                    <div className="flex items-center justify-between pt-2">
-                      <span className="text-xs md:text-sm font-semibold px-3 md:px-4 py-1.5 md:py-2 rounded-full gradient-aurora text-white shadow-glow">
-                        {example.slides.length} slides
-                      </span>
+                    <div className="flex items-center justify-end pt-2">
                       <Button size="sm" variant="outline">
                         Voir
                       </Button>
@@ -113,29 +99,20 @@ export default function Examples() {
           <DialogHeader className="px-4 md:px-6 pt-4 md:pt-6 pb-3 md:pb-4 border-b border-white/10">
             <div className="flex items-center justify-between gap-2">
               <DialogTitle className="text-xl md:text-3xl font-bold text-gradient truncate">{selectedExample?.title}</DialogTitle>
-              <Button
-                onClick={handleChangeTheme}
-                variant="outline"
-                size="sm"
-                className="gap-2 shrink-0"
-              >
-                <Palette className="h-4 w-4" />
-                <span className="hidden sm:inline">Changer de style</span>
-              </Button>
             </div>
           </DialogHeader>
 
           <div className="flex-1 overflow-y-auto flex flex-col lg:flex-row gap-4 md:gap-6 p-4 md:p-6">
             {/* Main slide viewer */}
-            <div className="flex-1 flex flex-col gap-3 md:gap-4">
-              <div className="flex-1 relative rounded-lg overflow-hidden shadow-2xl min-h-[300px] md:min-h-[400px]">
+            <div className="flex-1 flex flex-col gap-3 md:gap-4 min-w-0">
+              <div className="flex-1 relative rounded-lg overflow-hidden shadow-2xl min-h-[300px] md:min-h-[400px] bg-surface flex items-center justify-center min-w-0">
                 {selectedExample && selectedExample.slides[currentSlideIndex] && (
-                  <div className="[&_*]:hover:translate-x-0 [&_*]:hover:translate-y-0 [&_*]:hover:scale-100 pointer-events-none select-none">
-                    <ModernSlideRenderer
-                      slide={selectedExample.slides[currentSlideIndex]}
-                      theme={currentTheme}
-                    />
-                  </div>
+                  <ScalableSlidePreview
+                    slide={selectedExample.slides[currentSlideIndex]}
+                    theme={currentTheme}
+                    colorPalette={selectedExample.colorPalette}
+                    className="w-full h-full"
+                  />
                 )}
               </div>
 
@@ -168,21 +145,7 @@ export default function Examples() {
                 </Button>
               </div>
 
-              {/* Thumbnail navigation */}
-              <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-thin">
-                {selectedExample?.slides.map((slide, idx) => (
-                  <button
-                    key={idx}
-                    onClick={() => setCurrentSlideIndex(idx)}
-                    className={`flex-shrink-0 w-24 h-16 md:w-32 md:h-20 rounded border-2 overflow-hidden ${idx === currentSlideIndex ? 'border-primary shadow-lg' : 'border-border opacity-60'
-                      }`}
-                  >
-                    <div className="scale-[0.25] origin-top-left w-[400%] h-[400%]">
-                      <ModernSlideRenderer slide={slide} theme={currentTheme} />
-                    </div>
-                  </button>
-                ))}
-              </div>
+
             </div>
 
             {/* Info sidebar */}

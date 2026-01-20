@@ -1,7 +1,7 @@
 // components/editor/ColorPaletteDialog.tsx
 // Modal for modifying presentation color palette with AI or Manually
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
     Dialog,
     DialogContent,
@@ -49,6 +49,19 @@ export function ColorPaletteDialog({
         bg: currentPalette?.bg || '#ffffff',
         text: currentPalette?.text || '#000000',
     });
+
+    // Reset manual colors when dialog opens or palette changes
+    useEffect(() => {
+        if (open && currentPalette) {
+            setManualColors({
+                primary: currentPalette.primary || '#000000',
+                secondary: currentPalette.secondary || '#000000',
+                accent: currentPalette.accent || '#000000',
+                bg: currentPalette.bg || '#ffffff',
+                text: currentPalette.text || '#000000',
+            });
+        }
+    }, [open, currentPalette]);
 
     const { toast } = useToast();
 

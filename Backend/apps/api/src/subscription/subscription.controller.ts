@@ -29,14 +29,14 @@ export class SubscriptionController {
      */
     @Post('checkout')
     @UseGuards(SupabaseGuard)
-    async createCheckout(@Req() req: any, @Body() body: { priceId: string; plan: string }) {
+    async createCheckout(@Req() req: any, @Body() body: { priceId: string; plan: string }, @Headers('origin') origin: string) {
         const userId = req.user.sub;
         const userEmail = req.user.email;
 
         if (!body.priceId) throw new ForbiddenException('priceId is required');
         if (!body.plan) throw new ForbiddenException('plan is required');
 
-        return this.stripeService.createCheckoutSession(userId, userEmail, body.priceId, body.plan);
+        return this.stripeService.createCheckoutSession(userId, userEmail, body.priceId, body.plan, origin);
     }
 
     /**
@@ -45,14 +45,14 @@ export class SubscriptionController {
      */
     @Post('checkout-pack')
     @UseGuards(SupabaseGuard)
-    async createPackCheckout(@Req() req: any, @Body() body: { priceId: string; packType: string }) {
+    async createPackCheckout(@Req() req: any, @Body() body: { priceId: string; packType: string }, @Headers('origin') origin: string) {
         const userId = req.user.sub;
         const userEmail = req.user.email;
 
         if (!body.priceId) throw new ForbiddenException('priceId is required');
         if (!body.packType) throw new ForbiddenException('packType is required');
 
-        return this.stripeService.createCreditPackCheckout(userId, userEmail, body.priceId, body.packType);
+        return this.stripeService.createCreditPackCheckout(userId, userEmail, body.priceId, body.packType, origin);
     }
 
     /**

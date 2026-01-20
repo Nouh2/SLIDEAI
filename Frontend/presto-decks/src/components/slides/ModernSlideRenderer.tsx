@@ -1787,28 +1787,30 @@ const ComparisonLayout = ({ slide, colors, variation = 'balanced-split', onSelec
     if (typeof left === 'string') {
         left = { title: left, items: [] };
     }
-    if (!left && (slide.content?.leftTitle || slide.content?.leftPoints || slide.content?.leftBullets)) {
+    if (!left && (slide.content?.leftTitle || slide.content?.leftPoints || slide.content?.leftBullets || slide.content?.leftContent)) {
         left = {
             title: slide.content?.leftTitle || slide.content?.comparison?.leftTitle || "Left side",
-            items: slide.content?.leftBullets || slide.content?.leftItems || slide.content?.leftPoints || []
+            items: slide.content?.leftBullets || slide.content?.leftItems || slide.content?.leftPoints || (slide.content?.leftContent ? [slide.content.leftContent] : []) || []
         };
     } else if (left && (!left.items || left.items.length === 0)) {
         // Fill items if they exist elsewhere
-        left.items = slide.content?.leftBullets || slide.content?.leftItems || slide.content?.leftPoints || left.items || [];
+        const content = slide.content?.leftContent;
+        left.items = slide.content?.leftBullets || slide.content?.leftItems || slide.content?.leftPoints || (content ? [content] : []) || left.items || [];
     }
 
     // Robust mapping for right side
     if (typeof right === 'string') {
         right = { title: right, items: [] };
     }
-    if (!right && (slide.content?.rightTitle || slide.content?.rightPoints || slide.content?.rightBullets)) {
+    if (!right && (slide.content?.rightTitle || slide.content?.rightPoints || slide.content?.rightBullets || slide.content?.rightContent)) {
         right = {
             title: slide.content?.rightTitle || slide.content?.comparison?.rightTitle || "Right side",
-            items: slide.content?.rightBullets || slide.content?.rightItems || slide.content?.rightPoints || []
+            items: slide.content?.rightBullets || slide.content?.rightItems || slide.content?.rightPoints || (slide.content?.rightContent ? [slide.content.rightContent] : []) || []
         };
     } else if (right && (!right.items || right.items.length === 0)) {
         // Fill items if they exist elsewhere
-        right.items = slide.content?.rightBullets || slide.content?.rightItems || slide.content?.rightPoints || right.items || [];
+        const content = slide.content?.rightContent;
+        right.items = slide.content?.rightBullets || slide.content?.rightItems || slide.content?.rightPoints || (content ? [content] : []) || right.items || [];
     }
 
     // --- PATH RESOLUTION ---

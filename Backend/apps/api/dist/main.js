@@ -20,11 +20,21 @@ async function bootstrap() {
     });
     await app.register(cors, {
         origin: (origin, cb) => {
-            const allowed = (config.get('FRONTEND_ORIGIN') || '').split(',').map(s => s.trim()).filter(Boolean);
+            const isDev = config.get('NODE_ENV') === 'development';
+            const envOrigins = (config.get('FRONTEND_ORIGIN') || '').split(',').map(s => s.trim()).filter(Boolean);
+            const allowed = [
+                ...envOrigins,
+                'https://slideai.fr',
+                'https://www.slideai.fr',
+                'http://localhost:5173', // Ensure dev default is present if needed
+                'http://localhost:3000'
+            ];
             if (!origin || allowed.includes(origin))
                 cb(null, true);
-            else
+            else {
+                // console.log('CORS blocked:', origin);
                 cb(new Error('CORS blocked'), false);
+            }
         },
         credentials: true,
     });

@@ -545,7 +545,16 @@ export default function Editor() {
   const handleSave = async () => {
     if (!currentProject || !accessToken) return;
     try {
-      await api.savePresentation(currentProject.id, { slides: currentProject.slides }, accessToken);
+      // Wrap slides, theme, and colors into a single object for the JSONB column
+      const deckData = {
+        slides: currentProject.slides,
+        theme: currentProject.theme,
+        colorPalette: currentProject.colorScheme,
+        title: currentProject.title,
+        subtitle: currentProject.subtitle
+      };
+
+      await api.savePresentation(currentProject.id, { slides: deckData }, accessToken);
       toast({ title: "Sauvegardé", description: "Vos modifications sont enregistrées." });
     } catch (e: any) {
       console.error("Save error:", e);

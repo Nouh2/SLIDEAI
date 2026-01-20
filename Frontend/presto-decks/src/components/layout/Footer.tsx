@@ -66,7 +66,7 @@ export const Footer = () => {
           <div>
             <h3 className="font-semibold mb-3 text-sm">Contact</h3>
             <p className="text-xs text-[var(--muted)]">
-              contact@slideai.com
+              contact@slideai.fr
             </p>
           </div>
         </div>

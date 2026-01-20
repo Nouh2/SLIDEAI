@@ -21,6 +21,7 @@ const GdprPage = lazy(() => import("@/pages/GdprPage"));
 const NotFound = lazy(() => import("@/pages/NotFound"));
 const JoinPage = lazy(() => import("@/pages/JoinPage"));
 const ViewPage = lazy(() => import("@/pages/ViewPage"));
+const ResetPassword = lazy(() => import("@/pages/ResetPassword"));
 
 const PageLoader = () => (
     <div className="h-[calc(100vh-4rem)] w-full flex items-center justify-center">
@@ -109,6 +110,11 @@ export const AnimatedRoutes = () => {
                         <ProtectedRoute>
                             <PageTransition><ViewPage /></PageTransition>
                         </ProtectedRoute>
+                    } />
+
+                    {/* PASSWORD RESET ROUTE */}
+                    <Route path="/reset-password" element={
+                        <PageTransition><ResetPassword /></PageTransition>
                     } />
 
                     {/* 404 */}

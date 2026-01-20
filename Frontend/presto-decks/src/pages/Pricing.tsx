@@ -74,7 +74,7 @@ export default function Pricing() {
     }
 
     if (planName === "Business") {
-      window.location.href = "mailto:contact@slideai.com";
+      window.location.href = "mailto:contact@slideai.fr";
       return;
     }
 
@@ -549,7 +549,7 @@ export default function Pricing() {
           </p>
           <p className="text-base text-foreground/60">
             Des questions ? {" "}
-            <a href="mailto:contact@slideai.com" className="text-primary hover:text-accent transition-colors font-semibold">
+            <a href="mailto:contact@slideai.fr" className="text-primary hover:text-accent transition-colors font-semibold">
               Contactez-nous
             </a>
           </p>

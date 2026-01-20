@@ -57,7 +57,7 @@ export default function GdprPage() {
                         Pour toute question relative à vos données personnelles ou pour exercer vos droits, vous pouvez contacter notre Délégué à la Protection des Données à l'adresse suivante :
                     </p>
                     <div className="mt-4 p-4 bg-primary/10 rounded-lg border border-primary/20 inline-block">
-                        <span className="font-mono text-primary">dpo@slideai.com</span>
+                        <span className="font-mono text-primary">contact@slideai.fr</span>
                     </div>
                 </section>
             </div>

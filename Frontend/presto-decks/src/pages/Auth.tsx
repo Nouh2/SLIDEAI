@@ -1,29 +1,29 @@
 import { useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { createClient } from "@supabase/supabase-js";
+import { supabase } from "@/contexts/AuthContext";
 import { Auth } from "@supabase/auth-ui-react";
 import { ThemeSupa } from "@supabase/auth-ui-shared";
-
-// Initialize Supabase client
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || "https://dntcdhabtctfbylynlcr.supabase.co";
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRudGNkaGFidGN0ZmJ5bHlubGNyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjYwNDg1NTUsImV4cCI6MjA4MTYyNDU1NX0.9mtNdCOyR7qiEXjS0n7uC5Dq8hSS8s5gZ3wtxbre-R8";
-const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 export default function AuthPage() {
   const navigate = useNavigate();
 
   // Listen for auth state changes
   useEffect(() => {
+    const queryParams = new URLSearchParams(window.location.search);
+    const returnTo = queryParams.get("returnTo") || "/dashboard";
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === "SIGNED_IN" && session) {
-        navigate("/dashboard");
+      if (event === "PASSWORD_RECOVERY") {
+        navigate("/reset-password");
+      } else if (event === "SIGNED_IN" && session) {
+        navigate(returnTo);
       }
     });
 
     // Check if already logged in
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) {
-        navigate("/dashboard");
+        navigate(returnTo);
       }
     });
 

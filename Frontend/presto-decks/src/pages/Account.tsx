@@ -4,15 +4,12 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { User, CreditCard, FileText, Settings, LogOut, Loader2, Mail, Hash, Zap, Clock, Shield, Sparkles } from "lucide-react";
-import { createClient, User as SupabaseUser } from "@supabase/supabase-js";
+import { User, CreditCard, FileText, Settings, LogOut, Loader2, Mail, Hash, Zap, Clock, Shield, Sparkles, Lock } from "lucide-react";
+import { supabase } from "@/contexts/AuthContext";
+import { User as SupabaseUser } from "@supabase/supabase-js";
 import { api } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
-
-// Supabase client
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || "https://dntcdhabtctfbylynlcr.supabase.co";
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRudGNkaGFidGN0ZmJ5bHlubGNyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjYwNDg1NTUsImV4cCI6MjA4MTYyNDU1NX0.9mtNdCOyR7qiEXjS0n7uC5Dq8hSS8s5gZ3wtxbre-R8";
-const supabase = createClient(supabaseUrl, supabaseAnonKey);
+import { Input } from "@/components/ui/input";
 
 export default function Account() {
   const navigate = useNavigate();
@@ -22,6 +19,9 @@ export default function Account() {
   const [signingOut, setSigningOut] = useState(false);
   const [subscription, setSubscription] = useState<any>(null);
   const [presentations, setPresentations] = useState<any[]>([]);
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [updatingPassword, setUpdatingPassword] = useState(false);
 
   useEffect(() => {
     // Check session
@@ -74,6 +74,50 @@ export default function Account() {
     setSigningOut(true);
     await supabase.auth.signOut();
     navigate("/");
+  };
+
+  const handleChangePassword = async () => {
+    if (!newPassword || newPassword !== confirmPassword) {
+      toast({
+        title: "Erreur",
+        description: "Les mots de passe ne correspondent pas.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (newPassword.length < 6) {
+      toast({
+        title: "Erreur",
+        description: "Le mot de passe doit faire au moins 6 caractères.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setUpdatingPassword(true);
+    try {
+      const { error } = await supabase.auth.updateUser({
+        password: newPassword,
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Succès",
+        description: "Votre mot de passe a été mis à jour.",
+      });
+      setNewPassword("");
+      setConfirmPassword("");
+    } catch (error: any) {
+      toast({
+        title: "Erreur",
+        description: error.message || "Une erreur est survenue.",
+        variant: "destructive",
+      });
+    } finally {
+      setUpdatingPassword(false);
+    }
   };
 
   if (loading) {
@@ -163,6 +207,38 @@ export default function Account() {
                     <div>
                       <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Fournisseur</p>
                       <p className="font-medium capitalize">{user?.app_metadata?.provider || 'Email'}</p>
+                    </div>
+                  </div>
+
+                  {/* Password Change Section */}
+                  <div className="pt-4 border-t border-border/50 space-y-4">
+                    <h4 className="text-sm font-semibold flex items-center gap-2">
+                      <Lock className="h-4 w-4 text-primary" />
+                      Modifier le mot de passe
+                    </h4>
+                    <div className="space-y-3">
+                      <Input
+                        type="password"
+                        placeholder="Nouveau mot de passe"
+                        value={newPassword}
+                        onChange={(e) => setNewPassword(e.target.value)}
+                        className="rounded-xl"
+                      />
+                      <Input
+                        type="password"
+                        placeholder="Confirmer le mot de passe"
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        className="rounded-xl"
+                      />
+                      <Button
+                        size="sm"
+                        className="w-full rounded-xl"
+                        onClick={handleChangePassword}
+                        disabled={updatingPassword}
+                      >
+                        {updatingPassword ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : "Mettre à jour"}
+                      </Button>
                     </div>
                   </div>
                 </CardContent>

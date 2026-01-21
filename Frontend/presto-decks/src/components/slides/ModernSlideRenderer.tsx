@@ -198,7 +198,12 @@ const AbstractShapes = ({ colors, variant = 'default' }: { colors: any; variant?
 };
 
 // Slide footer with number - styled to match theme
-const SlideFooter = ({ slideNumber, title, colors }: { slideNumber?: number; title: string; colors?: any }) => (
+const SlideFooter = ({ slideNumber, title, colors, unsplashPhotographer }: {
+    slideNumber?: number;
+    title: string;
+    colors?: any;
+    unsplashPhotographer?: { name: string; username: string; link: string };
+}) => (
     <div
         className="absolute bottom-0 left-0 right-0 h-20 flex items-center justify-between px-12"
         style={{
@@ -211,6 +216,31 @@ const SlideFooter = ({ slideNumber, title, colors }: { slideNumber?: number; tit
         >
             {slideNumber || 1}
         </span>
+
+        {/* Unsplash Attribution - discrete style */}
+        {unsplashPhotographer && (
+            <span className="text-[10px] opacity-40" style={{ color: colors?.text || '#666' }}>
+                Photo by{' '}
+                <a
+                    href={unsplashPhotographer.link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="hover:opacity-70 underline"
+                >
+                    {unsplashPhotographer.name}
+                </a>
+                {' '}on{' '}
+                <a
+                    href={`https://unsplash.com?utm_source=slideai&utm_medium=referral`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="hover:opacity-70 underline"
+                >
+                    Unsplash
+                </a>
+            </span>
+        )}
+
         <span
             className="text-base font-medium opacity-60"
             style={{ color: colors?.text || '#333' }}
@@ -2600,14 +2630,177 @@ const InfographicLayout = ({ slide, colors, variation = 'funnel', onSelect, sele
                 </div>
             </div>
 
-            <SlideFooter title={slide.title} slideNumber={9} colors={colors} />
+            <SlideFooter title={slide.title} slideNumber={9} colors={colors} unsplashPhotographer={slide.unsplashPhotographer} />
         </div>
     );
 };
 
 
-// Quote layout - Testimonial or key quote
-// Quote layout - Testimonial or key quote
+// Quote layout - Testimonial or key quote with beautiful styling
+type QuoteVariation = 'centered-hero' | 'side-accent' | 'minimal-elegant';
+
+const QuoteLayout = ({ slide, colors, variation = 'centered-hero', onSelect, selectedId }: { slide: any; colors: any; variation?: QuoteVariation; onSelect?: any; selectedId?: string | null }) => {
+    const quote = slide.quote || slide.content?.quote;
+    const quoteText = quote?.text || slide.content?.text || '';
+    const author = quote?.author || '';
+    const role = quote?.role || '';
+
+    // --- PATH RESOLUTION ---
+    let quotePath = 'content.quote';
+    if (slide.quote) quotePath = 'quote';
+
+    // --- VARIATION 1: SIDE ACCENT (Modern Split) ---
+    if (variation === 'side-accent') {
+        return (
+            <div className="relative w-full h-full overflow-hidden flex" style={{ backgroundColor: colors.bg }}>
+                {/* Left accent bar */}
+                <div className="w-2 h-full" style={{ backgroundColor: colors.primary }} />
+
+                <div className="flex-1 flex flex-col justify-center px-20 py-16">
+                    <AbstractShapes colors={colors} />
+
+                    <div className="relative z-10 max-w-4xl">
+                        <div className="text-8xl font-serif leading-none mb-6 opacity-20" style={{ color: colors.primary }}>"</div>
+
+                        <EditableElement
+                            element={{ id: 'quote-text', type: 'text', value: quoteText, path: `${quotePath}.text`, label: 'Quote Text' }}
+                            onSelect={onSelect}
+                            isSelected={selectedId === 'quote-text'}
+                            className="mb-12"
+                        >
+                            <p className="text-3xl md:text-4xl font-light leading-relaxed italic" style={{ color: colors.text }}>
+                                {quoteText}
+                            </p>
+                        </EditableElement>
+
+                        <div className="flex items-center gap-6">
+                            <div className="w-16 h-1 rounded-full" style={{ backgroundColor: colors.primary }} />
+                            <div>
+                                <EditableElement
+                                    element={{ id: 'quote-author', type: 'text', value: author, path: `${quotePath}.author`, label: 'Author' }}
+                                    onSelect={onSelect}
+                                    isSelected={selectedId === 'quote-author'}
+                                >
+                                    <p className="text-xl font-bold" style={{ color: colors.text }}>{author}</p>
+                                </EditableElement>
+                                {role && (
+                                    <EditableElement
+                                        element={{ id: 'quote-role', type: 'text', value: role, path: `${quotePath}.role`, label: 'Role' }}
+                                        onSelect={onSelect}
+                                        isSelected={selectedId === 'quote-role'}
+                                    >
+                                        <p className="text-lg opacity-60" style={{ color: colors.text }}>{role}</p>
+                                    </EditableElement>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <SlideFooter title={slide.title} colors={colors} unsplashPhotographer={slide.unsplashPhotographer} />
+            </div>
+        );
+    }
+
+    // --- VARIATION 2: MINIMAL ELEGANT ---
+    if (variation === 'minimal-elegant') {
+        return (
+            <div className="relative w-full h-full overflow-hidden flex flex-col justify-center items-center p-20" style={{ backgroundColor: colors.bg }}>
+                <div className="max-w-3xl text-center">
+                    <EditableElement
+                        element={{ id: 'quote-text', type: 'text', value: quoteText, path: `${quotePath}.text`, label: 'Quote Text' }}
+                        onSelect={onSelect}
+                        isSelected={selectedId === 'quote-text'}
+                        className="mb-12"
+                    >
+                        <p className="text-2xl md:text-3xl font-serif leading-relaxed" style={{ color: colors.text }}>
+                            "{quoteText}"
+                        </p>
+                    </EditableElement>
+
+                    <div className="flex flex-col items-center gap-2">
+                        <div className="w-12 h-0.5 mb-4" style={{ backgroundColor: colors.primary }} />
+                        <EditableElement
+                            element={{ id: 'quote-author', type: 'text', value: author, path: `${quotePath}.author`, label: 'Author' }}
+                            onSelect={onSelect}
+                            isSelected={selectedId === 'quote-author'}
+                        >
+                            <p className="text-lg font-bold uppercase tracking-widest" style={{ color: colors.primary }}>{author}</p>
+                        </EditableElement>
+                        {role && (
+                            <EditableElement
+                                element={{ id: 'quote-role', type: 'text', value: role, path: `${quotePath}.role`, label: 'Role' }}
+                                onSelect={onSelect}
+                                isSelected={selectedId === 'quote-role'}
+                            >
+                                <p className="text-base opacity-60" style={{ color: colors.text }}>{role}</p>
+                            </EditableElement>
+                        )}
+                    </div>
+                </div>
+                <SlideFooter title={slide.title} colors={colors} unsplashPhotographer={slide.unsplashPhotographer} />
+            </div>
+        );
+    }
+
+    // --- DEFAULT: CENTERED HERO ---
+    return (
+        <div className="relative w-full h-full overflow-hidden" style={{ backgroundColor: colors.bg }}>
+            <AbstractShapes colors={colors} />
+
+            {/* Background Image if available */}
+            {(slide.backgroundImage || slide.imageSearchQuery) && (
+                <div
+                    className="absolute inset-0 bg-cover bg-center opacity-15"
+                    style={{
+                        backgroundImage: `url(${slide.backgroundImage || `https://source.unsplash.com/1600x900/?${encodeURIComponent(slide.imageSearchQuery)}`})`,
+                        mixBlendMode: 'overlay'
+                    }}
+                />
+            )}
+
+            <div className="relative z-10 flex flex-col items-center justify-center h-full px-16 py-20">
+                {/* Large quotation mark */}
+                <div className="text-[200px] font-serif leading-none opacity-10 absolute top-8 left-16" style={{ color: colors.primary }}>"</div>
+
+                <div className="max-w-5xl text-center relative z-10">
+                    <EditableElement
+                        element={{ id: 'quote-text', type: 'text', value: quoteText, path: `${quotePath}.text`, label: 'Quote Text' }}
+                        onSelect={onSelect}
+                        isSelected={selectedId === 'quote-text'}
+                        className="mb-16"
+                    >
+                        <p className="text-4xl md:text-5xl lg:text-6xl font-light leading-snug" style={{ color: colors.text }}>
+                            {quoteText}
+                        </p>
+                    </EditableElement>
+
+                    <div className="flex flex-col items-center gap-4">
+                        <div className="w-24 h-1 rounded-full mb-4" style={{ backgroundColor: colors.primary }} />
+                        <EditableElement
+                            element={{ id: 'quote-author', type: 'text', value: author, path: `${quotePath}.author`, label: 'Author' }}
+                            onSelect={onSelect}
+                            isSelected={selectedId === 'quote-author'}
+                        >
+                            <p className="text-2xl font-bold" style={{ color: colors.text }}>{author}</p>
+                        </EditableElement>
+                        {role && (
+                            <EditableElement
+                                element={{ id: 'quote-role', type: 'text', value: role, path: `${quotePath}.role`, label: 'Role' }}
+                                onSelect={onSelect}
+                                isSelected={selectedId === 'quote-role'}
+                            >
+                                <p className="text-xl opacity-70" style={{ color: colors.text }}>{role}</p>
+                            </EditableElement>
+                        )}
+                    </div>
+                </div>
+            </div>
+
+            <SlideFooter title={slide.title} colors={colors} unsplashPhotographer={slide.unsplashPhotographer} />
+        </div>
+    );
+};
+
 // Text Heavy Layout - 3 Columns with Icons
 // Text Heavy Layout - 3 Columns with Visual Variants
 type TextColumnVariation = 'classic' | 'modern-cards' | 'numbered-editorial' | 'side-highlight' | 'vertical-separators' | 'bento-text';
@@ -2617,6 +2810,7 @@ const ThreeColumnTextLayout = ({ slide, colors, variation = 'classic', onSelect,
     let columns: Array<{ title: string; text: string }> = [];
 
     const sourceColumns = slide.content?.columns || slide.content?.['text-columns'];
+    const quote = slide.quote || slide.content?.quote;
 
     if (sourceColumns?.length > 0) {
         // AI format: array of {header, body} or {title, text} or strings "Title: Body"
@@ -2633,6 +2827,12 @@ const ThreeColumnTextLayout = ({ slide, colors, variation = 'classic', onSelect,
                 text: col.body || col.text || ''
             };
         });
+    } else if (quote?.text) {
+        // Support quote data as a single column for this layout
+        columns = [{
+            title: quote.author || '',
+            text: quote.text + (quote.role ? `\n— ${quote.role}` : "")
+        }];
     } else {
         // Fallback: split long text into chunks
         const content = slide.content?.text || slide.text || slide.description || "";
@@ -2709,7 +2909,7 @@ const ThreeColumnTextLayout = ({ slide, colors, variation = 'classic', onSelect,
                         ))}
                     </div>
                 </div>
-                <SlideFooter title={slide.title} colors={colors} />
+                <SlideFooter title={slide.title} colors={colors} unsplashPhotographer={slide.unsplashPhotographer} />
             </div>
         );
     }
@@ -2857,6 +3057,7 @@ const ThreeColumnTextLayout = ({ slide, colors, variation = 'classic', onSelect,
                         <div className="opacity-50 italic">Add more content to see side columns...</div>
                     )}
                 </div>
+                <SlideFooter title={slide.title} slideNumber={slide.index || 1} colors={colors} unsplashPhotographer={slide.unsplashPhotographer} />
             </div>
         );
     }
@@ -2993,6 +3194,7 @@ const ThreeColumnTextLayout = ({ slide, colors, variation = 'classic', onSelect,
                         );
                     })}
                 </div>
+                <SlideFooter title={slide.title} slideNumber={slide.index || 1} colors={colors} unsplashPhotographer={slide.unsplashPhotographer} />
             </div>
         );
     }
@@ -3118,6 +3320,7 @@ const ImageFocusLayout = ({ slide, colors, variation = 'default', onSelect, sele
                         </EditableElement>
                     </div>
                 )}
+                <SlideFooter title={slide.title} colors={colors} unsplashPhotographer={slide.unsplashPhotographer} />
             </div>
         );
     }
@@ -3168,7 +3371,7 @@ const ImageFocusLayout = ({ slide, colors, variation = 'default', onSelect, sele
                         </div>
                     </div>
                 </div>
-                <SlideFooter title={slide.title} colors={colors} />
+                <SlideFooter title={slide.title} colors={colors} unsplashPhotographer={slide.unsplashPhotographer} />
             </div>
         );
     }
@@ -3225,6 +3428,7 @@ const ImageFocusLayout = ({ slide, colors, variation = 'default', onSelect, sele
                         </EditableElement>
                     </div>
                 </div>
+                <SlideFooter title={slide.title} colors={colors} unsplashPhotographer={slide.unsplashPhotographer} />
             </div>
         );
     }
@@ -3283,6 +3487,7 @@ const ImageFocusLayout = ({ slide, colors, variation = 'default', onSelect, sele
                     )}
                 </EditableElement>
             </div>
+            <SlideFooter title={slide.title} colors={colors} unsplashPhotographer={slide.unsplashPhotographer} />
         </div>
     );
 };
@@ -3339,7 +3544,7 @@ const SectionDividerLayout = ({ slide, colors, variation = 'default', onSelect, 
                         )}
                     </EditableElement>
                 </div>
-                <SlideFooter title="" slideNumber={sectionIndex} colors={colors} />
+                <SlideFooter title="" slideNumber={sectionIndex} colors={colors} unsplashPhotographer={slide.unsplashPhotographer} />
             </div>
         );
     }
@@ -3381,7 +3586,7 @@ const SectionDividerLayout = ({ slide, colors, variation = 'default', onSelect, 
                         </EditableElement>
                     </div>
                 </div>
-                <SlideFooter title={slide.title} colors={colors} />
+                <SlideFooter title={slide.title} colors={colors} unsplashPhotographer={slide.unsplashPhotographer} />
             </div>
         );
     }
@@ -3423,6 +3628,7 @@ const SectionDividerLayout = ({ slide, colors, variation = 'default', onSelect, 
                         )}
                     </EditableElement>
                 </div>
+                <SlideFooter title={slide.title} colors={colors} unsplashPhotographer={slide.unsplashPhotographer} />
             </div>
         );
     }
@@ -3450,6 +3656,7 @@ const SectionDividerLayout = ({ slide, colors, variation = 'default', onSelect, 
                     <p className="text-2xl opacity-80">{slide.subtitle}</p>
                 </EditableElement>
             </div>
+            <SlideFooter title={slide.title} colors={colors} unsplashPhotographer={slide.unsplashPhotographer} />
         </div>
     );
 };
@@ -3553,7 +3760,7 @@ const BentoGridLayout = ({ slide, colors, variation = 'default', onSelect, selec
                         )}
                     </div>
                 </div>
-                <SlideFooter title={slide.title} slideNumber={8} colors={colors} />
+                <SlideFooter title={slide.title} slideNumber={8} colors={colors} unsplashPhotographer={slide.unsplashPhotographer} />
             </div>
         );
     }
@@ -3645,7 +3852,7 @@ const BentoGridLayout = ({ slide, colors, variation = 'default', onSelect, selec
                         </div>
                     </div>
                 </div>
-                <SlideFooter title={slide.title} slideNumber={8} colors={colors} />
+                <SlideFooter title={slide.title} slideNumber={8} colors={colors} unsplashPhotographer={slide.unsplashPhotographer} />
             </div>
         );
     }
@@ -3729,7 +3936,7 @@ const BentoGridLayout = ({ slide, colors, variation = 'default', onSelect, selec
                         );
                     })}
                 </div>
-                <SlideFooter title={slide.title} slideNumber={8} colors={colors} />
+                <SlideFooter title={slide.title} slideNumber={8} colors={colors} unsplashPhotographer={slide.unsplashPhotographer} />
             </div>
         );
     }
@@ -3836,7 +4043,7 @@ const BentoGridLayout = ({ slide, colors, variation = 'default', onSelect, selec
                     })}
                 </div>
             </div>
-            <SlideFooter title={slide.title} slideNumber={8} colors={colors} />
+            <SlideFooter title={slide.title} slideNumber={8} colors={colors} unsplashPhotographer={slide.unsplashPhotographer} />
         </div>
     );
 };
@@ -3930,7 +4137,7 @@ const ProductShowcaseLayout = ({ slide, colors, variation = 'default', onSelect,
                         ))}
                     </div>
                 </div>
-                <SlideFooter title={slide.title} slideNumber={9} colors={colors} />
+                <SlideFooter title={slide.title} slideNumber={9} colors={colors} unsplashPhotographer={slide.unsplashPhotographer} />
             </div>
         );
     }
@@ -4031,7 +4238,7 @@ const ProductShowcaseLayout = ({ slide, colors, variation = 'default', onSelect,
                         ))}
                     </div>
                 </div>
-                <SlideFooter title={slide.title} slideNumber={9} colors={colors} />
+                <SlideFooter title={slide.title} slideNumber={9} colors={colors} unsplashPhotographer={slide.unsplashPhotographer} />
             </div>
         );
     }
@@ -4140,7 +4347,7 @@ const ProductShowcaseLayout = ({ slide, colors, variation = 'default', onSelect,
                         </div>
                     </div>
                 </div>
-                <SlideFooter title={slide.title} slideNumber={9} colors={colors} />
+                <SlideFooter title={slide.title} slideNumber={9} colors={colors} unsplashPhotographer={slide.unsplashPhotographer} />
             </div>
         );
     }
@@ -4211,7 +4418,7 @@ const MasterContentLayout = ({ slide, colors, variation = 'classic', onSelect, s
                         )}
                     </div>
                 </div>
-                <SlideFooter title={slide.title} slideNumber={2} colors={colors} />
+                <SlideFooter title={slide.title} slideNumber={2} colors={colors} unsplashPhotographer={slide.unsplashPhotographer} />
             </div>
         );
     }
@@ -4255,6 +4462,7 @@ const MasterContentLayout = ({ slide, colors, variation = 'classic', onSelect, s
                         </ul>
                     </div>
                 </div>
+                <SlideFooter title={slide.title} slideNumber={2} colors={colors} unsplashPhotographer={slide.unsplashPhotographer} />
             </div>
         );
     }
@@ -4289,7 +4497,7 @@ const MasterContentLayout = ({ slide, colors, variation = 'classic', onSelect, s
                         </div>
                     ))}
                 </div>
-                <SlideFooter title={slide.title} slideNumber={3} colors={colors} />
+                <SlideFooter title={slide.title} slideNumber={3} colors={colors} unsplashPhotographer={slide.unsplashPhotographer} />
             </div>
         );
     }
@@ -4350,6 +4558,7 @@ const MasterContentLayout = ({ slide, colors, variation = 'classic', onSelect, s
                         </div>
                     </div>
                 </div>
+                <SlideFooter title={slide.title} slideNumber={3} colors={colors} unsplashPhotographer={slide.unsplashPhotographer} />
             </div>
         );
     }
@@ -4388,6 +4597,7 @@ const MasterContentLayout = ({ slide, colors, variation = 'classic', onSelect, s
                     ))}
                 </div>
             </div>
+            <SlideFooter title={slide.title} slideNumber={3} colors={colors} unsplashPhotographer={slide.unsplashPhotographer} />
         </div>
     );
 };
@@ -4433,7 +4643,7 @@ const ContentBulletsLayout = ({ slide, colors, onSelect, selectedId }: { slide: 
                     ))}
                 </ul>
             </div>
-            <SlideFooter title={slide.title} slideNumber={slide.index || 1} colors={colors} />
+            <SlideFooter title={slide.title} slideNumber={slide.index || 1} colors={colors} unsplashPhotographer={slide.unsplashPhotographer} />
         </div>
     );
 };
@@ -4505,6 +4715,7 @@ const MasterCoverLayout = ({ slide, colors, variation = 'centered-minimal', onSe
                         </div>
                     )}
                 </div>
+                <SlideFooter title="" slideNumber={1} colors={colors} unsplashPhotographer={slide.unsplashPhotographer} />
             </div>
         );
     }
@@ -4564,6 +4775,7 @@ const MasterCoverLayout = ({ slide, colors, variation = 'centered-minimal', onSe
                         <div className="w-12 h-12 rounded-full border-2" style={{ borderColor: colors.secondary }} />
                     </div>
                 </div>
+                <SlideFooter title="" slideNumber={1} colors={colors} unsplashPhotographer={slide.unsplashPhotographer} />
             </div>
         );
     }
@@ -4613,6 +4825,7 @@ const MasterCoverLayout = ({ slide, colors, variation = 'centered-minimal', onSe
                         <img src={imageSrc} className="w-full h-full object-cover" alt="" />
                     </div>
                 )}
+                <SlideFooter title="" slideNumber={1} colors={colors} unsplashPhotographer={slide.unsplashPhotographer} />
             </div>
         );
     }
@@ -4643,6 +4856,7 @@ const MasterCoverLayout = ({ slide, colors, variation = 'centered-minimal', onSe
                         <p className="text-3xl font-mono text-right" style={{ color: colors.bg }}>// {subtitle}</p>
                     </EditableElement>
                 </div>
+                <SlideFooter title="" slideNumber={1} colors={colors} unsplashPhotographer={slide.unsplashPhotographer} />
             </div>
         );
     }
@@ -4690,6 +4904,7 @@ const MasterCoverLayout = ({ slide, colors, variation = 'centered-minimal', onSe
                         </div>
                     )}
                 </div>
+                <SlideFooter title="" slideNumber={1} colors={colors} unsplashPhotographer={slide.unsplashPhotographer} />
             </div>
         );
     }
@@ -4750,6 +4965,7 @@ const MasterCoverLayout = ({ slide, colors, variation = 'centered-minimal', onSe
                         </div>
                     )}
                 </div>
+                <SlideFooter title="" slideNumber={1} colors={colors} unsplashPhotographer={slide.unsplashPhotographer} />
             </div>
         );
     }
@@ -4801,6 +5017,7 @@ const MasterCoverLayout = ({ slide, colors, variation = 'centered-minimal', onSe
                 <div className="absolute bottom-10 right-10 flex gap-2">
                     {[1, 2, 3].map(i => <div key={i} className="w-2 h-2 bg-white rounded-full opacity-50" />)}
                 </div>
+                <SlideFooter title="" slideNumber={1} colors={colors} unsplashPhotographer={slide.unsplashPhotographer} />
             </div>
         );
     }
@@ -4855,6 +5072,7 @@ const MasterCoverLayout = ({ slide, colors, variation = 'centered-minimal', onSe
                     )}
                 </div>
                 <div className="col-span-4 rounded-3xl opacity-20" style={{ backgroundColor: colors.primary }} />
+                <SlideFooter title="" slideNumber={1} colors={colors} unsplashPhotographer={slide.unsplashPhotographer} />
             </div>
         );
     }
@@ -4903,6 +5121,7 @@ const MasterCoverLayout = ({ slide, colors, variation = 'centered-minimal', onSe
                     )}
                     <button className="px-12 py-4 font-bold rounded-full hover:scale-105 transition-transform" style={{ backgroundColor: '#ffffff', color: '#000000' }}>START</button>
                 </div>
+                <SlideFooter title="" slideNumber={1} colors={colors} unsplashPhotographer={slide.unsplashPhotographer} />
             </div>
         );
     }
@@ -4952,6 +5171,7 @@ const MasterCoverLayout = ({ slide, colors, variation = 'centered-minimal', onSe
                     </div>
                 )}
             </div>
+            <SlideFooter title="" slideNumber={1} colors={colors} unsplashPhotographer={slide.unsplashPhotographer} />
         </div>
     );
 };
@@ -5669,11 +5889,19 @@ export const ModernSlideRenderer = ({ slide, theme, className, colorPalette, onE
             return <InfographicLayout slide={slide} colors={colors} variation={getInfographicVariation()} onSelect={onElementSelect} selectedId={selectedElementId} />;
         }
 
-        // Quote
-        // Quote - Redirect to Text Columns
+        // Quote - Use dedicated QuoteLayout
         if (normalizedType.includes('quote') || normalizedType.includes('testimonial')) {
-            console.log('  → Matched: ThreeColumnTextLayout (was QuoteLargeLayout)');
-            return <ThreeColumnTextLayout slide={slide} colors={colors} variation={getMultiColumnVariation()} onSelect={onElementSelect} selectedId={selectedElementId} />;
+            const quoteVariations: Array<'centered-hero' | 'side-accent' | 'minimal-elegant'> = ['centered-hero', 'side-accent', 'minimal-elegant'];
+            // Simple hash for deterministic variation selection
+            const title = slide.title || '';
+            let hash = 0;
+            for (let i = 0; i < title.length; i++) {
+                hash = ((hash << 5) - hash) + title.charCodeAt(i);
+                hash |= 0;
+            }
+            const quoteVariation = quoteVariations[Math.abs(hash) % quoteVariations.length];
+            console.log(`  → Matched: QuoteLayout (variation: ${quoteVariation})`);
+            return <QuoteLayout slide={slide} colors={colors} variation={quoteVariation} onSelect={onElementSelect} selectedId={selectedElementId} />;
         }
 
         // Bento grid

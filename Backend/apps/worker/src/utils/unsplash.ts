@@ -2,17 +2,31 @@
 // Unsplash API integration for fetching slide background images
 
 /**
+ * Unsplash image response with attribution data
+ */
+export interface UnsplashImageResult {
+    url: string;
+    photographer?: {
+        name: string;
+        username: string;
+        link: string;
+    };
+}
+
+/**
  * Fetch a random image from Unsplash matching the query
- * Falls back to a placeholder if API fails or is unavailable
+ * Returns image URL and photographer info for attribution
+ * Triggers download endpoint per Unsplash production guidelines
  */
 export async function getUnsplashImage(
     query: string,
     styleKeywords: string
-): Promise<string> {
+): Promise<UnsplashImageResult> {
     const accessKey = process.env.UNSPLASH_ACCESS_KEY;
-    const fallback = `https://placehold.co/1920x1080/1a1a2e/ffffff?text=${encodeURIComponent(
+    const fallbackUrl = `https://placehold.co/1920x1080/1a1a2e/ffffff?text=${encodeURIComponent(
         query.slice(0, 20)
     )}`;
+    const fallback: UnsplashImageResult = { url: fallbackUrl };
 
     // Skip if no valid API key
     if (!accessKey || accessKey.includes('fake') || accessKey.length < 10) {
@@ -54,10 +68,29 @@ export async function getUnsplashImage(
 
         const data: any = await response.json();
 
+        // Trigger download endpoint per Unsplash production guidelines
+        // This is required to track photo usage
+        if (data.links?.download_location) {
+            fetch(data.links.download_location, {
+                headers: { Authorization: `Client-ID ${accessKey}` },
+            }).catch(err => console.warn('[Unsplash] Download tracking failed:', err));
+        }
+
+        // Extract photographer info for attribution
+        const photographer = data.user ? {
+            name: data.user.name || 'Unknown',
+            username: data.user.username || '',
+            link: data.user.links?.html || `https://unsplash.com/@${data.user.username}`,
+        } : undefined;
+
         // Return the regular size URL (good balance of quality and size)
-        const imageUrl = data.urls?.regular || data.urls?.full || fallback;
-        console.log(`[Unsplash] ✅ Found image: ${imageUrl.slice(0, 50)}...`);
-        return imageUrl;
+        const imageUrl = data.urls?.regular || data.urls?.full || fallbackUrl;
+        console.log(`[Unsplash] ✅ Found image by ${photographer?.name}: ${imageUrl.slice(0, 50)}...`);
+
+        return {
+            url: imageUrl,
+            photographer,
+        };
 
     } catch (error) {
         console.error('[Unsplash] Exception:', error);
@@ -72,8 +105,8 @@ export async function getUnsplashImage(
 export async function fetchImagesForDeck(
     slides: Array<{ imageSearchQuery?: string }>,
     styleKeywords: string
-): Promise<string[]> {
-    const results: string[] = [];
+): Promise<UnsplashImageResult[]> {
+    const results: UnsplashImageResult[] = [];
 
     // Process in batches of 3 to avoid rate limiting
     const batchSize = 3;
@@ -83,7 +116,7 @@ export async function fetchImagesForDeck(
         const batchPromises = batch.map((slide) =>
             slide.imageSearchQuery
                 ? getUnsplashImage(slide.imageSearchQuery, styleKeywords)
-                : Promise.resolve('')
+                : Promise.resolve({ url: '' })
         );
 
         const batchResults = await Promise.all(batchPromises);

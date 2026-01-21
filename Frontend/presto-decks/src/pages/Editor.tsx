@@ -91,6 +91,9 @@ const adaptDeck = (deck: any) => {
       // Pass through the entire content object as fallback
       content: s.content,
 
+      // Unsplash photographer attribution
+      unsplashPhotographer: s.unsplashPhotographer,
+
       // Illustration handling
       illustration: s.illustration || {
         type: "icon",
@@ -136,6 +139,11 @@ export default function Editor() {
   const [isExportDialogOpen, setIsExportDialogOpen] = useState(false);
   const [accessToken, setAccessToken] = useState<string | null>(null);
   const [showWatermark, setShowWatermark] = useState(false);
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
+
+  // Auto-save debounce ref
+  const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const pendingSaveRef = useRef<any>(null);
 
   // Get access token on mount
   useEffect(() => {
@@ -420,6 +428,9 @@ export default function Editor() {
 
     newProject.slides = newSlides;
     setCurrentProject(newProject);
+
+    // Trigger auto-save
+    triggerAutoSave(newProject);
   };
 
   const handleTableAction = (action: 'add-row' | 'delete-row', cellPath: string) => {
@@ -468,7 +479,9 @@ export default function Editor() {
         const newRows = rows.filter((_, i) => i !== targetRowIdx);
         const updatedSlide = updateDeep(slide, pathParts, newRows);
         slides[selectedSlide] = updatedSlide;
-        setCurrentProject({ ...currentProject, slides });
+        const updatedProject = { ...currentProject, slides };
+        setCurrentProject(updatedProject);
+        triggerAutoSave(updatedProject);
 
         toast({ title: "Ligne supprimée", description: "La ligne a été supprimée." });
         setSelectedElement(null);
@@ -483,8 +496,9 @@ export default function Editor() {
       // Update state
       const updatedSlide = updateDeep(slide, pathParts, newRows);
       slides[selectedSlide] = updatedSlide;
-
-      setCurrentProject({ ...currentProject, slides });
+      const updatedProject = { ...currentProject, slides };
+      setCurrentProject(updatedProject);
+      triggerAutoSave(updatedProject);
 
       toast({
         title: "Ligne ajoutée",
@@ -542,23 +556,63 @@ export default function Editor() {
     handleElementSelect(newElement);
   };
 
-  const handleSave = async () => {
-    if (!currentProject || !accessToken) return;
+  // Core save function (shared by manual and auto-save)
+  const performSave = async (projectToSave: any) => {
+    if (!projectToSave || !accessToken) return false;
+
+    setSaveStatus('saving');
     try {
-      // Wrap slides, theme, and colors into a single object for the JSONB column
       const deckData = {
-        slides: currentProject.slides,
-        theme: currentProject.theme,
-        colorPalette: currentProject.colorScheme,
-        title: currentProject.title,
-        subtitle: currentProject.subtitle
+        slides: projectToSave.slides,
+        theme: projectToSave.theme,
+        colorPalette: projectToSave.colorScheme,
+        title: projectToSave.title,
+        subtitle: projectToSave.subtitle
       };
 
-      await api.savePresentation(currentProject.id, { slides: deckData }, accessToken);
-      toast({ title: "Sauvegardé", description: "Vos modifications sont enregistrées." });
+      await api.savePresentation(projectToSave.id, { slides: deckData }, accessToken);
+      setSaveStatus('saved');
+      // Auto-hide "saved" status after 2 seconds
+      setTimeout(() => setSaveStatus('idle'), 2000);
+      return true;
     } catch (e: any) {
-      console.error("Save error:", e);
-      toast({ title: "Erreur", description: e.message || "Échec de la sauvegarde.", variant: "destructive" });
+      console.error("Auto-save error:", e);
+      setSaveStatus('error');
+      setTimeout(() => setSaveStatus('idle'), 3000);
+      return false;
+    }
+  };
+
+  // Debounced auto-save trigger (1 second delay)
+  const triggerAutoSave = (updatedProject: any) => {
+    // Cancel any pending save
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current);
+    }
+
+    // Store the latest project state for saving
+    pendingSaveRef.current = updatedProject;
+
+    // Schedule new save after 1 second
+    saveTimeoutRef.current = setTimeout(async () => {
+      if (pendingSaveRef.current) {
+        await performSave(pendingSaveRef.current);
+        pendingSaveRef.current = null;
+      }
+    }, 1000);
+  };
+
+  // Manual save (immediate, no debounce)
+  const handleSave = async () => {
+    // Cancel any pending auto-save
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current);
+    }
+    const success = await performSave(currentProject);
+    if (success) {
+      toast({ title: "Sauvegardé", description: "Vos modifications sont enregistrées." });
+    } else {
+      toast({ title: "Erreur", description: "Échec de la sauvegarde.", variant: "destructive" });
     }
   };
 
@@ -587,6 +641,9 @@ export default function Editor() {
     // Update local state
     setCurrentProject(newProject);
 
+    // Trigger auto-save
+    triggerAutoSave(newProject);
+
     // Adjust selection if needed
     if (selectedSlide >= newSlides.length) {
       setSelectedSlide(newSlides.length - 1);
@@ -607,10 +664,14 @@ export default function Editor() {
     const selectedSlideId = currentProject.slides[selectedSlide].id;
     const newIndex = newSlides.findIndex((s: any) => s.id === selectedSlideId);
 
-    setCurrentProject({
+    const updatedProject = {
       ...currentProject,
       slides: newSlides
-    });
+    };
+    setCurrentProject(updatedProject);
+
+    // Trigger auto-save
+    triggerAutoSave(updatedProject);
 
     if (newIndex !== -1) {
       setSelectedSlide(newIndex);
@@ -667,8 +728,30 @@ export default function Editor() {
                 className="h-6 text-sm font-semibold border-0 bg-transparent p-0 focus-visible:ring-0 w-64 text-foreground hover:text-primary transition-colors cursor-default"
               />
               <span className="text-[10px] font-medium text-muted-foreground flex items-center gap-2 mt-0.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#10B981]"></span>
-                Ready to Present
+                {saveStatus === 'saving' && (
+                  <>
+                    <Loader2 className="w-2.5 h-2.5 animate-spin text-primary" />
+                    <span>Enregistrement...</span>
+                  </>
+                )}
+                {saveStatus === 'saved' && (
+                  <>
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#10B981]"></span>
+                    <span>Enregistré ✓</span>
+                  </>
+                )}
+                {saveStatus === 'error' && (
+                  <>
+                    <span className="w-1.5 h-1.5 rounded-full bg-destructive"></span>
+                    <span>Erreur de sauvegarde</span>
+                  </>
+                )}
+                {saveStatus === 'idle' && (
+                  <>
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#10B981]"></span>
+                    <span>Prêt</span>
+                  </>
+                )}
               </span>
             </div>
           </div>
@@ -712,8 +795,10 @@ export default function Editor() {
                   accessToken={accessToken}
                   currentPalette={currentProject.colorScheme}
                   onSuccess={(newPalette) => {
-                    // Update the local colorScheme
-                    setCurrentProject({ ...currentProject, colorScheme: newPalette });
+                    // Update the local colorScheme and trigger auto-save
+                    const updatedProject = { ...currentProject, colorScheme: newPalette };
+                    setCurrentProject(updatedProject);
+                    triggerAutoSave(updatedProject);
                   }}
                 >
                   <Button variant="ghost" title="Modifier la palette de couleurs">
@@ -806,7 +891,9 @@ export default function Editor() {
                                   items: newSlide.items || newSlide.content?.items,
                                   content: newSlide.content,
                                 };
-                                setCurrentProject({ ...currentProject, slides: newSlides });
+                                const updatedProject = { ...currentProject, slides: newSlides };
+                                setCurrentProject(updatedProject);
+                                triggerAutoSave(updatedProject);
                               }}
                             >
                               <Button
@@ -868,7 +955,9 @@ export default function Editor() {
                       items: newSlide.items || newSlide.content?.items,
                       content: newSlide.content,
                     }];
-                    setCurrentProject({ ...currentProject, slides: newSlides });
+                    const updatedProject = { ...currentProject, slides: newSlides };
+                    setCurrentProject(updatedProject);
+                    triggerAutoSave(updatedProject);
                     // Select the new slide
                     setSelectedSlide(newSlides.length - 1);
                   }}

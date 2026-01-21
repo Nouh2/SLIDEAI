@@ -22,6 +22,7 @@ import { SLIDE_ADDER_PROMPT, buildSlideAdderPrompt } from './prompts/slide-adder
 import { getUnsplashImage } from './utils/unsplash';
 import { sanitizeDeck, type Deck, type Slide } from './utils/sanitize';
 import { renderSlide, defineThemeMasters } from './renderers';
+import { DECK_RESPONSE_SCHEMA, SINGLE_SLIDE_RESPONSE_SCHEMA } from './schemas/deck-schema';
 
 // ============================================
 // FILE-BASED LOGGING
@@ -297,34 +298,48 @@ const generateWorker = new Worker(
 
       console.log(`[Generate] Mode: ${isHighDensityMode ? 'HIGH-DENSITY (document)' : 'Standard'}, max_tokens: ${tokenLimit}`);
 
-      // Create Gemini model with JSON response mode
+      // Create Gemini model with JSON response mode AND strict schema
       const geminiModel = genAI.getGenerativeModel({
         model,
         generationConfig: {
           temperature: 0.7,
           maxOutputTokens: tokenLimit,
           responseMimeType: 'application/json',
+          responseSchema: DECK_RESPONSE_SCHEMA as any, // Strict schema enforcement
         },
       });
 
       // Combine system and user prompts for Gemini
       const fullPrompt = `${DECK_ARCHITECT_PROMPT}\n\n---\n\nUser Request:\n${userMessage}`;
 
-      const response = await geminiModel.generateContent(fullPrompt);
-      const raw = response.response.text();
+      // Helper function to call Gemini and track tokens
+      const callGemini = async (promptText: string, isRetry = false) => {
+        const response = await geminiModel.generateContent(promptText);
+        const responseText = response.response.text();
+        const metadata = response.response.usageMetadata;
+        return {
+          raw: responseText,
+          inputTokens: metadata?.promptTokenCount || 0,
+          outputTokens: metadata?.candidatesTokenCount || 0,
+          isRetry,
+        };
+      };
+
+      // First attempt
+      let result = await callGemini(fullPrompt);
+      let raw = result.raw;
+      let totalInputTokens = result.inputTokens;
+      let totalOutputTokens = result.outputTokens;
 
       // Get token usage from response
-      const usageMetadata = response.response.usageMetadata;
-      const inputTokens = usageMetadata?.promptTokenCount || 0;
-      const outputTokens = usageMetadata?.candidatesTokenCount || 0;
-      const totalTokens = inputTokens + outputTokens;
+      const totalTokens = totalInputTokens + totalOutputTokens;
 
       // Calculate cost (Gemini 3 Flash: $0.50/1M input, $3.00/1M output)
-      const inputCost = (inputTokens / 1_000_000) * 0.50;
-      const outputCost = (outputTokens / 1_000_000) * 3.00;
+      const inputCost = (totalInputTokens / 1_000_000) * 0.50;
+      const outputCost = (totalOutputTokens / 1_000_000) * 3.00;
       const totalCost = inputCost + outputCost;
 
-      console.log(`[Generate] 📊 Tokens: ${inputTokens} in / ${outputTokens} out (${totalTokens} total)`);
+      console.log(`[Generate] 📊 Tokens: ${totalInputTokens} in / ${totalOutputTokens} out (${totalTokens} total)`);
       console.log(`[Generate] 💰 Cost: $${totalCost.toFixed(6)} ($${inputCost.toFixed(6)} in + $${outputCost.toFixed(6)} out)`);
 
       // Save token usage to database
@@ -332,8 +347,8 @@ const generateWorker = new Worker(
         userId,
         jobType: 'generate',
         traceId,
-        inputTokens,
-        outputTokens,
+        inputTokens: totalInputTokens,
+        outputTokens: totalOutputTokens,
       });
 
       if (!raw) throw new Error('Empty AI response');
@@ -351,13 +366,51 @@ const generateWorker = new Worker(
       );
       console.log(`[Generate] 📝 DEBUG: Raw AI response saved to debug-logs/${timestamp}_raw_ai_response.json`);
 
-      // 3. Parse and sanitize the deck
+      // 3. Parse the deck with RETRY mechanism
       let deck: Deck;
       try {
         deck = JSON.parse(raw);
       } catch (parseError) {
-        console.error('[Generate] JSON parse error:', parseError);
-        throw new Error('Invalid JSON from AI');
+        console.error('[Generate] ⚠️ JSON parse error, attempting RETRY with correction prompt...');
+
+        // Save the failed response for debugging
+        fs.writeFileSync(
+          path.join(debugDir, `${timestamp}_FAILED_response.json`),
+          raw,
+          'utf-8'
+        );
+
+        // Retry with a correction prompt
+        const correctionPrompt = `${fullPrompt}\n\n---\n\nCRITICAL: Your previous response was not valid JSON. Please output ONLY valid JSON matching the exact schema. No markdown, no explanation, just the JSON object.`;
+
+        try {
+          const retryResult = await callGemini(correctionPrompt, true);
+          raw = retryResult.raw;
+
+          // Save retry token usage
+          await saveTokenUsage({
+            userId,
+            jobType: 'generate-retry',
+            traceId,
+            inputTokens: retryResult.inputTokens,
+            outputTokens: retryResult.outputTokens,
+          });
+
+          console.log(`[Generate] 🔄 Retry used ${retryResult.inputTokens + retryResult.outputTokens} additional tokens`);
+
+          // Save retry response
+          fs.writeFileSync(
+            path.join(debugDir, `${timestamp}_retry_response.json`),
+            raw,
+            'utf-8'
+          );
+
+          deck = JSON.parse(raw);
+          console.log('[Generate] ✅ Retry successful!');
+        } catch (retryError) {
+          console.error('[Generate] ❌ Retry also failed:', retryError);
+          throw new Error('Invalid JSON from AI after retry');
+        }
       }
 
       // Deck parsed successfully
@@ -385,13 +438,16 @@ const generateWorker = new Worker(
       deck.slides = await Promise.all(
         deck.slides.map(async (slide: Slide) => {
           let backgroundImage = '';
+          let unsplashPhotographer = undefined;
           if (slide.imageSearchQuery) {
-            backgroundImage = await getUnsplashImage(
+            const imageResult = await getUnsplashImage(
               slide.imageSearchQuery,
               themeConfig.imageKeywords
             );
+            backgroundImage = imageResult.url;
+            unsplashPhotographer = imageResult.photographer;
           }
-          return { ...slide, backgroundImage };
+          return { ...slide, backgroundImage, unsplashPhotographer };
         })
       );
 
@@ -576,13 +632,14 @@ const regenerateSlideWorker = new Worker(
       // Build the prompt for slide regeneration
       const userMessage = buildSlideRegeneratorPrompt(context, slideIndex, prompt, mode);
 
-      // Create Gemini model with JSON response mode
+      // Create Gemini model with JSON response mode AND strict schema for single slide
       const geminiModel = genAI.getGenerativeModel({
         model,
         generationConfig: {
           temperature: 0.8, // Slightly higher for more variety
           maxOutputTokens: 2000, // Single slide doesn't need much
           responseMimeType: 'application/json',
+          responseSchema: SINGLE_SLIDE_RESPONSE_SCHEMA as any, // Strict schema for single slide
         },
       });
 
@@ -622,10 +679,12 @@ const regenerateSlideWorker = new Worker(
       // Fetch background image
       const themeConfig = context.themeConfig || normalizeTheme(context.theme);
       if (newSlide.imageSearchQuery) {
-        newSlide.backgroundImage = await getUnsplashImage(
+        const imageResult = await getUnsplashImage(
           newSlide.imageSearchQuery,
           themeConfig.imageKeywords
         );
+        newSlide.backgroundImage = imageResult.url;
+        (newSlide as any).unsplashPhotographer = imageResult.photographer;
       }
 
       // Assign a new ID to the slide
@@ -835,12 +894,14 @@ const addSlideWorker = new Worker(
     try {
       const userMessage = buildSlideAdderPrompt(context, prompt);
 
+      // Create Gemini model with strict schema for single slide
       const geminiModel = genAI.getGenerativeModel({
         model,
         generationConfig: {
           temperature: 0.8,
           maxOutputTokens: 2000,
           responseMimeType: 'application/json',
+          responseSchema: SINGLE_SLIDE_RESPONSE_SCHEMA as any, // Strict schema for single slide
         },
       });
 
@@ -873,10 +934,12 @@ const addSlideWorker = new Worker(
 
       const themeConfig = context.themeConfig || normalizeTheme(context.theme);
       if (newSlide.imageSearchQuery) {
-        newSlide.backgroundImage = await getUnsplashImage(
+        const imageResult = await getUnsplashImage(
           newSlide.imageSearchQuery,
           themeConfig.imageKeywords
         );
+        newSlide.backgroundImage = imageResult.url;
+        (newSlide as any).unsplashPhotographer = imageResult.photographer;
       }
 
       newSlide.id = `slide-${Date.now()}`;

@@ -14,7 +14,8 @@ async function bootstrap() {
             useDefaults: true,
             directives: {
                 'default-src': ["'self'"],
-                'img-src': ["'self'", 'data:'],
+                'img-src': ["'self'", 'data:', '*.cloudflarestorage.com'], // Allow R2 images
+                'frame-ancestors': ["'none'"], // Prevent clickjacking
             },
         },
     });

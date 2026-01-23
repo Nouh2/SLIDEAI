@@ -149,29 +149,23 @@ export default function ViewPage() {
 
     // Load presentation (supports both token route and ID query param)
     // Load presentation (supports both token route and ID query param)
+    // Load presentation (supports both token route and ID query param)
     useEffect(() => {
         const loadPresentation = async () => {
             const searchParams = new URLSearchParams(window.location.search);
             const presentationId = searchParams.get("id");
-
-            console.log("[ViewPage] Loading presentation...", { token, presentationId });
 
             try {
                 let presentationData: any;
 
                 if (token) {
                     // Mode 1: Accessed via /view/:token - try PUBLIC endpoint first (no auth needed)
-                    console.log("[ViewPage] Attempting public access with token:", token);
                     try {
                         presentationData = await api.getPublicPresentation(token);
-                        console.log("[ViewPage] Public access successful");
                     } catch (publicError) {
-                        console.warn("[ViewPage] Public access failed, trying authenticated access", publicError);
-
                         // If public endpoint fails, try authenticated flow
                         const { data: { session } } = await supabase.auth.getSession();
                         if (!session) {
-                            console.log("[ViewPage] No session, require auth");
                             setStatus("auth_required");
                             return;
                         }
@@ -180,7 +174,6 @@ export default function ViewPage() {
                     }
                 } else if (presentationId) {
                     // Mode 2: Accessed via /viewer?id=xxx - requires auth
-                    console.log("[ViewPage] Accessing via ID, checking auth");
                     const { data: { session } } = await supabase.auth.getSession();
                     if (!session) {
                         setStatus("auth_required");
@@ -208,7 +201,6 @@ export default function ViewPage() {
                 setShowWatermark(presentationData.showWatermark ?? false);
                 setStatus("viewing");
             } catch (error: any) {
-                console.error("[ViewPage] Error loading presentation:", error);
                 setStatus("error");
                 setErrorMessage(error.message || t('view.accessError'));
             }

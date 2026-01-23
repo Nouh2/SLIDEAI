@@ -107,7 +107,7 @@ export default function Examples() {
           <div className="flex-1 overflow-y-auto flex flex-col lg:flex-row gap-4 md:gap-6 p-4 md:p-6">
             {/* Main slide viewer */}
             <div className="flex-1 flex flex-col gap-3 md:gap-4 min-w-0">
-              <div className="flex-1 relative rounded-lg overflow-hidden shadow-2xl min-h-[300px] md:min-h-[400px] bg-surface flex items-center justify-center min-w-0">
+              <div className="relative w-full aspect-video rounded-lg overflow-hidden shadow-2xl bg-surface flex items-center justify-center">
                 {selectedExample && selectedExample.slides[currentSlideIndex] && (
                   <ScalableSlidePreview
                     slide={selectedExample.slides[currentSlideIndex]}

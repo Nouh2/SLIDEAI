@@ -1,10 +1,12 @@
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Sparkles } from "lucide-react";
 import { motion, Variants } from "framer-motion";
 
 export function Hero() {
     const navigate = useNavigate();
+    const { t } = useTranslation();
 
     const containerVariants: Variants = {
         hidden: { opacity: 0 },
@@ -50,25 +52,25 @@ export function Hero() {
                             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
                             <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
                         </span>
-                        <span className="text-foreground/80 font-medium text-[10px] md:text-xs uppercase tracking-wider">SlideAI v2.0</span>
+                        <span className="text-foreground/80 font-medium text-[10px] md:text-xs uppercase tracking-wider">{t('hero.badge')}</span>
                     </div>
                 </motion.div>
 
                 {/* Headline */}
                 <motion.div variants={itemVariants} className="text-center space-y-4 md:space-y-6">
                     <h1 className="text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-bold leading-tight tracking-tight px-2">
-                        Créez des slides <br />
+                        {t('hero.title1')} <br />
                         <span className="text-gradient relative inline-block">
-                            intelligents
+                            {t('hero.title2')}
                             <svg className="absolute w-full h-2 md:h-3 -bottom-1 left-0 text-primary opacity-50" viewBox="0 0 100 10" preserveAspectRatio="none">
                                 <path d="M0 5 Q 50 10 100 5" stroke="currentColor" strokeWidth="4" fill="none" />
                             </svg>
                         </span>{" "}
-                        en un éclair
+                        {t('hero.title3')}
                     </h1>
 
                     <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed font-light">
-                        Importez vos documents ou décrivez votre idée. Notre IA génère une présentation PowerPoint complète, designée et prête à l'emploi.
+                        {t('hero.subtitle')}
                     </p>
                 </motion.div>
 
@@ -80,7 +82,7 @@ export function Hero() {
                         className="h-14 px-8 text-base font-bold rounded-xl bg-gradient-primary hover:shadow-neon-hover transition-all duration-300 group text-foreground"
                     >
                         <Sparkles className="w-5 h-5 mr-2" />
-                        Commencer gratuitement
+                        {t('hero.cta')}
                         <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
                     </Button>
                     <Button
@@ -89,13 +91,13 @@ export function Hero() {
                         onClick={() => navigate("/examples")}
                         className="h-14 px-8 text-base font-bold rounded-xl border-2 border-primary/30 hover:border-primary/60 hover:bg-primary/5 transition-all"
                     >
-                        Voir des exemples
+                        {t('hero.viewExamples')}
                     </Button>
                 </motion.div>
 
                 {/* Social Proof / Trust */}
                 <motion.div variants={itemVariants} className="pt-16 flex flex-col items-center space-y-4">
-                    <p className="text-sm text-muted-foreground font-medium">Ils nous font confiance</p>
+                    <p className="text-sm text-muted-foreground font-medium">{t('hero.trustLabel')}</p>
                     <div className="flex gap-8 opacity-50 grayscale hover:grayscale-0 transition-all duration-500">
                         {/* Placeholder logos */}
                         {[1, 2, 3, 4].map((i) => (
@@ -107,3 +109,4 @@ export function Hero() {
         </section>
     );
 }
+

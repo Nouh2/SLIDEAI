@@ -2,6 +2,7 @@
 // Modal for modifying presentation color palette with AI or Manually
 
 import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import {
     Dialog,
     DialogContent,
@@ -64,11 +65,12 @@ export function ColorPaletteDialog({
     }, [open, currentPalette]);
 
     const { toast } = useToast();
+    const { t } = useTranslation();
 
     const presets = [
-        { id: 'dark', label: 'Thème sombre', icon: Moon, prompt: 'Thème sombre élégant avec fond noir/gris foncé et texte clair' },
-        { id: 'light', label: 'Thème clair', icon: Sun, prompt: 'Thème clair et professionnel avec fond blanc et texte foncé' },
-        { id: 'vibrant', label: 'Couleurs vives', icon: Sparkles, prompt: 'Couleurs vives et modernes, dynamiques et engageantes' },
+        { id: 'dark', label: t('colorPalette.presets.dark'), icon: Moon, prompt: t('colorPalette.presets.darkDesc') },
+        { id: 'light', label: t('colorPalette.presets.light'), icon: Sun, prompt: t('colorPalette.presets.lightDesc') },
+        { id: 'vibrant', label: t('colorPalette.presets.vibrant'), icon: Sparkles, prompt: t('colorPalette.presets.vibrantDesc') },
     ];
 
     const handleManualColorChange = (key: string, value: string) => {
@@ -87,16 +89,16 @@ export function ColorPaletteDialog({
         });
         setOpen(false);
         toast({
-            title: "Couleurs appliquées",
-            description: "La palette a été mise à jour manuellement.",
+            title: t('colorPalette.manualSuccess'),
+            description: t('colorPalette.manualSuccessMsg'),
         });
     };
 
     const handleModifyAI = async (prompt: string, presetId?: string) => {
         if (!prompt.trim()) {
             toast({
-                title: "Erreur",
-                description: "Veuillez entrer une instruction.",
+                title: t('common.error'),
+                description: t('colorPalette.validation.promptRequired'),
                 variant: "destructive",
             });
             return;
@@ -126,8 +128,8 @@ export function ColorPaletteDialog({
                         setSelectedPreset(null);
 
                         toast({
-                            title: "Palette modifiée !",
-                            description: "La nouvelle palette a été appliquée.",
+                            title: t('colorPalette.aiSuccess'),
+                            description: t('colorPalette.aiSuccessMsg'),
                         });
 
                         onSuccess(status.newPalette);
@@ -136,8 +138,8 @@ export function ColorPaletteDialog({
                         setIsModifying(false);
                         setSelectedPreset(null);
                         toast({
-                            title: "Erreur",
-                            description: status.error || "La modification a échoué.",
+                            title: t('common.error'),
+                            description: status.error || t('colorPalette.aiError'),
                             variant: "destructive",
                         });
                     }
@@ -147,8 +149,8 @@ export function ColorPaletteDialog({
                         setIsModifying(false);
                         setSelectedPreset(null);
                         toast({
-                            title: "Timeout",
-                            description: "La modification prend trop de temps. Réessayez.",
+                            title: t('colorPalette.timeout'),
+                            description: t('colorPalette.timeoutMsg'),
                             variant: "destructive",
                         });
                     }
@@ -160,8 +162,8 @@ export function ColorPaletteDialog({
             setIsModifying(false);
             setSelectedPreset(null);
             toast({
-                title: "Erreur",
-                description: error.message || "Impossible de modifier la palette.",
+                title: t('common.error'),
+                description: error.message || t('colorPalette.genericError'),
                 variant: "destructive",
             });
         }
@@ -176,10 +178,10 @@ export function ColorPaletteDialog({
                 <DialogHeader>
                     <DialogTitle className="flex items-center gap-2">
                         <Palette className="h-5 w-5 text-primary" />
-                        Modifier la palette
+                        {t('colorPalette.title')}
                     </DialogTitle>
                     <DialogDescription>
-                        Personnalisez les couleurs de votre présentation
+                        {t('colorPalette.subtitle')}
                     </DialogDescription>
                 </DialogHeader>
 
@@ -187,11 +189,11 @@ export function ColorPaletteDialog({
                     <TabsList className="grid w-full grid-cols-2">
                         <TabsTrigger value="ai" className="flex items-center gap-2">
                             <Wand2 className="h-4 w-4" />
-                            Assistant IA
+                            {t('colorPalette.tabs.ai')}
                         </TabsTrigger>
                         <TabsTrigger value="manual" className="flex items-center gap-2">
                             <Palette className="h-4 w-4" />
-                            Manuel
+                            {t('colorPalette.tabs.manual')}
                         </TabsTrigger>
                     </TabsList>
 
@@ -199,7 +201,7 @@ export function ColorPaletteDialog({
                         {/* Quick Presets */}
                         <div className="space-y-2">
                             <label className="text-sm font-medium text-muted-foreground">
-                                Suggestion Rapide
+                                {t('colorPalette.presets.label')}
                             </label>
                             <div className="grid grid-cols-3 gap-2">
                                 {presets.map((preset) => (
@@ -227,18 +229,18 @@ export function ColorPaletteDialog({
                                 <span className="w-full border-t" />
                             </div>
                             <div className="relative flex justify-center text-xs uppercase">
-                                <span className="bg-background px-2 text-muted-foreground">ou</span>
+                                <span className="bg-background px-2 text-muted-foreground">{t('colorPalette.or')}</span>
                             </div>
                         </div>
 
                         <div className="space-y-2">
                             <label className="text-sm font-medium text-muted-foreground">
-                                Instructions personnalisées
+                                {t('colorPalette.customPrompt')}
                             </label>
                             <Textarea
                                 value={customPrompt}
                                 onChange={(e) => setCustomPrompt(e.target.value)}
-                                placeholder="Ex: Plus de bleu, couleurs pastel, style corporate..."
+                                placeholder={t('colorPalette.placeholder')}
                                 rows={3}
                                 disabled={isModifying}
                                 className="resize-none"
@@ -249,7 +251,7 @@ export function ColorPaletteDialog({
                     <TabsContent value="manual" className="space-y-4 py-4">
                         <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-2">
-                                <Label htmlFor="primary">Couleur Primaire</Label>
+                                <Label htmlFor="primary">{t('colorPalette.labels.primary')}</Label>
                                 <div className="flex gap-2">
                                     <div className="w-8 h-8 rounded border border-input overflow-hidden shrink-0">
                                         <input
@@ -269,7 +271,7 @@ export function ColorPaletteDialog({
                             </div>
 
                             <div className="space-y-2">
-                                <Label htmlFor="secondary">Secondaire</Label>
+                                <Label htmlFor="secondary">{t('colorPalette.labels.secondary')}</Label>
                                 <div className="flex gap-2">
                                     <div className="w-8 h-8 rounded border border-input overflow-hidden shrink-0">
                                         <input
@@ -289,7 +291,7 @@ export function ColorPaletteDialog({
                             </div>
 
                             <div className="space-y-2">
-                                <Label htmlFor="accent">Accent</Label>
+                                <Label htmlFor="accent">{t('colorPalette.labels.accent')}</Label>
                                 <div className="flex gap-2">
                                     <div className="w-8 h-8 rounded border border-input overflow-hidden shrink-0">
                                         <input
@@ -309,7 +311,7 @@ export function ColorPaletteDialog({
                             </div>
 
                             <div className="space-y-2">
-                                <Label htmlFor="bg">Arrière-plan</Label>
+                                <Label htmlFor="bg">{t('colorPalette.labels.bg')}</Label>
                                 <div className="flex gap-2">
                                     <div className="w-8 h-8 rounded border border-input overflow-hidden shrink-0">
                                         <input
@@ -329,7 +331,7 @@ export function ColorPaletteDialog({
                             </div>
 
                             <div className="col-span-2 space-y-2">
-                                <Label htmlFor="text">Texte</Label>
+                                <Label htmlFor="text">{t('colorPalette.labels.text')}</Label>
                                 <div className="flex gap-2">
                                     <div className="w-8 h-8 rounded border border-input overflow-hidden shrink-0">
                                         <input
@@ -357,7 +359,7 @@ export function ColorPaletteDialog({
                         onClick={() => setOpen(false)}
                         disabled={isModifying}
                     >
-                        Annuler
+                        {t('colorPalette.cancel')}
                     </Button>
                     {activeTab === 'ai' ? (
                         <Button
@@ -367,18 +369,18 @@ export function ColorPaletteDialog({
                             {isModifying && !selectedPreset ? (
                                 <>
                                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                    Modification...
+                                    {t('colorPalette.generating')}
                                 </>
                             ) : (
                                 <>
                                     <Wand2 className="mr-2 h-4 w-4" />
-                                    Générer avec IA
+                                    {t('colorPalette.generate')}
                                 </>
                             )}
                         </Button>
                     ) : (
                         <Button onClick={handleApplyManual}>
-                            Appliquer
+                            {t('colorPalette.apply')}
                         </Button>
                     )}
                 </DialogFooter>

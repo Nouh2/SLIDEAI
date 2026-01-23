@@ -1,0 +1,740 @@
+{
+  "header": {
+    "dashboard": "Dashboard",
+    "create": "Create",
+    "examples": "Examples",
+    "pricing": "Pricing",
+    "login": "Login",
+    "getStarted": "Get Started",
+    "myAccount": "My Account",
+    "logout": "Logout"
+  },
+  "hero": {
+    "badge": "SlideAI v2.0",
+    "title1": "Create",
+    "title2": "intelligent",
+    "title3": "slides in a flash",
+    "subtitle": "Import your documents or describe your idea. Our AI generates a complete, designed PowerPoint presentation ready to use.",
+    "cta": "Get started for free",
+    "viewExamples": "View examples",
+    "trustLabel": "Trusted by"
+  },
+  "home": {
+    "ctaTitle": "Ready to create your",
+    "ctaTitleHighlight": "dream presentation?",
+    "ctaSubtitle": "Join thousands of professionals who transform their ideas into exceptional presentations with SlideAI",
+    "ctaButton": "Start now",
+    "viewPricing": "View pricing",
+    "freeNote": "✨ Free for the first 5 presentations · No credit card required"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "subtitle": "Manage your presentations",
+    "newPresentation": "New Presentation",
+    "myPresentations": "My Presentations",
+    "sharedWithMe": "Shared with me",
+    "search": "Search...",
+    "filterByTheme": "Filter by theme",
+    "allThemes": "All themes",
+    "sortBy": "Sort by",
+    "mostRecent": "Most recent",
+    "oldest": "Oldest",
+    "nameAZ": "Name A-Z",
+    "slides": "slides",
+    "theme": "Theme",
+    "open": "Open",
+    "view": "View",
+    "readOnly": "Read only",
+    "collaborative": "Collaborative",
+    "deleteConfirmTitle": "Are you sure?",
+    "deleteConfirmMessage": "This action is irreversible. This will permanently delete the presentation",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "noPresentation": "No presentation",
+    "noSharedPresentation": "No shared presentation",
+    "createFirst": "Create your first AI presentation",
+    "askColleagues": "Ask your colleagues to share their presentations",
+    "createPresentation": "Create a presentation",
+    "presentationDeleted": "Presentation deleted",
+    "presentationDeletedMsg": "The presentation has been successfully deleted.",
+    "loadError": "Unable to load your presentations",
+    "deleteError": "Unable to delete the presentation.",
+    "plan": "Plan",
+    "unlimitedPresentations": "Unlimited Presentations",
+    "presentations": "presentations",
+    "paymentSuccess": "Payment successful! 🎉",
+    "paymentSuccessMsg": "Your subscription is activated. Thank you for your trust!"
+  },
+  "create": {
+    "step1": "Choose Template",
+    "step2": "Customize & Generate",
+    "continue": "Continue",
+    "skipStep": "Skip this step",
+    "backToTemplates": "Back to templates",
+    "selectedTemplate": "Selected template:",
+    "aiTitle": "AI at the service of your",
+    "aiTitleHighlight": "ideas",
+    "aiSubtitle": "Describe your topic, import your notes, and let SlideAI structure and design your presentation.",
+    "placeholder": "Describe your presentation... (e.g., 'Pitch deck for a SaaS startup')",
+    "dropHere": "Drop here",
+    "addFile": "Add a file",
+    "dragOrClick": "Drag or click",
+    "slideCount": "Number of slides",
+    "generate": "Generate",
+    "fileTooLarge": "File too large",
+    "maxFileSize": "Maximum size is 10MB",
+    "fileAdded": "Document added",
+    "fileAddedMsg": "The file will be used to enrich the presentation",
+    "visionRequired": "Vision required",
+    "visionRequiredMsg": "Please describe your presentation",
+    "sessionExpired": "Session expired",
+    "sessionExpiredMsg": "Please log in again",
+    "generationStarted": "Generation started",
+    "redirecting": "Redirecting to editor...",
+    "templateRequired": "Template required",
+    "templateRequiredMsg": "Please select a template"
+  },
+  "editor": {
+    "slideshow": "Slideshow",
+    "export": "Export",
+    "save": "Save",
+    "saving": "Saving...",
+    "saved": "Saved ✓",
+    "saveError": "Save error",
+    "ready": "Ready",
+    "slides": "Slides",
+    "addSlide": "Add a slide",
+    "untitledSlide": "Untitled Slide",
+    "slideOf": "Slide {current} of {total}",
+    "design": "Design",
+    "reset": "Reset",
+    "add": "Add",
+    "insertContent": "Insert Content",
+    "textBox": "Text Box",
+    "addTextBlock": "Add a text block",
+    "image": "Image",
+    "importFromUrl": "Import from URL",
+    "shape": "Shape",
+    "comingSoon": "Coming soon",
+    "editElement": "Edit",
+    "element": "Element",
+    "content": "Content",
+    "enterText": "Enter text...",
+    "editingComingSoon": "Editing for this element type is coming soon.",
+    "changesApplied": "Changes are applied automatically.",
+    "addRow": "Add a row",
+    "deleteRow": "Delete this row",
+    "tableStructure": "Table structure",
+    "savedMsg": "Your changes are saved.",
+    "saveErrorMsg": "Failed to save.",
+    "slideDeleted": "Slide deleted",
+    "slideDeletedMsg": "The slide has been deleted.",
+    "cannotDelete": "Cannot delete",
+    "mustHaveOneSlide": "The presentation must contain at least one slide.",
+    "rowAdded": "Row added",
+    "rowAddedMsg": "A new row has been added to the table.",
+    "rowDeleted": "Row deleted",
+    "rowDeletedMsg": "The row has been deleted.",
+    "mustHaveOneRow": "The table must contain at least one row.",
+    "connectionRequired": "Login required",
+    "backHome": "Back to home"
+  },
+  "auth": {
+    "welcome": "Welcome",
+    "subtitle": "Sign in or create an account to continue",
+    "email": "Email",
+    "password": "Password",
+    "signIn": "Sign in",
+    "signingIn": "Signing in...",
+    "signUp": "Create account",
+    "signingUp": "Creating...",
+    "emailPlaceholder": "you@example.com",
+    "passwordPlaceholder": "Your password",
+    "choosePassword": "Choose a password",
+    "haveAccount": "Already have an account? Sign in",
+    "noAccount": "Don't have an account? Sign up",
+    "forgotPassword": "Forgot password?",
+    "sendResetLink": "Send reset link",
+    "sending": "Sending...",
+    "trustNote": "Already 10,000+ professionals trust SlideAI",
+    "resetPasswordTitle": "Reset Password",
+    "resetPasswordSubtitle": "Enter your new password below",
+    "resetSuccess": "Your password has been reset. You will be redirected to the dashboard.",
+    "resetError": "An error occurred during reset.",
+    "backToLogin": "Back to login",
+    "updating": "Updating..."
+  },
+  "pricing": {
+    "badge": "Simple, transparent, scalable",
+    "title": "Pricing",
+    "titleHighlight": "tailored to your needs",
+    "subtitle": "Start for free, upgrade when you're ready.",
+    "monthly": "Monthly",
+    "yearly": "Yearly",
+    "discount": "-25% (2 months free)",
+    "perMonth": "/month",
+    "billedYearly": "Billed {price}€ per year",
+    "billedMonthly": "Billed monthly",
+    "startFree": "Start for free",
+    "choosePlan": "Choose",
+    "tryFree": "Try Pro for free",
+    "contactSales": "Contact sales",
+    "unsubscribe": "Unsubscribe",
+    "included": "Included",
+    "mostPopular": "Most popular",
+    "notReadyTitle": "Not ready for a subscription?",
+    "packSubtitle": "Get a Liberty Pack.",
+    "packNote": "No automatic renewal. Use your credits whenever you want.",
+    "buyCredits": "Buy",
+    "allCardsAccepted": "All credit cards accepted • Cancel anytime",
+    "questions": "Questions?",
+    "contactUs": "Contact us",
+    "plans": {
+      "free": {
+        "description": "Enough to test the tool",
+        "features": {
+          "presentations": "2 presentations per month",
+          "pdfImport": "PDF Import (10 pages max)",
+          "storage": "Storage: 3 projects max",
+          "aiSlides": "AI Slides addition (2 / pres.)",
+          "aiRegen": "AI Regeneration (3 / pres.)",
+          "design": "Layouts & Design: Full Access",
+          "watermark": "SlideAI Watermark"
+        },
+        "limitations": {
+          "export": "PDF Export Disabled",
+          "brandKit": "No Brand Kit"
+        }
+      },
+      "starter": {
+        "description": "For students and occasional use",
+        "features": {
+          "presentations": "15 presentations / month",
+          "pdfImport": "PDF Import (50 pages max)",
+          "storage": "Storage: 20 projects max",
+          "aiSlides": "AI Slides addition (5 / pres.)",
+          "aiRegen": "Unlimited AI Regeneration",
+          "export": "HD PDF Export (No watermark)",
+          "sharing": "Unique & Private share link"
+        },
+        "cta": "Choose Starter"
+      },
+      "pro": {
+        "description": "For professionals",
+        "features": {
+          "unlimitedGen": "Unlimited Generation",
+          "pdfImport": "PDF Import (200 pages max)",
+          "storage": "Unlimited Storage",
+          "unlimitedSlides": "Unlimited Slides & Wand",
+          "export": "HD PDF Export (Priority)",
+          "support": "Priority Support",
+          "beta": "Early Bird Access (Beta)"
+        }
+      },
+      "business": {
+        "description": "For teams",
+        "features": {
+          "allPro": "Everything in Pro Plan",
+          "collab": "Collaborative workspace",
+          "support": "24/7 Priority Support",
+          "analytics": "Advanced Analytics",
+          "sso": "SSO (Single Sign-On)"
+        }
+      }
+    },
+    "packs": {
+      "discovery": {
+        "name": "Discovery Pack",
+        "credits": "5 presentations",
+        "cta": "Buy 5 credits"
+      },
+      "power": {
+        "name": "Power Pack",
+        "credits": "15 presentations",
+        "cta": "Buy 15 credits"
+      }
+    }
+  },
+  "account": {
+    "title": "My Account",
+    "subtitle": "Manage your information and subscription",
+    "upgradeToProBtn": "Upgrade to Pro",
+    "overview": "Overview",
+    "subscription": "Subscription",
+    "activity": "Activity",
+    "profile": "Profile",
+    "email": "Email",
+    "userId": "User ID",
+    "provider": "Provider",
+    "changePassword": "Change password",
+    "newPassword": "New password",
+    "confirmPassword": "Confirm password",
+    "updatePassword": "Update",
+    "statistics": "Statistics",
+    "presentationsCount": "Presentations",
+    "creditsRemaining": "Credits remaining",
+    "signOut": "Sign out",
+    "yourSubscription": "Your Subscription",
+    "active": "Active",
+    "creditsAvailable": "Credits available",
+    "upgradeNote": "Upgrade to a higher plan for more credits.",
+    "unlimitedAccess": "Unlimited Access",
+    "unlimitedNote": "You have maximum SlideAI power.",
+    "upgradeToPro": "Upgrade to Pro",
+    "manageSubscription": "Manage subscription",
+    "stripeNote": "Billing is managed through our secure partner Stripe.",
+    "recentPresentations": "Recent presentations",
+    "viewAll": "View all",
+    "draft": "Draft",
+    "untitled": "Untitled",
+    "noPresentation": "No presentation",
+    "noPresentationNote": "You haven't created any presentation yet. Get started now!",
+    "createPresentation": "Create a presentation",
+    "passwordMismatch": "Passwords do not match.",
+    "passwordTooShort": "Password must be at least 6 characters.",
+    "passwordUpdated": "Your password has been updated."
+  },
+  "join": {
+    "invalidLink": "Invalid share link.",
+    "joinError": "Unable to join presentation.",
+    "verifying": "Verifying share link",
+    "authRequiredTitle": "Login required",
+    "authRequiredMsg": "You must log in or create an account to access this shared presentation.",
+    "presentationAdded": "Presentation added!",
+    "oops": "Oops!"
+  },
+  "view": {
+    "accessError": "Unable to access presentation.",
+    "fetching": "Fetching presentation",
+    "authRequiredMsg": "You must log in to view this presentation.",
+    "readOnlyMode": "Read-only mode",
+    "presentationDefaultTitle": "Presentation"
+  },
+  "share": {
+    "title": "Share this presentation",
+    "subtitle": "Choose the sharing mode and send the link to your collaborators.",
+    "shareTrigger": "Share",
+    "collaborative": "Collaborative",
+    "readOnly": "Read-only",
+    "editDesc": "Recipients can <strong>view and edit</strong> the presentation from their account.",
+    "viewDesc": "Recipients can only <strong>view</strong> the presentation, without editing rights.",
+    "generating": "Generating link...",
+    "generateFail": "Unable to generate link. Please try again.",
+    "generateError": "Unable to generate share link",
+    "copied": "Link copied!",
+    "copiedMsg": "The share link is in your clipboard.",
+    "copyError": "Unable to copy link.",
+    "editNote": "This link allows editing. Share with care.",
+    "viewNote": "This link is read-only. Guests cannot edit the presentation."
+  },
+  "export": {
+    "title": "Export presentation",
+    "subtitle": "Choose the export format for \"{{title}}\"",
+    "preparing": "Preparing...",
+    "initializing": "Initializing...",
+    "noSlides": "No slides found",
+    "genericError": "Export error",
+    "pptxError": "PowerPoint export error",
+    "pdfDesc": "High visual fidelity",
+    "ready": "Ready",
+    "comingSoon": "Coming soon",
+    "workingOnIt": "We're working on it! 🚀",
+    "complete": "Export complete!",
+    "downloaded": "The file has been downloaded",
+    "progressSlide": "Slide {{current}} / {{total}}"
+  },
+  "addSlide": {
+    "title": "Add a magic slide",
+    "subtitle": "AI will generate a new slide consistent with the rest of your presentation.",
+    "quickSuggestions": "Quick suggestions",
+    "conclusion": "Conclusion",
+    "conclusionDesc": "Summary and end",
+    "qa": "Q&A",
+    "qaDesc": "Questions session",
+    "recap": "Recap",
+    "recapDesc": "Key points summary",
+    "cta": "Call to Action",
+    "ctaDesc": "Next step",
+    "orDescribe": "or describe your needs",
+    "placeholder": "E.g., A slide about financial benefits, with a bar chart...",
+    "cancel": "Cancel",
+    "generate": "Generate",
+    "generating": "Generating...",
+    "slideAdded": "Slide added!",
+    "slideAddedMsg": "The new slide has been added at the end of the presentation.",
+    "instructionMissing": "Instruction missing",
+    "instructionMissingMsg": "Please enter an instruction or choose a suggestion.",
+    "timeout": "Timeout",
+    "timeoutMsg": "Generation is taking too long. Please try again.",
+    "generationFailed": "Generation failed.",
+    "addError": "Unable to add slide.",
+    "prompts": {
+      "conclusion": "Generate a punchy conclusion slide with a clear call to action.",
+      "qa": "Generate a slide dedicated to Q&A to engage the audience.",
+      "recap": "Generate a slide summarizing key points to reinforce retention.",
+      "cta": "Generate a slide urging the audience to take immediate action."
+    }
+  },
+  "examples": {
+    "badge": "AI-inspired",
+    "title": "Examples",
+    "titleHighlight": "Gallery",
+    "subtitle": "Discover what you can create with SlideAI",
+    "view": "View",
+    "promptUsed": "Prompt used",
+    "copied": "Copied!",
+    "copyPrompt": "Copy prompt",
+    "promptCopied": "Prompt copied",
+    "promptCopiedMsg": "The prompt has been copied to your clipboard",
+    "info": "Information",
+    "currentTheme": "Current theme:",
+    "slideCount": "Number of slides:",
+    "currentSlide": "Current slide:",
+    "previous": "Previous",
+    "next": "Next"
+  },
+  "notFound": {
+    "title": "404",
+    "message": "Page not found",
+    "description": "Sorry, the page you are looking for doesn't exist or has been moved.",
+    "backHome": "Back to home"
+  },
+  "common": {
+    "error": "Error",
+    "success": "Success",
+    "loading": "Loading...",
+    "retry": "Retry",
+    "untitled": "Untitled"
+  },
+  "regenerate": {
+    "title": "Regenerate this slide",
+    "subtitle": "Slide {{current}}: {{title}}",
+    "modes": "Quick modes",
+    "visual": "More visual",
+    "visualDesc": "Images and graphics",
+    "detailed": "More detailed",
+    "detailedDesc": "More text",
+    "chart": "Chart format",
+    "chartDesc": "Charts and data",
+    "or": "or",
+    "customInstructions": "Custom instructions",
+    "placeholder": "E.g., Add more data, change grid layout...",
+    "cancel": "Cancel",
+    "submit": "Regenerate",
+    "submitting": "Regenerating...",
+    "success": "Slide regenerated!",
+    "successMsg": "The new slide has been successfully generated.",
+    "timeout": "Timeout",
+    "timeoutMsg": "Regeneration is taking too long. Please try again.",
+    "error": "Error",
+    "errorMsg": "Regeneration failed.",
+    "genericError": "Unable to regenerate slide."
+  },
+  "bugReport": {
+    "title": "Report a Bug",
+    "trigger": "Report a bug",
+    "subtitle": "Help us improve SlideAI by reporting any issues you encounter.",
+    "typeLabel": "Bug type",
+    "types": {
+      "emptySlide": "Empty Slide",
+      "emptySlideDesc": "A slide appears empty or without content",
+      "generationIncomplete": "Incomplete Generation",
+      "generationIncompleteDesc": "The presentation has only one slide with the prompt",
+      "other": "Other Bug",
+      "otherDesc": "Report another issue"
+    },
+    "context": {
+      "currentSlide": "Current slide:",
+      "presentation": "Presentation:",
+      "logsNote": "Slide logs will be sent for analysis."
+    },
+    "descriptionLabel": "Describe the problem",
+    "placeholder": "Explain what is not working correctly...",
+    "cancel": "Cancel",
+    "submit": "Send report",
+    "submitting": "Sending...",
+    "successTitle": "✅ Bug reported!",
+    "successMsg": "Thank you for your feedback. Our team will analyze the issue.",
+    "errorTitle": "Error",
+    "errorMsg": "Unable to send report. Please try again later.",
+    "validation": {
+      "descRequired": "Description required",
+      "descRequiredMsg": "Please describe the bug you encountered."
+    }
+  },
+  "colorPalette": {
+    "title": "Edit palette",
+    "trigger": "Edit palette",
+    "subtitle": "Customize your presentation colors",
+    "tabs": {
+      "ai": "AI Assistant",
+      "manual": "Manual"
+    },
+    "presets": {
+      "label": "Quick Suggestion",
+      "dark": "Dark Theme",
+      "darkDesc": "Elegant dark theme with black/dark gray background and light text",
+      "light": "Light Theme",
+      "lightDesc": "Professional light theme with white background and dark text",
+      "vibrant": "Vibrant Colors",
+      "vibrantDesc": "Vibrant and modern colors, dynamic and engaging"
+    },
+    "or": "or",
+    "customPrompt": "Custom instructions",
+    "placeholder": "E.g., More blue, pastel colors, corporate style...",
+    "labels": {
+      "primary": "Primary Color",
+      "secondary": "Secondary",
+      "accent": "Accent",
+      "bg": "Background",
+      "text": "Text"
+    },
+    "cancel": "Cancel",
+    "generate": "Generate with AI",
+    "generating": "Modifying...",
+    "apply": "Apply",
+    "manualSuccess": "Colors applied",
+    "manualSuccessMsg": "The palette has been manually updated.",
+    "validation": {
+      "promptRequired": "Please enter an instruction."
+    },
+    "aiSuccess": "Palette modified!",
+    "aiSuccessMsg": "The new palette has been applied.",
+    "aiError": "Modification failed.",
+    "timeout": "Timeout",
+    "timeoutMsg": "Modification is taking too long. Please try again.",
+    "genericError": "Unable to modify palette."
+  },
+  "footer": {
+    "description": "Create professional presentations in minutes with AI.",
+    "product": "Product",
+    "legal": "Legal",
+    "contact": "Contact",
+    "copyright": "© {{year}} SlideAI. All rights reserved.",
+    "links": {
+      "examples": "Examples",
+      "pricing": "Pricing",
+      "changelog": "Changelog",
+      "roadmap": "Roadmap",
+      "privacy": "Privacy",
+      "terms": "Terms",
+      "gdpr": "GDPR"
+    }
+  },
+  "socialProof": {
+    "stats": {
+      "presentations": "Presentations created",
+      "users": "Active users",
+      "satisfaction": "Customer satisfaction"
+    },
+    "heading": {
+      "lovedBy": "Loved by",
+      "creativeTeams": "creative teams"
+    },
+    "description": "Discover how SlideAI has helped thousands of professionals create exceptional presentations",
+    "trustedBy": {
+      "label": "Certified by",
+      "badges": {
+        "topStartup": "🏆 Top Startup",
+        "stars": "⭐ 4.9/5 Stars",
+        "secure": "🔒 Secure"
+      }
+    },
+    "testimonials": {
+      "emma": {
+        "quote": "SlideAI transformed my creation process. I save 10 hours a week!",
+        "title": "Founder, TechStudio"
+      },
+      "marc": {
+        "quote": "The generated designs are professional and precise. No adjustments needed.",
+        "title": "Marketing Director"
+      },
+      "sophie": {
+        "quote": "Finally a simple solution for creating impactful presentations.",
+        "title": "Innovation Consultant"
+      }
+    }
+  },
+  "featureGrid": {
+    "pill": "Capabilities",
+    "title": {
+      "main": "Powerful tools",
+      "highlight": "designed for you"
+    },
+    "description": "Everything you need to create professional presentations effortlessly",
+    "learnMore": "Learn more",
+    "moreFeatures": "And many more features to discover...",
+    "features": {
+      "fastGen": {
+        "title": "Fast Generation",
+        "desc": "Create complete presentations in seconds with AI"
+      },
+      "smartDesign": {
+        "title": "Smart Design",
+        "desc": "Algorithms that understand modern design and current trends"
+      },
+      "infinitePalettes": {
+        "title": "Infinite Palettes",
+        "desc": "Access thousands of color combinations and themes"
+      },
+      "animations": {
+        "title": "Fluid Animations",
+        "desc": "Sophisticated transitions and animations to captivate your audience"
+      },
+      "fastEdit": {
+        "title": "Fast Editing",
+        "desc": "Real-time modifiers with instant preview"
+      },
+      "socialShare": {
+        "title": "Social Sharing",
+        "desc": "Export and share your presentations on all networks"
+      }
+    }
+  },
+  "deckPreview": {
+    "badge": "Live Preview",
+    "title": {
+      "main": "Here is what you'll",
+      "highlight": "create with SlideAI"
+    },
+    "slide": {
+      "brand": "SlideAI",
+      "title": "Intelligent",
+      "highlight": "Presentations",
+      "desc": "Generate relevant content and captivating design instantly."
+    },
+    "footer": "📊 Modern Design • 🎨 Preset Themes • ✨ Fluid Animations • 🚀 Ready to Present"
+  },
+  "outOfCredits": {
+    "title": "Out of credits",
+    "description": "You have used all your generation credits. Buy a pack or upgrade to a subscription to continue creating presentations.",
+    "packs": {
+      "title": "Freedom Packs",
+      "desc": "Buy credits individually, no commitment. Starting at €5."
+    },
+    "subscriptions": {
+      "title": "Subscriptions",
+      "desc": "Up to unlimited presentations per month. Starting at €7/mo."
+    },
+    "seeOptions": "See options",
+    "later": "Later"
+  },
+  "templateSelector": {
+    "pill": "Premium Collection",
+    "title": "Choose your",
+    "highlight": "style",
+    "description": "Select a visual identity that matches your story. Each theme comes with unique layouts and typography.",
+    "select": "Select",
+    "categories": {
+      "all": "All",
+      "business": "Business",
+      "creative": "Creative",
+      "educational": "Educational",
+      "marketing": "Marketing",
+      "corporate": "Corporate"
+    },
+    "templates": {
+      "startup-pitch": {
+        "name": "Startup Pitch",
+        "desc": "Bold and impactful design for investor presentations"
+      },
+      "product-launch": {
+        "name": "Product Launch",
+        "desc": "Vibrant and energetic for new product announcements"
+      },
+      "corporate-report": {
+        "name": "Corporate Report",
+        "desc": "Professional and clean for business reports"
+      },
+      "creative-portfolio": {
+        "name": "Creative Portfolio",
+        "desc": "Artistic and bold with focus on visuals"
+      },
+      "educational": {
+        "name": "Educational Course",
+        "desc": "Clear and structured for teaching"
+      },
+      "marketing-campaign": {
+        "name": "Marketing Campaign",
+        "desc": "Dynamic and colorful for marketing"
+      },
+      "minimal-elegant": {
+        "name": "Minimal Elegant",
+        "desc": "Sophisticated minimalist with strong typography"
+      },
+      "tech-modern": {
+        "name": "Tech Modern",
+        "desc": "Cutting-edge design for tech and SaaS"
+      },
+      "consulting": {
+        "name": "Consulting Premium",
+        "desc": "Sophisticated design for consulting firms"
+      },
+      "health-medical": {
+        "name": "Health & Medical",
+        "desc": "Clean and trustworthy for healthcare"
+      },
+      "sustainability": {
+        "name": "Sustainability",
+        "desc": "Earth-toned design for eco-friendly messaging"
+      }
+    }
+  },
+  "editorPage": {
+    "errors": {
+      "authRequired": "Login required",
+      "loading": "Error loading presentation",
+      "generic": "An error occurred",
+      "notFound": "No presentation found",
+      "save": "Save error"
+    },
+    "loading": {
+      "oops": "Oops!",
+      "backHome": "Back to home"
+    },
+    "saveStatus": {
+      "saving": "Saving...",
+      "saved": "Saved ✓",
+      "error": "Save error",
+      "ready": "Ready"
+    },
+    "actions": {
+      "slideshow": "Slideshow",
+      "save": "Save",
+      "editPalette": "Edit palette",
+      "export": "Export",
+      "regenerateSlide": "Regenerate slide",
+      "deleteSlide": "Delete slide",
+      "addSlide": "Add slide"
+    },
+    "sidebar": {
+      "slides": "SLIDES"
+    },
+    "navigation": {
+      "counter": "Slide {{current}} of {{total}}"
+    },
+    "slide": {
+      "untitled": "Untitled Slide"
+    },
+    "table": {
+      "newRow": "New"
+    },
+    "element": {
+      "newText": "New Text Block",
+      "textLabel": "Text Box",
+      "imageLabel": "Image"
+    },
+    "cannotDelete": "Cannot delete",
+    "mustHaveOneRow": "Table must have at least one row.",
+    "rowDeleted": "Row deleted",
+    "rowDeletedMsg": "The row was successfully deleted.",
+    "rowAdded": "Row added",
+    "rowAddedMsg": "A new row was added to the table.",
+    "saved": "Saved",
+    "savedMsg": "Changes have been saved.",
+    "saveErrorMsg": "Could not save changes.",
+    "mustHaveOneSlide": "Presentation must contain at least one slide.",
+    "slideDeleted": "Slide deleted",
+    "slideDeletedMsg": "The slide was successfully deleted."
+  }
+}

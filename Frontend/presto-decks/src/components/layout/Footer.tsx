@@ -1,18 +1,21 @@
 import { Link } from "react-router-dom";
 import { Sparkles } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 export const Footer = () => {
+  const { t } = useTranslation();
+
   const links = {
     product: [
-      { label: "Exemples", href: "/examples" },
-      { label: "Tarifs", href: "/pricing" },
-      { label: "Changelog", href: "/changelog" },
-      { label: "Roadmap", href: "/roadmap" },
+      { label: t('footer.links.examples'), href: "/examples" },
+      { label: t('footer.links.pricing'), href: "/pricing" },
+      { label: t('footer.links.changelog'), href: "/changelog" },
+      { label: t('footer.links.roadmap'), href: "/roadmap" },
     ],
     legal: [
-      { label: "Confidentialité", href: "/privacy" },
-      { label: "CGU", href: "/terms" },
-      { label: "RGPD", href: "/gdpr" },
+      { label: t('footer.links.privacy'), href: "/privacy" },
+      { label: t('footer.links.terms'), href: "/terms" },
+      { label: t('footer.links.gdpr'), href: "/gdpr" },
     ],
   };
 
@@ -27,12 +30,12 @@ export const Footer = () => {
               </span>
             </Link>
             <p className="text-xs text-[var(--muted)] max-w-xs">
-              Créez des présentations professionnelles en quelques minutes grâce à l'IA.
+              {t('footer.description')}
             </p>
           </div>
 
           <div>
-            <h3 className="font-semibold mb-3 text-sm">Produit</h3>
+            <h3 className="font-semibold mb-3 text-sm">{t('footer.product')}</h3>
             <ul className="space-y-1.5">
               {links.product.map((link) => (
                 <li key={link.href}>
@@ -48,7 +51,7 @@ export const Footer = () => {
           </div>
 
           <div>
-            <h3 className="font-semibold mb-3 text-sm">Légal</h3>
+            <h3 className="font-semibold mb-3 text-sm">{t('footer.legal')}</h3>
             <ul className="space-y-1.5">
               {links.legal.map((link) => (
                 <li key={link.href}>
@@ -64,7 +67,7 @@ export const Footer = () => {
           </div>
 
           <div>
-            <h3 className="font-semibold mb-3 text-sm">Contact</h3>
+            <h3 className="font-semibold mb-3 text-sm">{t('footer.contact')}</h3>
             <p className="text-xs text-[var(--muted)]">
               contact@slideai.fr
             </p>
@@ -72,7 +75,7 @@ export const Footer = () => {
         </div>
 
         <div className="mt-4 pt-4 border-t border-[var(--border)] text-center text-xs text-[var(--muted)]">
-          © {new Date().getFullYear()} SlideAI. Tous droits réservés.
+          {t('footer.copyright', { year: new Date().getFullYear() })}
         </div>
       </div>
     </footer>

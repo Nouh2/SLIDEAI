@@ -2,6 +2,7 @@
 // Modal for regenerating a single slide with AI
 
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
     Dialog,
     DialogContent,
@@ -39,6 +40,7 @@ export function RegenerateSlideDialog({
     const [isRegenerating, setIsRegenerating] = useState(false);
     const [selectedMode, setSelectedMode] = useState<'visual' | 'detailed' | 'chart' | null>(null);
     const { toast } = useToast();
+    const { t } = useTranslation();
 
     const handleRegenerate = async (mode?: 'visual' | 'detailed' | 'chart') => {
         setIsRegenerating(true);
@@ -74,8 +76,8 @@ export function RegenerateSlideDialog({
                         setSelectedMode(null);
 
                         toast({
-                            title: "Slide régénérée !",
-                            description: "La nouvelle slide a été générée avec succès.",
+                            title: t('regenerate.success'),
+                            description: t('regenerate.successMsg'),
                         });
 
                         onSuccess(status.newSlide);
@@ -84,8 +86,8 @@ export function RegenerateSlideDialog({
                         setIsRegenerating(false);
                         setSelectedMode(null);
                         toast({
-                            title: "Erreur",
-                            description: status.error || "La régénération a échoué.",
+                            title: t('common.error'),
+                            description: status.error || t('regenerate.errorMsg'),
                             variant: "destructive",
                         });
                     }
@@ -95,8 +97,8 @@ export function RegenerateSlideDialog({
                         setIsRegenerating(false);
                         setSelectedMode(null);
                         toast({
-                            title: "Timeout",
-                            description: "La régénération prend trop de temps. Réessayez.",
+                            title: t('regenerate.timeout'),
+                            description: t('regenerate.timeoutMsg'),
                             variant: "destructive",
                         });
                     }
@@ -108,17 +110,17 @@ export function RegenerateSlideDialog({
             setIsRegenerating(false);
             setSelectedMode(null);
             toast({
-                title: "Erreur",
-                description: error.message || "Impossible de régénérer la slide.",
+                title: t('common.error'),
+                description: error.message || t('regenerate.genericError'),
                 variant: "destructive",
             });
         }
     };
 
     const quickModes = [
-        { id: 'visual' as const, label: 'Plus visuel', icon: Image, description: 'Images et graphiques' },
-        { id: 'detailed' as const, label: 'Plus détaillé', icon: FileText, description: 'Plus de texte' },
-        { id: 'chart' as const, label: 'Format Graphique', icon: BarChart3, description: 'Charts et données' },
+        { id: 'visual' as const, label: t('regenerate.visual'), icon: Image, description: t('regenerate.visualDesc') },
+        { id: 'detailed' as const, label: t('regenerate.detailed'), icon: FileText, description: t('regenerate.detailedDesc') },
+        { id: 'chart' as const, label: t('regenerate.chart'), icon: BarChart3, description: t('regenerate.chartDesc') },
     ];
 
     return (
@@ -130,10 +132,10 @@ export function RegenerateSlideDialog({
                 <DialogHeader>
                     <DialogTitle className="flex items-center gap-2">
                         <Wand2 className="h-5 w-5 text-primary" />
-                        Régénérer cette slide
+                        {t('regenerate.title')}
                     </DialogTitle>
                     <DialogDescription>
-                        Slide {slideIndex + 1}: {slideTitle || "Sans titre"}
+                        {t('regenerate.subtitle', { current: slideIndex + 1, title: slideTitle || t('common.untitled') })}
                     </DialogDescription>
                 </DialogHeader>
 
@@ -141,7 +143,7 @@ export function RegenerateSlideDialog({
                     {/* Quick Mode Buttons */}
                     <div className="space-y-2">
                         <label className="text-sm font-medium text-muted-foreground">
-                            Modes rapides
+                            {t('regenerate.modes')}
                         </label>
                         <div className="grid grid-cols-3 gap-2">
                             {quickModes.map((mode) => (
@@ -170,19 +172,19 @@ export function RegenerateSlideDialog({
                             <span className="w-full border-t" />
                         </div>
                         <div className="relative flex justify-center text-xs uppercase">
-                            <span className="bg-background px-2 text-muted-foreground">ou</span>
+                            <span className="bg-background px-2 text-muted-foreground">{t('regenerate.or')}</span>
                         </div>
                     </div>
 
                     {/* Custom Prompt */}
                     <div className="space-y-2">
                         <label className="text-sm font-medium text-muted-foreground">
-                            Instructions personnalisées
+                            {t('regenerate.customInstructions')}
                         </label>
                         <Textarea
                             value={customPrompt}
                             onChange={(e) => setCustomPrompt(e.target.value)}
-                            placeholder="Ex: Ajoute plus de données chiffrées, change le layout en grille..."
+                            placeholder={t('regenerate.placeholder')}
                             rows={3}
                             disabled={isRegenerating}
                             className="resize-none"
@@ -196,7 +198,7 @@ export function RegenerateSlideDialog({
                         onClick={() => setOpen(false)}
                         disabled={isRegenerating}
                     >
-                        Annuler
+                        {t('regenerate.cancel')}
                     </Button>
                     <Button
                         onClick={() => handleRegenerate()}
@@ -205,12 +207,12 @@ export function RegenerateSlideDialog({
                         {isRegenerating && !selectedMode ? (
                             <>
                                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                Régénération...
+                                {t('regenerate.submitting')}
                             </>
                         ) : (
                             <>
                                 <Wand2 className="mr-2 h-4 w-4" />
-                                Régénérer
+                                {t('regenerate.submit')}
                             </>
                         )}
                     </Button>

@@ -1,5 +1,6 @@
 import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Sparkles, Wand2, ArrowRight, Zap, Paperclip, FileText, X, Loader2, ChevronLeft } from "lucide-react";
@@ -20,6 +21,7 @@ export default function Create() {
     const [step, setStep] = useState<'template' | 'customize'>("template");
     const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
     const [vision, setVision] = useState("");
+    const { t } = useTranslation();
 
     const [slides, setSlides] = useState([10]);
     const [isGenerating, setIsGenerating] = useState(false);
@@ -37,8 +39,8 @@ export default function Create() {
         // Limit file size to 10MB
         if (file.size > 10 * 1024 * 1024) {
             toast({
-                title: "Fichier trop volumineux",
-                description: "La taille maximale est de 10MB",
+                title: t('create.fileTooLarge'),
+                description: t('create.maxFileSize'),
                 variant: "destructive",
             });
             return;
@@ -46,8 +48,8 @@ export default function Create() {
 
         setAttachedFile(file);
         toast({
-            title: "Document ajouté",
-            description: "Le fichier sera utilisé pour enrichir la présentation",
+            title: t('create.fileAdded'),
+            description: t('create.fileAddedMsg'),
         });
 
         if (fileInputRef.current) fileInputRef.current.value = "";
@@ -81,8 +83,8 @@ export default function Create() {
     const handleGenerate = async () => {
         if (!vision.trim()) {
             toast({
-                title: "Vision requise",
-                description: "Veuillez décrire votre présentation",
+                title: t('create.visionRequired'),
+                description: t('create.visionRequiredMsg'),
                 variant: "destructive",
             });
             return;
@@ -95,8 +97,8 @@ export default function Create() {
             const { data: { session } } = await supabase.auth.getSession();
             if (!session) {
                 toast({
-                    title: "Session expirée",
-                    description: "Veuillez vous reconnecter",
+                    title: t('create.sessionExpired'),
+                    description: t('create.sessionExpiredMsg'),
                     variant: "destructive",
                 });
                 navigate("/auth");
@@ -137,8 +139,8 @@ export default function Create() {
             });
 
             toast({
-                title: "Génération lancée",
-                description: "Redirection vers l'éditeur...",
+                title: t('create.generationStarted'),
+                description: t('create.redirecting'),
             });
 
             navigate(`/editor/${traceId}`);
@@ -177,12 +179,12 @@ export default function Create() {
                 <div className="flex items-center justify-center gap-4">
                     <div className={`flex items-center gap-2 ${step === 'template' ? 'text-primary' : 'text-muted-foreground'}`}>
                         <div className={`w-8 h-8 rounded-full flex items-center justify-center font-semibold ${step === 'template' ? 'bg-primary text-white' : 'bg-muted'}`}>1</div>
-                        <span className="text-sm font-medium hidden sm:inline">Choose Template</span>
+                        <span className="text-sm font-medium hidden sm:inline">{t('create.step1')}</span>
                     </div>
                     <div className="h-px w-16 bg-border"></div>
                     <div className={`flex items-center gap-2 ${step === 'customize' ? 'text-primary' : 'text-muted-foreground'}`}>
                         <div className={`w-8 h-8 rounded-full flex items-center justify-center font-semibold ${step === 'customize' ? 'bg-primary text-white' : 'bg-muted'}`}>2</div>
-                        <span className="text-sm font-medium hidden sm:inline">Customize & Generate</span>
+                        <span className="text-sm font-medium hidden sm:inline">{t('create.step2')}</span>
                     </div>
                 </div>
 
@@ -206,8 +208,8 @@ export default function Create() {
                                     onClick={() => {
                                         if (!selectedTemplate) {
                                             toast({
-                                                title: "Template requis",
-                                                description: "Veuillez sélectionner un template",
+                                                title: t('create.templateRequired'),
+                                                description: t('create.templateRequiredMsg'),
                                                 variant: "destructive",
                                             });
                                             return;
@@ -216,7 +218,7 @@ export default function Create() {
                                     }}
                                     className="bg-gradient-to-r from-primary to-secondary text-white gap-2"
                                 >
-                                    Continuer
+                                    {t('create.continue')}
                                     <ArrowRight className="h-4 w-4" />
                                 </Button>
 
@@ -228,7 +230,7 @@ export default function Create() {
                                         setStep('customize');
                                     }}
                                 >
-                                    Passer cette étape
+                                    {t('create.skipStep')}
                                 </Button>
                             </div>
                         </motion.div>
@@ -248,23 +250,23 @@ export default function Create() {
                                 className="gap-2"
                             >
                                 <ChevronLeft className="h-4 w-4" />
-                                Retour aux templates
+                                {t('create.backToTemplates')}
                             </Button>
 
                             {/* Selected template preview */}
                             {selectedTemplate && (
                                 <div className="text-center space-y-2">
-                                    <p className="text-sm text-muted-foreground">Template sélectionné:</p>
+                                    <p className="text-sm text-muted-foreground">{t('create.selectedTemplate')}</p>
                                     <h3 className="text-xl font-semibold">{getTemplateById(selectedTemplate)?.name}</h3>
                                 </div>
                             )}
 
                             <div className="text-center space-y-4">
                                 <h1 className="text-4xl md:text-5xl font-bold">
-                                    L'IA au service de vos <span className="text-gradient">idées</span>
+                                    {t('create.aiTitle')} <span className="text-gradient">{t('create.aiTitleHighlight')}</span>
                                 </h1>
                                 <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-                                    Décrivez votre sujet, importez vos notes, et laissez SlideAI structurer et designer votre présentation.
+                                    {t('create.aiSubtitle')}
                                 </p>
                             </div>
 
@@ -282,7 +284,7 @@ export default function Create() {
                                                 <textarea
                                                     value={vision}
                                                     onChange={(e) => setVision(e.target.value)}
-                                                    placeholder="Décrivez votre présentation... (ex : 'Pitch deck pour une startup SaaS')"
+                                                    placeholder={t('create.placeholder')}
                                                     className="w-full flex-1 min-h-[200px] md:min-h-[300px] bg-transparent border-none rounded-lg pl-12 pr-4 py-4 text-lg text-foreground placeholder:text-muted-foreground/50 focus:ring-0 resize-none leading-relaxed"
                                                 />
 
@@ -356,10 +358,10 @@ export default function Create() {
 
                                                         <div className="space-y-1">
                                                             <p className="text-sm font-medium">
-                                                                {isDragging ? "Déposez ici" : "Ajouter un fichier"}
+                                                                {isDragging ? t('create.dropHere') : t('create.addFile')}
                                                             </p>
                                                             <p className="text-xs text-muted-foreground">
-                                                                Glissez ou cliquez
+                                                                {t('create.dragOrClick')}
                                                             </p>
                                                         </div>
                                                     </div>
@@ -367,7 +369,7 @@ export default function Create() {
                                                     {/* Slider moves here */}
                                                     <div className="space-y-3 px-1">
                                                         <div className="flex justify-between items-center">
-                                                            <label className="text-xs font-medium text-muted-foreground">Nombre de slides</label>
+                                                            <label className="text-xs font-medium text-muted-foreground">{t('create.slideCount')}</label>
                                                             <span className="text-xs font-mono bg-muted px-2 py-0.5 rounded text-foreground">{slides[0]}</span>
                                                         </div>
                                                         <Slider
@@ -393,7 +395,7 @@ export default function Create() {
                                                         ) : (
                                                             <div className="flex items-center gap-2 justify-center">
                                                                 <Zap className="w-4 h-4 fill-current" />
-                                                                <span>Générer</span>
+                                                                <span>{t('create.generate')}</span>
                                                             </div>
                                                         )}
                                                     </Button>

@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { SlideData } from '@/lib/api';
 import { adaptToLayout, SlideLayoutType } from '@/lib/slide-adapter';
 import { ModernSlideRenderer } from '@/components/slides/ModernSlideRenderer';
@@ -15,6 +16,7 @@ interface LayoutSwitcherProps {
 
 export function LayoutSwitcher({ currentSlide, theme, colors, onUpdateSlide }: LayoutSwitcherProps) {
     const [originalSlide, setOriginalSlide] = React.useState<SlideData | null>(null);
+    const { t } = useTranslation();
 
     // Initial capture
     React.useEffect(() => {
@@ -190,10 +192,10 @@ export function LayoutSwitcher({ currentSlide, theme, colors, onUpdateSlide }: L
     return (
         <div className="w-full h-full flex flex-col bg-background/50 backdrop-blur-sm border-l">
             <div className="p-4 border-b flex items-center justify-between">
-                <h3 className="font-semibold text-sm uppercase tracking-wider opacity-70">Design</h3>
+                <h3 className="font-semibold text-sm uppercase tracking-wider opacity-70">{t('editor.design')}</h3>
                 {originalSlide && (
                     <Button variant="ghost" size="sm" onClick={handleRevert} className="h-6 text-[10px] px-2 text-muted-foreground hover:text-foreground">
-                        Reset
+                        {t('editor.reset')}
                     </Button>
                 )}
             </div>

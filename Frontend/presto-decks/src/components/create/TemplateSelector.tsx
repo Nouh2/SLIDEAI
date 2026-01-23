@@ -1,5 +1,6 @@
 // src/components/create/TemplateSelector.tsx
 import { useState } from 'react';
+import { useTranslation } from "react-i18next";
 import { slideTemplates } from '@/data/slideTemplates';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -13,6 +14,7 @@ interface TemplateSelectorProps {
 }
 
 export function TemplateSelector({ selectedTemplate, onSelectTemplate }: TemplateSelectorProps) {
+    const { t } = useTranslation();
     const [filter, setFilter] = useState<string>('all');
     const [hoveredTemplate, setHoveredTemplate] = useState<string | null>(null);
 
@@ -32,7 +34,7 @@ export function TemplateSelector({ selectedTemplate, onSelectTemplate }: Templat
                     className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 text-primary text-sm font-medium mb-4"
                 >
                     <Sparkles className="w-4 h-4" />
-                    <span>Premium Collection</span>
+                    <span>{t('templateSelector.pill')}</span>
                 </motion.div>
                 <motion.h2
                     initial={{ opacity: 0, y: 20 }}
@@ -40,7 +42,7 @@ export function TemplateSelector({ selectedTemplate, onSelectTemplate }: Templat
                     transition={{ delay: 0.1 }}
                     className="text-4xl md:text-5xl font-bold tracking-tight"
                 >
-                    Choose your <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary">style</span>
+                    {t('templateSelector.title')} <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary">{t('templateSelector.highlight')}</span>
                 </motion.h2>
                 <motion.p
                     initial={{ opacity: 0 }}
@@ -48,7 +50,7 @@ export function TemplateSelector({ selectedTemplate, onSelectTemplate }: Templat
                     transition={{ delay: 0.2 }}
                     className="text-lg text-muted-foreground max-w-2xl mx-auto"
                 >
-                    Select a visual identity that matches your story. Each theme comes with unique layouts and typography.
+                    {t('templateSelector.description')}
                 </motion.p>
             </div>
 
@@ -69,7 +71,7 @@ export function TemplateSelector({ selectedTemplate, onSelectTemplate }: Templat
                                     transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
                                 />
                             )}
-                            <span className="relative z-10">{cat}</span>
+                            <span className="relative z-10">{t(`templateSelector.categories.${cat}`)}</span>
                         </button>
                     ))}
                 </div>
@@ -144,16 +146,16 @@ export function TemplateSelector({ selectedTemplate, onSelectTemplate }: Templat
                                     <div className="flex justify-between items-start">
                                         <div>
                                             <h3 className="font-bold text-lg leading-none mb-1 group-hover:text-primary transition-colors">
-                                                {template.name}
+                                                {t(`templateSelector.templates.${template.id}.name`)}
                                             </h3>
                                             <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">
-                                                {template.category}
+                                                {t(`templateSelector.categories.${template.category}`)}
                                             </p>
                                         </div>
                                     </div>
 
                                     <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed">
-                                        {template.description}
+                                        {t(`templateSelector.templates.${template.id}.desc`)}
                                     </p>
 
                                     {/* Footer / Action hint */}
@@ -164,7 +166,7 @@ export function TemplateSelector({ selectedTemplate, onSelectTemplate }: Templat
                                             </Badge>
                                         </div>
                                         <div className={`flex items-center gap-1 transition-all duration-300 ${hoveredTemplate === template.id || selectedTemplate === template.id ? 'text-primary translate-x-0 opacity-100' : 'translate-x-4 opacity-0'}`}>
-                                            <span className="font-medium">Select</span>
+                                            <span className="font-medium">{t('templateSelector.select')}</span>
                                             <ArrowRight className="w-3 h-3" />
                                         </div>
                                     </div>

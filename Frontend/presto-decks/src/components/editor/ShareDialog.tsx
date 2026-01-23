@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation, Trans } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -30,6 +31,7 @@ export function ShareDialog({ presentationId, accessToken, disabled }: ShareDial
     const [viewShareUrl, setViewShareUrl] = useState<string | null>(null);
     const [copied, setCopied] = useState(false);
     const { toast } = useToast();
+    const { t } = useTranslation();
 
     const currentShareUrl = shareMode === "edit" ? editShareUrl : viewShareUrl;
 
@@ -44,8 +46,8 @@ export function ShareDialog({ presentationId, accessToken, disabled }: ShareDial
             }
         } catch (error: any) {
             toast({
-                title: "Erreur",
-                description: error.message || "Impossible de générer le lien de partage",
+                title: t('common.error'),
+                description: error.message || t('share.generateError'),
                 variant: "destructive",
             });
         } finally {
@@ -69,10 +71,10 @@ export function ShareDialog({ presentationId, accessToken, disabled }: ShareDial
         try {
             await navigator.clipboard.writeText(currentShareUrl);
             setCopied(true);
-            toast({ title: "Lien copié !", description: "Le lien de partage est dans votre presse-papier." });
+            toast({ title: t('share.copied'), description: t('share.copiedMsg') });
             setTimeout(() => setCopied(false), 2000);
         } catch {
-            toast({ title: "Erreur", description: "Impossible de copier le lien.", variant: "destructive" });
+            toast({ title: t('common.error'), description: t('share.copyError'), variant: "destructive" });
         }
     };
 
@@ -97,10 +99,10 @@ export function ShareDialog({ presentationId, accessToken, disabled }: ShareDial
                 <DialogHeader>
                     <DialogTitle className="flex items-center gap-2">
                         <Share2 className="h-5 w-5 text-primary" />
-                        Partager cette présentation
+                        {t('share.title')}
                     </DialogTitle>
                     <DialogDescription>
-                        Choisissez le type de partage et envoyez le lien à vos collaborateurs.
+                        {t('share.subtitle')}
                     </DialogDescription>
                 </DialogHeader>
 
@@ -109,39 +111,43 @@ export function ShareDialog({ presentationId, accessToken, disabled }: ShareDial
                     <button
                         onClick={() => handleModeChange("edit")}
                         className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-md text-sm font-medium transition-all ${shareMode === "edit"
-                                ? "bg-background shadow-sm text-primary border border-primary/20"
-                                : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                            ? "bg-background shadow-sm text-primary border border-primary/20"
+                            : "text-muted-foreground hover:text-foreground hover:bg-muted"
                             }`}
                     >
                         <Edit3 className="h-4 w-4" />
-                        Collaboratif
+                        {t('share.collaborative')}
                     </button>
                     <button
                         onClick={() => handleModeChange("view")}
                         className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-md text-sm font-medium transition-all ${shareMode === "view"
-                                ? "bg-background shadow-sm text-primary border border-primary/20"
-                                : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                            ? "bg-background shadow-sm text-primary border border-primary/20"
+                            : "text-muted-foreground hover:text-foreground hover:bg-muted"
                             }`}
                     >
                         <Eye className="h-4 w-4" />
-                        Lecture seule
+                        {t('share.readOnly')}
                     </button>
                 </div>
 
                 {/* Description based on mode */}
                 <div className={`p-3 rounded-lg border text-sm ${shareMode === "edit"
-                        ? "bg-blue-500/5 border-blue-500/20 text-blue-600 dark:text-blue-400"
-                        : "bg-violet-500/5 border-violet-500/20 text-violet-600 dark:text-violet-400"
+                    ? "bg-blue-500/5 border-blue-500/20 text-blue-600 dark:text-blue-400"
+                    : "bg-violet-500/5 border-violet-500/20 text-violet-600 dark:text-violet-400"
                     }`}>
                     {shareMode === "edit" ? (
                         <p className="flex items-start gap-2">
                             <Edit3 className="h-4 w-4 mt-0.5 flex-shrink-0" />
-                            <span>Les destinataires pourront <strong>voir et modifier</strong> la présentation depuis leur compte.</span>
+                            <span>
+                                <Trans i18nKey="share.editDesc" components={{ strong: <strong /> }} />
+                            </span>
                         </p>
                     ) : (
                         <p className="flex items-start gap-2">
                             <Eye className="h-4 w-4 mt-0.5 flex-shrink-0" />
-                            <span>Les destinataires pourront uniquement <strong>visualiser</strong> la présentation, sans pouvoir la modifier.</span>
+                            <span>
+                                <Trans i18nKey="share.viewDesc" components={{ strong: <strong /> }} />
+                            </span>
                         </p>
                     )}
                 </div>
@@ -151,7 +157,7 @@ export function ShareDialog({ presentationId, accessToken, disabled }: ShareDial
                     {isLoading ? (
                         <div className="flex items-center justify-center py-6">
                             <Loader2 className="h-6 w-6 animate-spin text-primary" />
-                            <span className="ml-2 text-muted-foreground">Génération du lien...</span>
+                            <span className="ml-2 text-muted-foreground">{t('share.generating')}</span>
                         </div>
                     ) : currentShareUrl ? (
                         <div className="flex items-center gap-2">
@@ -166,7 +172,7 @@ export function ShareDialog({ presentationId, accessToken, disabled }: ShareDial
                         </div>
                     ) : (
                         <p className="text-sm text-muted-foreground text-center py-4">
-                            Impossible de générer le lien. Veuillez réessayer.
+                            {t('share.generateFail')}
                         </p>
                     )}
                 </div>
@@ -174,8 +180,8 @@ export function ShareDialog({ presentationId, accessToken, disabled }: ShareDial
                 <DialogFooter className="sm:justify-start">
                     <p className="text-xs text-muted-foreground">
                         {shareMode === "edit"
-                            ? "Ce lien permet la modification. Partagez-le avec précaution."
-                            : "Ce lien est en lecture seule. Les invités ne pourront pas modifier la présentation."
+                            ? t('share.editNote')
+                            : t('share.viewNote')
                         }
                     </p>
                 </DialogFooter>

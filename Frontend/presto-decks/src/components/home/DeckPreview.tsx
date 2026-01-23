@@ -1,7 +1,10 @@
 import { motion } from "framer-motion";
 import { Sparkles, Zap } from "lucide-react";
 
+import { useTranslation } from "react-i18next";
+
 export function DeckPreview() {
+    const { t } = useTranslation();
     return (
         <section className="relative w-full py-12 md:py-20 px-4 overflow-hidden">
             {/* Section Background */}
@@ -15,11 +18,11 @@ export function DeckPreview() {
                 <div className="text-center mb-10 md:mb-16 space-y-4">
                     <div className="inline-flex items-center gap-2 px-3 py-1.5 md:px-4 md:py-2 rounded-full glass-premium text-xs md:text-sm">
                         <Zap className="w-3.5 h-3.5 md:w-4 md:h-4 text-secondary" />
-                        <span className="text-foreground/80">Aperçu en Direct</span>
+                        <span className="text-foreground/80">{t('deckPreview.badge')}</span>
                     </div>
                     <h2 className="text-3xl md:text-5xl font-bold">
-                        Voici ce que vous<br />
-                        <span className="text-gradient-secondary">créerez avec SlideAI</span>
+                        {t('deckPreview.title.main')}<br />
+                        <span className="text-gradient-secondary">{t('deckPreview.title.highlight')}</span>
                     </h2>
                 </div>
 
@@ -112,16 +115,16 @@ export function DeckPreview() {
                                         transition={{ duration: 3, repeat: Infinity }}
                                     >
                                         <Sparkles className="w-4 h-4 text-primary" />
-                                        <span className="text-primary text-xs md:text-sm font-bold tracking-widest uppercase">SlideAI</span>
+                                        <span className="text-primary text-xs md:text-sm font-bold tracking-widest uppercase">{t('deckPreview.slide.brand')}</span>
                                     </motion.div>
 
                                     <h2 className="text-2xl md:text-4xl font-bold text-foreground leading-tight">
-                                        Présentations<br />
-                                        <span className="text-gradient-primary">Intelligentes</span>
+                                        {t('deckPreview.slide.title')}<br />
+                                        <span className="text-gradient-primary">{t('deckPreview.slide.highlight')}</span>
                                     </h2>
 
                                     <p className="text-muted-foreground text-sm md:text-base max-w-md leading-relaxed font-medium">
-                                        Générez du contenu pertinent et un design captivant instantanément.
+                                        {t('deckPreview.slide.desc')}
                                     </p>
 
                                     {/* Indicators */}
@@ -156,7 +159,7 @@ export function DeckPreview() {
                     className="text-center mt-12 md:mt-16"
                 >
                     <p className="text-muted text-sm md:text-base">
-                        📊 Design moderne • 🎨 Thèmes préétablis • ✨ Animations fluides • 🚀 Prêt à présenter
+                        {t('deckPreview.footer')}
                     </p>
                 </motion.div>
             </div>

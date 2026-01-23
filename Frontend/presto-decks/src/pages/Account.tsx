@@ -11,7 +11,10 @@ import { api } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
 import { Input } from "@/components/ui/input";
 
+import { useTranslation } from "react-i18next";
+
 export default function Account() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [user, setUser] = useState<SupabaseUser | null>(null);
@@ -79,8 +82,8 @@ export default function Account() {
   const handleChangePassword = async () => {
     if (!newPassword || newPassword !== confirmPassword) {
       toast({
-        title: "Erreur",
-        description: "Les mots de passe ne correspondent pas.",
+        title: t('common.error'),
+        description: t('account.passwordMismatch'),
         variant: "destructive",
       });
       return;
@@ -88,8 +91,8 @@ export default function Account() {
 
     if (newPassword.length < 6) {
       toast({
-        title: "Erreur",
-        description: "Le mot de passe doit faire au moins 6 caractères.",
+        title: t('common.error'),
+        description: t('account.passwordTooShort'),
         variant: "destructive",
       });
       return;
@@ -104,15 +107,15 @@ export default function Account() {
       if (error) throw error;
 
       toast({
-        title: "Succès",
-        description: "Votre mot de passe a été mis à jour.",
+        title: t('common.success'),
+        description: t('account.passwordUpdated'),
       });
       setNewPassword("");
       setConfirmPassword("");
     } catch (error: any) {
       toast({
-        title: "Erreur",
-        description: error.message || "Une erreur est survenue.",
+        title: t('common.error'),
+        description: error.message || t('common.error'),
         variant: "destructive",
       });
     } finally {
@@ -132,7 +135,7 @@ export default function Account() {
   const isFree = !subscription || subscription.plan === 'free';
   const isUnlimited = subscription?.creditsRemaining === -1;
   const planColor = isFree ? "text-muted-foreground" : "text-primary";
-  const planName = subscription?.plan ? `Plan ${subscription.plan.charAt(0).toUpperCase() + subscription.plan.slice(1)}` : "Plan Gratuit";
+  const planName = subscription?.plan ? `Plan ${subscription.plan.charAt(0).toUpperCase() + subscription.plan.slice(1)}` : `Plan ${t('pricing.plans.free.name')}`;
 
   return (
     <div className="container py-12">
@@ -140,15 +143,15 @@ export default function Account() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-purple-600">
-              Mon compte
+              {t('account.title')}
             </h1>
             <p className="text-muted-foreground mt-2 text-lg">
-              Gérez vos informations et votre abonnement
+              {t('account.subtitle')}
             </p>
           </div>
           {isFree && (
             <Button onClick={() => navigate('/pricing')} className="hidden md:flex bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 text-white shadow-lg hover:shadow-xl transition-all duration-300">
-              <Sparkles className="mr-2 h-4 w-4" /> Passer à Pro
+              <Sparkles className="mr-2 h-4 w-4" /> {t('account.upgradeToProBtn')}
             </Button>
           )}
         </div>
@@ -157,15 +160,15 @@ export default function Account() {
           <TabsList className="grid w-full max-w-2xl grid-cols-3 p-1 bg-secondary/30 backdrop-blur-sm rounded-xl">
             <TabsTrigger value="overview" className="rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all duration-300">
               <User className="mr-2 h-4 w-4" />
-              Vue d'ensemble
+              {t('account.overview')}
             </TabsTrigger>
             <TabsTrigger value="subscription" className="rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all duration-300">
               <CreditCard className="mr-2 h-4 w-4" />
-              Abonnement
+              {t('account.subscription')}
             </TabsTrigger>
             <TabsTrigger value="history" className="rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all duration-300">
               <Clock className="mr-2 h-4 w-4" />
-              Activité
+              {t('account.activity')}
             </TabsTrigger>
           </TabsList>
 
@@ -176,7 +179,7 @@ export default function Account() {
                 <CardHeader className="bg-gradient-to-br from-primary/5 to-transparent">
                   <CardTitle className="flex items-center gap-2">
                     <User className="h-5 w-5 text-primary" />
-                    Profil
+                    {t('account.profile')}
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-6 p-6">
@@ -185,7 +188,7 @@ export default function Account() {
                       <Mail className="h-5 w-5 text-primary" />
                     </div>
                     <div className="overflow-hidden">
-                      <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Email</p>
+                      <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{t('account.email')}</p>
                       <p className="font-semibold truncate">{user?.email}</p>
                     </div>
                   </div>
@@ -195,7 +198,7 @@ export default function Account() {
                       <Hash className="h-5 w-5 text-purple-500" />
                     </div>
                     <div className="overflow-hidden">
-                      <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">ID Utilisateur</p>
+                      <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{t('account.userId')}</p>
                       <p className="font-mono text-xs text-muted-foreground truncate" title={user?.id}>{user?.id}</p>
                     </div>
                   </div>
@@ -205,7 +208,7 @@ export default function Account() {
                       <Shield className="h-5 w-5 text-blue-500" />
                     </div>
                     <div>
-                      <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Fournisseur</p>
+                      <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{t('account.provider')}</p>
                       <p className="font-medium capitalize">{user?.app_metadata?.provider || 'Email'}</p>
                     </div>
                   </div>
@@ -214,19 +217,19 @@ export default function Account() {
                   <div className="pt-4 border-t border-border/50 space-y-4">
                     <h4 className="text-sm font-semibold flex items-center gap-2">
                       <Lock className="h-4 w-4 text-primary" />
-                      Modifier le mot de passe
+                      {t('account.changePassword')}
                     </h4>
                     <div className="space-y-3">
                       <Input
                         type="password"
-                        placeholder="Nouveau mot de passe"
+                        placeholder={t('account.newPassword')}
                         value={newPassword}
                         onChange={(e) => setNewPassword(e.target.value)}
                         className="rounded-xl"
                       />
                       <Input
                         type="password"
-                        placeholder="Confirmer le mot de passe"
+                        placeholder={t('account.confirmPassword')}
                         value={confirmPassword}
                         onChange={(e) => setConfirmPassword(e.target.value)}
                         className="rounded-xl"
@@ -237,7 +240,7 @@ export default function Account() {
                         onClick={handleChangePassword}
                         disabled={updatingPassword}
                       >
-                        {updatingPassword ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : "Mettre à jour"}
+                        {updatingPassword ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : t('account.updatePassword')}
                       </Button>
                     </div>
                   </div>
@@ -249,20 +252,20 @@ export default function Account() {
                 <CardHeader className="bg-gradient-to-br from-indigo-500/5 to-transparent">
                   <CardTitle className="flex items-center gap-2">
                     <Zap className="h-5 w-5 text-indigo-500" />
-                    Statistiques
+                    {t('account.statistics')}
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="p-6">
                   <div className="grid grid-cols-2 gap-4">
                     <div className="p-4 rounded-xl bg-secondary/20 border border-border/50 text-center">
                       <p className="text-3xl font-bold text-primary">{presentations.length}</p>
-                      <p className="text-sm text-muted-foreground mt-1">Présentations</p>
+                      <p className="text-sm text-muted-foreground mt-1">{t('account.presentationsCount')}</p>
                     </div>
                     <div className="p-4 rounded-xl bg-secondary/20 border border-border/50 text-center">
                       <p className="text-3xl font-bold text-indigo-500">
                         {isUnlimited ? '∞' : (subscription?.creditsRemaining ?? 0)}
                       </p>
-                      <p className="text-sm text-muted-foreground mt-1">Crédits restants</p>
+                      <p className="text-sm text-muted-foreground mt-1">{t('account.creditsRemaining')}</p>
                     </div>
                   </div>
                   <div className="mt-6 pt-6 border-t border-border/50">
@@ -273,7 +276,7 @@ export default function Account() {
                       disabled={signingOut}
                     >
                       {signingOut ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <LogOut className="mr-2 h-4 w-4" />}
-                      Se déconnecter
+                      {t('account.signOut')}
                     </Button>
                   </div>
                 </CardContent>
@@ -285,13 +288,13 @@ export default function Account() {
             <Card className="max-w-3xl mx-auto border-border/50 shadow-xl overflow-hidden">
               <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary to-purple-600" />
               <CardHeader className="text-center pb-8 pt-10">
-                <CardTitle className="text-2xl font-bold mb-2">Votre Abonnement</CardTitle>
+                <CardTitle className="text-2xl font-bold mb-2">{t('account.yourSubscription')}</CardTitle>
                 <div className="flex items-center justify-center gap-3 mt-4">
                   <Badge variant="outline" className={`px-4 py-1 text-base ${planColor} border-primary/20 bg-primary/5`}>
                     {planName}
                   </Badge>
                   <Badge variant="outline" className="px-4 py-1 text-base text-green-600 border-green-600/20 bg-green-500/5">
-                    Actif
+                    {t('account.active')}
                   </Badge>
                 </div>
               </CardHeader>
@@ -301,7 +304,7 @@ export default function Account() {
                 {!isUnlimited && (
                   <div className="space-y-3">
                     <div className="flex justify-between items-end">
-                      <span className="text-sm font-medium text-muted-foreground">Crédits disponibles</span>
+                      <span className="text-sm font-medium text-muted-foreground">{t('account.creditsAvailable')}</span>
                       <span className="text-xl font-bold text-foreground">{subscription?.creditsRemaining ?? 0}</span>
                     </div>
                     <div className="w-full bg-secondary rounded-full h-3 overflow-hidden">
@@ -313,7 +316,7 @@ export default function Account() {
                       />
                     </div>
                     <p className="text-xs text-muted-foreground text-center">
-                      Passez à un plan supérieur pour plus de crédits.
+                      {t('account.upgradeNote')}
                     </p>
                   </div>
                 )}
@@ -321,23 +324,23 @@ export default function Account() {
                 {isUnlimited && (
                   <div className="p-6 rounded-2xl bg-gradient-to-br from-indigo-500/10 to-purple-500/10 border border-indigo-500/20 text-center space-y-2">
                     <Sparkles className="w-8 h-8 text-indigo-500 mx-auto mb-2" />
-                    <h3 className="font-bold text-lg text-foreground">Accès Illimité</h3>
-                    <p className="text-muted-foreground">Vous profitez de la puissance maximale de SlideAI.</p>
+                    <h3 className="font-bold text-lg text-foreground">{t('account.unlimitedAccess')}</h3>
+                    <p className="text-muted-foreground">{t('account.unlimitedNote')}</p>
                   </div>
                 )}
 
                 <div className="pt-6 border-t border-border/50 flex flex-col gap-3">
                   {isFree ? (
                     <Button onClick={() => navigate('/pricing')} className="w-full h-12 text-lg font-bold bg-gradient-to-r from-primary to-purple-600 hover:opacity-90 transition-opacity">
-                      Passer à Pro <Sparkles className="ml-2 h-5 w-5" />
+                      {t('account.upgradeToPro')} <Sparkles className="ml-2 h-5 w-5" />
                     </Button>
                   ) : (
                     <Button onClick={() => navigate('/pricing')} variant="outline" className="w-full h-12">
-                      Gérer mon abonnement
+                      {t('account.manageSubscription')}
                     </Button>
                   )}
                   <p className="text-xs text-muted-foreground text-center max-w-xs mx-auto">
-                    La gestion de la facturation se fait via notre partenaire sécurisé Stripe.
+                    {t('account.stripeNote')}
                   </p>
                 </div>
               </CardContent>
@@ -346,8 +349,8 @@ export default function Account() {
 
           <TabsContent value="history" className="space-y-6 mt-8 animate-fade-in">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold">Présentations récentes</h3>
-              <Button variant="outline" size="sm" onClick={() => navigate('/app')}>Voir tout</Button>
+              <h3 className="text-lg font-semibold">{t('account.recentPresentations')}</h3>
+              <Button variant="outline" size="sm" onClick={() => navigate('/app')}>{t('account.viewAll')}</Button>
             </div>
 
             {presentations.length > 0 ? (
@@ -370,7 +373,7 @@ export default function Account() {
                       </div>
                     </div>
                     <Badge variant="secondary" className="ml-auto">
-                      Draft
+                      {t('account.draft')}
                     </Badge>
                   </div>
                 ))}
@@ -381,12 +384,12 @@ export default function Account() {
                   <div className="p-4 rounded-full bg-secondary/50 mb-4">
                     <FileText className="w-8 h-8 text-muted-foreground" />
                   </div>
-                  <h3 className="text-lg font-medium">Aucune présentation</h3>
+                  <h3 className="text-lg font-medium">{t('account.noPresentation')}</h3>
                   <p className="text-muted-foreground mb-6 max-w-sm">
-                    Vous n'avez pas encore créé de présentation. Lancez-vous dès maintenant !
+                    {t('account.noPresentationNote')}
                   </p>
                   <Button onClick={() => navigate('/create')}>
-                    <Sparkles className="mr-2 h-4 w-4" /> Créer une présentation
+                    <Sparkles className="mr-2 h-4 w-4" /> {t('account.createPresentation')}
                   </Button>
                 </CardContent>
               </Card>

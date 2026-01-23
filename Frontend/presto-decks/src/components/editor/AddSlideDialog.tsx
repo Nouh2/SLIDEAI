@@ -2,6 +2,7 @@
 // Modal for adding a new slide with AI
 
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
     Dialog,
     DialogContent,
@@ -34,13 +35,14 @@ export function AddSlideDialog({
     const [customPrompt, setCustomPrompt] = useState("");
     const [isGenerating, setIsGenerating] = useState(false);
     const { toast } = useToast();
+    const { t } = useTranslation();
 
     const handleGenerate = async (promptOverride?: string) => {
         const promptToUse = promptOverride || customPrompt;
         if (!promptToUse) {
             toast({
-                title: "Instruction manquante",
-                description: "Veuillez entrer une instruction ou choisir un suggestion.",
+                title: t('addSlide.instructionMissing'),
+                description: t('addSlide.instructionMissingMsg'),
                 variant: "destructive",
             });
             return;
@@ -73,8 +75,8 @@ export function AddSlideDialog({
                         setCustomPrompt("");
 
                         toast({
-                            title: "Slide ajoutée !",
-                            description: "La nouvelle slide a été ajoutée à la fin de la présentation.",
+                            title: t('addSlide.slideAdded'),
+                            description: t('addSlide.slideAddedMsg'),
                         });
 
                         onSuccess(status.newSlide);
@@ -82,8 +84,8 @@ export function AddSlideDialog({
                         clearInterval(pollInterval);
                         setIsGenerating(false);
                         toast({
-                            title: "Erreur",
-                            description: status.error || "La génération a échoué.",
+                            title: t('common.error'),
+                            description: status.error || t('addSlide.generationFailed'),
                             variant: "destructive",
                         });
                     }
@@ -92,8 +94,8 @@ export function AddSlideDialog({
                         clearInterval(pollInterval);
                         setIsGenerating(false);
                         toast({
-                            title: "Timeout",
-                            description: "La génération prend trop de temps. Réessayez.",
+                            title: t('addSlide.timeout'),
+                            description: t('addSlide.timeoutMsg'),
                             variant: "destructive",
                         });
                     }
@@ -104,18 +106,18 @@ export function AddSlideDialog({
         } catch (error: any) {
             setIsGenerating(false);
             toast({
-                title: "Erreur",
-                description: error.message || "Impossible d'ajouter la slide.",
+                title: t('common.error'),
+                description: error.message || t('addSlide.addError'),
                 variant: "destructive",
             });
         }
     };
 
     const quickPrompts = [
-        { label: 'Conclusion', icon: CheckCircle2, prompt: 'Génère une slide de conclusion percutante avec un appel à l\'action clair.', description: 'Synthèse et fin' },
-        { label: 'Q&A', icon: MessageSquare, prompt: 'Génère une slide dédiée aux Questions / Réponses pour engager l\'audience.', description: 'Session questions' },
-        { label: 'Récapitulatif', icon: FileText, prompt: 'Génère une slide qui résume les points clés abordés pour renforcer la mémorisation.', description: 'Résumé des points' },
-        { label: 'Call to Action', icon: Target, prompt: 'Génère une slide incitant l\'audience à passer à l action immédiatement.', description: 'Prochaine étape' },
+        { label: t('addSlide.conclusion'), icon: CheckCircle2, prompt: t('addSlide.prompts.conclusion'), description: t('addSlide.conclusionDesc') },
+        { label: t('addSlide.qa'), icon: MessageSquare, prompt: t('addSlide.prompts.qa'), description: t('addSlide.qaDesc') },
+        { label: t('addSlide.recap'), icon: FileText, prompt: t('addSlide.prompts.recap'), description: t('addSlide.recapDesc') },
+        { label: t('addSlide.cta'), icon: Target, prompt: t('addSlide.prompts.cta'), description: t('addSlide.ctaDesc') },
     ];
 
     return (
@@ -127,10 +129,10 @@ export function AddSlideDialog({
                 <DialogHeader>
                     <DialogTitle className="flex items-center gap-2">
                         <Sparkles className="h-5 w-5 text-primary" />
-                        Ajouter une slide magique
+                        {t('addSlide.title')}
                     </DialogTitle>
                     <DialogDescription>
-                        L'IA va générer une nouvelle slide cohérente avec le reste de votre présentation.
+                        {t('addSlide.subtitle')}
                     </DialogDescription>
                 </DialogHeader>
 
@@ -138,7 +140,7 @@ export function AddSlideDialog({
                     {/* Quick Prompts */}
                     <div className="space-y-2">
                         <label className="text-sm font-medium text-muted-foreground">
-                            Suggestions rapides
+                            {t('addSlide.quickSuggestions')}
                         </label>
                         <div className="grid grid-cols-2 gap-2">
                             {quickPrompts.map((item, idx) => (
@@ -168,7 +170,7 @@ export function AddSlideDialog({
                             <span className="w-full border-t" />
                         </div>
                         <div className="relative flex justify-center text-xs uppercase">
-                            <span className="bg-background px-2 text-muted-foreground">ou décrivez vos besoins</span>
+                            <span className="bg-background px-2 text-muted-foreground">{t('addSlide.orDescribe')}</span>
                         </div>
                     </div>
 
@@ -177,7 +179,7 @@ export function AddSlideDialog({
                         <Textarea
                             value={customPrompt}
                             onChange={(e) => setCustomPrompt(e.target.value)}
-                            placeholder="Ex: Une slide sur les bénéfices financiers, avec un graphique en barres..."
+                            placeholder={t('addSlide.placeholder')}
                             rows={3}
                             disabled={isGenerating}
                             className="resize-none"
@@ -191,7 +193,7 @@ export function AddSlideDialog({
                         onClick={() => setOpen(false)}
                         disabled={isGenerating}
                     >
-                        Annuler
+                        {t('addSlide.cancel')}
                     </Button>
                     <Button
                         onClick={() => handleGenerate()}
@@ -200,12 +202,12 @@ export function AddSlideDialog({
                         {isGenerating ? (
                             <>
                                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                Génération...
+                                {t('addSlide.generating')}
                             </>
                         ) : (
                             <>
                                 <Plus className="mr-2 h-4 w-4" />
-                                Générer
+                                {t('addSlide.generate')}
                             </>
                         )}
                     </Button>

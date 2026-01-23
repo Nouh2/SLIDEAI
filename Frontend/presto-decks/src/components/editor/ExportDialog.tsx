@@ -2,6 +2,7 @@
 // Export dialog with PDF and PPTX options
 
 import { useState, useRef, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
     Dialog,
     DialogContent,
@@ -33,6 +34,7 @@ export function ExportDialog({ open, onOpenChange, presentation }: ExportDialogP
     const [exportProgress, setExportProgress] = useState<ExportProgress | null>(null);
     const [error, setError] = useState<string | null>(null);
     const hiddenSlidesRef = useRef<HTMLDivElement>(null);
+    const { t } = useTranslation();
 
     const handlePDFExport = useCallback(async () => {
         if (!presentation || !hiddenSlidesRef.current) return;
@@ -42,7 +44,7 @@ export function ExportDialog({ open, onOpenChange, presentation }: ExportDialogP
             current: 0,
             total: presentation.slides.length,
             status: 'preparing',
-            message: 'Préparation...'
+            message: t('export.preparing')
         });
 
         try {
@@ -50,7 +52,7 @@ export function ExportDialog({ open, onOpenChange, presentation }: ExportDialogP
             const slideElements = hiddenSlidesRef.current.querySelectorAll('[data-slide-export]');
 
             if (slideElements.length === 0) {
-                throw new Error('Aucune slide trouvée');
+                throw new Error(t('export.noSlides'));
             }
 
             await exportToPDF(
@@ -67,7 +69,7 @@ export function ExportDialog({ open, onOpenChange, presentation }: ExportDialogP
 
         } catch (err: any) {
             console.error('PDF export error:', err);
-            setError(err.message || 'Erreur lors de l\'export');
+            setError(err.message || t('export.genericError'));
             setExportProgress(null);
         }
     }, [presentation, onOpenChange]);
@@ -80,7 +82,7 @@ export function ExportDialog({ open, onOpenChange, presentation }: ExportDialogP
             current: 0,
             total: presentation.slides.length,
             status: 'preparing',
-            message: 'Initialisation...'
+            message: t('export.initializing')
         });
 
         try {
@@ -103,7 +105,7 @@ export function ExportDialog({ open, onOpenChange, presentation }: ExportDialogP
 
         } catch (err: any) {
             console.error('PPTX export error:', err);
-            setError(err.message || 'Erreur lors de l\'export PowerPoint');
+            setError(err.message || t('export.pptxError'));
             setExportProgress(null);
         }
     }, [presentation, onOpenChange]);
@@ -115,9 +117,9 @@ export function ExportDialog({ open, onOpenChange, presentation }: ExportDialogP
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="sm:max-w-[500px] border-border bg-background/95 backdrop-blur-xl shadow-2xl">
                 <DialogHeader>
-                    <DialogTitle className="text-xl font-bold">Exporter la présentation</DialogTitle>
+                    <DialogTitle className="text-xl font-bold">{t('export.title')}</DialogTitle>
                     <DialogDescription>
-                        Choisissez le format d'export pour "{presentation?.title}"
+                        {t('export.subtitle', { title: presentation?.title })}
                     </DialogDescription>
                 </DialogHeader>
 
@@ -135,10 +137,10 @@ export function ExportDialog({ open, onOpenChange, presentation }: ExportDialogP
                             </div>
                             <h3 className="font-bold text-foreground mb-1">PDF</h3>
                             <p className="text-xs text-muted-foreground text-center">
-                                Haute fidélité visuelle
+                                {t('export.pdfDesc')}
                             </p>
                             <span className="absolute top-3 right-3 text-[10px] font-bold uppercase tracking-wider text-emerald-500 bg-emerald-500/10 px-2 py-0.5 rounded-full">
-                                Prêt
+                                {t('export.ready')}
                             </span>
                         </button>
 
@@ -151,13 +153,13 @@ export function ExportDialog({ open, onOpenChange, presentation }: ExportDialogP
                             </div>
                             <h3 className="font-bold text-muted-foreground mb-1">PowerPoint</h3>
                             <p className="text-xs text-muted-foreground text-center">
-                                Bientôt disponible
+                                {t('export.comingSoon')}
                             </p>
                             <span className="absolute top-3 right-3 text-[10px] font-bold uppercase tracking-wider text-amber-500 bg-amber-500/10 px-2 py-0.5 rounded-full">
                                 Beta
                             </span>
                             <p className="text-[10px] text-muted-foreground text-center mt-2">
-                                On y travaille ! 🚀
+                                {t('export.workingOnIt')}
                             </p>
                         </div>
                     </div>
@@ -175,7 +177,7 @@ export function ExportDialog({ open, onOpenChange, presentation }: ExportDialogP
                             className="h-2"
                         />
                         <p className="text-center text-sm text-muted-foreground">
-                            Slide {exportProgress?.current} / {exportProgress?.total}
+                            {t('export.progressSlide', { current: exportProgress?.current, total: exportProgress?.total })}
                         </p>
                     </div>
                 )}
@@ -186,9 +188,9 @@ export function ExportDialog({ open, onOpenChange, presentation }: ExportDialogP
                         <div className="w-16 h-16 rounded-full bg-emerald-500/10 flex items-center justify-center">
                             <CheckCircle className="w-8 h-8 text-emerald-500" />
                         </div>
-                        <p className="font-bold text-lg text-foreground">Export terminé !</p>
+                        <p className="font-bold text-lg text-foreground">{t('export.complete')}</p>
                         <p className="text-sm text-muted-foreground">
-                            Le fichier a été téléchargé
+                            {t('export.downloaded')}
                         </p>
                     </div>
                 )}

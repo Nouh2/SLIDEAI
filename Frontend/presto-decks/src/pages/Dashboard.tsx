@@ -1,5 +1,6 @@
 import { useMemo, useState, useEffect } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { ProjectThumbnail } from "@/components/dashboard/ProjectThumbnail";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -35,6 +36,7 @@ type TabType = "owned" | "shared";
 
 export default function Dashboard() {
   const navigate = useNavigate();
+  const { t, i18n } = useTranslation();
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("all");
   const [sortBy, setSortBy] = useState("recent");
@@ -53,15 +55,15 @@ export default function Dashboard() {
     const sessionId = searchParams.get("session_id");
     if (sessionId) {
       toast({
-        title: "Paiement réussi ! 🎉",
-        description: "Votre abonnement est activé. Merci de votre confiance !",
+        title: t('dashboard.paymentSuccess'),
+        description: t('dashboard.paymentSuccessMsg'),
         className: "bg-green-500/10 border-green-500/50 text-green-500",
       });
       // Clean URL
       searchParams.delete("session_id");
       setSearchParams(searchParams);
     }
-  }, [searchParams, setSearchParams, toast]);
+  }, [searchParams, setSearchParams, toast, t]);
 
   // Load presentations via API
   useEffect(() => {
@@ -87,8 +89,8 @@ export default function Dashboard() {
       } catch (error: any) {
         console.error('Error fetching presentations:', error);
         toast({
-          title: "Erreur",
-          description: "Impossible de charger vos présentations",
+          title: t('common.error'),
+          description: t('dashboard.loadError'),
           variant: "destructive",
         });
       }
@@ -97,7 +99,7 @@ export default function Dashboard() {
     };
 
     fetchPresentations();
-  }, [navigate, toast]);
+  }, [navigate, toast, t]);
 
   const handleDelete = async (id: string) => {
     try {
@@ -115,13 +117,13 @@ export default function Dashboard() {
       setOwnedPresentations(prev => prev.filter(p => p.id !== id));
 
       toast({
-        title: "Présentation supprimée",
-        description: "La présentation a été supprimée avec succès.",
+        title: t('dashboard.presentationDeleted'),
+        description: t('dashboard.presentationDeletedMsg'),
       });
     } catch (error) {
       toast({
-        title: "Erreur",
-        description: "Impossible de supprimer la présentation.",
+        title: t('common.error'),
+        description: t('dashboard.deleteError'),
         variant: "destructive",
       });
     } finally {
@@ -172,21 +174,21 @@ export default function Dashboard() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 animate-fade-in-up">
         <div>
           <h1 className="text-4xl md:text-5xl font-bold mb-2 text-gradient">
-            Tableau de Bord
+            {t('dashboard.title')}
           </h1>
           <div className="flex items-center gap-3 mt-1">
-            <p className="text-muted-foreground text-base">Gérez vos présentations</p>
+            <p className="text-muted-foreground text-base">{t('dashboard.subtitle')}</p>
             {subscription && (
               <div className="flex items-center gap-2">
                 <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
                 <div className="px-3 py-1 rounded-full bg-primary/10 border border-primary/20 flex items-center gap-2 transition-all hover:bg-primary/20 cursor-default group">
                   <Zap className="w-3.5 h-3.5 text-primary group-hover:scale-110 transition-transform" />
                   <span className="text-xs font-bold uppercase tracking-wider text-primary">
-                    Plan {subscription.plan}
+                    {t('dashboard.plan')} {subscription.plan}
                   </span>
                   <span className="w-px h-3 bg-primary/20 mx-1" />
                   <span className="text-xs font-medium text-primary/80">
-                    {subscription.creditsRemaining === -1 ? "Présentations Illimitées" : `${subscription.creditsRemaining} présentations`}
+                    {subscription.creditsRemaining === -1 ? t('dashboard.unlimitedPresentations') : `${subscription.creditsRemaining} ${t('dashboard.presentations')}`}
                   </span>
                 </div>
               </div>
@@ -196,7 +198,7 @@ export default function Dashboard() {
         <Button size="lg" asChild variant="solid">
           <Link to="/create">
             <Plus className="mr-2 h-5 w-5" />
-            Nouvelle Présentation
+            {t('dashboard.newPresentation')}
           </Link>
         </Button>
       </div>
@@ -209,7 +211,7 @@ export default function Dashboard() {
           className="rounded-b-none"
         >
           <FolderOpen className="w-4 h-4 mr-2" />
-          Mes Présentations
+          {t('dashboard.myPresentations')}
           {ownedPresentations.length > 0 && (
             <span className="ml-2 px-2 py-0.5 text-xs bg-muted rounded-full">
               {ownedPresentations.length}
@@ -222,7 +224,7 @@ export default function Dashboard() {
           className="rounded-b-none"
         >
           <Users className="w-4 h-4 mr-2" />
-          Partagées avec moi
+          {t('dashboard.sharedWithMe')}
           {totalSharedCount > 0 && (
             <span className="ml-2 px-2 py-0.5 text-xs bg-muted rounded-full">
               {totalSharedCount}
@@ -238,7 +240,7 @@ export default function Dashboard() {
             <div className="relative">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
               <Input
-                placeholder="Rechercher..."
+                placeholder={t('dashboard.search')}
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 className="pl-12 h-12 bg-surface/50 border-border rounded-2xl focus:border-primary transition-all"
@@ -247,10 +249,10 @@ export default function Dashboard() {
 
             <Select value={filter} onValueChange={setFilter}>
               <SelectTrigger className="bg-surface/50 border-border rounded-2xl h-12 hover:border-primary transition-all">
-                <SelectValue placeholder="Filtrer par thème" />
+                <SelectValue placeholder={t('dashboard.filterByTheme')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Tous les thèmes</SelectItem>
+                <SelectItem value="all">{t('dashboard.allThemes')}</SelectItem>
                 <SelectItem value="startup">Startup</SelectItem>
                 <SelectItem value="corporate">Corporate</SelectItem>
                 <SelectItem value="creative">Creative</SelectItem>
@@ -259,12 +261,12 @@ export default function Dashboard() {
 
             <Select value={sortBy} onValueChange={setSortBy}>
               <SelectTrigger className="bg-surface/50 border-border rounded-2xl h-12 hover:border-primary transition-all">
-                <SelectValue placeholder="Trier par" />
+                <SelectValue placeholder={t('dashboard.sortBy')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="recent">Plus récent</SelectItem>
-                <SelectItem value="oldest">Plus ancien</SelectItem>
-                <SelectItem value="name">Nom A-Z</SelectItem>
+                <SelectItem value="recent">{t('dashboard.mostRecent')}</SelectItem>
+                <SelectItem value="oldest">{t('dashboard.oldest')}</SelectItem>
+                <SelectItem value="name">{t('dashboard.nameAZ')}</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -287,7 +289,7 @@ export default function Dashboard() {
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-60 group-hover:opacity-80 transition-opacity pointer-events-none" />
 
                 <div className="absolute top-3 right-3 px-3 py-1.5 rounded-full bg-surface/80 backdrop-blur-sm border border-border text-xs font-semibold z-10">
-                  {presentation.slides?.slides?.length || 0} slides
+                  {presentation.slides?.slides?.length || 0} {t('dashboard.slides')}
                 </div>
                 {activeTab === "shared" && (
                   <div className={`absolute top-3 left-3 px-2 py-1 rounded-full text-xs font-medium flex items-center gap-1 z-10 ${(presentation as any)._accessType === 'view'
@@ -295,7 +297,7 @@ export default function Dashboard() {
                     : 'bg-blue-500/20 border border-blue-500/50 text-blue-400'
                     }`}>
                     <Users className="w-3 h-3" />
-                    {(presentation as any)._accessType === 'view' ? 'Lecture seule' : 'Collaboratif'}
+                    {(presentation as any)._accessType === 'view' ? t('dashboard.readOnly') : t('dashboard.collaborative')}
                   </div>
                 )}
               </div>
@@ -307,7 +309,7 @@ export default function Dashboard() {
                     {presentation.title}
                   </h3>
                   <p className="text-sm text-muted-foreground line-clamp-2">
-                    Thème: {presentation.theme}
+                    {t('dashboard.theme')}: {presentation.theme}
                   </p>
                 </div>
 
@@ -315,7 +317,7 @@ export default function Dashboard() {
                 <div className="flex items-center justify-between text-xs text-muted-foreground">
                   <div className="flex items-center space-x-1.5">
                     <Calendar className="h-3.5 w-3.5" />
-                    <span>{new Date(presentation.createdAt).toLocaleDateString('fr-FR')}</span>
+                    <span>{new Date(presentation.createdAt).toLocaleDateString(i18n.language === 'fr' ? 'fr-FR' : 'en-US')}</span>
                   </div>
                   <div className="px-2 py-1 rounded-full bg-green-500/10 text-green-500 text-xs font-medium">
                     {presentation.status}
@@ -328,14 +330,14 @@ export default function Dashboard() {
                     <Button size="sm" variant="solid" asChild className="flex-1">
                       <Link to={`/viewer?id=${presentation.id}`}>
                         <FolderOpen className="mr-1 h-4 w-4" />
-                        Visualiser
+                        {t('dashboard.view')}
                       </Link>
                     </Button>
                   ) : (
                     <Button size="sm" variant="solid" asChild className="flex-1">
                       <Link to={`/editor?id=${presentation.id}`}>
                         <FolderOpen className="mr-1 h-4 w-4" />
-                        Ouvrir
+                        {t('dashboard.open')}
                       </Link>
                     </Button>
                   )}
@@ -364,18 +366,18 @@ export default function Dashboard() {
                       </AlertDialogTrigger>
                       <AlertDialogContent>
                         <AlertDialogHeader>
-                          <AlertDialogTitle>Êtes-vous sûr ?</AlertDialogTitle>
+                          <AlertDialogTitle>{t('dashboard.deleteConfirmTitle')}</AlertDialogTitle>
                           <AlertDialogDescription>
-                            Cette action est irréversible. Cela supprimera définitivement la présentation "{presentation.title}".
+                            {t('dashboard.deleteConfirmMessage')} "{presentation.title}".
                           </AlertDialogDescription>
                         </AlertDialogHeader>
                         <AlertDialogFooter>
-                          <AlertDialogCancel>Annuler</AlertDialogCancel>
+                          <AlertDialogCancel>{t('dashboard.cancel')}</AlertDialogCancel>
                           <AlertDialogAction
                             onClick={() => handleDelete(presentation.id)}
                             className="bg-destructive hover:bg-destructive/90 text-white"
                           >
-                            Supprimer
+                            {t('dashboard.delete')}
                           </AlertDialogAction>
                         </AlertDialogFooter>
                       </AlertDialogContent>
@@ -399,18 +401,18 @@ export default function Dashboard() {
             )}
           </div>
           <h3 className="text-2xl font-bold mb-2">
-            {activeTab === "owned" ? "Aucune présentation" : "Aucune présentation partagée"}
+            {activeTab === "owned" ? t('dashboard.noPresentation') : t('dashboard.noSharedPresentation')}
           </h3>
           <p className="text-muted-foreground mb-6">
             {activeTab === "owned"
-              ? "Créez votre première présentation IA"
-              : "Demandez à vos collègues de vous partager leurs présentations"}
+              ? t('dashboard.createFirst')
+              : t('dashboard.askColleagues')}
           </p>
           {activeTab === "owned" && (
             <Button size="lg" asChild variant="solid">
               <Link to="/create">
                 <Plus className="mr-2 h-5 w-5" />
-                Créer une présentation
+                {t('dashboard.createPresentation')}
               </Link>
             </Button>
           )}
@@ -419,3 +421,4 @@ export default function Dashboard() {
     </div>
   );
 }
+

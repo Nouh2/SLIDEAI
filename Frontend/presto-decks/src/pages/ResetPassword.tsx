@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -12,7 +13,9 @@ export default function ResetPassword() {
     const [loading, setLoading] = useState(false);
     const [verifying, setVerifying] = useState(true);
     const navigate = useNavigate();
+    const navigate = useNavigate();
     const { toast } = useToast();
+    const { t } = useTranslation();
 
     useEffect(() => {
         // We need to check if we have a session (the link from email should have established one)
@@ -40,8 +43,8 @@ export default function ResetPassword() {
 
         if (password !== confirmPassword) {
             toast({
-                title: "Erreur",
-                description: "Les mots de passe ne correspondent pas.",
+                title: t('common.error'),
+                description: t('account.passwordMismatch'),
                 variant: "destructive",
             });
             return;
@@ -49,8 +52,8 @@ export default function ResetPassword() {
 
         if (password.length < 6) {
             toast({
-                title: "Erreur",
-                description: "Le mot de passe doit faire au moins 6 caractères.",
+                title: t('common.error'),
+                description: t('account.passwordTooShort'),
                 variant: "destructive",
             });
             return;
@@ -65,8 +68,8 @@ export default function ResetPassword() {
             if (error) throw error;
 
             toast({
-                title: "Succès !",
-                description: "Votre mot de passe a été réinitialisé. Vous allez être redirigé vers le tableau de bord.",
+                title: t('common.success'),
+                description: t('auth.resetSuccess'),
             });
 
             // Redirect after a short delay
@@ -75,8 +78,8 @@ export default function ResetPassword() {
             }, 2000);
         } catch (error: any) {
             toast({
-                title: "Erreur",
-                description: error.message || "Une erreur est survenue lors de la réinitialisation.",
+                title: t('common.error'),
+                description: error.message || t('auth.resetError'),
                 variant: "destructive",
             });
         } finally {
@@ -100,17 +103,17 @@ export default function ResetPassword() {
                         <Lock className="h-6 w-6 text-primary" />
                     </div>
                     <h1 className="text-2xl font-bold text-foreground mb-2">
-                        Réinitialiser le mot de passe
+                        {t('auth.resetPasswordTitle')}
                     </h1>
                     <p className="text-muted-foreground text-sm">
-                        Entrez votre nouveau mot de passe ci-dessous
+                        {t('auth.resetPasswordSubtitle')}
                     </p>
                 </div>
 
                 <form onSubmit={handleReset} className="space-y-4">
                     <div className="space-y-2">
                         <label className="text-sm font-medium text-foreground">
-                            Nouveau mot de passe
+                            {t('account.newPassword')}
                         </label>
                         <Input
                             type="password"
@@ -124,7 +127,7 @@ export default function ResetPassword() {
 
                     <div className="space-y-2">
                         <label className="text-sm font-medium text-foreground">
-                            Confirmer le mot de passe
+                            {t('account.confirmPassword')}
                         </label>
                         <Input
                             type="password"
@@ -144,10 +147,10 @@ export default function ResetPassword() {
                         {loading ? (
                             <>
                                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                Mise à jour...
+                                {t('auth.updating')}
                             </>
                         ) : (
-                            "Réinitialiser le mot de passe"
+                            t('auth.resetPasswordTitle')
                         )}
                     </Button>
                 </form>
@@ -157,7 +160,7 @@ export default function ResetPassword() {
                         onClick={() => navigate("/auth")}
                         className="text-sm text-primary hover:underline font-medium"
                     >
-                        Retour à la connexion
+                        {t('auth.backToLogin')}
                     </button>
                 </div>
             </div>

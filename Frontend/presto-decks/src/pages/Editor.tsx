@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useParams, useSearchParams, Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ModernSlideRenderer } from "@/components/slides/ModernSlideRenderer";
@@ -121,6 +122,7 @@ export default function Editor() {
   const [searchParams] = useSearchParams();
   const presentationId = searchParams.get("id"); // Get ?id=UUID from URL
   const { toast } = useToast();
+  const { t } = useTranslation();
 
   // Refs
   const editorContainerRef = useRef<HTMLDivElement>(null);
@@ -247,7 +249,7 @@ export default function Editor() {
         setIsLoading(true);
         const { data: { session } } = await supabase.auth.getSession();
         if (!session) {
-          setError("Connexion requise");
+          setError(t('editorPage.errors.authRequired'));
           setIsLoading(false);
           return;
         }
@@ -265,7 +267,7 @@ export default function Editor() {
           setIsLoading(false);
         } catch (err: any) {
           console.error("API fetch error:", err);
-          setError(err.message || "Erreur lors du chargement");
+          setError(err.message || t('editorPage.errors.loading'));
           setIsLoading(false);
         }
       };
@@ -303,7 +305,7 @@ export default function Editor() {
             return true; // Stop polling
           } else if (res.status === "failed") {
             setIsLoading(false);
-            setError(res.error || "Une erreur est survenue");
+            setError(res.error || t('editorPage.errors.generic'));
             return true; // Stop polling
           } else {
             // Still processing
@@ -340,7 +342,7 @@ export default function Editor() {
           .single();
 
         if (dbError || !data) {
-          setError("Aucune présentation trouvée");
+          setError(t('editorPage.errors.notFound'));
           setIsLoading(false);
           return;
         }
@@ -355,7 +357,7 @@ export default function Editor() {
         setIsLoading(false);
       } catch (err: any) {
         console.error("Supabase fetch error:", err);
-        setError("Erreur lors du chargement");
+        setError(t('editorPage.errors.loading'));
         setIsLoading(false);
       }
     };
@@ -472,7 +474,7 @@ export default function Editor() {
         if (targetRowIdx === -1) return;
 
         if (rows.length <= 1) {
-          toast({ title: "Action impossible", description: "Le tableau doit contenir au moins une ligne.", variant: "destructive" });
+          toast({ title: t('editorPage.cannotDelete'), description: t('editorPage.mustHaveOneRow'), variant: "destructive" });
           return;
         }
 
@@ -483,13 +485,13 @@ export default function Editor() {
         setCurrentProject(updatedProject);
         triggerAutoSave(updatedProject);
 
-        toast({ title: "Ligne supprimée", description: "La ligne a été supprimée." });
+        toast({ title: t('editorPage.rowDeleted'), description: t('editorPage.rowDeletedMsg') });
         setSelectedElement(null);
         return;
       }
 
       const colCount = rows[0].length;
-      const newRow = Array(colCount).fill("Nouveau");
+      const newRow = Array(colCount).fill(t('editorPage.table.newRow'));
 
       const newRows = [...rows, newRow];
 
@@ -501,8 +503,8 @@ export default function Editor() {
       triggerAutoSave(updatedProject);
 
       toast({
-        title: "Ligne ajoutée",
-        description: "Une nouvelle ligne a été ajoutée au tableau.",
+        title: t('editorPage.rowAdded'),
+        description: t('editorPage.rowAddedMsg'),
       });
     } else {
       console.error("Failed to find valid rows array at", rowsPathString, rows);
@@ -532,10 +534,10 @@ export default function Editor() {
       height: type === 'text' ? 10 : 25,
       rotation: 0,
       opacity: 1,
-      content: type === 'text' ? 'New Text Block' : 'https://source.unsplash.com/random/400x300',
-      value: type === 'text' ? 'New Text Block' : 'https://source.unsplash.com/random/400x300',
+      content: type === 'text' ? t('editorPage.element.newText') : 'https://source.unsplash.com/random/400x300',
+      value: type === 'text' ? t('editorPage.element.newText') : 'https://source.unsplash.com/random/400x300',
       path: `elements[${elements.length}]`,
-      label: type === 'text' ? 'Text Box' : 'Image',
+      label: type === 'text' ? t('editorPage.element.textLabel') : t('editorPage.element.imageLabel'),
       style: {
         fontSize: '1.5rem',
         textAlign: 'left', // Default align
@@ -610,9 +612,9 @@ export default function Editor() {
     }
     const success = await performSave(currentProject);
     if (success) {
-      toast({ title: "Sauvegardé", description: "Vos modifications sont enregistrées." });
+      toast({ title: t('editorPage.saved'), description: t('editorPage.savedMsg') });
     } else {
-      toast({ title: "Erreur", description: "Échec de la sauvegarde.", variant: "destructive" });
+      toast({ title: t('common.error'), description: t('editorPage.saveErrorMsg'), variant: "destructive" });
     }
   };
 
@@ -624,8 +626,8 @@ export default function Editor() {
     // Prevent deleting the last slide
     if (currentProject.slides.length <= 1) {
       toast({
-        title: "Action impossible",
-        description: "La présentation doit contenir au moins une slide.",
+        title: t('editorPage.cannotDelete'),
+        description: t('editorPage.mustHaveOneSlide'),
         variant: "destructive"
       });
       return;
@@ -654,7 +656,7 @@ export default function Editor() {
     }
 
     setSelectedElement(null);
-    toast({ title: "Slide supprimée", description: "La diapositive a été supprimée." });
+    toast({ title: t('editorPage.slideDeleted'), description: t('editorPage.slideDeletedMsg') });
   };
 
   const handleReorderSlides = (newSlides: any[]) => {
@@ -688,10 +690,10 @@ export default function Editor() {
               <AlertCircle className="h-16 w-16 text-destructive relative z-10" />
             </div>
             <div className="space-y-2">
-              <h2 className="text-2xl font-bold text-foreground tracking-tight">Oops!</h2>
+              <h2 className="text-2xl font-bold text-foreground tracking-tight">{t('editorPage.loading.oops')}</h2>
               <p className="text-muted-foreground">{error}</p>
               <Link to="/" className="inline-block mt-4 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors">
-                Retour à l'accueil
+                {t('editorPage.loading.backHome')}
               </Link>
             </div>
           </div>
@@ -731,25 +733,25 @@ export default function Editor() {
                 {saveStatus === 'saving' && (
                   <>
                     <Loader2 className="w-2.5 h-2.5 animate-spin text-primary" />
-                    <span>Enregistrement...</span>
+                    <span>{t('editorPage.saveStatus.saving')}</span>
                   </>
                 )}
                 {saveStatus === 'saved' && (
                   <>
                     <span className="w-1.5 h-1.5 rounded-full bg-[#10B981]"></span>
-                    <span>Enregistré ✓</span>
+                    <span>{t('editorPage.saveStatus.saved')}</span>
                   </>
                 )}
                 {saveStatus === 'error' && (
                   <>
                     <span className="w-1.5 h-1.5 rounded-full bg-destructive"></span>
-                    <span>Erreur de sauvegarde</span>
+                    <span>{t('editorPage.saveStatus.error')}</span>
                   </>
                 )}
                 {saveStatus === 'idle' && (
                   <>
                     <span className="w-1.5 h-1.5 rounded-full bg-[#10B981]"></span>
-                    <span>Prêt</span>
+                    <span>{t('editorPage.saveStatus.ready')}</span>
                   </>
                 )}
               </span>
@@ -764,12 +766,12 @@ export default function Editor() {
               className="h-10 px-5 rounded-xl bg-primary hover:bg-primary/90 text-white shadow-lg shadow-primary/20 font-medium transition-all duration-300 hover:scale-105 hover:-translate-y-0.5"
             >
               <Play className="h-4 w-4 mr-2 fill-current" />
-              Diaporama
+              {t('editorPage.actions.slideshow')}
             </Button>
 
 
             <div className="flex items-center gap-2">
-              <Button variant="ghost" onClick={handleSave} title="Sauvegarder">
+              <Button variant="ghost" onClick={handleSave} title={t('editorPage.actions.save')}>
                 <Save className="w-4 h-4" />
               </Button>
               {currentProject && (
@@ -801,7 +803,7 @@ export default function Editor() {
                     triggerAutoSave(updatedProject);
                   }}
                 >
-                  <Button variant="ghost" title="Modifier la palette de couleurs">
+                  <Button variant="ghost" title={t('editorPage.actions.editPalette')}>
                     <Palette className="w-4 h-4" />
                   </Button>
                 </ColorPaletteDialog>
@@ -813,7 +815,7 @@ export default function Editor() {
                 className="h-10 px-5 rounded-xl border-2 hover:border-primary hover:text-primary hover:bg-primary/5 transition-all duration-300 hover:scale-105 hover:-translate-y-0.5"
               >
                 <Download className="w-4 h-4 mr-2" />
-                Export
+                {t('editorPage.actions.export')}
               </Button>
             </div>
           </div>
@@ -826,7 +828,7 @@ export default function Editor() {
         {!isFullscreen && (
           <div className="w-64 flex flex-col border-r border-border bg-surface/50 backdrop-blur-sm z-30">
             <div className="p-4 border-b border-border flex items-center justify-between bg-surface/80">
-              <span className="text-xs font-bold tracking-widest uppercase text-muted-foreground">Slides</span>
+              <span className="text-xs font-bold tracking-widest uppercase text-muted-foreground">{t('editorPage.sidebar.slides')}</span>
               <span className="text-[10px] bg-muted px-1.5 py-0.5 rounded text-muted-foreground">{currentProject.slides.length}</span>
             </div>
 
@@ -901,7 +903,7 @@ export default function Editor() {
                                 size="icon"
                                 className="h-6 w-6 rounded shadow-sm opacity-0 group-hover:opacity-100 transition-opacity z-10 bg-white text-black hover:bg-gray-100"
                                 onClick={(e) => e.stopPropagation()}
-                                title="Régénérer la slide"
+                                title={t('editorPage.actions.regenerateSlide')}
                               >
                                 <Wand2 className="h-3 w-3" />
                               </Button>
@@ -912,7 +914,7 @@ export default function Editor() {
                             size="icon"
                             className="h-6 w-6 rounded shadow-sm opacity-0 group-hover:opacity-100 transition-opacity z-10"
                             onClick={(e) => handleDeleteSlide(idx, e)}
-                            title="Supprimer la slide"
+                            title={t('editorPage.actions.deleteSlide')}
                           >
                             <Trash2 className="h-3 w-3" />
                           </Button>
@@ -926,7 +928,7 @@ export default function Editor() {
 
                       <div className="mt-1.5 flex items-center justify-between px-1">
                         <span className={`text-[10px] font-medium transition-colors ${selectedSlide === idx ? "text-primary" : "text-muted-foreground"}`}>
-                          {idx + 1}. {slide.title || "Untitled Slide"}
+                          {idx + 1}. {slide.title || t('editorPage.slide.untitled')}
                         </span>
                       </div>
                     </div>
@@ -966,7 +968,7 @@ export default function Editor() {
                     <div className="h-8 w-8 rounded-full bg-muted group-hover:bg-primary/10 flex items-center justify-center transition-colors">
                       <Plus className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
                     </div>
-                    <span className="text-xs font-medium text-muted-foreground group-hover:text-primary transition-colors">Ajouter une slide</span>
+                    <span className="text-xs font-medium text-muted-foreground group-hover:text-primary transition-colors">{t('editorPage.actions.addSlide')}</span>
                   </div>
                 </AddSlideDialog>
               )}
@@ -1046,7 +1048,7 @@ export default function Editor() {
 
               {/* Bottom Info Pill */}
               <div className="absolute bottom-6 left-1/2 -translate-x-1/2 px-4 py-2 rounded-full bg-background/80 backdrop-blur-md text-xs font-medium shadow-sm border border-border flex items-center gap-3 text-muted-foreground cursor-default">
-                <span>Slide {selectedSlide + 1} of {currentProject.slides.length}</span>
+                <span>{t('editorPage.navigation.counter', { current: selectedSlide + 1, total: currentProject.slides.length })}</span>
               </div>
             </>
           )}

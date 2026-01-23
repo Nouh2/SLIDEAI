@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { api } from "@/lib/api";
 import { supabase } from "@/contexts/AuthContext";
@@ -57,6 +58,7 @@ const adaptDeck = (deck: any) => {
 export default function ViewPage() {
     const { token } = useParams<{ token: string }>();
     const navigate = useNavigate();
+    const { t } = useTranslation();
     const containerRef = useRef<HTMLDivElement>(null);
     const slideContainerRef = useRef<HTMLDivElement>(null);
 
@@ -171,7 +173,7 @@ export default function ViewPage() {
                     finalPresentationId = presentationId;
                 } else {
                     setStatus("error");
-                    setErrorMessage("Lien de partage invalide.");
+                    setErrorMessage(t('join.invalidLink'));
                     return;
                 }
 
@@ -189,7 +191,7 @@ export default function ViewPage() {
                 setStatus("viewing");
             } catch (error: any) {
                 setStatus("error");
-                setErrorMessage(error.message || "Impossible d'accéder à la présentation.");
+                setErrorMessage(error.message || t('view.accessError'));
             }
         };
 
@@ -232,8 +234,8 @@ export default function ViewPage() {
                 <div className="text-center space-y-6 p-12 rounded-[2rem] bg-surface/50 backdrop-blur-xl border border-border shadow-2xl max-w-md">
                     <Loader2 className="h-12 w-12 animate-spin text-primary mx-auto" />
                     <div className="space-y-2">
-                        <h2 className="text-xl font-bold">Chargement...</h2>
-                        <p className="text-muted-foreground">Récupération de la présentation</p>
+                        <h2 className="text-xl font-bold">{t('common.loading')}</h2>
+                        <p className="text-muted-foreground">{t('view.fetching')}</p>
                     </div>
                 </div>
             </div>
@@ -249,14 +251,14 @@ export default function ViewPage() {
                         <Eye className="h-8 w-8 text-primary" />
                     </div>
                     <div className="space-y-2">
-                        <h2 className="text-xl font-bold">Connexion requise</h2>
+                        <h2 className="text-xl font-bold">{t('join.authRequiredTitle')}</h2>
                         <p className="text-muted-foreground">
-                            Vous devez vous connecter pour visualiser cette présentation.
+                            {t('view.authRequiredMsg')}
                         </p>
                     </div>
                     <div className="flex flex-col gap-3">
-                        <Button onClick={handleLogin} className="w-full">Se connecter</Button>
-                        <Button variant="outline" onClick={handleLogin} className="w-full">Créer un compte</Button>
+                        <Button onClick={handleLogin} className="w-full">{t('auth.signIn')}</Button>
+                        <Button variant="outline" onClick={handleLogin} className="w-full">{t('auth.signUp')}</Button>
                     </div>
                 </div>
             </div>
@@ -272,11 +274,11 @@ export default function ViewPage() {
                         <AlertCircle className="h-8 w-8 text-destructive" />
                     </div>
                     <div className="space-y-2">
-                        <h2 className="text-xl font-bold">Oops !</h2>
+                        <h2 className="text-xl font-bold">{t('join.oops')}</h2>
                         <p className="text-muted-foreground">{errorMessage}</p>
                     </div>
                     <Link to="/" className="inline-block">
-                        <Button variant="outline">Retour à l'accueil</Button>
+                        <Button variant="outline">{t('editor.backHome')}</Button>
                     </Link>
                 </div>
             </div>
@@ -302,10 +304,10 @@ export default function ViewPage() {
                         <div className="h-6 w-px bg-border"></div>
 
                         <div className="flex flex-col justify-center">
-                            <span className="text-sm font-semibold text-foreground">{project?.title || "Présentation"}</span>
+                            <span className="text-sm font-semibold text-foreground">{project?.title || t('view.presentationDefaultTitle')}</span>
                             <span className="text-[10px] font-medium text-muted-foreground flex items-center gap-2 mt-0.5">
                                 <Eye className="w-3 h-3" />
-                                Mode lecture seule
+                                {t('view.readOnlyMode')}
                             </span>
                         </div>
                     </div>
@@ -320,7 +322,7 @@ export default function ViewPage() {
                             className="h-9 px-5 rounded-lg bg-primary hover:bg-primary/90 text-white shadow-lg shadow-primary/20 font-medium transition-all hover:scale-105"
                         >
                             <Play className="h-3.5 w-3.5 mr-2 fill-current" />
-                            Diaporama
+                            {t('editor.slideshow')}
                         </Button>
                     </div>
                 </div>

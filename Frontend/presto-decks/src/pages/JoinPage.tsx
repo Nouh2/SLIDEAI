@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { api } from "@/lib/api";
 import { supabase } from "@/contexts/AuthContext";
@@ -10,6 +11,7 @@ type JoinStatus = "loading" | "success" | "error" | "auth_required";
 export default function JoinPage() {
     const { token } = useParams<{ token: string }>();
     const navigate = useNavigate();
+    const { t } = useTranslation();
     const [status, setStatus] = useState<JoinStatus>("loading");
     const [errorMessage, setErrorMessage] = useState<string>("");
 
@@ -17,7 +19,7 @@ export default function JoinPage() {
         const joinPresentation = async () => {
             if (!token) {
                 setStatus("error");
-                setErrorMessage("Lien de partage invalide.");
+                setErrorMessage(t('join.invalidLink'));
                 return;
             }
 
@@ -40,7 +42,7 @@ export default function JoinPage() {
                 }, 1500);
             } catch (error: any) {
                 setStatus("error");
-                setErrorMessage(error.message || "Impossible de rejoindre la présentation.");
+                setErrorMessage(error.message || t('join.joinError'));
             }
         };
 
@@ -60,8 +62,8 @@ export default function JoinPage() {
                     <>
                         <Loader2 className="h-12 w-12 animate-spin text-primary mx-auto" />
                         <div className="space-y-2">
-                            <h2 className="text-xl font-bold">Chargement...</h2>
-                            <p className="text-muted-foreground">Vérification du lien de partage</p>
+                            <h2 className="text-xl font-bold">{t('common.loading')}</h2>
+                            <p className="text-muted-foreground">{t('join.verifying')}</p>
                         </div>
                     </>
                 )}
@@ -72,17 +74,17 @@ export default function JoinPage() {
                             <AlertCircle className="h-8 w-8 text-primary" />
                         </div>
                         <div className="space-y-2">
-                            <h2 className="text-xl font-bold">Connexion requise</h2>
+                            <h2 className="text-xl font-bold">{t('join.authRequiredTitle')}</h2>
                             <p className="text-muted-foreground">
-                                Vous devez vous connecter ou créer un compte pour accéder à cette présentation partagée.
+                                {t('join.authRequiredMsg')}
                             </p>
                         </div>
                         <div className="flex flex-col gap-3">
                             <Button onClick={handleLogin} className="w-full">
-                                Se connecter
+                                {t('auth.signIn')}
                             </Button>
                             <Button variant="outline" onClick={handleLogin} className="w-full">
-                                Créer un compte
+                                {t('auth.signUp')}
                             </Button>
                         </div>
                     </>
@@ -94,9 +96,9 @@ export default function JoinPage() {
                             <CheckCircle className="h-8 w-8 text-green-500" />
                         </div>
                         <div className="space-y-2">
-                            <h2 className="text-xl font-bold text-green-600">Présentation ajoutée !</h2>
+                            <h2 className="text-xl font-bold text-green-600">{t('join.presentationAdded')}</h2>
                             <p className="text-muted-foreground">
-                                Redirection vers l'éditeur...
+                                {t('create.redirecting')}
                             </p>
                         </div>
                     </>
@@ -108,11 +110,11 @@ export default function JoinPage() {
                             <AlertCircle className="h-8 w-8 text-destructive" />
                         </div>
                         <div className="space-y-2">
-                            <h2 className="text-xl font-bold">Oops !</h2>
+                            <h2 className="text-xl font-bold">{t('join.oops')}</h2>
                             <p className="text-muted-foreground">{errorMessage}</p>
                         </div>
                         <Link to="/" className="inline-block">
-                            <Button variant="outline">Retour à l'accueil</Button>
+                            <Button variant="outline">{t('editor.backHome')}</Button>
                         </Link>
                     </>
                 )}

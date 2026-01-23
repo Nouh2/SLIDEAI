@@ -2,6 +2,7 @@
 // Modal for reporting bugs during beta testing
 
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
     Dialog,
     DialogContent,
@@ -41,27 +42,28 @@ export function BugReportDialog({
     const [selectedType, setSelectedType] = useState<BugType | null>(null);
     const [userDescription, setUserDescription] = useState("");
     const { toast } = useToast();
+    const { t } = useTranslation();
 
     const bugOptions = [
         {
             id: 'empty-slide' as BugType,
-            label: 'Slide Vide',
+            label: t('bugReport.types.emptySlide'),
             icon: ImageOff,
-            description: 'Une slide s\'affiche vide ou sans contenu',
+            description: t('bugReport.types.emptySlideDesc'),
             color: 'text-red-500',
         },
         {
             id: 'generation-failed' as BugType,
-            label: 'Génération Incomplète',
+            label: t('bugReport.types.generationIncomplete'),
             icon: FileWarning,
-            description: 'La présentation n\'a qu\'une seule slide avec le prompt',
+            description: t('bugReport.types.generationIncompleteDesc'),
             color: 'text-orange-500',
         },
         {
             id: 'other' as BugType,
-            label: 'Autre Bug',
+            label: t('bugReport.types.other'),
             icon: HelpCircle,
-            description: 'Signaler un autre problème',
+            description: t('bugReport.types.otherDesc'),
             color: 'text-blue-500',
         },
     ];
@@ -70,8 +72,8 @@ export function BugReportDialog({
         if (!selectedType) return;
         if (selectedType === 'other' && !userDescription.trim()) {
             toast({
-                title: "Description requise",
-                description: "Veuillez décrire le bug que vous avez rencontré.",
+                title: t('bugReport.validation.descRequired'),
+                description: t('bugReport.validation.descRequiredMsg'),
                 variant: "destructive",
             });
             return;
@@ -97,8 +99,8 @@ export function BugReportDialog({
 
             if (success) {
                 toast({
-                    title: "✅ Bug signalé !",
-                    description: "Merci pour votre retour. Notre équipe va analyser le problème.",
+                    title: t('bugReport.successTitle'),
+                    description: t('bugReport.successMsg'),
                 });
                 setOpen(false);
                 setSelectedType(null);
@@ -108,8 +110,8 @@ export function BugReportDialog({
             }
         } catch (error) {
             toast({
-                title: "Erreur",
-                description: "Impossible d'envoyer le rapport. Réessayez plus tard.",
+                title: t('bugReport.errorTitle'),
+                description: t('bugReport.errorMsg'),
                 variant: "destructive",
             });
         } finally {
@@ -131,7 +133,7 @@ export function BugReportDialog({
                 <Button
                     variant="ghost"
                     size="icon"
-                    title="Signaler un bug"
+                    title={t('bugReport.trigger')}
                     className="relative hover:bg-red-50 hover:text-red-600 transition-colors"
                 >
                     <Bug className="h-4 w-4" />
@@ -142,10 +144,10 @@ export function BugReportDialog({
                 <DialogHeader>
                     <DialogTitle className="flex items-center gap-2">
                         <Bug className="h-5 w-5 text-red-500" />
-                        Signaler un Bug
+                        {t('bugReport.title')}
                     </DialogTitle>
                     <DialogDescription>
-                        Aidez-nous à améliorer SlideAI en signalant les problèmes rencontrés.
+                        {t('bugReport.subtitle')}
                     </DialogDescription>
                 </DialogHeader>
 
@@ -153,7 +155,7 @@ export function BugReportDialog({
                     {/* Bug Type Selection */}
                     <div className="space-y-2">
                         <label className="text-sm font-medium text-muted-foreground">
-                            Type de bug
+                            {t('bugReport.typeLabel')}
                         </label>
                         <div className="grid gap-2">
                             {bugOptions.map((option) => (
@@ -163,8 +165,8 @@ export function BugReportDialog({
                                     onClick={() => handleTypeSelect(option.id)}
                                     disabled={isSending}
                                     className={`h-auto py-3 justify-start gap-3 ${selectedType === option.id
-                                            ? 'ring-2 ring-primary ring-offset-2'
-                                            : ''
+                                        ? 'ring-2 ring-primary ring-offset-2'
+                                        : ''
                                         }`}
                                 >
                                     <option.icon className={`h-5 w-5 ${option.color}`} />
@@ -183,17 +185,17 @@ export function BugReportDialog({
                     {selectedType && selectedType !== 'other' && (
                         <div className="bg-muted/50 rounded-lg p-3 text-sm space-y-1">
                             <div className="flex justify-between">
-                                <span className="text-muted-foreground">Slide actuelle:</span>
+                                <span className="text-muted-foreground">{t('bugReport.context.currentSlide')}</span>
                                 <span className="font-medium">#{slideIndex + 1}</span>
                             </div>
                             <div className="flex justify-between">
-                                <span className="text-muted-foreground">Présentation:</span>
+                                <span className="text-muted-foreground">{t('bugReport.context.presentation')}</span>
                                 <span className="font-medium truncate max-w-[200px]">
                                     {presentationTitle || presentationId.slice(0, 8)}
                                 </span>
                             </div>
                             <p className="text-xs text-muted-foreground pt-2 border-t mt-2">
-                                Les logs de la slide seront envoyés pour analyse.
+                                {t('bugReport.context.logsNote')}
                             </p>
                         </div>
                     )}
@@ -202,12 +204,12 @@ export function BugReportDialog({
                     {selectedType === 'other' && (
                         <div className="space-y-2">
                             <label className="text-sm font-medium text-muted-foreground">
-                                Décrivez le problème
+                                {t('bugReport.descriptionLabel')}
                             </label>
                             <Textarea
                                 value={userDescription}
                                 onChange={(e) => setUserDescription(e.target.value)}
-                                placeholder="Expliquez ce qui ne fonctionne pas correctement..."
+                                placeholder={t('bugReport.placeholder')}
                                 rows={4}
                                 disabled={isSending}
                                 className="resize-none"
@@ -226,7 +228,7 @@ export function BugReportDialog({
                         }}
                         disabled={isSending}
                     >
-                        Annuler
+                        {t('bugReport.cancel')}
                     </Button>
                     <Button
                         onClick={handleSubmit}
@@ -236,12 +238,12 @@ export function BugReportDialog({
                         {isSending ? (
                             <>
                                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                Envoi...
+                                {t('bugReport.submitting')}
                             </>
                         ) : (
                             <>
                                 <Bug className="mr-2 h-4 w-4" />
-                                Envoyer le rapport
+                                {t('bugReport.submit')}
                             </>
                         )}
                     </Button>

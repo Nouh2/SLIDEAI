@@ -1,11 +1,13 @@
 import { useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { supabase } from "@/contexts/AuthContext";
 import { Auth } from "@supabase/auth-ui-react";
 import { ThemeSupa } from "@supabase/auth-ui-shared";
 
 export default function AuthPage() {
   const navigate = useNavigate();
+  const { t, i18n } = useTranslation();
 
   // Listen for auth state changes
   useEffect(() => {
@@ -32,6 +34,69 @@ export default function AuthPage() {
     };
   }, [navigate]);
 
+  // Dynamic localization based on current language
+  const getLocalization = () => {
+    if (i18n.language === 'en') {
+      return {
+        variables: {
+          sign_in: {
+            email_label: 'Email',
+            password_label: 'Password',
+            button_label: 'Sign in',
+            loading_button_label: 'Signing in...',
+            email_input_placeholder: 'you@example.com',
+            password_input_placeholder: 'Your password',
+            link_text: 'Already have an account? Sign in',
+          },
+          sign_up: {
+            email_label: 'Email',
+            password_label: 'Password',
+            button_label: 'Create account',
+            loading_button_label: 'Creating...',
+            email_input_placeholder: 'you@example.com',
+            password_input_placeholder: 'Choose a password',
+            link_text: "Don't have an account? Sign up",
+          },
+          forgotten_password: {
+            email_label: 'Email',
+            button_label: 'Send reset link',
+            loading_button_label: 'Sending...',
+            link_text: 'Forgot password?',
+          },
+        },
+      };
+    }
+    // French by default
+    return {
+      variables: {
+        sign_in: {
+          email_label: 'Email',
+          password_label: 'Mot de passe',
+          button_label: 'Se connecter',
+          loading_button_label: 'Connexion...',
+          email_input_placeholder: 'vous@exemple.com',
+          password_input_placeholder: 'Votre mot de passe',
+          link_text: 'Vous avez déjà un compte ? Connectez-vous',
+        },
+        sign_up: {
+          email_label: 'Email',
+          password_label: 'Mot de passe',
+          button_label: 'Créer mon compte',
+          loading_button_label: 'Création...',
+          email_input_placeholder: 'vous@exemple.com',
+          password_input_placeholder: 'Choisissez un mot de passe',
+          link_text: 'Pas encore de compte ? Inscrivez-vous',
+        },
+        forgotten_password: {
+          email_label: 'Email',
+          button_label: 'Envoyer le lien de réinitialisation',
+          loading_button_label: 'Envoi...',
+          link_text: 'Mot de passe oublié ?',
+        },
+      },
+    };
+  };
+
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-background">
       {/* Logo */}
@@ -45,10 +110,10 @@ export default function AuthPage() {
       <div className="w-full max-w-md bg-surface rounded-2xl border border-border shadow-xl p-8">
         <div className="text-center mb-6">
           <h1 className="text-2xl font-bold text-foreground mb-2">
-            Bienvenue
+            {t('auth.welcome')}
           </h1>
           <p className="text-muted-foreground text-sm">
-            Connectez-vous ou créez un compte pour continuer
+            {t('auth.subtitle')}
           </p>
         </div>
 
@@ -106,42 +171,16 @@ export default function AuthPage() {
           }}
           theme="light"
           providers={[]}
-          localization={{
-            variables: {
-              sign_in: {
-                email_label: 'Email',
-                password_label: 'Mot de passe',
-                button_label: 'Se connecter',
-                loading_button_label: 'Connexion...',
-                email_input_placeholder: 'vous@exemple.com',
-                password_input_placeholder: 'Votre mot de passe',
-                link_text: 'Vous avez déjà un compte ? Connectez-vous',
-              },
-              sign_up: {
-                email_label: 'Email',
-                password_label: 'Mot de passe',
-                button_label: 'Créer mon compte',
-                loading_button_label: 'Création...',
-                email_input_placeholder: 'vous@exemple.com',
-                password_input_placeholder: 'Choisissez un mot de passe',
-                link_text: 'Pas encore de compte ? Inscrivez-vous',
-              },
-              forgotten_password: {
-                email_label: 'Email',
-                button_label: 'Envoyer le lien de réinitialisation',
-                loading_button_label: 'Envoi...',
-                link_text: 'Mot de passe oublié ?',
-              },
-            },
-          }}
+          localization={getLocalization()}
           redirectTo={`${window.location.origin}/dashboard`}
         />
       </div>
 
       {/* Footer */}
       <p className="mt-8 text-center text-sm text-muted-foreground">
-        Déjà 10 000+ professionnels font confiance à SlideAI
+        {t('auth.trustNote')}
       </p>
     </div>
   );
 }
+

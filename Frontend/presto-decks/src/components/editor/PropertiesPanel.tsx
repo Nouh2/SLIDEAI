@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
@@ -21,6 +22,7 @@ interface PropertiesPanelProps {
 
 export function PropertiesPanel({ element, onUpdate, onTableAction, onClose }: PropertiesPanelProps) {
     const [localValue, setLocalValue] = useState<string>("");
+    const { t } = useTranslation();
 
     useEffect(() => {
         if (element) {
@@ -42,7 +44,7 @@ export function PropertiesPanel({ element, onUpdate, onTableAction, onClose }: P
                     {element.type === 'text' && <Type className="w-4 h-4 text-primary" />}
                     {element.type === 'list' && <List className="w-4 h-4 text-primary" />}
                     {element.type === 'image' && <ImageIcon className="w-4 h-4 text-primary" />}
-                    Edit {element.label || "Element"}
+                    {t('editor.editElement')} {element.label || t('editor.element')}
                 </h3>
                 <Button variant="ghost" size="icon" onClick={onClose} className="h-8 w-8 rounded-full hover:bg-muted">
                     <X className="w-4 h-4" />
@@ -53,19 +55,19 @@ export function PropertiesPanel({ element, onUpdate, onTableAction, onClose }: P
                 {element.type === 'text' || element.type === 'list' ? (
                     <div className="space-y-6">
                         <div className="space-y-2">
-                            <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Content</Label>
+                            <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{t('editor.content')}</Label>
                             <Textarea
                                 value={localValue}
                                 onChange={handleChange}
                                 className="min-h-[200px] bg-background/50 resize-none focus-visible:ring-primary"
-                                placeholder="Enter text..."
+                                placeholder={t('editor.enterText')}
                             />
                         </div>
 
                         {onTableAction && element.path.includes('rows') && element.path.includes('[') && (
                             <div className="p-4 border border-border/50 rounded-xl bg-muted/20 space-y-3">
                                 <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
-                                    <Table className="w-3 h-3" /> Structure du tableau
+                                    <Table className="w-3 h-3" /> {t('editor.tableStructure')}
                                 </Label>
                                 <Button
                                     variant="outline"
@@ -74,7 +76,7 @@ export function PropertiesPanel({ element, onUpdate, onTableAction, onClose }: P
                                     onClick={() => onTableAction('add-row', element.path)}
                                 >
                                     <Plus className="w-4 h-4" />
-                                    Ajouter une ligne
+                                    {t('editor.addRow')}
                                 </Button>
                                 <Button
                                     variant="outline"
@@ -83,23 +85,24 @@ export function PropertiesPanel({ element, onUpdate, onTableAction, onClose }: P
                                     onClick={() => onTableAction('delete-row', element.path)}
                                 >
                                     <Trash2 className="w-4 h-4" />
-                                    Supprimer cette ligne
+                                    {t('editor.deleteRow')}
                                 </Button>
                             </div>
                         )}
                     </div>
                 ) : (
                     <div className="text-sm text-muted-foreground p-4 border border-dashed rounded-lg text-center">
-                        Editing for this element type is coming soon.
+                        {t('editor.editingComingSoon')}
                     </div>
                 )}
             </div>
 
             <div className="mt-auto pt-6 border-t border-border">
                 <p className="text-xs text-center text-muted-foreground">
-                    Changes are applied automatically.
+                    {t('editor.changesApplied')}
                 </p>
             </div>
         </div>
     );
 }
+

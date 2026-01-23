@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Card, CardContent } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -15,14 +16,15 @@ export default function Examples() {
   const [currentTheme, setCurrentTheme] = useState<string>("");
   const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
   const { toast } = useToast();
+  const { t } = useTranslation();
 
   const handleCopyPrompt = () => {
     if (selectedExample) {
       navigator.clipboard.writeText(selectedExample.prompt);
       setCopiedPrompt(true);
       toast({
-        title: "Prompt copié",
-        description: "Le prompt a été copié dans votre presse-papier",
+        title: t('examples.promptCopied'),
+        description: t('examples.promptCopiedMsg'),
       });
       setTimeout(() => setCopiedPrompt(false), 2000);
     }
@@ -53,13 +55,13 @@ export default function Examples() {
           <div className="text-center space-y-6 mb-10 md:mb-20">
             <div className="inline-flex items-center space-x-2 rounded-full glass px-4 py-2 md:px-6 md:py-3 text-xs md:text-sm mb-2">
               <Sparkles className="h-4 w-4 md:h-5 md:w-5 text-accent" />
-              <span className="text-foreground/90 font-medium">Inspiré par l'IA</span>
+              <span className="text-foreground/90 font-medium">{t('examples.badge')}</span>
             </div>
             <h1 className="text-4xl md:text-7xl font-bold">
-              <span className="text-gradient-animated">Galerie</span> d'exemples
+              <span className="text-gradient-animated">{t('examples.title')}</span> {t('examples.titleHighlight')}
             </h1>
             <p className="text-lg md:text-2xl text-foreground/70 max-w-2xl mx-auto px-2">
-              Découvrez ce que vous pouvez créer avec SlideAI
+              {t('examples.subtitle')}
             </p>
           </div>
 
@@ -83,7 +85,7 @@ export default function Examples() {
                     </p>
                     <div className="flex items-center justify-end pt-2">
                       <Button size="sm" variant="outline">
-                        Voir
+                        {t('examples.view')}
                       </Button>
                     </div>
                   </div>
@@ -126,7 +128,7 @@ export default function Examples() {
                   className="flex-1 sm:flex-none"
                 >
                   <ChevronLeft className="h-4 w-4 sm:mr-1" />
-                  <span className="hidden sm:inline">Précédent</span>
+                  <span className="hidden sm:inline">{t('examples.previous')}</span>
                 </Button>
 
                 <span className="text-xs md:text-sm text-muted-foreground whitespace-nowrap">
@@ -140,7 +142,7 @@ export default function Examples() {
                   size="sm"
                   className="flex-1 sm:flex-none"
                 >
-                  <span className="hidden sm:inline">Suivant</span>
+                  <span className="hidden sm:inline">{t('examples.next')}</span>
                   <ChevronRight className="h-4 w-4 sm:ml-1" />
                 </Button>
               </div>
@@ -155,7 +157,7 @@ export default function Examples() {
                   <div>
                     <h4 className="font-bold mb-2 md:mb-3 flex items-center gap-2 text-base md:text-lg">
                       <Copy className="h-4 w-4 md:h-5 md:w-5 text-accent" />
-                      Prompt utilisé
+                      {t('examples.promptUsed')}
                     </h4>
                     <p className="text-xs md:text-sm text-foreground/80 mb-3 md:mb-4 p-3 md:p-4 bg-black/30 rounded-2xl leading-relaxed border border-white/10">
                       {selectedExample?.prompt}
@@ -169,12 +171,12 @@ export default function Examples() {
                       {copiedPrompt ? (
                         <>
                           <Check className="mr-2 h-4 w-4" />
-                          Copié !
+                          {t('examples.copied')}
                         </>
                       ) : (
                         <>
                           <Copy className="mr-2 h-4 w-4" />
-                          Copier le prompt
+                          {t('examples.copyPrompt')}
                         </>
                       )}
                     </Button>
@@ -184,18 +186,18 @@ export default function Examples() {
 
               <Card>
                 <CardContent className="pt-4 md:pt-6 space-y-2 md:space-y-3">
-                  <h4 className="font-semibold mb-2 md:mb-3 text-sm md:text-base">Informations</h4>
+                  <h4 className="font-semibold mb-2 md:mb-3 text-sm md:text-base">{t('examples.info')}</h4>
                   <div className="space-y-2 text-xs md:text-sm">
                     <div className="flex justify-between">
-                      <span className="text-muted-foreground">Thème actuel:</span>
+                      <span className="text-muted-foreground">{t('examples.currentTheme')}</span>
                       <span className="font-medium">{currentTheme}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-muted-foreground">Nombre de slides:</span>
+                      <span className="text-muted-foreground">{t('examples.slideCount')}</span>
                       <span className="font-medium">{selectedExample?.slides.length}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-muted-foreground">Slide actuelle:</span>
+                      <span className="text-muted-foreground">{t('examples.currentSlide')}</span>
                       <span className="font-medium">{currentSlideIndex + 1}</span>
                     </div>
                   </div>

@@ -1,40 +1,44 @@
 import { motion } from "framer-motion";
 import { Star, Users, TrendingUp } from "lucide-react";
 
-const testimonials = [
-  {
-    id: 1,
-    name: "Emma Rodriguez",
-    title: "Founder, TechStudio",
-    avatar: "🎨",
-    quote: "SlideAI a transformé mon processus de création. Je gagne 10 heures par semaine!",
-    rating: 5,
-  },
-  {
-    id: 2,
-    name: "Marc Durand",
-    title: "Marketing Director",
-    avatar: "📊",
-    quote: "Les designs générés sont professionnels et précis. Aucun ajustement nécessaire.",
-    rating: 5,
-  },
-  {
-    id: 3,
-    name: "Sophie Leclerc",
-    title: "Consultant en Innovation",
-    avatar: "✨",
-    quote: "Finalement une solution simple pour créer des présentations impactantes.",
-    rating: 5,
-  },
-];
-
-const stats = [
-  { label: "Présentations créées", value: "50K+", icon: TrendingUp },
-  { label: "Utilisateurs actifs", value: "12K+", icon: Users },
-  { label: "Satisfaction client", value: "98%", icon: Star },
-];
+import { useTranslation } from "react-i18next";
 
 export function SocialProof() {
+  const { t } = useTranslation();
+
+  const testimonials = [
+    {
+      id: 1,
+      name: "Emma Rodriguez",
+      title: t('socialProof.testimonials.emma.title'),
+      avatar: "🎨",
+      quote: t('socialProof.testimonials.emma.quote'),
+      rating: 5,
+    },
+    {
+      id: 2,
+      name: "Marc Durand",
+      title: t('socialProof.testimonials.marc.title'),
+      avatar: "📊",
+      quote: t('socialProof.testimonials.marc.quote'),
+      rating: 5,
+    },
+    {
+      id: 3,
+      name: "Sophie Leclerc",
+      title: t('socialProof.testimonials.sophie.title'),
+      avatar: "✨",
+      quote: t('socialProof.testimonials.sophie.quote'),
+      rating: 5,
+    },
+  ];
+
+  const stats = [
+    { label: t('socialProof.stats.presentations'), value: "50K+", icon: TrendingUp },
+    { label: t('socialProof.stats.users'), value: "12K+", icon: Users },
+    { label: t('socialProof.stats.satisfaction'), value: "98%", icon: Star },
+  ];
+
   return (
     <section className="relative py-12 md:py-32 px-4 overflow-hidden">
       {/* Background */}
@@ -79,11 +83,11 @@ export function SocialProof() {
         <div className="space-y-8">
           <div className="text-center space-y-4">
             <h2 className="text-3xl md:text-5xl font-bold">
-              Aimé par les<br />
-              <span className="text-gradient-secondary">équipes créatives</span>
+              {t('socialProof.heading.lovedBy')}<br />
+              <span className="text-gradient-secondary">{t('socialProof.heading.creativeTeams')}</span>
             </h2>
             <p className="text-base md:text-lg text-foreground/60 max-w-2xl mx-auto px-2">
-              Découvrez comment SlideAI a aidé des milliers de professionnels à créer des présentations exceptionnelles
+              {t('socialProof.description')}
             </p>
           </div>
 
@@ -137,9 +141,9 @@ export function SocialProof() {
           transition={{ delay: 0.6 }}
           className="text-center space-y-6"
         >
-          <p className="text-sm text-foreground/60 font-medium uppercase tracking-wider">Certifié par</p>
+          <p className="text-sm text-foreground/60 font-medium uppercase tracking-wider">{t('socialProof.trustedBy.label')}</p>
           <div className="flex flex-wrap items-center justify-center gap-8">
-            {["🏆 Top Startup", "⭐ 4.9/5 Stars", "🔒 Sécurisé"].map((badge, i) => (
+            {[t('socialProof.trustedBy.badges.topStartup'), t('socialProof.trustedBy.badges.stars'), t('socialProof.trustedBy.badges.secure')].map((badge, i) => (
               <motion.div
                 key={i}
                 whileHover={{ scale: 1.1 }}

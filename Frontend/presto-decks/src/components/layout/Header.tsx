@@ -1,11 +1,14 @@
 import { Link, useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Logo } from "./Logo";
+import { LanguageSwitcher } from "./LanguageSwitcher";
 import { useAuth } from "@/contexts/AuthContext";
 import { LogOut, User as UserIcon, LayoutDashboard } from "lucide-react";
 
 export const Header = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const { user, loading, signOut } = useAuth();
 
   const handleSignOut = async () => {
@@ -21,23 +24,25 @@ export const Header = () => {
         <nav className="hidden md:flex items-center space-x-6">
           {user && (
             <Link to="/dashboard" className="text-sm font-medium text-zinc-950 hover:text-[#1fb6ff] transition-colors">
-              Tableau de bord
+              {t('header.dashboard')}
             </Link>
           )}
           <Link to="/create" className="text-sm font-medium text-zinc-950 hover:text-[#1fb6ff] transition-colors">
-            Créer
+            {t('header.create')}
           </Link>
           {!user && (
             <Link to="/examples" className="text-sm font-medium text-zinc-950 hover:text-[#1fb6ff] transition-colors">
-              Exemples
+              {t('header.examples')}
             </Link>
           )}
           <Link to="/pricing" className="text-sm font-medium text-zinc-950 hover:text-[#1fb6ff] transition-colors">
-            Tarifs
+            {t('header.pricing')}
           </Link>
         </nav>
 
         <div className="flex items-center space-x-3">
+          <LanguageSwitcher />
+
           {loading ? (
             // Loading skeleton
             <div className="w-24 h-9 bg-muted animate-pulse rounded-lg"></div>
@@ -47,13 +52,13 @@ export const Header = () => {
               <Button variant="ghost" size="sm" asChild className="text-zinc-950 hover:text-zinc-950">
                 <Link to="/dashboard" className="flex items-center gap-2">
                   <LayoutDashboard className="h-4 w-4" />
-                  Dashboard
+                  {t('header.dashboard')}
                 </Link>
               </Button>
               <Button variant="ghost" size="sm" asChild className="text-zinc-950 hover:text-zinc-950">
                 <Link to="/account" className="flex items-center gap-2">
                   <UserIcon className="h-4 w-4" />
-                  Mon Compte
+                  {t('header.myAccount')}
                 </Link>
               </Button>
               <Button
@@ -69,10 +74,10 @@ export const Header = () => {
             // Logged out state
             <>
               <Button variant="ghost" size="sm" asChild className="text-zinc-950 hover:text-zinc-950">
-                <Link to="/auth">Connexion</Link>
+                <Link to="/auth">{t('header.login')}</Link>
               </Button>
               <Button size="sm" variant="solid" asChild>
-                <Link to="/auth">Commencer</Link>
+                <Link to="/auth">{t('header.getStarted')}</Link>
               </Button>
             </>
           )}

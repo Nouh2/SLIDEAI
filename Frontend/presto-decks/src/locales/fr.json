@@ -1,0 +1,740 @@
+{
+  "header": {
+    "dashboard": "Tableau de bord",
+    "create": "Créer",
+    "examples": "Exemples",
+    "pricing": "Tarifs",
+    "login": "Connexion",
+    "getStarted": "Commencer",
+    "myAccount": "Mon Compte",
+    "logout": "Déconnexion"
+  },
+  "hero": {
+    "badge": "SlideAI v2.0",
+    "title1": "Créez des slides",
+    "title2": "intelligents",
+    "title3": "en un éclair",
+    "subtitle": "Importez vos documents ou décrivez votre idée. Notre IA génère une présentation PowerPoint complète, designée et prête à l'emploi.",
+    "cta": "Commencer gratuitement",
+    "viewExamples": "Voir des exemples",
+    "trustLabel": "Ils nous font confiance"
+  },
+  "home": {
+    "ctaTitle": "Prêt à créer votre",
+    "ctaTitleHighlight": "présentation de rêve ?",
+    "ctaSubtitle": "Rejoignez des milliers de professionnels qui transforment leurs idées en présentations exceptionnelles avec SlideAI",
+    "ctaButton": "Commencer maintenant",
+    "viewPricing": "Voir les tarifs",
+    "freeNote": "✨ Gratuit pour les 5 premières présentations · Pas de carte bancaire requise"
+  },
+  "dashboard": {
+    "title": "Tableau de Bord",
+    "subtitle": "Gérez vos présentations",
+    "newPresentation": "Nouvelle Présentation",
+    "myPresentations": "Mes Présentations",
+    "sharedWithMe": "Partagées avec moi",
+    "search": "Rechercher...",
+    "filterByTheme": "Filtrer par thème",
+    "allThemes": "Tous les thèmes",
+    "sortBy": "Trier par",
+    "mostRecent": "Plus récent",
+    "oldest": "Plus ancien",
+    "nameAZ": "Nom A-Z",
+    "slides": "slides",
+    "theme": "Thème",
+    "open": "Ouvrir",
+    "view": "Visualiser",
+    "readOnly": "Lecture seule",
+    "collaborative": "Collaboratif",
+    "deleteConfirmTitle": "Êtes-vous sûr ?",
+    "deleteConfirmMessage": "Cette action est irréversible. Cela supprimera définitivement la présentation",
+    "cancel": "Annuler",
+    "delete": "Supprimer",
+    "noPresentation": "Aucune présentation",
+    "noSharedPresentation": "Aucune présentation partagée",
+    "createFirst": "Créez votre première présentation IA",
+    "askColleagues": "Demandez à vos collègues de vous partager leurs présentations",
+    "createPresentation": "Créer une présentation",
+    "presentationDeleted": "Présentation supprimée",
+    "presentationDeletedMsg": "La présentation a été supprimée avec succès.",
+    "loadError": "Impossible de charger vos présentations",
+    "deleteError": "Impossible de supprimer la présentation.",
+    "plan": "Plan",
+    "unlimitedPresentations": "Présentations Illimitées",
+    "presentations": "présentations",
+    "paymentSuccess": "Paiement réussi ! 🎉",
+    "paymentSuccessMsg": "Votre abonnement est activé. Merci de votre confiance !"
+  },
+  "create": {
+    "step1": "Choisir un Template",
+    "step2": "Personnaliser & Générer",
+    "continue": "Continuer",
+    "skipStep": "Passer cette étape",
+    "backToTemplates": "Retour aux templates",
+    "selectedTemplate": "Template sélectionné:",
+    "aiTitle": "L'IA au service de vos",
+    "aiTitleHighlight": "idées",
+    "aiSubtitle": "Décrivez votre sujet, importez vos notes, et laissez SlideAI structurer et designer votre présentation.",
+    "placeholder": "Décrivez votre présentation... (ex : 'Pitch deck pour une startup SaaS')",
+    "dropHere": "Déposez ici",
+    "addFile": "Ajouter un fichier",
+    "dragOrClick": "Glissez ou cliquez",
+    "slideCount": "Nombre de slides",
+    "generate": "Générer",
+    "fileTooLarge": "Fichier trop volumineux",
+    "maxFileSize": "La taille maximale est de 10MB",
+    "fileAdded": "Document ajouté",
+    "fileAddedMsg": "Le fichier sera utilisé pour enrichir la présentation",
+    "visionRequired": "Vision requise",
+    "visionRequiredMsg": "Veuillez décrire votre présentation",
+    "sessionExpired": "Session expirée",
+    "sessionExpiredMsg": "Veuillez vous reconnecter",
+    "generationStarted": "Génération lancée",
+    "redirecting": "Redirection vers l'éditeur...",
+    "templateRequired": "Template requis",
+    "templateRequiredMsg": "Veuillez sélectionner un template"
+  },
+  "editor": {
+    "slideshow": "Diaporama",
+    "export": "Exporter",
+    "save": "Sauvegarder",
+    "saving": "Enregistrement...",
+    "saved": "Enregistré ✓",
+    "saveError": "Erreur de sauvegarde",
+    "ready": "Prêt",
+    "slides": "Slides",
+    "addSlide": "Ajouter une slide",
+    "untitledSlide": "Slide sans titre",
+    "slideOf": "Slide {current} sur {total}",
+    "design": "Design",
+    "reset": "Réinitialiser",
+    "add": "Ajouter",
+    "insertContent": "Insérer du contenu",
+    "textBox": "Zone de texte",
+    "addTextBlock": "Ajouter un bloc de texte",
+    "image": "Image",
+    "importFromUrl": "Importer depuis une URL",
+    "shape": "Forme",
+    "comingSoon": "Bientôt disponible",
+    "editElement": "Modifier",
+    "element": "Élément",
+    "content": "Contenu",
+    "enterText": "Entrez du texte...",
+    "editingComingSoon": "L'édition de ce type d'élément arrive bientôt.",
+    "changesApplied": "Les modifications sont appliquées automatiquement.",
+    "addRow": "Ajouter une ligne",
+    "deleteRow": "Supprimer cette ligne",
+    "tableStructure": "Structure du tableau",
+    "savedMsg": "Vos modifications sont enregistrées.",
+    "saveErrorMsg": "Échec de la sauvegarde.",
+    "slideDeleted": "Slide supprimée",
+    "slideDeletedMsg": "La diapositive a été supprimée.",
+    "cannotDelete": "Action impossible",
+    "mustHaveOneSlide": "La présentation doit contenir au moins une slide.",
+    "rowAdded": "Ligne ajoutée",
+    "rowAddedMsg": "Une nouvelle ligne a été ajoutée au tableau.",
+    "rowDeleted": "Ligne supprimée",
+    "rowDeletedMsg": "La ligne a été supprimée.",
+    "mustHaveOneRow": "Le tableau doit contenir au moins une ligne.",
+    "connectionRequired": "Connexion requise",
+    "backHome": "Retour à l'accueil"
+  },
+  "auth": {
+    "welcome": "Bienvenue",
+    "subtitle": "Connectez-vous ou créez un compte pour continuer",
+    "email": "Email",
+    "password": "Mot de passe",
+    "signIn": "Se connecter",
+    "signingIn": "Connexion...",
+    "signUp": "Créer mon compte",
+    "signingUp": "Création...",
+    "emailPlaceholder": "vous@exemple.com",
+    "passwordPlaceholder": "Votre mot de passe",
+    "choosePassword": "Choisissez un mot de passe",
+    "haveAccount": "Vous avez déjà un compte ? Connectez-vous",
+    "noAccount": "Pas encore de compte ? Inscrivez-vous",
+    "forgotPassword": "Mot de passe oublié ?",
+    "sendResetLink": "Envoyer le lien de réinitialisation",
+    "sending": "Envoi...",
+    "trustNote": "Déjà 10 000+ professionnels font confiance à SlideAI",
+    "resetPasswordTitle": "Réinitialiser le mot de passe",
+    "resetPasswordSubtitle": "Entrez votre nouveau mot de passe ci-dessous",
+    "resetSuccess": "Votre mot de passe a été réinitialisé. Vous allez être redirigé vers le tableau de bord.",
+    "resetError": "Une erreur est survenue lors de la réinitialisation.",
+    "backToLogin": "Retour à la connexion",
+    "updating": "Mise à jour..."
+  },
+  "pricing": {
+    "badge": "Simple, transparent, scalable",
+    "title": "Tarifs",
+    "titleHighlight": "adaptés à vos besoins",
+    "subtitle": "Commencez gratuitement, passez à la vitesse supérieure quand vous êtes prêt.",
+    "monthly": "Mensuel",
+    "yearly": "Annuel",
+    "discount": "-25% (2 mois offerts)",
+    "perMonth": "/mois",
+    "billedYearly": "Facturé {price}€ par an",
+    "billedMonthly": "Facturé mensuellement",
+    "startFree": "Commencer gratuitement",
+    "choosePlan": "Choisir",
+    "tryFree": "Essayer Pro gratuitement",
+    "contactSales": "Contacter les ventes",
+    "unsubscribe": "Se désabonner",
+    "included": "Inclus",
+    "mostPopular": "Plus populaire",
+    "notReadyTitle": "Pas prêt pour un abonnement ?",
+    "packSubtitle": "Prenez un Pack Liberté.",
+    "packNote": "Pas de renouvellement automatique. Utilisez vos crédits quand vous voulez.",
+    "buyCredits": "Acheter",
+    "allCardsAccepted": "Toutes les cartes bancaires acceptées • Annulation à tout moment",
+    "questions": "Des questions ?",
+    "contactUs": "Contactez-nous",
+    "plans": {
+      "free": {
+        "description": "Suffisant pour tester l'outil",
+        "features": {
+          "presentations": "2 présentations par mois",
+          "pdfImport": "Import PDF (10 pages max)",
+          "storage": "Stockage : 3 projets max",
+          "aiSlides": "Ajout de slides IA (2 / prés.)",
+          "aiRegen": "Régénération IA (3 / prés.)",
+          "design": "Layouts & Design : Accès Total",
+          "watermark": "Filigrane SlideAI"
+        },
+        "limitations": {
+          "export": "Export PDF Désactivé",
+          "brandKit": "Pas de Brand Kit"
+        }
+      },
+      "starter": {
+        "description": "Pour étudiants et usage occasionnel",
+        "features": {
+          "presentations": "15 présentations / mois",
+          "pdfImport": "Import PDF (50 pages max)",
+          "storage": "Stockage : 20 projets max",
+          "aiSlides": "Ajout de slides IA (5 / prés.)",
+          "aiRegen": "Régénération IA Illimitée",
+          "export": "Export PDF HD (Sans filigrane)",
+          "sharing": "Lien de partage Unique & Privé"
+        },
+        "cta": "Choisir Starter"
+      },
+      "pro": {
+        "description": "Pour les professionnels",
+        "features": {
+          "unlimitedGen": "Génération Illimitée",
+          "pdfImport": "Import PDF (200 pages max)",
+          "storage": "Stockage Illimité",
+          "unlimitedSlides": "Ajout de slides & Wand Illimités",
+          "export": "Export PDF HD (Prioritaire)",
+          "support": "Support Prioritaire",
+          "beta": "Accès Early Bird (Bêta)"
+        }
+      },
+      "business": {
+        "description": "Pour les équipes",
+        "features": {
+          "allPro": "Tout du Plan Pro",
+          "collab": "Espace de travail collaboratif",
+          "support": "Support Prioritaire 24/7",
+          "analytics": "Analytics avancées",
+          "sso": "SSO (Single Sign-On)"
+        }
+      }
+    },
+    "packs": {
+      "discovery": {
+        "name": "Pack Découverte",
+        "credits": "5 présentations",
+        "cta": "Acheter 5 crédits"
+      },
+      "power": {
+        "name": "Pack Power",
+        "credits": "15 présentations",
+        "cta": "Acheter 15 crédits"
+      }
+    }
+  },
+  "account": {
+    "title": "Mon compte",
+    "subtitle": "Gérez vos informations et votre abonnement",
+    "upgradeToProBtn": "Passer à Pro",
+    "overview": "Vue d'ensemble",
+    "subscription": "Abonnement",
+    "activity": "Activité",
+    "profile": "Profil",
+    "email": "Email",
+    "userId": "ID Utilisateur",
+    "provider": "Fournisseur",
+    "changePassword": "Modifier le mot de passe",
+    "newPassword": "Nouveau mot de passe",
+    "confirmPassword": "Confirmer le mot de passe",
+    "updatePassword": "Mettre à jour",
+    "statistics": "Statistiques",
+    "presentationsCount": "Présentations",
+    "creditsRemaining": "Crédits restants",
+    "signOut": "Se déconnecter",
+    "yourSubscription": "Votre Abonnement",
+    "active": "Actif",
+    "creditsAvailable": "Crédits disponibles",
+    "upgradeNote": "Passez à un plan supérieur pour plus de crédits.",
+    "unlimitedAccess": "Accès Illimité",
+    "unlimitedNote": "Vous profitez de la puissance maximale de SlideAI.",
+    "upgradeToPro": "Passer à Pro",
+    "manageSubscription": "Gérer mon abonnement",
+    "stripeNote": "La gestion de la facturation se fait via notre partenaire sécurisé Stripe.",
+    "recentPresentations": "Présentations récentes",
+    "viewAll": "Voir tout",
+    "draft": "Brouillon",
+    "untitled": "Sans titre",
+    "noPresentation": "Aucune présentation",
+    "noPresentationNote": "Vous n'avez pas encore créé de présentation. Lancez-vous dès maintenant !",
+    "createPresentation": "Créer une présentation",
+    "passwordMismatch": "Les mots de passe ne correspondent pas.",
+    "passwordTooShort": "Le mot de passe doit faire au moins 6 caractères.",
+    "passwordUpdated": "Votre mot de passe a été mis à jour."
+  },
+  "join": {
+    "invalidLink": "Lien de partage invalide.",
+    "joinError": "Impossible de rejoindre la présentation.",
+    "verifying": "Vérification du lien de partage",
+    "authRequiredTitle": "Connexion requise",
+    "authRequiredMsg": "Vous devez vous connecter ou créer un compte pour accéder à cette présentation partagée.",
+    "presentationAdded": "Présentation ajoutée !",
+    "oops": "Oops !"
+  },
+  "view": {
+    "accessError": "Impossible d'accéder à la présentation.",
+    "fetching": "Récupération de la présentation",
+    "authRequiredMsg": "Vous devez vous connecter pour visualiser cette présentation.",
+    "readOnlyMode": "Mode lecture seule",
+    "presentationDefaultTitle": "Présentation"
+  },
+  "share": {
+    "title": "Partager cette présentation",
+    "subtitle": "Choisissez le type de partage et envoyez le lien à vos collaborateurs.",
+    "shareTrigger": "Partager",
+    "collaborative": "Collaboratif",
+    "readOnly": "Lecture seule",
+    "editDesc": "Les destinataires pourront <strong>voir et modifier</strong> la présentation depuis leur compte.",
+    "viewDesc": "Les destinataires pourront uniquement <strong>visualiser</strong> la présentation, sans pouvoir la modifier.",
+    "generating": "Génération du lien...",
+    "generateFail": "Impossible de générer le lien. Veuillez réessayer.",
+    "generateError": "Impossible de générer le lien de partage",
+    "copied": "Lien copié !",
+    "copiedMsg": "Le lien de partage est dans votre presse-papier.",
+    "copyError": "Impossible de copier le lien.",
+    "editNote": "Ce lien permet la modification. Partagez-le avec précaution.",
+    "viewNote": "Ce lien est en lecture seule. Les invités ne pourront pas modifier la présentation."
+  },
+  "export": {
+    "title": "Exporter la présentation",
+    "subtitle": "Choisissez le format d'export pour \"{{title}}\"",
+    "preparing": "Préparation...",
+    "initializing": "Initialisation...",
+    "noSlides": "Aucune slide trouvée",
+    "genericError": "Erreur lors de l'export",
+    "pptxError": "Erreur lors de l'export PowerPoint",
+    "pdfDesc": "Haute fidélité visuelle",
+    "ready": "Prêt",
+    "comingSoon": "Bientôt disponible",
+    "workingOnIt": "On y travaille ! 🚀",
+    "complete": "Export terminé !",
+    "downloaded": "Le fichier a été téléchargé",
+    "progressSlide": "Slide {{current}} / {{total}}"
+  },
+  "addSlide": {
+    "title": "Ajouter une slide magique",
+    "subtitle": "L'IA va générer une nouvelle slide cohérente avec le reste de votre présentation.",
+    "quickSuggestions": "Suggestions rapides",
+    "conclusion": "Conclusion",
+    "conclusionDesc": "Synthèse et fin",
+    "qa": "Q&A",
+    "qaDesc": "Session questions",
+    "recap": "Récapitulatif",
+    "recapDesc": "Résumé des points",
+    "cta": "Call to Action",
+    "ctaDesc": "Prochaine étape",
+    "orDescribe": "ou décrivez vos besoins",
+    "placeholder": "Ex: Une slide sur les bénéfices financiers, avec un graphique en barres...",
+    "cancel": "Annuler",
+    "generate": "Générer",
+    "generating": "Génération...",
+    "slideAdded": "Slide ajoutée !",
+    "slideAddedMsg": "La nouvelle slide a été ajoutée à la fin de la présentation.",
+    "instructionMissing": "Instruction manquante",
+    "instructionMissingMsg": "Veuillez entrer une instruction ou choisir une suggestion.",
+    "timeout": "Timeout",
+    "timeoutMsg": "La génération prend trop de temps. Réessayez.",
+    "generationFailed": "La génération a échoué.",
+    "addError": "Impossible d'ajouter la slide.",
+    "prompts": {
+      "conclusion": "Génère une slide de conclusion percutante avec un appel à l'action clair.",
+      "qa": "Génère une slide dédiée aux Questions / Réponses pour engager l'audience.",
+      "recap": "Génère une slide qui résume les points clés abordés pour renforcer la mémorisation.",
+      "cta": "Génère une slide incitant l'audience à passer à l'action immédiatement."
+    }
+  },
+  "examples": {
+    "badge": "Inspiré par l'IA",
+    "title": "Galerie",
+    "titleHighlight": "d'exemples",
+    "subtitle": "Découvrez ce que vous pouvez créer avec SlideAI",
+    "view": "Voir",
+    "promptUsed": "Prompt utilisé",
+    "copied": "Copié !",
+    "copyPrompt": "Copier le prompt",
+    "promptCopied": "Prompt copié",
+    "promptCopiedMsg": "Le prompt a été copié dans votre presse-papier",
+    "info": "Informations",
+    "currentTheme": "Thème actuel:",
+    "slideCount": "Nombre de slides:",
+    "currentSlide": "Slide actuelle:",
+    "previous": "Précédent",
+    "next": "Suivant"
+  },
+  "notFound": {
+    "title": "404",
+    "message": "Page introuvable",
+    "description": "Désolé, la page que vous recherchez n'existe pas ou a été déplacée.",
+    "backHome": "Retour à l'accueil"
+  },
+  "common": {
+    "error": "Erreur",
+    "success": "Succès",
+    "loading": "Chargement...",
+    "retry": "Réessayer",
+    "untitled": "Sans titre"
+  },
+  "regenerate": {
+    "title": "Régénérer cette slide",
+    "subtitle": "Slide {{current}}: {{title}}",
+    "modes": "Modes rapides",
+    "visual": "Plus visuel",
+    "visualDesc": "Images et graphiques",
+    "detailed": "Plus détaillé",
+    "detailedDesc": "Plus de texte",
+    "chart": "Format Graphique",
+    "chartDesc": "Charts et données",
+    "or": "ou",
+    "customInstructions": "Instructions personnalisées",
+    "placeholder": "Ex: Ajoute plus de données chiffrées, change le layout en grille...",
+    "cancel": "Annuler",
+    "submit": "Régénérer",
+    "submitting": "Régénération...",
+    "success": "Slide régénérée !",
+    "successMsg": "La nouvelle slide a été générée avec succès.",
+    "timeout": "Timeout",
+    "timeoutMsg": "La régénération prend trop de temps. Réessayez.",
+    "error": "Erreur",
+    "errorMsg": "La régénération a échoué.",
+    "genericError": "Impossible de régénérer la slide."
+  },
+  "bugReport": {
+    "title": "Signaler un Bug",
+    "trigger": "Signaler un bug",
+    "subtitle": "Aidez-nous à améliorer SlideAI en signalant les problèmes rencontrés.",
+    "typeLabel": "Type de bug",
+    "types": {
+      "emptySlide": "Slide Vide",
+      "emptySlideDesc": "Une slide s'affiche vide ou sans contenu",
+      "generationIncomplete": "Génération Incomplète",
+      "generationIncompleteDesc": "La présentation n'a qu'une seule slide avec le prompt",
+      "other": "Autre Bug",
+      "otherDesc": "Signaler un autre problème"
+    },
+    "context": {
+      "currentSlide": "Slide actuelle :",
+      "presentation": "Présentation :",
+      "logsNote": "Les logs de la slide seront envoyés pour analyse."
+    },
+    "descriptionLabel": "Décrivez le problème",
+    "placeholder": "Expliquez ce qui ne fonctionne pas correctement...",
+    "cancel": "Annuler",
+    "submit": "Envoyer le rapport",
+    "submitting": "Envoi...",
+    "successTitle": "✅ Bug signalé !",
+    "successMsg": "Merci pour votre retour. Notre équipe va analyser le problème.",
+    "errorTitle": "Erreur",
+    "errorMsg": "Impossible d'envoyer le rapport. Réessayez plus tard.",
+    "validation": {
+      "descRequired": "Description requise",
+      "descRequiredMsg": "Veuillez décrire le bug que vous avez rencontré."
+    }
+  },
+  "colorPalette": {
+    "title": "Modifier la palette",
+    "trigger": "Modifier la palette",
+    "subtitle": "Personnalisez les couleurs de votre présentation",
+    "tabs": {
+      "ai": "Assistant IA",
+      "manual": "Manuel"
+    },
+    "presets": {
+      "label": "Suggestion Rapide",
+      "dark": "Thème sombre",
+      "darkDesc": "Thème sombre élégant avec fond noir/gris foncé et texte clair",
+      "light": "Thème clair",
+      "lightDesc": "Thème clair et professionnel avec fond blanc et texte foncé",
+      "vibrant": "Couleurs vives",
+      "vibrantDesc": "Couleurs vives et modernes, dynamiques et engageantes"
+    },
+    "or": "ou",
+    "customPrompt": "Instructions personnalisées",
+    "placeholder": "Ex: Plus de bleu, couleurs pastel, style corporate...",
+    "labels": {
+      "primary": "Couleur Primaire",
+      "secondary": "Secondaire",
+      "accent": "Accent",
+      "bg": "Arrière-plan",
+      "text": "Texte"
+    },
+    "cancel": "Annuler",
+    "generate": "Générer avec IA",
+    "generating": "Modification...",
+    "apply": "Appliquer",
+    "manualSuccess": "Couleurs appliquées",
+    "manualSuccessMsg": "La palette a été mise à jour manuellement.",
+    "validation": {
+      "promptRequired": "Veuillez entrer une instruction."
+    },
+    "aiSuccess": "Palette modifiée !",
+    "aiSuccessMsg": "La nouvelle palette a été appliquée.",
+    "aiError": "La modification a échoué.",
+    "timeout": "Timeout",
+    "timeoutMsg": "La modification prend trop de temps. Réessayez.",
+    "genericError": "Impossible de modifier la palette."
+  },
+  "footer": {
+    "description": "Créez des présentations professionnelles en quelques minutes grâce à l'IA.",
+    "product": "Produit",
+    "legal": "Légal",
+    "contact": "Contact",
+    "copyright": "© {{year}} SlideAI. Tous droits réservés.",
+    "links": {
+      "examples": "Exemples",
+      "pricing": "Tarifs",
+      "changelog": "Changelog",
+      "roadmap": "Roadmap",
+      "privacy": "Confidentialité",
+      "terms": "CGU",
+      "gdpr": "RGPD"
+    }
+  },
+  "socialProof": {
+    "stats": {
+      "presentations": "Présentations créées",
+      "users": "Utilisateurs actifs",
+      "satisfaction": "Satisfaction client"
+    },
+    "heading": {
+      "lovedBy": "Aimé par les",
+      "creativeTeams": "équipes créatives"
+    },
+    "description": "Découvrez comment SlideAI a aidé des milliers de professionnels à créer des présentations exceptionnelles",
+    "trustedBy": {
+      "label": "Certifié par",
+      "badges": {
+        "topStartup": "🏆 Top Startup",
+        "stars": "⭐ 4.9/5 Stars",
+        "secure": "🔒 Sécurisé"
+      }
+    },
+    "testimonials": {
+      "emma": {
+        "quote": "SlideAI a transformé mon processus de création. Je gagne 10 heures par semaine!",
+        "title": "Founder, TechStudio"
+      },
+      "marc": {
+        "quote": "Les designs générés sont professionnels et précis. Aucun ajustement nécessaire.",
+        "title": "Marketing Director"
+      },
+      "sophie": {
+        "quote": "Finalement une solution simple pour créer des présentations impactantes.",
+        "title": "Consultant en Innovation"
+      }
+    }
+  },
+  "featureGrid": {
+    "pill": "Capacités",
+    "title": {
+      "main": "Des outils puissants",
+      "highlight": "conçus pour vous"
+    },
+    "description": "Tout ce dont vous avez besoin pour créer des présentations professionnelles sans effort",
+    "learnMore": "En savoir plus",
+    "moreFeatures": "Et bien d'autres fonctionnalités à découvrir...",
+    "features": {
+      "fastGen": {
+        "title": "Génération Rapide",
+        "desc": "Créez des présentations complètes en quelques secondes avec l'IA"
+      },
+      "smartDesign": {
+        "title": "Design Intelligent",
+        "desc": "Algorithmes qui comprennent le design moderne et les tendances actuelles"
+      },
+      "infinitePalettes": {
+        "title": "Palettes Infinies",
+        "desc": "Accès à des milliers de combinaisons de couleurs et de thèmes"
+      },
+      "animations": {
+        "title": "Animations Fluides",
+        "desc": "Des transitions et animations sophistiquées pour captiver votre audience"
+      },
+      "fastEdit": {
+        "title": "Édition Rapide",
+        "desc": "Modificateurs en temps réel avec preview instantanée"
+      },
+      "socialShare": {
+        "title": "Partage Social",
+        "desc": "Exportez et partagez vos présentations sur tous les réseaux"
+      }
+    }
+  },
+  "deckPreview": {
+    "badge": "Aperçu en Direct",
+    "title": {
+      "main": "Voici ce que vous",
+      "highlight": "créerez avec SlideAI"
+    },
+    "slide": {
+      "brand": "SlideAI",
+      "title": "Présentations",
+      "highlight": "Intelligentes",
+      "desc": "Générez du contenu pertinent et un design captivant instantanément."
+    },
+    "footer": "📊 Design moderne • 🎨 Thèmes préétablis • ✨ Animations fluides • 🚀 Prêt à présenter"
+  },
+  "outOfCredits": {
+    "title": "Plus de crédits disponibles",
+    "description": "Vous avez utilisé tous vos crédits de génération. Achetez un pack ou passez à un abonnement pour continuer à créer des présentations.",
+    "packs": {
+      "title": "Packs Liberté",
+      "desc": "Achetez des crédits à l'unité, sans engagement. À partir de 5€."
+    },
+    "subscriptions": {
+      "title": "Abonnements",
+      "desc": "Jusqu'à un nombre illimité de présentations par mois. À partir de 7€/mois."
+    },
+    "seeOptions": "Voir les options",
+    "later": "Plus tard"
+  },
+  "templateSelector": {
+    "pill": "Collection Premium",
+    "title": "Choisissez votre",
+    "highlight": "style",
+    "description": "Sélectionnez une identité visuelle qui correspond à votre histoire. Chaque thème propose des mises en page et une typographie uniques.",
+    "select": "Sélectionner",
+    "categories": {
+      "all": "Tous",
+      "business": "Business",
+      "creative": "Créatif",
+      "educational": "Éducatif",
+      "marketing": "Marketing",
+      "corporate": "Corporatif"
+    },
+    "templates": {
+      "startup-pitch": {
+        "name": "Pitch Startup",
+        "desc": "Design audacieux et impactant pour les présentations investisseurs"
+      },
+      "product-launch": {
+        "name": "Lancement Produit",
+        "desc": "Vibrant et énergique pour les annonces de nouveaux produits"
+      },
+      "corporate-report": {
+        "name": "Rapport Corporatif",
+        "desc": "Professionnel et épuré pour les rapports d'entreprise"
+      },
+      "creative-portfolio": {
+        "name": "Portfolio Créatif",
+        "desc": "Artistique et audacieux avec un accent sur les visuels"
+      },
+      "educational": {
+        "name": "Cours Éducatif",
+        "desc": "Clair et structuré pour l'enseignement"
+      },
+      "marketing-campaign": {
+        "name": "Campagne Marketing",
+        "desc": "Dynamique et coloré pour le marketing"
+      },
+      "minimal-elegant": {
+        "name": "Minimal Élégant",
+        "desc": "Minimaliste sophistiqué avec une typographie forte"
+      },
+      "tech-modern": {
+        "name": "Tech Moderne",
+        "desc": "Design de pointe pour la tech et le SaaS"
+      },
+      "consulting": {
+        "name": "Consulting Premium",
+        "desc": "Design sophistiqué pour les cabinets de conseil"
+      },
+      "health-medical": {
+        "name": "Santé & Médical",
+        "desc": "Propre et digne de confiance pour les soins de santé"
+      },
+      "sustainability": {
+        "name": "Durabilité",
+        "desc": "Tons terreux pour les messages écologiques"
+      }
+    }
+  },
+  "editorPage": {
+    "errors": {
+      "authRequired": "Connexion requise",
+      "loading": "Erreur lors du chargement",
+      "generic": "Une erreur est survenue",
+      "notFound": "Aucune présentation trouvée",
+      "save": "Erreur de sauvegarde"
+    },
+    "loading": {
+      "oops": "Oops!",
+      "backHome": "Retour à l'accueil"
+    },
+    "saveStatus": {
+      "saving": "Enregistrement...",
+      "saved": "Enregistré ✓",
+      "error": "Erreur de sauvegarde",
+      "ready": "Prêt"
+    },
+    "actions": {
+      "slideshow": "Diaporama",
+      "save": "Sauvegarder",
+      "editPalette": "Modifier la palette",
+      "export": "Exporter",
+      "regenerateSlide": "Régénérer la slide",
+      "deleteSlide": "Supprimer la slide",
+      "addSlide": "Ajouter une slide"
+    },
+    "sidebar": {
+      "slides": "SLIDES"
+    },
+    "navigation": {
+      "counter": "Slide {{current}} sur {{total}}"
+    },
+    "slide": {
+      "untitled": "Slide sans titre"
+    },
+    "table": {
+      "newRow": "Nouveau"
+    },
+    "element": {
+      "newText": "Nouveau bloc de texte",
+      "textLabel": "Zone de texte",
+      "imageLabel": "Image"
+    },
+    "cannotDelete": "Impossible de supprimer",
+    "mustHaveOneRow": "Le tableau doit avoir au moins une ligne.",
+    "rowDeleted": "Ligne supprimée",
+    "rowDeletedMsg": "La ligne a été supprimée avec succès.",
+    "rowAdded": "Ligne ajoutée",
+    "rowAddedMsg": "Une nouvelle ligne a été ajoutée au tableau.",
+    "saved": "Sauvegardé",
+    "savedMsg": "Les modifications ont été enregistrées.",
+    "saveErrorMsg": "Impossible de sauvegarder les modifications.",
+    "mustHaveOneSlide": "La présentation doit contenir au moins une slide.",
+    "slideDeleted": "Slide supprimée",
+    "slideDeletedMsg": "La slide a été supprimée avec succès."
+  }
+}

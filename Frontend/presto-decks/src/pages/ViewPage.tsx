@@ -148,36 +148,54 @@ export default function ViewPage() {
     }, [isFullscreen, project, status]);
 
     // Load presentation (supports both token route and ID query param)
+    // Load presentation (supports both token route and ID query param)
     useEffect(() => {
         const loadPresentation = async () => {
-            const { data: { session } } = await supabase.auth.getSession();
-
-            if (!session) {
-                setStatus("auth_required");
-                return;
-            }
-
-            // Get presentation ID from URL query params (for /viewer?id=xxx route)
             const searchParams = new URLSearchParams(window.location.search);
             const presentationId = searchParams.get("id");
 
+            console.log("[ViewPage] Loading presentation...", { token, presentationId });
+
             try {
-                let finalPresentationId: string;
+                let presentationData: any;
 
                 if (token) {
-                    // Mode 1: Accessed via /view/:token - join first
-                    const result = await api.joinViewOnlyPresentation(token, session.access_token);
-                    finalPresentationId = result.presentationId;
+                    // Mode 1: Accessed via /view/:token - try PUBLIC endpoint first (no auth needed)
+                    console.log("[ViewPage] Attempting public access with token:", token);
+                    try {
+                        presentationData = await api.getPublicPresentation(token);
+                        console.log("[ViewPage] Public access successful");
+                    } catch (publicError) {
+                        console.warn("[ViewPage] Public access failed, trying authenticated access", publicError);
+
+                        // If public endpoint fails, try authenticated flow
+                        const { data: { session } } = await supabase.auth.getSession();
+                        if (!session) {
+                            console.log("[ViewPage] No session, require auth");
+                            setStatus("auth_required");
+                            return;
+                        }
+                        const result = await api.joinViewOnlyPresentation(token, session.access_token);
+                        presentationData = await api.getPresentation(result.presentationId, session.access_token);
+                    }
                 } else if (presentationId) {
-                    // Mode 2: Accessed via /viewer?id=xxx - already have access
-                    finalPresentationId = presentationId;
+                    // Mode 2: Accessed via /viewer?id=xxx - requires auth
+                    console.log("[ViewPage] Accessing via ID, checking auth");
+                    const { data: { session } } = await supabase.auth.getSession();
+                    if (!session) {
+                        setStatus("auth_required");
+                        return;
+                    }
+                    presentationData = await api.getPresentation(presentationId, session.access_token);
                 } else {
                     setStatus("error");
                     setErrorMessage(t('join.invalidLink'));
                     return;
                 }
 
-                const presentationData = await api.getPresentation(finalPresentationId, session.access_token);
+                if (!presentationData) {
+                    throw new Error("No presentation data received");
+                }
 
                 const adapted = adaptDeck({
                     id: presentationData.id,
@@ -190,6 +208,7 @@ export default function ViewPage() {
                 setShowWatermark(presentationData.showWatermark ?? false);
                 setStatus("viewing");
             } catch (error: any) {
+                console.error("[ViewPage] Error loading presentation:", error);
                 setStatus("error");
                 setErrorMessage(error.message || t('view.accessError'));
             }

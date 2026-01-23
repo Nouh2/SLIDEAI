@@ -466,4 +466,17 @@ export const api = {
     if (!response.ok) throw new Error('Impossible de charger l\'abonnement');
     return response.json();
   },
+
+  /**
+   * Get a presentation by view-only token (NO AUTH REQUIRED)
+   * GET /v1/public/view/:token
+   */
+  async getPublicPresentation(token: string): Promise<any> {
+    const response = await fetch(`${API_BASE_URL}/public/view/${token}`);
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({ message: 'Présentation introuvable' }));
+      throw new Error(err.message || 'Présentation introuvable ou lien expiré');
+    }
+    return response.json();
+  },
 };

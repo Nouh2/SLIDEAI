@@ -16,6 +16,10 @@ interface SlideRendererProps {
         bg: string;
         text: string;
     };
+    fontConfig?: {
+        heading: string;
+        body: string;
+    };
     onElementSelect?: (element: { id: string; type: 'text' | 'image' | 'list' | 'chart'; path: string; value: any; label: string }) => void;
     selectedElementId?: string | null;
     showWatermark?: boolean;
@@ -117,6 +121,24 @@ const getReadableColor = (preferredColor: string, backgroundColor: string) => {
     // If they share the same contrast (e.g. both want white text on black), then preferred is fine.
     // If they differ (e.g. preferred wants white but bg is white), then fallback to contrastToBg.
     return contrastToBg !== contrastToPreferred ? preferredColor : contrastToBg;
+};
+
+// Font mapping for custom fonts
+const FONT_MAP: Record<string, string> = {
+    'inter': "'Inter', sans-serif",
+    'roboto': "'Roboto', sans-serif",
+    'open-sans': "'Open Sans', sans-serif",
+    'montserrat': "'Montserrat', sans-serif",
+    'poppins': "'Poppins', sans-serif",
+    'lato': "'Lato', sans-serif",
+    'playfair': "'Playfair Display', serif",
+    'merriweather': "'Merriweather', serif",
+    'arial': "Arial, sans-serif",
+    'georgia': "Georgia, serif",
+};
+
+const getFontFamily = (fontId: string): string => {
+    return FONT_MAP[fontId] || 'inherit';
 };
 
 // Enhanced abstract background shapes - premium artistic look
@@ -5180,7 +5202,7 @@ const MasterCoverLayout = ({ slide, colors, variation = 'centered-minimal', onSe
 // MAIN COMPONENT
 // ============================================
 
-export const ModernSlideRenderer = ({ slide, theme, className, colorPalette, onElementSelect, selectedElementId, showWatermark }: SlideRendererProps) => {
+export const ModernSlideRenderer = ({ slide, theme, className, colorPalette, fontConfig, onElementSelect, selectedElementId, showWatermark }: SlideRendererProps) => {
     // Get template colors
     const template = getTemplateById(theme);
 
@@ -5945,10 +5967,13 @@ export const ModernSlideRenderer = ({ slide, theme, className, colorPalette, onE
             style={{
                 backgroundColor: colors.bg,
                 color: colors.text,
+                fontFamily: fontConfig?.body ? getFontFamily(fontConfig.body) : 'inherit',
                 '--slide-bg': colors.bg,
                 '--slide-text': colors.text,
                 '--slide-primary': colors.primary,
                 '--slide-accent': colors.accent || colors.primary,
+                '--slide-heading-font': fontConfig?.heading ? getFontFamily(fontConfig.heading) : 'inherit',
+                '--slide-body-font': fontConfig?.body ? getFontFamily(fontConfig.body) : 'inherit',
             } as React.CSSProperties}
         >
             {renderLayout()}

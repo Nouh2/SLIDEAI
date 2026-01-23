@@ -95,16 +95,7 @@ export function Hero() {
                     </Button>
                 </motion.div>
 
-                {/* Social Proof / Trust */}
-                <motion.div variants={itemVariants} className="pt-16 flex flex-col items-center space-y-4">
-                    <p className="text-sm text-muted-foreground font-medium">{t('hero.trustLabel')}</p>
-                    <div className="flex gap-8 opacity-50 grayscale hover:grayscale-0 transition-all duration-500">
-                        {/* Placeholder logos */}
-                        {[1, 2, 3, 4].map((i) => (
-                            <div key={i} className="h-8 w-24 bg-white/10 rounded animate-pulse" />
-                        ))}
-                    </div>
-                </motion.div>
+
             </motion.div>
         </section>
     );

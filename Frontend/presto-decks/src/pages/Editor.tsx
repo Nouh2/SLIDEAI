@@ -27,6 +27,7 @@ import {
   Wand2,
   Palette,
   Plus,
+  Type,
 } from "lucide-react";
 import { Reorder, AnimatePresence } from "framer-motion";
 import { PresentationBuilderLoader } from "@/components/layout/PresentationBuilderLoader";
@@ -40,6 +41,7 @@ import { LayoutSwitcher } from "@/components/editor/LayoutSwitcher";
 import { ColorPaletteDialog } from "@/components/editor/ColorPaletteDialog";
 import { ExportDialog } from "@/components/editor/ExportDialog";
 import { BugReportDialog } from "@/components/editor/BugReportDialog";
+import { FontSelectorDialog, FontConfig, AVAILABLE_FONTS } from "@/components/editor/FontSelectorDialog";
 
 
 
@@ -107,6 +109,7 @@ const adaptDeck = (deck: any) => {
     theme: deck.theme || rootData.theme || "startup-pitch",
     themeConfig: deck.themeConfig || rootData.themeConfig,
     colorScheme: deck.colorPalette || deck.colorScheme || rootData.colorPalette || rootData.colorScheme,
+    fontConfig: deck.fontConfig || rootData.fontConfig,
   };
 };
 
@@ -568,6 +571,7 @@ export default function Editor() {
         slides: projectToSave.slides,
         theme: projectToSave.theme,
         colorPalette: projectToSave.colorScheme,
+        fontConfig: projectToSave.fontConfig,
         title: projectToSave.title,
         subtitle: projectToSave.subtitle
       };
@@ -808,6 +812,20 @@ export default function Editor() {
                   </Button>
                 </ColorPaletteDialog>
               )}
+              {currentProject && (
+                <FontSelectorDialog
+                  currentFontConfig={currentProject.fontConfig}
+                  onApply={(newFontConfig) => {
+                    const updatedProject = { ...currentProject, fontConfig: newFontConfig };
+                    setCurrentProject(updatedProject);
+                    triggerAutoSave(updatedProject);
+                  }}
+                >
+                  <Button variant="ghost" title={t('fontSelector.title')}>
+                    <Type className="w-4 h-4" />
+                  </Button>
+                </FontSelectorDialog>
+              )}
               <AddElementMenu onAdd={handleAddElement} />
               <Button
                 variant="outline"
@@ -1011,6 +1029,7 @@ export default function Editor() {
                 slide={currentProject.slides[selectedSlide]}
                 theme={currentProject.theme}
                 colorPalette={currentProject.colorScheme}
+                fontConfig={currentProject.fontConfig}
                 className="w-full h-full"
                 onElementSelect={isFullscreen ? undefined : handleElementSelect}
                 selectedElementId={!isFullscreen && selectedElement ? selectedElement.id.split('-').slice(1).join('-') : null}

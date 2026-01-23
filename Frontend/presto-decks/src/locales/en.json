@@ -9,6 +9,20 @@
     "myAccount": "My Account",
     "logout": "Logout"
   },
+  "common": {
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "delete": "Delete",
+    "save": "Save",
+    "edit": "Edit",
+    "close": "Close",
+    "back": "Back",
+    "error": "Error",
+    "success": "Success",
+    "loading": "Loading...",
+    "retry": "Retry",
+    "untitled": "Untitled"
+  },
   "hero": {
     "badge": "SlideAI v2.0",
     "title1": "Create",
@@ -25,7 +39,7 @@
     "ctaSubtitle": "Join thousands of professionals who transform their ideas into exceptional presentations with SlideAI",
     "ctaButton": "Start now",
     "viewPricing": "View pricing",
-    "freeNote": "✨ Free for the first 5 presentations · No credit card required"
+    "freeNote": "✨ Free for the first 2 presentations · No credit card required"
   },
   "dashboard": {
     "title": "Dashboard",
@@ -99,6 +113,18 @@
       "fr": "French",
       "es": "Spanish"
     }
+  },
+  "fontSelector": {
+    "title": "Typography",
+    "subtitle": "Customize your presentation fonts",
+    "headingFont": "Heading Font",
+    "bodyFont": "Body Font",
+    "preview": "Preview",
+    "previewHeading": "Slide Title",
+    "previewBody": "This is a sample text with the selected font.",
+    "apply": "Apply",
+    "success": "Fonts updated",
+    "successMsg": "The new fonts have been applied."
   },
   "editor": {
     "slideshow": "Slideshow",
@@ -404,13 +430,6 @@
     "message": "Page not found",
     "description": "Sorry, the page you are looking for doesn't exist or has been moved.",
     "backHome": "Back to home"
-  },
-  "common": {
-    "error": "Error",
-    "success": "Success",
-    "loading": "Loading...",
-    "retry": "Retry",
-    "untitled": "Untitled"
   },
   "regenerate": {
     "title": "Regenerate this slide",
@@ -742,5 +761,21 @@
     "mustHaveOneSlide": "Presentation must contain at least one slide.",
     "slideDeleted": "Slide deleted",
     "slideDeletedMsg": "The slide was successfully deleted."
+  },
+  "productShowcase": {
+    "features": {
+      "generation": {
+        "title": "AI Generation",
+        "description": "Transform your ideas into professional slides instantly with our advanced AI."
+      },
+      "editor": {
+        "title": "Powerful Editor",
+        "description": "Fine-tune every detail with our intuitive, real-time editor designed for speed."
+      },
+      "dashboard": {
+        "title": "Smart Dashboard",
+        "description": "Manage your presentations efficiently with an organized and beautiful workspace."
+      }
+    }
   }
 }

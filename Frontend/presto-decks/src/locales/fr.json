@@ -9,6 +9,20 @@
     "myAccount": "Mon Compte",
     "logout": "Déconnexion"
   },
+  "common": {
+    "cancel": "Annuler",
+    "confirm": "Confirmer",
+    "delete": "Supprimer",
+    "save": "Enregistrer",
+    "edit": "Modifier",
+    "close": "Fermer",
+    "back": "Retour",
+    "error": "Erreur",
+    "success": "Succès",
+    "loading": "Chargement...",
+    "retry": "Réessayer",
+    "untitled": "Sans titre"
+  },
   "hero": {
     "badge": "SlideAI v2.0",
     "title1": "Créez des slides",
@@ -25,7 +39,7 @@
     "ctaSubtitle": "Rejoignez des milliers de professionnels qui transforment leurs idées en présentations exceptionnelles avec SlideAI",
     "ctaButton": "Commencer maintenant",
     "viewPricing": "Voir les tarifs",
-    "freeNote": "✨ Gratuit pour les 5 premières présentations · Pas de carte bancaire requise"
+    "freeNote": "✨ Gratuit pour les 2 premières présentations · Pas de carte bancaire requise"
   },
   "dashboard": {
     "title": "Tableau de Bord",
@@ -99,6 +113,18 @@
       "fr": "Français",
       "es": "Espagnol"
     }
+  },
+  "fontSelector": {
+    "title": "Polices d'écriture",
+    "subtitle": "Personnalisez les polices de votre présentation",
+    "headingFont": "Police des titres",
+    "bodyFont": "Police du texte",
+    "preview": "Aperçu",
+    "previewHeading": "Titre de la slide",
+    "previewBody": "Ceci est un exemple de texte avec la police sélectionnée.",
+    "apply": "Appliquer",
+    "success": "Polices modifiées",
+    "successMsg": "Les nouvelles polices ont été appliquées."
   },
   "editor": {
     "slideshow": "Diaporama",
@@ -404,13 +430,6 @@
     "message": "Page introuvable",
     "description": "Désolé, la page que vous recherchez n'existe pas ou a été déplacée.",
     "backHome": "Retour à l'accueil"
-  },
-  "common": {
-    "error": "Erreur",
-    "success": "Succès",
-    "loading": "Chargement...",
-    "retry": "Réessayer",
-    "untitled": "Sans titre"
   },
   "regenerate": {
     "title": "Régénérer cette slide",
@@ -742,5 +761,21 @@
     "mustHaveOneSlide": "La présentation doit contenir au moins une slide.",
     "slideDeleted": "Slide supprimée",
     "slideDeletedMsg": "La slide a été supprimée avec succès."
+  },
+  "productShowcase": {
+    "features": {
+      "generation": {
+        "title": "Génération IA",
+        "description": "Transformez vos idées en slides professionnelles instantanément grâce à notre IA avancée."
+      },
+      "editor": {
+        "title": "Éditeur Puissant",
+        "description": "Ajustez chaque détail avec notre éditeur intuitif et temps réel, conçu pour la rapidité."
+      },
+      "dashboard": {
+        "title": "Tableau de Bord Intelligent",
+        "description": "Gérez vos présentations efficacement avec un espace de travail organisé et magnifique."
+      }
+    }
   }
 }

@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { Hero } from "@/components/home/Hero";
 import { DeckPreview } from "@/components/home/DeckPreview";
 import { FeatureGrid } from "@/components/home/FeatureGrid";
-import { SocialProof } from "@/components/home/SocialProof";
+import { ProductShowcase } from "@/components/home/ProductShowcase";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Sparkles } from "lucide-react";
 
@@ -22,8 +22,8 @@ export default function Home() {
       {/* Features Section */}
       <FeatureGrid />
 
-      {/* Social Proof Section */}
-      <SocialProof />
+      {/* Product Showcase Section */}
+      <ProductShowcase />
 
       {/* Bottom CTA Section */}
       <section className="relative py-12 md:py-32 px-4 overflow-hidden border-t border-border/50">

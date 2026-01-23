@@ -92,7 +92,13 @@
     "generationStarted": "Generation started",
     "redirecting": "Redirecting to editor...",
     "templateRequired": "Template required",
-    "templateRequiredMsg": "Please select a template"
+    "templateRequiredMsg": "Please select a template",
+    "contentLanguage": "Content language",
+    "languages": {
+      "en": "English",
+      "fr": "French",
+      "es": "Spanish"
+    }
   },
   "editor": {
     "slideshow": "Slideshow",

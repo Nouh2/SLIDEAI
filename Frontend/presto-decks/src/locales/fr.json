@@ -92,7 +92,13 @@
     "generationStarted": "Génération lancée",
     "redirecting": "Redirection vers l'éditeur...",
     "templateRequired": "Template requis",
-    "templateRequiredMsg": "Veuillez sélectionner un template"
+    "templateRequiredMsg": "Veuillez sélectionner un template",
+    "contentLanguage": "Langue du contenu",
+    "languages": {
+      "en": "Anglais",
+      "fr": "Français",
+      "es": "Espagnol"
+    }
   },
   "editor": {
     "slideshow": "Diaporama",

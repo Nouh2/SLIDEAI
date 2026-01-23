@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Sparkles, Wand2, ArrowRight, Zap, Paperclip, FileText, X, Loader2, ChevronLeft } from "lucide-react";
+import { Sparkles, Wand2, ArrowRight, Zap, Paperclip, FileText, X, Loader2, ChevronLeft, Globe } from "lucide-react";
 
 import { Slider } from "@/components/ui/slider";
 import { useToast } from "@/hooks/use-toast";
@@ -21,7 +21,9 @@ export default function Create() {
     const [step, setStep] = useState<'template' | 'customize'>("template");
     const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
     const [vision, setVision] = useState("");
-    const { t } = useTranslation();
+    const { t, i18n } = useTranslation();
+
+    const [contentLanguage, setContentLanguage] = useState<string>(i18n.language === 'fr' ? 'fr' : i18n.language === 'es' ? 'es' : 'en');
 
     const [slides, setSlides] = useState([10]);
     const [isGenerating, setIsGenerating] = useState(false);
@@ -116,7 +118,7 @@ export default function Create() {
 
             const data = await api.generate({
                 prompt: `${finalPrompt}. Objectif: Présentation. ${template ? `Theme suggéré: ${template.id}` : ''}`,
-                language: "fr",
+                language: contentLanguage,
                 tone: "pro",
                 length: "medium",
                 slideCount: slides[0],
@@ -380,6 +382,31 @@ export default function Create() {
                                                             step={1}
                                                             className="py-2"
                                                         />
+                                                    </div>
+
+                                                    {/* Language Selector */}
+                                                    <div className="space-y-3 px-1">
+                                                        <div className="flex justify-between items-center">
+                                                            <label className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
+                                                                <Globe className="w-3 h-3" />
+                                                                {t('create.contentLanguage')}
+                                                            </label>
+                                                        </div>
+                                                        <div className="flex gap-2">
+                                                            {(['en', 'fr', 'es'] as const).map((lang) => (
+                                                                <button
+                                                                    key={lang}
+                                                                    type="button"
+                                                                    onClick={() => setContentLanguage(lang)}
+                                                                    className={`flex-1 px-3 py-2 text-xs font-medium rounded-lg border transition-all ${contentLanguage === lang
+                                                                            ? 'bg-primary text-white border-primary'
+                                                                            : 'bg-muted/50 text-muted-foreground border-border hover:border-primary/50'
+                                                                        }`}
+                                                                >
+                                                                    {t(`create.languages.${lang}`)}
+                                                                </button>
+                                                            ))}
+                                                        </div>
                                                     </div>
                                                 </div>
 

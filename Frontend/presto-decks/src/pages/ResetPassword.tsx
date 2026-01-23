@@ -13,7 +13,6 @@ export default function ResetPassword() {
     const [loading, setLoading] = useState(false);
     const [verifying, setVerifying] = useState(true);
     const navigate = useNavigate();
-    const navigate = useNavigate();
     const { toast } = useToast();
     const { t } = useTranslation();
 

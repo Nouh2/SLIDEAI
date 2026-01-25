@@ -16,12 +16,9 @@
     "strict": true,
     "noUnusedLocals": false,
     "noUnusedParameters": false,
-    "noFallthroughCasesInSwitch": true,
-    "jsx": "react-jsx"
+    "noFallthroughCasesInSwitch": true
   },
   "include": [
-    "vite.config.ts",
-    "middleware.ts",
-    "api/**/*"
+    "vite.config.ts"
   ]
 }

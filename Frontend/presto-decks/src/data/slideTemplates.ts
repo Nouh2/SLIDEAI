@@ -24,24 +24,24 @@ export interface SlideTemplate {
 
 export const slideTemplates: SlideTemplate[] = [
   {
-    id: 'startup-pitch',
-    name: 'Startup Pitch',
-    description: 'Bold and impactful design for investor presentations',
-    category: 'business',
+    id: 'corporate-report',
+    name: 'Corporate Report',
+    description: 'Professional and clean for business reports',
+    category: 'corporate',
     colors: {
-      primary: '#2563EB',  // Blue
-      secondary: '#7C3AED', // Purple
-      accent: '#2563EB',
+      primary: '#0369A1',  // Corporate Blue
+      secondary: '#059669', // Green
+      accent: '#0369A1',
       bg: '#ffffff',
-      text: '#0F172A',
+      text: '#1E293B',
     },
     fonts: {
-      heading: 'Outfit',
+      heading: 'Inter',
       body: 'Inter',
     },
-    preview: 'https://images.unsplash.com/photo-1559136555-9303baea8ebd?w=400&h=300&fit=crop',
-    preferredLayouts: ['cover-hero', 'metrics-grid', 'comparison-split'],
-    useCases: ['pitch deck', 'fundraising', 'investor presentation', 'startup'],
+    preview: 'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=400&h=300&fit=crop',
+    preferredLayouts: ['section-divider', 'metrics-grid', 'comparison-split'],
+    useCases: ['business report', 'quarterly review', 'executive summary'],
   },
   {
     id: 'product-launch',
@@ -64,24 +64,64 @@ export const slideTemplates: SlideTemplate[] = [
     useCases: ['product launch', 'feature announcement', 'marketing'],
   },
   {
-    id: 'corporate-report',
-    name: 'Corporate Report',
-    description: 'Professional and clean for business reports',
-    category: 'corporate',
+    id: 'startup-pitch',
+    name: 'Startup Pitch',
+    description: 'Bold and impactful design for investor presentations',
+    category: 'business',
     colors: {
-      primary: '#0369A1',  // Corporate Blue
-      secondary: '#059669', // Green
-      accent: '#0369A1',
+      primary: '#2563EB',  // Blue
+      secondary: '#7C3AED', // Purple
+      accent: '#2563EB',
       bg: '#ffffff',
-      text: '#1E293B',
+      text: '#0F172A',
+    },
+    fonts: {
+      heading: 'Outfit',
+      body: 'Inter',
+    },
+    preview: 'https://images.unsplash.com/photo-1559136555-9303baea8ebd?w=400&h=300&fit=crop',
+    preferredLayouts: ['cover-hero', 'metrics-grid', 'comparison-split'],
+    useCases: ['pitch deck', 'fundraising', 'investor presentation', 'startup'],
+  },
+  {
+    id: 'consulting',
+    name: 'Consulting Premium',
+    description: 'Sophisticated design for consulting firms',
+    category: 'business',
+    colors: {
+      primary: '#F59E0B',  // Gold
+      secondary: '#3B82F6', // Blue
+      accent: '#F59E0B',
+      bg: '#0F172A',
+      text: '#F8FAFC',
     },
     fonts: {
       heading: 'Inter',
       body: 'Inter',
     },
-    preview: 'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=400&h=300&fit=crop',
-    preferredLayouts: ['section-divider', 'metrics-grid', 'comparison-split'],
-    useCases: ['business report', 'quarterly review', 'executive summary'],
+    preview: 'https://images.unsplash.com/photo-1553877522-43269d4ea984?w=400&h=300&fit=crop',
+    preferredLayouts: ['cover-hero', 'metrics-grid', 'comparison-split'],
+    useCases: ['consulting', 'strategy', 'advisory', 'management'],
+  },
+  {
+    id: 'minimal-elegant',
+    name: 'Minimal Elegant',
+    description: 'Sophisticated minimalist with strong typography',
+    category: 'business',
+    colors: {
+      primary: '#18181B',  // Near black
+      secondary: '#52525B', // Gray
+      accent: '#18181B',
+      bg: '#FAFAFA',
+      text: '#18181B',
+    },
+    fonts: {
+      heading: 'Outfit',
+      body: 'Inter',
+    },
+    preview: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=400&h=300&fit=crop',
+    preferredLayouts: ['section-divider', 'quote-large', 'comparison-split'],
+    useCases: ['minimalist', 'elegant', 'luxury', 'premium'],
   },
   {
     id: 'creative-portfolio',
@@ -144,26 +184,6 @@ export const slideTemplates: SlideTemplate[] = [
     useCases: ['marketing', 'campaign', 'advertising'],
   },
   {
-    id: 'minimal-elegant',
-    name: 'Minimal Elegant',
-    description: 'Sophisticated minimalist with strong typography',
-    category: 'business',
-    colors: {
-      primary: '#18181B',  // Near black
-      secondary: '#52525B', // Gray
-      accent: '#18181B',
-      bg: '#FAFAFA',
-      text: '#18181B',
-    },
-    fonts: {
-      heading: 'Outfit',
-      body: 'Inter',
-    },
-    preview: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=400&h=300&fit=crop',
-    preferredLayouts: ['section-divider', 'quote-large', 'comparison-split'],
-    useCases: ['minimalist', 'elegant', 'luxury', 'premium'],
-  },
-  {
     id: 'tech-modern',
     name: 'Tech Modern',
     description: 'Cutting-edge design for tech and SaaS',
@@ -182,26 +202,6 @@ export const slideTemplates: SlideTemplate[] = [
     preview: 'https://images.unsplash.com/photo-1518770660439-4636190af475?w=400&h=300&fit=crop',
     preferredLayouts: ['cover-hero', 'feature-showcase', 'metrics-grid'],
     useCases: ['technology', 'saas', 'software', 'digital', 'cyber', 'ai'],
-  },
-  {
-    id: 'consulting',
-    name: 'Consulting Premium',
-    description: 'Sophisticated design for consulting firms',
-    category: 'business',
-    colors: {
-      primary: '#F59E0B',  // Gold
-      secondary: '#3B82F6', // Blue
-      accent: '#F59E0B',
-      bg: '#0F172A',
-      text: '#F8FAFC',
-    },
-    fonts: {
-      heading: 'Inter',
-      body: 'Inter',
-    },
-    preview: 'https://images.unsplash.com/photo-1553877522-43269d4ea984?w=400&h=300&fit=crop',
-    preferredLayouts: ['cover-hero', 'metrics-grid', 'comparison-split'],
-    useCases: ['consulting', 'strategy', 'advisory', 'management'],
   },
   {
     id: 'health-medical',

@@ -25,28 +25,146 @@
   },
   "hero": {
     "badge": "SlideAI v2.0",
-    "title1": "Créez des slides",
-    "title2": "intelligents",
-    "title3": "en un éclair",
-    "subtitle": "Importez vos documents ou décrivez votre idée. Notre IA génère une présentation PowerPoint complète, designée et prête à l'emploi.",
-    "cta": "Commencer gratuitement",
-    "viewExamples": "Voir des exemples",
-    "trustLabel": "Ils nous font confiance"
+    "title": "Freelance ? Transforme tes documents clients en livrables professionnels en 40 secondes.",
+    "subtitle": "Importe un PDF ou un Word, SlideAI génère des slides prêtes à livrer. Pack test : 5 présentations pour 7€ – sans abonnement.",
+    "cta": "Tester le Pack Freelance – 7€",
+    "microProofs": {
+      "target": "Pensé pour freelances marketing, consultants & coachs",
+      "roi": "1 client = outil rentabilisé",
+      "features": "Export PDF • Partage client • Design pro"
+    }
   },
-  "home": {
-    "ctaTitle": "Prêt à créer votre",
-    "ctaTitleHighlight": "présentation de rêve ?",
-    "ctaSubtitle": "Rejoignez des milliers de professionnels qui transforment leurs idées en présentations exceptionnelles avec SlideAI",
-    "ctaButton": "Commencer maintenant",
-    "viewPricing": "Voir les tarifs",
-    "freeNote": "✨ Gratuit pour les 2 premières présentations · Pas de carte bancaire requise"
+  "livrables": {
+    "title": "Voici les livrables que tu peux créer avec SlideAI",
+    "subtitle": "Pas juste des slides. Des présentations client-ready.",
+    "badge": "Livrables",
+    "examples": {
+      "audit": "Audit marketing client",
+      "reco": "Présentation de recommandations",
+      "reporting": "Reporting mensuel",
+      "pitch": "Pitch / deck de vente",
+      "strategy": "Présentation stratégique"
+    },
+    "footer": "Même moteur IA, mais langage métier freelance."
+  },
+  "whyFreelance": {
+    "title": "Moins de PowerPoint. Plus de clients.",
+    "points": {
+      "time": "Gagne plusieurs heures par mission",
+      "structure": "Structure claire et professionnelle dès la génération",
+      "impress": "Impressionne tes clients sans designer",
+      "deliver": "Livre plus vite, facture plus sereinement"
+    }
+  },
+  "howItWorks": {
+    "title": "Comment ça marche",
+    "steps": {
+      "1": {
+        "title": "Importe ton document client",
+        "desc": "Brief, audit, rapport ou simple idée."
+      },
+      "2": {
+        "title": "SlideAI génère le deck",
+        "desc": "Structure, contenu et design automatiquement."
+      },
+      "3": {
+        "title": "Ajuste et livre",
+        "desc": "Édition rapide, export PDF, partage client."
+      }
+    },
+    "time": "Temps total : ~40 secondes."
+  },
+  "tools": {
+    "pill": "Outils",
+    "title": "Des outils pensés pour la livraison client",
+    "items": {
+      "fastGen": {
+        "title": "Génération rapide",
+        "desc": "Des livrables prêts à envoyer en quelques secondes."
+      },
+      "smartDesign": {
+        "title": "Design intelligent",
+        "desc": "Un rendu professionnel sans passer par un designer."
+      },
+      "smartPalettes": {
+        "title": "Palettes intelligentes",
+        "desc": "Des couleurs adaptées au message et au contexte client."
+      },
+      "fastEdit": {
+        "title": "Édition rapide",
+        "desc": "Ajuste en temps réel avant l’envoi au client."
+      },
+      "shareExport": {
+        "title": "Partage & export",
+        "desc": "Lien client + export PDF inclus."
+      }
+    },
+    "learnMore": "En savoir plus"
+  },
+  "landingProductShowcase": {
+    "title": "Conçu pour les freelances qui livrent régulièrement",
+    "subtitle": "Un tableau de bord clair pour gérer tes présentations, regénérer des slides, ajuster le design et livrer sans friction."
+  },
+  "offer": {
+    "freelancePack": {
+      "title": "Pack Freelance – Test sans engagement",
+      "subtitle": "Parfait pour une mission ponctuelle ou un premier client.",
+      "features": {
+        "presents": "5 présentations générées",
+        "import": "Import PDF & Word",
+        "design": "Design & structure automatiques",
+        "export": "Export PDF",
+        "subscription": "Aucun abonnement"
+      },
+      "uniquenessNote": "Chaque génération s’adapte au contenu, au client et au contexte. Même pour une mission similaire, le livrable est différent.",
+      "price": "7€ – paiement unique",
+      "cta": "Tester maintenant"
+    },
+    "proSubscription": {
+      "title": "Besoin régulier ? Passe à l’abonnement Pro",
+      "subtitle": "Pour les freelances qui livrent des présentations chaque semaine.",
+      "features": {
+        "unlimited": "Génération illimitée",
+        "pages": "Import PDF jusqu’à 200 pages",
+        "export": "Export HD prioritaire",
+        "support": "Support prioritaire"
+      },
+      "price": "19€/mois",
+      "cta": "Voir l’abonnement Pro"
+    }
+  },
+  "faq": {
+    "title": "Questions fréquentes",
+    "questions": {
+      "subscription": {
+        "q": "Y a-t-il un abonnement obligatoire ?",
+        "a": "Non. Le pack à 7€ est un paiement unique."
+      },
+      "deliver": {
+        "q": "Puis-je vraiment livrer ça à un client ?",
+        "a": "Oui. Les slides sont conçues pour un usage professionnel."
+      },
+      "pdf": {
+        "q": "Puis-je exporter en PDF ?",
+        "a": "Oui, l’export est inclus dans le pack."
+      },
+      "usage": {
+        "q": "Est-ce compliqué à utiliser ?",
+        "a": "Non. Import → génération → livraison."
+      }
+    }
+  },
+  "finalCta": {
+    "title": "Prêt à livrer plus vite à tes clients ?",
+    "subtitle": "Teste SlideAI avec 5 présentations pour 7€\nSans abonnement. Sans engagement.",
+    "button": "Tester le Pack Freelance"
   },
   "dashboard": {
-    "title": "Tableau de Bord",
+    "title": "Tableau de bord",
     "subtitle": "Gérez vos présentations",
-    "newPresentation": "Nouvelle Présentation",
-    "myPresentations": "Mes Présentations",
-    "sharedWithMe": "Partagées avec moi",
+    "newPresentation": "Nouvelle présentation",
+    "myPresentations": "Mes présentations",
+    "sharedWithMe": "Partagé avec moi",
     "search": "Rechercher...",
     "filterByTheme": "Filtrer par thème",
     "allThemes": "Tous les thèmes",
@@ -57,7 +175,7 @@
     "slides": "slides",
     "theme": "Thème",
     "open": "Ouvrir",
-    "view": "Visualiser",
+    "view": "Voir",
     "readOnly": "Lecture seule",
     "collaborative": "Collaboratif",
     "deleteConfirmTitle": "Êtes-vous sûr ?",
@@ -67,46 +185,48 @@
     "noPresentation": "Aucune présentation",
     "noSharedPresentation": "Aucune présentation partagée",
     "createFirst": "Créez votre première présentation IA",
-    "askColleagues": "Demandez à vos collègues de vous partager leurs présentations",
+    "askColleagues": "Demandez à vos collègues de partager leurs présentations",
     "createPresentation": "Créer une présentation",
     "presentationDeleted": "Présentation supprimée",
     "presentationDeletedMsg": "La présentation a été supprimée avec succès.",
     "loadError": "Impossible de charger vos présentations",
     "deleteError": "Impossible de supprimer la présentation.",
     "plan": "Plan",
-    "unlimitedPresentations": "Présentations Illimitées",
+    "unlimitedPresentations": "Présentations illimitées",
     "presentations": "présentations",
     "paymentSuccess": "Paiement réussi ! 🎉",
     "paymentSuccessMsg": "Votre abonnement est activé. Merci de votre confiance !"
   },
   "create": {
-    "step1": "Choisir un Template",
+    "step1": "Choisir le livrable",
     "step2": "Personnaliser & Générer",
-    "continue": "Continuer",
+    "continue": "Générer ce livrable →",
+    "continueSub": "(Tu pourras ajuster le design ensuite)",
     "skipStep": "Passer cette étape",
-    "backToTemplates": "Retour aux templates",
-    "selectedTemplate": "Template sélectionné:",
+    "backToTemplates": "Retour aux livrables",
+    "selectedTemplate": "Livrable sélectionné :",
+    "proTip": "Tu livres souvent ce type de document ? Le plan Pro est plus rentable dès 2–3 missions.",
     "aiTitle": "L'IA au service de vos",
     "aiTitleHighlight": "idées",
     "aiSubtitle": "Décrivez votre sujet, importez vos notes, et laissez SlideAI structurer et designer votre présentation.",
-    "placeholder": "Décrivez votre présentation... (ex : 'Pitch deck pour une startup SaaS')",
-    "dropHere": "Déposez ici",
+    "placeholder": "Décrivez votre présentation... (ex: 'Pitch deck pour une startup SaaS')",
+    "dropHere": "Déposer ici",
     "addFile": "Ajouter un fichier",
-    "dragOrClick": "Glissez ou cliquez",
+    "dragOrClick": "Glisser ou cliquer",
     "slideCount": "Nombre de slides",
     "generate": "Générer",
     "fileTooLarge": "Fichier trop volumineux",
-    "maxFileSize": "La taille maximale est de 10MB",
+    "maxFileSize": "La taille maximale est de 10Mo",
     "fileAdded": "Document ajouté",
     "fileAddedMsg": "Le fichier sera utilisé pour enrichir la présentation",
     "visionRequired": "Vision requise",
     "visionRequiredMsg": "Veuillez décrire votre présentation",
     "sessionExpired": "Session expirée",
     "sessionExpiredMsg": "Veuillez vous reconnecter",
-    "generationStarted": "Génération lancée",
+    "generationStarted": "Génération démarrée",
     "redirecting": "Redirection vers l'éditeur...",
-    "templateRequired": "Template requis",
-    "templateRequiredMsg": "Veuillez sélectionner un template",
+    "templateRequired": "Modèle requis",
+    "templateRequiredMsg": "Veuillez sélectionner un modèle",
     "contentLanguage": "Langue du contenu",
     "languages": {
       "en": "Anglais",
@@ -115,29 +235,29 @@
     }
   },
   "fontSelector": {
-    "title": "Polices d'écriture",
+    "title": "Typographie",
     "subtitle": "Personnalisez les polices de votre présentation",
     "headingFont": "Police des titres",
-    "bodyFont": "Police du texte",
+    "bodyFont": "Police du corps",
     "preview": "Aperçu",
     "previewHeading": "Titre de la slide",
     "previewBody": "Ceci est un exemple de texte avec la police sélectionnée.",
     "apply": "Appliquer",
-    "success": "Polices modifiées",
+    "success": "Polices mises à jour",
     "successMsg": "Les nouvelles polices ont été appliquées."
   },
   "editor": {
     "slideshow": "Diaporama",
     "export": "Exporter",
-    "save": "Sauvegarder",
+    "save": "Enregistrer",
     "saving": "Enregistrement...",
     "saved": "Enregistré ✓",
-    "saveError": "Erreur de sauvegarde",
+    "saveError": "Erreur d'enregistrement",
     "ready": "Prêt",
     "slides": "Slides",
     "addSlide": "Ajouter une slide",
     "untitledSlide": "Slide sans titre",
-    "slideOf": "Slide {current} sur {total}",
+    "slideOf": "Slide {{current}} sur {{total}}",
     "design": "Design",
     "reset": "Réinitialiser",
     "add": "Ajouter",
@@ -151,17 +271,17 @@
     "editElement": "Modifier",
     "element": "Élément",
     "content": "Contenu",
-    "enterText": "Entrez du texte...",
-    "editingComingSoon": "L'édition de ce type d'élément arrive bientôt.",
-    "changesApplied": "Les modifications sont appliquées automatiquement.",
+    "enterText": "Saisir du texte...",
+    "editingComingSoon": "L'édition pour ce type d'élément arrive bientôt.",
+    "changesApplied": "Les changements sont appliqués automatiquement.",
     "addRow": "Ajouter une ligne",
     "deleteRow": "Supprimer cette ligne",
     "tableStructure": "Structure du tableau",
     "savedMsg": "Vos modifications sont enregistrées.",
-    "saveErrorMsg": "Échec de la sauvegarde.",
+    "saveErrorMsg": "Échec de l'enregistrement.",
     "slideDeleted": "Slide supprimée",
-    "slideDeletedMsg": "La diapositive a été supprimée.",
-    "cannotDelete": "Action impossible",
+    "slideDeletedMsg": "La slide a été supprimée.",
+    "cannotDelete": "Impossible de supprimer",
     "mustHaveOneSlide": "La présentation doit contenir au moins une slide.",
     "rowAdded": "Ligne ajoutée",
     "rowAddedMsg": "Une nouvelle ligne a été ajoutée au tableau.",
@@ -178,47 +298,47 @@
     "password": "Mot de passe",
     "signIn": "Se connecter",
     "signingIn": "Connexion...",
-    "signUp": "Créer mon compte",
+    "signUp": "Créer un compte",
     "signingUp": "Création...",
     "emailPlaceholder": "vous@exemple.com",
     "passwordPlaceholder": "Votre mot de passe",
     "choosePassword": "Choisissez un mot de passe",
-    "haveAccount": "Vous avez déjà un compte ? Connectez-vous",
-    "noAccount": "Pas encore de compte ? Inscrivez-vous",
+    "haveAccount": "Déjà un compte ? Se connecter",
+    "noAccount": "Pas de compte ? S'inscrire",
     "forgotPassword": "Mot de passe oublié ?",
-    "sendResetLink": "Envoyer le lien de réinitialisation",
+    "sendResetLink": "Envoyer le lien",
     "sending": "Envoi...",
     "trustNote": "Déjà 10 000+ professionnels font confiance à SlideAI",
     "resetPasswordTitle": "Réinitialiser le mot de passe",
     "resetPasswordSubtitle": "Entrez votre nouveau mot de passe ci-dessous",
     "resetSuccess": "Votre mot de passe a été réinitialisé. Vous allez être redirigé vers le tableau de bord.",
-    "resetError": "Une erreur est survenue lors de la réinitialisation.",
+    "resetError": "Une erreur est survenue pendant la réinitialisation.",
     "backToLogin": "Retour à la connexion",
     "updating": "Mise à jour..."
   },
   "pricing": {
-    "badge": "Simple, transparent, scalable",
-    "title": "Tarifs",
-    "titleHighlight": "adaptés à vos besoins",
-    "subtitle": "Commencez gratuitement, passez à la vitesse supérieure quand vous êtes prêt.",
+    "badge": "Simple, transparent, évolutif",
+    "title": "Choisis comment tu veux",
+    "titleHighlight": "livrer tes clients",
+    "subtitle": "Teste SlideAI sans abonnement ou passe en illimité quand tu en as besoin.",
     "monthly": "Mensuel",
     "yearly": "Annuel",
     "discount": "-25% (2 mois offerts)",
     "perMonth": "/mois",
-    "billedYearly": "Facturé {price}€ par an",
+    "billedYearly": "Facturé {{price}}€ par an",
     "billedMonthly": "Facturé mensuellement",
     "startFree": "Commencer gratuitement",
     "choosePlan": "Choisir",
-    "tryFree": "Essayer Pro gratuitement",
+    "tryFree": "Passer en illimité",
     "contactSales": "Contacter les ventes",
     "unsubscribe": "Se désabonner",
     "included": "Inclus",
-    "mostPopular": "Plus populaire",
+    "mostPopular": "Le plus populaire",
     "notReadyTitle": "Pas prêt pour un abonnement ?",
     "packSubtitle": "Prenez un Pack Liberté.",
     "packNote": "Pas de renouvellement automatique. Utilisez vos crédits quand vous voulez.",
     "buyCredits": "Acheter",
-    "allCardsAccepted": "Toutes les cartes bancaires acceptées • Annulation à tout moment",
+    "allCardsAccepted": "Toutes cartes acceptées • Annulation à tout moment",
     "questions": "Des questions ?",
     "contactUs": "Contactez-nous",
     "plans": {
@@ -228,9 +348,9 @@
           "presentations": "2 présentations par mois",
           "pdfImport": "Import PDF (10 pages max)",
           "storage": "Stockage : 3 projets max",
-          "aiSlides": "Ajout de slides IA (2 / prés.)",
+          "aiSlides": "Ajout Slides IA (2 / prés.)",
           "aiRegen": "Régénération IA (3 / prés.)",
-          "design": "Layouts & Design : Accès Total",
+          "design": "Mises en page & Design : Accès complet",
           "watermark": "Filigrane SlideAI"
         },
         "limitations": {
@@ -239,58 +359,66 @@
         }
       },
       "starter": {
-        "description": "Pour étudiants et usage occasionnel",
+        "description": "Pour les étudiants et l'usage occasionnel",
         "features": {
           "presentations": "15 présentations / mois",
           "pdfImport": "Import PDF (50 pages max)",
           "storage": "Stockage : 20 projets max",
-          "aiSlides": "Ajout de slides IA (5 / prés.)",
-          "aiRegen": "Régénération IA Illimitée",
+          "aiSlides": "Ajout Slides IA (5 / prés.)",
+          "aiRegen": "Régénération IA illimitée",
           "export": "Export PDF HD (Sans filigrane)",
-          "sharing": "Lien de partage Unique & Privé"
+          "sharing": "Lien de partage unique & privé"
         },
         "cta": "Choisir Starter"
       },
       "pro": {
-        "description": "Pour les professionnels",
+        "description": "Pour les freelances qui livrent chaque semaine",
         "features": {
-          "unlimitedGen": "Génération Illimitée",
+          "unlimitedGen": "Génération illimitée",
           "pdfImport": "Import PDF (200 pages max)",
-          "storage": "Stockage Illimité",
-          "unlimitedSlides": "Ajout de slides & Wand Illimités",
+          "storage": "Stockage illimité",
+          "unlimitedSlides": "Slides & Baguette Magique illimités",
           "export": "Export PDF HD (Prioritaire)",
           "support": "Support Prioritaire",
-          "beta": "Accès Early Bird (Bêta)"
+          "beta": "Accès Early Bird (Beta)"
         }
       },
       "business": {
         "description": "Pour les équipes",
         "features": {
-          "allPro": "Tout du Plan Pro",
+          "allPro": "Tout du plan Pro",
           "collab": "Espace de travail collaboratif",
           "support": "Support Prioritaire 24/7",
-          "analytics": "Analytics avancées",
+          "analytics": "Analyses avancées",
           "sso": "SSO (Single Sign-On)"
         }
       }
     },
     "packs": {
       "discovery": {
-        "name": "Pack Découverte",
+        "name": "Pack Freelance – Test sans engagement",
+        "subtitle": "Parfait pour une mission, un audit ou un premier client.",
+        "keyLine": "5 livrables clients",
+        "priceDetail": "paiement unique",
         "credits": "5 présentations",
-        "cta": "Acheter 5 crédits"
+        "cta": "Tester sur une vraie mission"
       },
       "power": {
         "name": "Pack Power",
+        "subtitle": "Pour les freelances avec plusieurs clients actifs",
+        "keyLine": "15 livrables clients",
+        "priceDetail": "paiement unique",
         "credits": "15 présentations",
-        "cta": "Acheter 15 crédits"
+        "cta": "Gagner du temps sur plusieurs missions"
       }
-    }
+    },
+    "noSubscription": "Aucun abonnement. Aucun renouvellement automatique.",
+    "creditUsage": "💡 Utilise tes crédits quand tu veux. Un client = un livrable."
   },
   "account": {
-    "title": "Mon compte",
+    "title": "Mon Compte",
     "subtitle": "Gérez vos informations et votre abonnement",
-    "upgradeToProBtn": "Passer à Pro",
+    "upgradeToProBtn": "Passer Pro",
     "overview": "Vue d'ensemble",
     "subscription": "Abonnement",
     "activity": "Activité",
@@ -298,7 +426,7 @@
     "email": "Email",
     "userId": "ID Utilisateur",
     "provider": "Fournisseur",
-    "changePassword": "Modifier le mot de passe",
+    "changePassword": "Changer le mot de passe",
     "newPassword": "Nouveau mot de passe",
     "confirmPassword": "Confirmer le mot de passe",
     "updatePassword": "Mettre à jour",
@@ -311,16 +439,16 @@
     "creditsAvailable": "Crédits disponibles",
     "upgradeNote": "Passez à un plan supérieur pour plus de crédits.",
     "unlimitedAccess": "Accès Illimité",
-    "unlimitedNote": "Vous profitez de la puissance maximale de SlideAI.",
-    "upgradeToPro": "Passer à Pro",
-    "manageSubscription": "Gérer mon abonnement",
-    "stripeNote": "La gestion de la facturation se fait via notre partenaire sécurisé Stripe.",
+    "unlimitedNote": "Vous avez toute la puissance de SlideAI.",
+    "upgradeToPro": "Passer Pro",
+    "manageSubscription": "Gérer l'abonnement",
+    "stripeNote": "La facturation est gérée via notre partenaire sécurisé Stripe.",
     "recentPresentations": "Présentations récentes",
     "viewAll": "Voir tout",
     "draft": "Brouillon",
     "untitled": "Sans titre",
     "noPresentation": "Aucune présentation",
-    "noPresentationNote": "Vous n'avez pas encore créé de présentation. Lancez-vous dès maintenant !",
+    "noPresentationNote": "Vous n'avez pas encore créé de présentation. Commencez maintenant !",
     "createPresentation": "Créer une présentation",
     "passwordMismatch": "Les mots de passe ne correspondent pas.",
     "passwordTooShort": "Le mot de passe doit faire au moins 6 caractères.",
@@ -329,35 +457,35 @@
   "join": {
     "invalidLink": "Lien de partage invalide.",
     "joinError": "Impossible de rejoindre la présentation.",
-    "verifying": "Vérification du lien de partage",
+    "verifying": "Vérification du lien...",
     "authRequiredTitle": "Connexion requise",
-    "authRequiredMsg": "Vous devez vous connecter ou créer un compte pour accéder à cette présentation partagée.",
+    "authRequiredMsg": "Vous devez vous connecter ou créer un compte pour accéder à cette présentation.",
     "presentationAdded": "Présentation ajoutée !",
-    "oops": "Oops !"
+    "oops": "Oups !"
   },
   "view": {
     "accessError": "Impossible d'accéder à la présentation.",
     "fetching": "Récupération de la présentation",
-    "authRequiredMsg": "Vous devez vous connecter pour visualiser cette présentation.",
+    "authRequiredMsg": "Vous devez vous connecter pour voir cette présentation.",
     "readOnlyMode": "Mode lecture seule",
     "presentationDefaultTitle": "Présentation"
   },
   "share": {
     "title": "Partager cette présentation",
-    "subtitle": "Choisissez le type de partage et envoyez le lien à vos collaborateurs.",
+    "subtitle": "Choisissez le mode de partage et envoyez le lien à vos collaborateurs.",
     "shareTrigger": "Partager",
     "collaborative": "Collaboratif",
     "readOnly": "Lecture seule",
-    "editDesc": "Les destinataires pourront <strong>voir et modifier</strong> la présentation depuis leur compte.",
-    "viewDesc": "Les destinataires pourront uniquement <strong>visualiser</strong> la présentation, sans pouvoir la modifier.",
+    "editDesc": "Les destinataires peuvent <strong>voir et modifier</strong> la présentation depuis leur compte.",
+    "viewDesc": "Les destinataires peuvent seulement <strong>voir</strong> la présentation, sans droits d'édition.",
     "generating": "Génération du lien...",
     "generateFail": "Impossible de générer le lien. Veuillez réessayer.",
-    "generateError": "Impossible de générer le lien de partage",
+    "generateError": "Erreur lors de la génération du lien",
     "copied": "Lien copié !",
     "copiedMsg": "Le lien de partage est dans votre presse-papier.",
     "copyError": "Impossible de copier le lien.",
-    "editNote": "Ce lien permet la modification. Partagez-le avec précaution.",
-    "viewNote": "Ce lien est en lecture seule. Les invités ne pourront pas modifier la présentation."
+    "editNote": "Ce lien permet l'édition. Partagez avec prudence.",
+    "viewNote": "Ce lien est en lecture seule. Les invités ne peuvent pas modifier."
   },
   "export": {
     "title": "Exporter la présentation",
@@ -365,12 +493,12 @@
     "preparing": "Préparation...",
     "initializing": "Initialisation...",
     "noSlides": "Aucune slide trouvée",
-    "genericError": "Erreur lors de l'export",
-    "pptxError": "Erreur lors de l'export PowerPoint",
+    "genericError": "Erreur d'export",
+    "pptxError": "Erreur d'export PowerPoint",
     "pdfDesc": "Haute fidélité visuelle",
     "ready": "Prêt",
     "comingSoon": "Bientôt disponible",
-    "workingOnIt": "On y travaille ! 🚀",
+    "workingOnIt": "Nous y travaillons ! 🚀",
     "complete": "Export terminé !",
     "downloaded": "Le fichier a été téléchargé",
     "progressSlide": "Slide {{current}} / {{total}}"
@@ -380,12 +508,12 @@
     "subtitle": "L'IA va générer une nouvelle slide cohérente avec le reste de votre présentation.",
     "quickSuggestions": "Suggestions rapides",
     "conclusion": "Conclusion",
-    "conclusionDesc": "Synthèse et fin",
+    "conclusionDesc": "Résumé et fin",
     "qa": "Q&A",
-    "qaDesc": "Session questions",
+    "qaDesc": "Session de questions",
     "recap": "Récapitulatif",
-    "recapDesc": "Résumé des points",
-    "cta": "Call to Action",
+    "recapDesc": "Résumé des points clés",
+    "cta": "Appel à l'action",
     "ctaDesc": "Prochaine étape",
     "orDescribe": "ou décrivez vos besoins",
     "placeholder": "Ex: Une slide sur les bénéfices financiers, avec un graphique en barres...",
@@ -396,21 +524,21 @@
     "slideAddedMsg": "La nouvelle slide a été ajoutée à la fin de la présentation.",
     "instructionMissing": "Instruction manquante",
     "instructionMissingMsg": "Veuillez entrer une instruction ou choisir une suggestion.",
-    "timeout": "Timeout",
-    "timeoutMsg": "La génération prend trop de temps. Réessayez.",
-    "generationFailed": "La génération a échoué.",
+    "timeout": "Délai dépassé",
+    "timeoutMsg": "La génération prend trop de temps. Veuillez réessayer.",
+    "generationFailed": "Échec de la génération.",
     "addError": "Impossible d'ajouter la slide.",
     "prompts": {
       "conclusion": "Génère une slide de conclusion percutante avec un appel à l'action clair.",
-      "qa": "Génère une slide dédiée aux Questions / Réponses pour engager l'audience.",
-      "recap": "Génère une slide qui résume les points clés abordés pour renforcer la mémorisation.",
+      "qa": "Génère une slide dédiée aux Questions/Réponses pour engager l'audience.",
+      "recap": "Génère une slide résumant les points clés pour renforcer la rétention.",
       "cta": "Génère une slide incitant l'audience à passer à l'action immédiatement."
     }
   },
   "examples": {
     "badge": "Inspiré par l'IA",
-    "title": "Galerie",
-    "titleHighlight": "d'exemples",
+    "title": "Exemples",
+    "titleHighlight": "Galerie",
     "subtitle": "Découvrez ce que vous pouvez créer avec SlideAI",
     "view": "Voir",
     "promptUsed": "Prompt utilisé",
@@ -418,41 +546,41 @@
     "copyPrompt": "Copier le prompt",
     "promptCopied": "Prompt copié",
     "promptCopiedMsg": "Le prompt a été copié dans votre presse-papier",
-    "info": "Informations",
-    "currentTheme": "Thème actuel:",
-    "slideCount": "Nombre de slides:",
-    "currentSlide": "Slide actuelle:",
+    "info": "Information",
+    "currentTheme": "Thème actuel :",
+    "slideCount": "Nombre de slides :",
+    "currentSlide": "Slide actuelle :",
     "previous": "Précédent",
     "next": "Suivant"
   },
   "notFound": {
     "title": "404",
-    "message": "Page introuvable",
-    "description": "Désolé, la page que vous recherchez n'existe pas ou a été déplacée.",
+    "message": "Page non trouvée",
+    "description": "Désolé, la page que vous cherchez n'existe pas ou a été déplacée.",
     "backHome": "Retour à l'accueil"
   },
   "regenerate": {
     "title": "Régénérer cette slide",
-    "subtitle": "Slide {{current}}: {{title}}",
+    "subtitle": "Slide {{current}} : {{title}}",
     "modes": "Modes rapides",
     "visual": "Plus visuel",
     "visualDesc": "Images et graphiques",
     "detailed": "Plus détaillé",
     "detailedDesc": "Plus de texte",
-    "chart": "Format Graphique",
-    "chartDesc": "Charts et données",
+    "chart": "Format graphique",
+    "chartDesc": "Graphiques et données",
     "or": "ou",
     "customInstructions": "Instructions personnalisées",
-    "placeholder": "Ex: Ajoute plus de données chiffrées, change le layout en grille...",
+    "placeholder": "Ex: Ajouter plus de données, changer la disposition...",
     "cancel": "Annuler",
     "submit": "Régénérer",
     "submitting": "Régénération...",
     "success": "Slide régénérée !",
     "successMsg": "La nouvelle slide a été générée avec succès.",
-    "timeout": "Timeout",
-    "timeoutMsg": "La régénération prend trop de temps. Réessayez.",
+    "timeout": "Délai dépassé",
+    "timeoutMsg": "La régénération prend trop de temps. Veuillez réessayer.",
     "error": "Erreur",
-    "errorMsg": "La régénération a échoué.",
+    "errorMsg": "Échec de la régénération.",
     "genericError": "Impossible de régénérer la slide."
   },
   "bugReport": {
@@ -461,10 +589,10 @@
     "subtitle": "Aidez-nous à améliorer SlideAI en signalant les problèmes rencontrés.",
     "typeLabel": "Type de bug",
     "types": {
-      "emptySlide": "Slide Vide",
-      "emptySlideDesc": "Une slide s'affiche vide ou sans contenu",
-      "generationIncomplete": "Génération Incomplète",
-      "generationIncompleteDesc": "La présentation n'a qu'une seule slide avec le prompt",
+      "emptySlide": "Slide vide",
+      "emptySlideDesc": "Une slide apparaît vide ou sans contenu",
+      "generationIncomplete": "Génération incomplète",
+      "generationIncompleteDesc": "La présentation n'a qu'une slide avec le prompt",
       "other": "Autre Bug",
       "otherDesc": "Signaler un autre problème"
     },
@@ -479,17 +607,17 @@
     "submit": "Envoyer le rapport",
     "submitting": "Envoi...",
     "successTitle": "✅ Bug signalé !",
-    "successMsg": "Merci pour votre retour. Notre équipe va analyser le problème.",
+    "successMsg": "Merci de votre retour. Notre équipe va analyser le problème.",
     "errorTitle": "Erreur",
-    "errorMsg": "Impossible d'envoyer le rapport. Réessayez plus tard.",
+    "errorMsg": "Impossible d'envoyer le rapport. Veuillez réessayer.",
     "validation": {
       "descRequired": "Description requise",
-      "descRequiredMsg": "Veuillez décrire le bug que vous avez rencontré."
+      "descRequiredMsg": "Veuillez décrire le bug rencontré."
     }
   },
   "colorPalette": {
     "title": "Modifier la palette",
-    "trigger": "Modifier la palette",
+    "trigger": "Modifier palette",
     "subtitle": "Personnalisez les couleurs de votre présentation",
     "tabs": {
       "ai": "Assistant IA",
@@ -497,12 +625,12 @@
     },
     "presets": {
       "label": "Suggestion Rapide",
-      "dark": "Thème sombre",
+      "dark": "Thème Sombre",
       "darkDesc": "Thème sombre élégant avec fond noir/gris foncé et texte clair",
-      "light": "Thème clair",
-      "lightDesc": "Thème clair et professionnel avec fond blanc et texte foncé",
-      "vibrant": "Couleurs vives",
-      "vibrantDesc": "Couleurs vives et modernes, dynamiques et engageantes"
+      "light": "Thème Clair",
+      "lightDesc": "Thème clair professionnel avec fond blanc et texte foncé",
+      "vibrant": "Couleurs Vives",
+      "vibrantDesc": "Couleurs vibrantes et modernes, dynamiques et engageantes"
     },
     "or": "ou",
     "customPrompt": "Instructions personnalisées",
@@ -515,7 +643,7 @@
       "text": "Texte"
     },
     "cancel": "Annuler",
-    "generate": "Générer avec IA",
+    "generate": "Générer avec l'IA",
     "generating": "Modification...",
     "apply": "Appliquer",
     "manualSuccess": "Couleurs appliquées",
@@ -525,13 +653,13 @@
     },
     "aiSuccess": "Palette modifiée !",
     "aiSuccessMsg": "La nouvelle palette a été appliquée.",
-    "aiError": "La modification a échoué.",
-    "timeout": "Timeout",
-    "timeoutMsg": "La modification prend trop de temps. Réessayez.",
+    "aiError": "Échec de la modification.",
+    "timeout": "Délai dépassé",
+    "timeoutMsg": "La modification prend trop de temps. Veuillez réessayer.",
     "genericError": "Impossible de modifier la palette."
   },
   "footer": {
-    "description": "Créez des présentations professionnelles en quelques minutes grâce à l'IA.",
+    "description": "Créez des présentations professionnelles en quelques minutes avec l'IA.",
     "product": "Produit",
     "legal": "Légal",
     "contact": "Contact",
@@ -539,10 +667,10 @@
     "links": {
       "examples": "Exemples",
       "pricing": "Tarifs",
-      "changelog": "Changelog",
+      "changelog": "Journal des modifications",
       "roadmap": "Roadmap",
       "privacy": "Confidentialité",
-      "terms": "CGU",
+      "terms": "Conditions",
       "gdpr": "RGPD"
     }
   },
@@ -561,81 +689,46 @@
       "label": "Certifié par",
       "badges": {
         "topStartup": "🏆 Top Startup",
-        "stars": "⭐ 4.9/5 Stars",
+        "stars": "⭐ 4.9/5 Étoiles",
         "secure": "🔒 Sécurisé"
       }
     },
     "testimonials": {
       "emma": {
-        "quote": "SlideAI a transformé mon processus de création. Je gagne 10 heures par semaine!",
-        "title": "Founder, TechStudio"
+        "quote": "SlideAI a transformé mon processus de création. Je gagne 10h par semaine !",
+        "title": "Fondatrice, TechStudio"
       },
       "marc": {
         "quote": "Les designs générés sont professionnels et précis. Aucun ajustement nécessaire.",
-        "title": "Marketing Director"
+        "title": "Directeur Marketing"
       },
       "sophie": {
-        "quote": "Finalement une solution simple pour créer des présentations impactantes.",
-        "title": "Consultant en Innovation"
-      }
-    }
-  },
-  "featureGrid": {
-    "pill": "Capacités",
-    "title": {
-      "main": "Des outils puissants",
-      "highlight": "conçus pour vous"
-    },
-    "description": "Tout ce dont vous avez besoin pour créer des présentations professionnelles sans effort",
-    "learnMore": "En savoir plus",
-    "moreFeatures": "Et bien d'autres fonctionnalités à découvrir...",
-    "features": {
-      "fastGen": {
-        "title": "Génération Rapide",
-        "desc": "Créez des présentations complètes en quelques secondes avec l'IA"
-      },
-      "smartDesign": {
-        "title": "Design Intelligent",
-        "desc": "Algorithmes qui comprennent le design moderne et les tendances actuelles"
-      },
-      "infinitePalettes": {
-        "title": "Palettes Infinies",
-        "desc": "Accès à des milliers de combinaisons de couleurs et de thèmes"
-      },
-      "animations": {
-        "title": "Animations Fluides",
-        "desc": "Des transitions et animations sophistiquées pour captiver votre audience"
-      },
-      "fastEdit": {
-        "title": "Édition Rapide",
-        "desc": "Modificateurs en temps réel avec preview instantanée"
-      },
-      "socialShare": {
-        "title": "Partage Social",
-        "desc": "Exportez et partagez vos présentations sur tous les réseaux"
+        "quote": "Enfin une solution simple pour créer des présentations impactantes.",
+        "title": "Consultante Innovation"
       }
     }
   },
   "deckPreview": {
-    "badge": "Aperçu en Direct",
+    "badge": "Aperçu en direct",
     "title": {
-      "main": "Voici ce que vous",
-      "highlight": "créerez avec SlideAI"
+      "main": "Voici ce que vous allez",
+      "highlight": "créer avec SlideAI"
     },
     "slide": {
       "brand": "SlideAI",
-      "title": "Présentations",
-      "highlight": "Intelligentes",
-      "desc": "Générez du contenu pertinent et un design captivant instantanément."
+      "title": "Livrable client",
+      "highlight": "prêt à envoyer",
+      "desc": "Structure claire, message adapté au contexte client et design professionnel générés automatiquement.",
+      "subFooter": "Utilisable pour audits, recommandations, pitchs et reportings."
     },
-    "footer": "📊 Design moderne • 🎨 Thèmes préétablis • ✨ Animations fluides • 🚀 Prêt à présenter"
+    "footer": "📊 Design Moderne • 🎨 Thèmes Prédéfinis • ✨ Animations Fluides • 🚀 Prêt à Présenter"
   },
   "outOfCredits": {
     "title": "Plus de crédits disponibles",
     "description": "Vous avez utilisé tous vos crédits de génération. Achetez un pack ou passez à un abonnement pour continuer à créer des présentations.",
     "packs": {
       "title": "Packs Liberté",
-      "desc": "Achetez des crédits à l'unité, sans engagement. À partir de 5€."
+      "desc": "Achetez des crédits à l'unité, sans engagement. À partir de 7€."
     },
     "subscriptions": {
       "title": "Abonnements",
@@ -646,62 +739,86 @@
   },
   "templateSelector": {
     "pill": "Collection Premium",
-    "title": "Choisissez votre",
-    "highlight": "style",
-    "description": "Sélectionnez une identité visuelle qui correspond à votre histoire. Chaque thème propose des mises en page et une typographie uniques.",
-    "select": "Sélectionner",
+    "title": "Choisis le type de",
+    "highlight": "livrable que tu veux envoyer",
+    "description": "Chaque livrable est optimisé pour être prêt à être facturé (structure, message, design).",
+    "select": "Choisir ce livrable",
+    "microCopy": "Chaque livrable adapte automatiquement la structure, le ton et le design au contexte client.",
+    "hoverHint": "Exemples d'usage :",
     "categories": {
       "all": "Tous",
-      "business": "Business",
-      "creative": "Créatif",
-      "educational": "Éducatif",
-      "marketing": "Marketing",
-      "corporate": "Corporatif"
+      "business": "Consulting / Audit",
+      "creative": "Portfolio & Créatif",
+      "educational": "Formation & Pédagogie",
+      "marketing": "Recommandations & Pitch",
+      "corporate": "Reporting & Corporate"
     },
     "templates": {
       "startup-pitch": {
-        "name": "Pitch Startup",
-        "desc": "Design audacieux et impactant pour les présentations investisseurs"
+        "name": "Pitch client / investisseur",
+        "desc": "Structure claire pour convaincre rapidement un décideur.",
+        "badge": "Pitch",
+        "useCases": "pitch deck, levée de fonds, démo"
       },
       "product-launch": {
-        "name": "Lancement Produit",
-        "desc": "Vibrant et énergique pour les annonces de nouveaux produits"
+        "name": "Recommandations marketing",
+        "desc": "Idéal pour présenter une stratégie, des actions et un plan clair.",
+        "badge": "Recommandations",
+        "useCases": "stratégie marketing, lancement offre, plan d'action"
       },
       "corporate-report": {
-        "name": "Rapport Corporatif",
-        "desc": "Professionnel et épuré pour les rapports d'entreprise"
+        "name": "Rapport client / Audit",
+        "desc": "Parfait pour livrer une analyse structurée et professionnelle.",
+        "badge": "Reporting",
+        "useCases": "audit, bilan mensuel, analyse performance"
       },
       "creative-portfolio": {
         "name": "Portfolio Créatif",
-        "desc": "Artistique et audacieux avec un accent sur les visuels"
+        "desc": "Artistique et audacieux avec un accent sur les visuels",
+        "badge": "Portfolio",
+        "useCases": "book, présentation agence, showcase"
       },
       "educational": {
-        "name": "Cours Éducatif",
-        "desc": "Clair et structuré pour l'enseignement"
+        "name": "Formation & Cours",
+        "desc": "Clair et structuré pour l'enseignement et la transmission.",
+        "badge": "Formation",
+        "useCases": "cours, webinaire, tutoriel"
       },
       "marketing-campaign": {
-        "name": "Campagne Marketing",
-        "desc": "Dynamique et coloré pour le marketing"
+        "name": "Campagne Publicitaire",
+        "desc": "Dynamique et coloré pour présenter vos concepts créatifs.",
+        "badge": "Campagne",
+        "useCases": "campagne pub, concept créatif, branding"
       },
       "minimal-elegant": {
-        "name": "Minimal Élégant",
-        "desc": "Minimaliste sophistiqué avec une typographie forte"
+        "name": "Présentation client sobre",
+        "desc": "Pour des clients corporate qui veulent du clair et du sérieux.",
+        "badge": "Corporate",
+        "useCases": "présentation luxe, finance, juridique"
       },
       "tech-modern": {
-        "name": "Tech Moderne",
-        "desc": "Design de pointe pour la tech et le SaaS"
+        "name": "Présentation Tech / SaaS",
+        "desc": "Design de pointe pour la tech et le logiciel.",
+        "badge": "Tech",
+        "useCases": "démo produit, documentation technique, SaaS"
       },
       "consulting": {
-        "name": "Consulting Premium",
-        "desc": "Design sophistiqué pour les cabinets de conseil"
+        "name": "Livrable consulting premium",
+        "desc": "Pensé pour les freelances & cabinets qui facturent cher.",
+        "badge": "Consulting",
+        "useCases": "recommandation stratégique, audit organisationnel"
       },
       "health-medical": {
         "name": "Santé & Médical",
-        "desc": "Propre et digne de confiance pour les soins de santé"
+        "desc": "Propre et digne de confiance pour les sujets santé.",
+        "badge": "Santé",
+        "useCases": "rapport médical, présentation hôpital"
       },
       "sustainability": {
-        "name": "Durabilité",
-        "desc": "Tons terreux pour les messages écologiques"
+        "name": "Rapport RSE",
+        "desc": "Tons naturels pour les sujets écologiques et RSE.",
+        "badge": "RSE",
+        "useCases": "bilan carbone, stratégie RSE"
       }
     }
   },

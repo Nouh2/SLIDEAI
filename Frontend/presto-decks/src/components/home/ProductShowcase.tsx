@@ -37,9 +37,19 @@ export function ProductShowcase() {
     ];
 
     return (
-        <section className="relative py-24 md:py-32 px-4 overflow-hidden">
+        <section className="relative py-12 md:py-20 px-4 overflow-hidden z-10">
             {/* Background decorations */}
-            <div className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-primary/5 via-background to-background" />
+            <div className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-primary/5 via-transparent to-transparent" />
+
+            {/* Added Header */}
+            <div className="max-w-4xl mx-auto text-center mb-20 space-y-6">
+                <h2 className="text-3xl md:text-5xl font-bold leading-tight">
+                    {t('landingProductShowcase.title')}
+                </h2>
+                <p className="text-lg md:text-xl text-muted-foreground">
+                    {t('landingProductShowcase.subtitle')}
+                </p>
+            </div>
 
             <div className="max-w-7xl mx-auto space-y-32">
                 {features.map((feature, index) => (

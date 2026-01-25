@@ -77,6 +77,15 @@ export function TemplateSelector({ selectedTemplate, onSelectTemplate }: Templat
                 </div>
             </div>
 
+            {/* Micro Copy */}
+            <motion.p
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="text-center text-sm text-muted-foreground/80 italic -mt-4 mb-8"
+            >
+                {t('templateSelector.microCopy')}
+            </motion.p>
+
             {/* Templates Grid - Fluid & Modern */}
             <motion.div
                 layout
@@ -116,16 +125,14 @@ export function TemplateSelector({ selectedTemplate, onSelectTemplate }: Templat
                                         `}
                                     />
 
-                                    {/* Color Palette Preview (Floating) */}
-                                    <div className="absolute top-4 right-4 z-20 flex -space-x-2">
-                                        {[template.colors.primary, template.colors.secondary, template.colors.accent].map((color, i) => (
-                                            <div
-                                                key={i}
-                                                className="w-6 h-6 rounded-full border-2 border-white shadow-sm"
-                                                style={{ backgroundColor: color }}
-                                            />
-                                        ))}
+                                    {/* Badge */}
+                                    <div className="absolute top-4 left-4 z-20">
+                                        <Badge className="bg-white/90 text-primary hover:bg-white font-bold backdrop-blur-sm shadow-sm border-none">
+                                            {t(`templateSelector.templates.${template.id}.badge`)}
+                                        </Badge>
                                     </div>
+
+
 
                                     {/* Selected Indicator */}
                                     {selectedTemplate === template.id && (
@@ -139,6 +146,18 @@ export function TemplateSelector({ selectedTemplate, onSelectTemplate }: Templat
                                             </motion.div>
                                         </div>
                                     )}
+
+                                    {/* Hover Usage Examples Overlay - Advanced Option */}
+                                    <div className={`absolute bottom-0 left-0 right-0 p-4 z-20 transition-all duration-300 transform ${hoveredTemplate === template.id ? 'translate-y-0 opacity-100' : 'translate-y-full opacity-0'}`}>
+                                        <div className="bg-black/70 backdrop-blur-md rounded-lg p-3 text-white">
+                                            <p className="text-[10px] font-bold uppercase tracking-wider text-primary-foreground/70 mb-1">
+                                                {t('templateSelector.hoverHint')}
+                                            </p>
+                                            <p className="text-xs font-medium leading-relaxed text-white">
+                                                {t(`templateSelector.templates.${template.id}.useCases`)}
+                                            </p>
+                                        </div>
+                                    </div>
                                 </div>
 
                                 {/* Content */}

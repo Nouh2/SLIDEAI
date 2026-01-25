@@ -25,13 +25,113 @@
   },
   "hero": {
     "badge": "SlideAI v2.0",
-    "title1": "Create",
-    "title2": "intelligent",
-    "title3": "slides in a flash",
-    "subtitle": "Import your documents or describe your idea. Our AI generates a complete, designed PowerPoint presentation ready to use.",
-    "cta": "Get started for free",
-    "viewExamples": "View examples",
-    "trustLabel": "Trusted by"
+    "title": "Freelancer? Turn your client documents into professional deliverables in 40 seconds.",
+    "subtitle": "Import a PDF or Word, SlideAI generates ready-to-deliver slides. Test Pack: 5 presentations for €7 – no subscription.",
+    "cta": "Try the Freelance Pack – €7",
+    "microProofs": {
+      "target": "Designed for marketing freelancers, consultants & coaches",
+      "roi": "1 client = tool paid off",
+      "features": "PDF Export • Client Sharing • Pro Design"
+    }
+  },
+  "livrables": {
+    "title": "Here are the deliverables you can create with SlideAI",
+    "subtitle": "Not just slides. Client-ready presentations.",
+    "badge": "Deliverables",
+    "examples": {
+      "audit": "Client Marketing Audit",
+      "reco": "Recommendations Deck",
+      "reporting": "Monthly Reporting",
+      "pitch": "Pitch / Sales Deck",
+      "strategy": "Strategic Presentation"
+    },
+    "footer": "Same AI engine, but freelance business language."
+  },
+  "whyFreelance": {
+    "title": "Less PowerPoint. More Clients.",
+    "points": {
+      "time": "Save hours per mission",
+      "structure": "Clear and professional structure from generation",
+      "impress": "Impress your clients without a designer",
+      "deliver": "Deliver faster, invoice with peace of mind"
+    }
+  },
+  "howItWorks": {
+    "title": "How it works",
+    "steps": {
+      "1": {
+        "title": "Import your client document",
+        "desc": "Brief, audit, report or simple idea."
+      },
+      "2": {
+        "title": "SlideAI generates the deck",
+        "desc": "Structure, content and design automatically."
+      },
+      "3": {
+        "title": "Adjust and deliver",
+        "desc": "Quick editing, PDF export, client sharing."
+      }
+    },
+    "time": "Total time: ~40 seconds."
+  },
+  "tools": {
+    "pill": "Tools",
+    "title": "Tools designed for client delivery",
+    "items": {
+      "fastGen": {
+        "title": "Fast Generation",
+        "desc": "Deliverables ready to send in seconds."
+      },
+      "smartDesign": {
+        "title": "Smart Design",
+        "desc": "Professional look without a designer."
+      },
+      "smartPalettes": {
+        "title": "Smart Palettes",
+        "desc": "Colors adapted to the message and client context."
+      },
+      "fastEdit": {
+        "title": "Fast Editing",
+        "desc": "Real-time adjustments before sending to client."
+      },
+      "shareExport": {
+        "title": "Sharing & Export",
+        "desc": "Client link + PDF export included."
+      }
+    },
+    "learnMore": "Learn more"
+  },
+  "landingProductShowcase": {
+    "title": "Designed for freelancers who deliver regularly",
+    "subtitle": "A clear dashboard to manage your presentations, regenerate slides, adjust design and deliver without friction."
+  },
+  "offer": {
+    "freelancePack": {
+      "title": "Freelance Pack – Commitment-free test",
+      "subtitle": "Perfect for a one-off mission or a first client.",
+      "features": {
+        "presents": "5 generated presentations",
+        "import": "PDF & Word Import",
+        "design": "Automatic Design & Structure",
+        "export": "PDF Export",
+        "subscription": "No subscription"
+      },
+      "uniquenessNote": "Each generation adapts to the content, client, and context. Even for a similar mission, the deliverable is different.",
+      "price": "€7 – one-time payment",
+      "cta": "Test now"
+    },
+    "proSubscription": {
+      "title": "Regular needs? Switch to Pro subscription",
+      "subtitle": "For freelancers who deliver presentations every week.",
+      "features": {
+        "unlimited": "Unlimited Generation",
+        "pages": "PDF Import up to 200 pages",
+        "export": "Priority HD Export",
+        "support": "Priority Support"
+      },
+      "price": "€19/month",
+      "cta": "View Pro subscription"
+    }
   },
   "home": {
     "ctaTitle": "Ready to create your",
@@ -80,12 +180,14 @@
     "paymentSuccessMsg": "Your subscription is activated. Thank you for your trust!"
   },
   "create": {
-    "step1": "Choose Template",
+    "step1": "Choose Deliverable",
     "step2": "Customize & Generate",
-    "continue": "Continue",
+    "continue": "Generate this deliverable →",
+    "continueSub": "(You can adjust the design later)",
     "skipStep": "Skip this step",
-    "backToTemplates": "Back to templates",
-    "selectedTemplate": "Selected template:",
+    "backToTemplates": "Back to deliverables",
+    "selectedTemplate": "Selected deliverable:",
+    "proTip": "Do you deliver this type of document often? The Pro plan is more profitable from 2–3 missions.",
     "aiTitle": "AI at the service of your",
     "aiTitleHighlight": "ideas",
     "aiSubtitle": "Describe your topic, import your notes, and let SlideAI structure and design your presentation.",
@@ -137,7 +239,7 @@
     "slides": "Slides",
     "addSlide": "Add a slide",
     "untitledSlide": "Untitled Slide",
-    "slideOf": "Slide {current} of {total}",
+    "slideOf": "Slide {{current}} of {{total}}",
     "design": "Design",
     "reset": "Reset",
     "add": "Add",
@@ -198,18 +300,18 @@
   },
   "pricing": {
     "badge": "Simple, transparent, scalable",
-    "title": "Pricing",
-    "titleHighlight": "tailored to your needs",
-    "subtitle": "Start for free, upgrade when you're ready.",
+    "title": "Choose how to",
+    "titleHighlight": "deliver to your clients",
+    "subtitle": "Test SlideAI without subscription or go unlimited when you need it.",
     "monthly": "Monthly",
     "yearly": "Yearly",
     "discount": "-25% (2 months free)",
     "perMonth": "/month",
-    "billedYearly": "Billed {price}€ per year",
+    "billedYearly": "Billed {{price}}€ per year",
     "billedMonthly": "Billed monthly",
     "startFree": "Start for free",
     "choosePlan": "Choose",
-    "tryFree": "Try Pro for free",
+    "tryFree": "Go Unlimited",
     "contactSales": "Contact sales",
     "unsubscribe": "Unsubscribe",
     "included": "Included",
@@ -252,7 +354,7 @@
         "cta": "Choose Starter"
       },
       "pro": {
-        "description": "For professionals",
+        "description": "For freelancers who deliver every week",
         "features": {
           "unlimitedGen": "Unlimited Generation",
           "pdfImport": "PDF Import (200 pages max)",
@@ -276,16 +378,24 @@
     },
     "packs": {
       "discovery": {
-        "name": "Discovery Pack",
+        "name": "Freelance Pack – Risk-free test",
+        "subtitle": "Perfect for a mission, audit or first client.",
+        "keyLine": "5 client deliverables",
+        "priceDetail": "one-time payment",
         "credits": "5 presentations",
-        "cta": "Buy 5 credits"
+        "cta": "Test on a real mission"
       },
       "power": {
         "name": "Power Pack",
+        "subtitle": "For freelancers with multiple active clients",
+        "keyLine": "15 client deliverables",
+        "priceDetail": "one-time payment",
         "credits": "15 presentations",
-        "cta": "Buy 15 credits"
+        "cta": "Save time on multiple missions"
       }
-    }
+    },
+    "noSubscription": "No subscription. No automatic renewal.",
+    "creditUsage": "💡 Use credits whenever you want. One client = one deliverable."
   },
   "account": {
     "title": "My Account",
@@ -616,6 +726,32 @@
       }
     }
   },
+  "faq": {
+    "title": "Frequently Asked Questions",
+    "questions": {
+      "subscription": {
+        "q": "Is there a mandatory subscription?",
+        "a": "No. The €7 pack is a one-time payment."
+      },
+      "deliver": {
+        "q": "Can I really deliver this to a client?",
+        "a": "Yes. Slides are designed for professional use."
+      },
+      "pdf": {
+        "q": "Can I export to PDF?",
+        "a": "Yes, export is included in the pack."
+      },
+      "usage": {
+        "q": "Is it complicated to use?",
+        "a": "No. Import → generate → deliver."
+      }
+    }
+  },
+  "finalCta": {
+    "title": "Ready to deliver faster to your clients?",
+    "subtitle": "Test SlideAI with 5 presentations for €7\nNo subscription. No commitment.",
+    "button": "Test the Freelance Pack"
+  },
   "deckPreview": {
     "badge": "Live Preview",
     "title": {
@@ -624,9 +760,10 @@
     },
     "slide": {
       "brand": "SlideAI",
-      "title": "Intelligent",
-      "highlight": "Presentations",
-      "desc": "Generate relevant content and captivating design instantly."
+      "title": "Client deliverable",
+      "highlight": "ready to send",
+      "desc": "Clear structure, message adapted to client context and professional design generated automatically.",
+      "subFooter": "Usable for audits, recommendations, pitches and reporting."
     },
     "footer": "📊 Modern Design • 🎨 Preset Themes • ✨ Fluid Animations • 🚀 Ready to Present"
   },
@@ -635,7 +772,7 @@
     "description": "You have used all your generation credits. Buy a pack or upgrade to a subscription to continue creating presentations.",
     "packs": {
       "title": "Freedom Packs",
-      "desc": "Buy credits individually, no commitment. Starting at €5."
+      "desc": "Buy credits individually, no commitment. Starting at €7."
     },
     "subscriptions": {
       "title": "Subscriptions",
@@ -646,62 +783,86 @@
   },
   "templateSelector": {
     "pill": "Premium Collection",
-    "title": "Choose your",
-    "highlight": "style",
-    "description": "Select a visual identity that matches your story. Each theme comes with unique layouts and typography.",
-    "select": "Select",
+    "title": "Choose the type of",
+    "highlight": "deliverable you want to send",
+    "description": "Each deliverable is optimized to be ready for billing (structure, message, design).",
+    "select": "Choose this deliverable",
+    "microCopy": "Each deliverable automatically adapts structure, tone, and design to the client context.",
+    "hoverHint": "Usage examples:",
     "categories": {
       "all": "All",
-      "business": "Business",
-      "creative": "Creative",
-      "educational": "Educational",
-      "marketing": "Marketing",
-      "corporate": "Corporate"
+      "business": "Consulting / Audit",
+      "creative": "Portfolio & Creative",
+      "educational": "Training & Pedagogy",
+      "marketing": "Recommendations & Pitch",
+      "corporate": "Reporting & Corporate"
     },
     "templates": {
       "startup-pitch": {
-        "name": "Startup Pitch",
-        "desc": "Bold and impactful design for investor presentations"
+        "name": "Client / Investor Pitch",
+        "desc": "Clear structure to quickly convince a decision maker.",
+        "badge": "Pitch",
+        "useCases": "pitch deck, fundraising, demo"
       },
       "product-launch": {
-        "name": "Product Launch",
-        "desc": "Vibrant and energetic for new product announcements"
+        "name": "Marketing Recommendations",
+        "desc": "Ideal for presenting a strategy, actions, and a clear plan.",
+        "badge": "Recommendations",
+        "useCases": "marketing strategy, launch, action plan"
       },
       "corporate-report": {
-        "name": "Corporate Report",
-        "desc": "Professional and clean for business reports"
+        "name": "Client Report / Audit",
+        "desc": "Perfect for delivering a structured and professional analysis.",
+        "badge": "Reporting",
+        "useCases": "audit, monthly review, performance analysis"
       },
       "creative-portfolio": {
         "name": "Creative Portfolio",
-        "desc": "Artistic and bold with focus on visuals"
+        "desc": "Artistic and bold with a focus on visuals",
+        "badge": "Portfolio",
+        "useCases": "book, agency presentation, showcase"
       },
       "educational": {
-        "name": "Educational Course",
-        "desc": "Clear and structured for teaching"
+        "name": "Training & Courses",
+        "desc": "Clear and structured for teaching and knowledge transfer.",
+        "badge": "Training",
+        "useCases": "course, webinar, tutorial"
       },
       "marketing-campaign": {
-        "name": "Marketing Campaign",
-        "desc": "Dynamic and colorful for marketing"
+        "name": "Advertising Campaign",
+        "desc": "Dynamic and colorful to showcase your creative concepts.",
+        "badge": "Campaign",
+        "useCases": "ad campaign, creative concept, branding"
       },
       "minimal-elegant": {
-        "name": "Minimal Elegant",
-        "desc": "Sophisticated minimalist with strong typography"
+        "name": "Sober Client Presentation",
+        "desc": "For corporate clients who want clarity and seriousness.",
+        "badge": "Corporate",
+        "useCases": "luxury presentation, finance, legal"
       },
       "tech-modern": {
-        "name": "Tech Modern",
-        "desc": "Cutting-edge design for tech and SaaS"
+        "name": "Tech / SaaS Presentation",
+        "desc": "Cutting-edge design for tech and software.",
+        "badge": "Tech",
+        "useCases": "product demo, technical docs, SaaS"
       },
       "consulting": {
-        "name": "Consulting Premium",
-        "desc": "Sophisticated design for consulting firms"
+        "name": "Premium Consulting Deliverable",
+        "desc": "Designed for freelancers & firms with premium pricing.",
+        "badge": "Consulting",
+        "useCases": "strategic recommendation, organizational audit"
       },
       "health-medical": {
         "name": "Health & Medical",
-        "desc": "Clean and trustworthy for healthcare"
+        "desc": "Clean and trustworthy for health topics.",
+        "badge": "Health",
+        "useCases": "medical report, hospital presentation"
       },
       "sustainability": {
-        "name": "Sustainability",
-        "desc": "Earth-toned design for eco-friendly messaging"
+        "name": "CSR Report",
+        "desc": "Earth tones for ecological and CSR topics.",
+        "badge": "CSR",
+        "useCases": "carbon footprint, CSR strategy"
       }
     }
   },

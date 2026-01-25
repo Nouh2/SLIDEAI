@@ -6,27 +6,50 @@ import { FeatureGrid } from "@/components/home/FeatureGrid";
 import { ProductShowcase } from "@/components/home/ProductShowcase";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Sparkles } from "lucide-react";
+import { WhyFreelance } from "@/components/home/WhyFreelance";
+import { HowItWorks } from "@/components/home/HowItWorks";
+import { OfferSection } from "@/components/home/OfferSection";
+import { SubscriptionSection } from "@/components/home/SubscriptionSection";
+import { FaqSection } from "@/components/home/FaqSection";
 
 export default function Home() {
   const navigate = useNavigate();
   const { t } = useTranslation();
 
   return (
-    <div className="min-h-screen w-full">
+    <div className="min-h-screen w-full relative">
+      {/* SlideAI DNA: Grid Background - Full Page */}
+      <div className="fixed inset-0 z-0 h-full w-full bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px] pointer-events-none"></div>
+
       {/* Hero Section */}
       <Hero />
 
-      {/* Deck Preview Section */}
+      {/* Livrables Section (DeckPreview) */}
       <DeckPreview />
 
-      {/* Features Section */}
+      {/* Pourquoi Freelance */}
+      <WhyFreelance />
+
+      {/* Comment ça marche */}
+      <HowItWorks />
+
+      {/* Outils (FeatureGrid) */}
       <FeatureGrid />
 
-      {/* Product Showcase Section */}
+      {/* Produit en action */}
       <ProductShowcase />
 
+      {/* Offre 7€ */}
+      <OfferSection />
+
+      {/* Abonnement Pro */}
+      <SubscriptionSection />
+
+      {/* FAQ */}
+      <FaqSection />
+
       {/* Bottom CTA Section */}
-      <section className="relative py-12 md:py-32 px-4 overflow-hidden border-t border-border/50">
+      <section className="relative py-12 md:py-20 px-4 overflow-hidden border-t border-border/50">
         <div className="max-w-4xl mx-auto text-center space-y-6 md:space-y-8">
           {/* Background decoration */}
           <div className="absolute inset-0 -z-10">
@@ -35,11 +58,10 @@ export default function Home() {
 
           <div className="space-y-4">
             <h2 className="text-3xl md:text-5xl font-bold px-2">
-              {t('home.ctaTitle')}<br />
-              <span className="text-gradient-secondary">{t('home.ctaTitleHighlight')}</span>
+              {t('finalCta.title')}
             </h2>
-            <p className="text-base md:text-lg text-foreground/60 max-w-2xl mx-auto px-4">
-              {t('home.ctaSubtitle')}
+            <p className="text-base md:text-lg text-foreground/60 max-w-2xl mx-auto px-4 whitespace-pre-line">
+              {t('finalCta.subtitle')}
             </p>
           </div>
 
@@ -50,22 +72,10 @@ export default function Home() {
               className="h-12 md:h-14 text-sm md:text-base font-bold rounded-xl bg-gradient-primary hover:shadow-neon-hover transition-all duration-300 group text-foreground w-full sm:w-auto"
             >
               <Sparkles className="w-4 h-4 md:w-5 md:h-5 mr-2" />
-              {t('home.ctaButton')}
+              {t('finalCta.button')}
               <ArrowRight className="w-4 h-4 md:w-5 md:h-5 ml-2 group-hover:translate-x-1 transition-transform" />
             </Button>
-            <Button
-              size="lg"
-              variant="outline"
-              onClick={() => navigate("/pricing")}
-              className="h-12 md:h-14 text-sm md:text-base font-bold rounded-xl border-2 border-primary/30 hover:border-primary/60 hover:bg-primary/5 transition-all w-full sm:w-auto"
-            >
-              {t('home.viewPricing')}
-            </Button>
           </div>
-
-          <p className="text-xs md:text-sm text-foreground/50 font-medium px-4">
-            {t('home.freeNote')}
-          </p>
         </div>
       </section>
     </div>

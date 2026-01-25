@@ -5,8 +5,17 @@ import { useTranslation } from "react-i18next";
 
 export function DeckPreview() {
     const { t } = useTranslation();
+
+    const examples = [
+        t('livrables.examples.audit'),
+        t('livrables.examples.reco'),
+        t('livrables.examples.reporting'),
+        t('livrables.examples.pitch'),
+        t('livrables.examples.strategy'),
+    ];
+
     return (
-        <section className="relative w-full py-12 md:py-20 px-4 overflow-hidden">
+        <section className="relative w-full py-10 md:py-16 px-4 overflow-hidden z-10">
             {/* Section Background */}
             <div className="absolute inset-0 -z-10">
                 <div className="absolute inset-0 bg-gradient-to-b from-transparent via-primary/5 to-transparent" />
@@ -18,12 +27,21 @@ export function DeckPreview() {
                 <div className="text-center mb-10 md:mb-16 space-y-4">
                     <div className="inline-flex items-center gap-2 px-3 py-1.5 md:px-4 md:py-2 rounded-full glass-premium text-xs md:text-sm">
                         <Zap className="w-3.5 h-3.5 md:w-4 md:h-4 text-secondary" />
-                        <span className="text-foreground/80">{t('deckPreview.badge')}</span>
+                        <span className="text-foreground/80">{t('livrables.badge')}</span>
                     </div>
                     <h2 className="text-3xl md:text-5xl font-bold">
-                        {t('deckPreview.title.main')}<br />
-                        <span className="text-gradient-secondary">{t('deckPreview.title.highlight')}</span>
+                        {t('livrables.title')}
                     </h2>
+                    <p className="text-lg text-muted-foreground">{t('livrables.subtitle')}</p>
+
+                    {/* Livrables List */}
+                    <div className="flex flex-wrap justify-center gap-3 mt-6">
+                        {examples.map((ex, i) => (
+                            <span key={i} className="px-4 py-2 rounded-full bg-secondary/10 border border-secondary/20 text-sm font-medium text-foreground/80">
+                                {ex}
+                            </span>
+                        ))}
+                    </div>
                 </div>
 
                 {/* 3D Deck Preview */}
@@ -126,6 +144,9 @@ export function DeckPreview() {
                                     <p className="text-muted-foreground text-sm md:text-base max-w-md leading-relaxed font-medium">
                                         {t('deckPreview.slide.desc')}
                                     </p>
+                                    <p className="text-[10px] md:text-xs text-muted-foreground/60 uppercase tracking-wider font-semibold mt-2">
+                                        {t('deckPreview.slide.subFooter')}
+                                    </p>
 
                                     {/* Indicators */}
                                     <div className="flex gap-3 mt-4 md:mt-6">
@@ -158,8 +179,8 @@ export function DeckPreview() {
                     transition={{ delay: 0.6 }}
                     className="text-center mt-12 md:mt-16"
                 >
-                    <p className="text-muted text-sm md:text-base">
-                        {t('deckPreview.footer')}
+                    <p className="text-lg font-medium text-gradient-primary">
+                        {t('livrables.footer')}
                     </p>
                 </motion.div>
             </div>

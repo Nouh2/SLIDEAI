@@ -220,8 +220,11 @@ export default function Create() {
                                     }}
                                     className="bg-gradient-to-r from-primary to-secondary text-white gap-2"
                                 >
-                                    {t('create.continue')}
-                                    <ArrowRight className="h-4 w-4" />
+                                    <div className="flex flex-col items-start gap-0.5">
+                                        <span className="text-base font-bold leading-none">{t('create.continue')}</span>
+                                        <span className="text-[10px] font-medium opacity-80">{t('create.continueSub')}</span>
+                                    </div>
+                                    <ArrowRight className="h-4 w-4 ml-1" />
                                 </Button>
 
                                 <Button
@@ -399,8 +402,8 @@ export default function Create() {
                                                                     type="button"
                                                                     onClick={() => setContentLanguage(lang)}
                                                                     className={`flex-1 px-3 py-2 text-xs font-medium rounded-lg border transition-all ${contentLanguage === lang
-                                                                            ? 'bg-primary text-white border-primary'
-                                                                            : 'bg-muted/50 text-muted-foreground border-border hover:border-primary/50'
+                                                                        ? 'bg-primary text-white border-primary'
+                                                                        : 'bg-muted/50 text-muted-foreground border-border hover:border-primary/50'
                                                                         }`}
                                                                 >
                                                                     {t(`create.languages.${lang}`)}

@@ -29,9 +29,7 @@ export function Hero() {
     };
 
     return (
-        <section className="min-h-[80vh] flex flex-col items-center justify-center py-12 px-4 md:py-24 relative overflow-hidden will-change-transform">
-            {/* SlideAI DNA: Grid Background */}
-            <div className="absolute inset-0 -z-20 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_50%,#000_70%,transparent_100%)]"></div>
+        <section className="min-h-[70vh] flex flex-col items-center justify-center py-10 px-4 md:py-16 relative z-10 overflow-hidden will-change-transform">
 
             {/* Animated background elements */}
             <div className="absolute inset-0 -z-10 pointer-events-none overflow-hidden">
@@ -58,15 +56,8 @@ export function Hero() {
 
                 {/* Headline */}
                 <motion.div variants={itemVariants} className="text-center space-y-4 md:space-y-6">
-                    <h1 className="text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-bold leading-tight tracking-tight px-2">
-                        {t('hero.title1')} <br />
-                        <span className="text-gradient relative inline-block">
-                            {t('hero.title2')}
-                            <svg className="absolute w-full h-2 md:h-3 -bottom-1 left-0 text-primary opacity-50" viewBox="0 0 100 10" preserveAspectRatio="none">
-                                <path d="M0 5 Q 50 10 100 5" stroke="currentColor" strokeWidth="4" fill="none" />
-                            </svg>
-                        </span>{" "}
-                        {t('hero.title3')}
+                    <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold leading-tight tracking-tight px-2 max-w-5xl mx-auto">
+                        {t('hero.title')}
                     </h1>
 
                     <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed font-light">
@@ -75,7 +66,7 @@ export function Hero() {
                 </motion.div>
 
                 {/* CTA Buttons */}
-                <motion.div variants={itemVariants} className="flex flex-col sm:flex-row gap-4 justify-center pt-8">
+                <motion.div variants={itemVariants} className="flex flex-col items-center gap-6 pt-8">
                     <Button
                         size="lg"
                         onClick={() => navigate("/create")}
@@ -85,14 +76,24 @@ export function Hero() {
                         {t('hero.cta')}
                         <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
                     </Button>
-                    <Button
-                        size="lg"
-                        variant="outline"
-                        onClick={() => navigate("/examples")}
-                        className="h-14 px-8 text-base font-bold rounded-xl border-2 border-primary/30 hover:border-primary/60 hover:bg-primary/5 transition-all"
-                    >
-                        {t('hero.viewExamples')}
-                    </Button>
+
+                    {/* Micro-proofs */}
+                    <div className="flex flex-col md:flex-row items-center gap-4 text-sm text-muted-foreground">
+                        <div className="flex items-center gap-2">
+                            <span className="text-green-500">✔</span>
+                            <span>{t('hero.microProofs.target')}</span>
+                        </div>
+                        <div className="hidden md:block w-1 h-1 bg-muted-foreground/30 rounded-full" />
+                        <div className="flex items-center gap-2">
+                            <span className="text-green-500">✔</span>
+                            <span>{t('hero.microProofs.roi')}</span>
+                        </div>
+                        <div className="hidden md:block w-1 h-1 bg-muted-foreground/30 rounded-full" />
+                        <div className="flex items-center gap-2">
+                            <span className="text-green-500">✔</span>
+                            <span>{t('hero.microProofs.features')}</span>
+                        </div>
+                    </div>
                 </motion.div>
 
 

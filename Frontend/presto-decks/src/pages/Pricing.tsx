@@ -34,7 +34,7 @@ export default function Pricing() {
 
   // Mapping credit packs to Stripe Price IDs
   const PACK_PRICE_IDS: Record<string, { priceId: string; packType: string }> = {
-    'Pack Découverte': { priceId: 'price_1SrfAT5KgGKgF82eZbPykn70', packType: 'pack_decouverte' },
+    'Pack Freelance': { priceId: 'price_1SrfAT5KgGKgF82eZbPykn70', packType: 'pack_decouverte' },
     'Pack Power': { priceId: 'price_1SrfB45KgGKgF82e2AnTxmqf', packType: 'pack_power' },
   };
 
@@ -353,7 +353,7 @@ export default function Pricing() {
       popular: true,
       badge: t('pricing.mostPopular'),
     },
-    {
+    /* {
       name: "Business",
       price: billingCycle === "yearly" ? "49€" : "59€",
       period: t('pricing.perMonth'),
@@ -372,22 +372,30 @@ export default function Pricing() {
       variant: "solid" as const,
       popular: false,
       badge: null,
-    },
+    }, */
   ];
 
   const packs = [
     {
-      name: "Pack Découverte",
-      price: "5€",
-      credits: t('pricing.packs.discovery.credits'),
-      icon: Layers,
+      id: "discovery",
+      lookupKey: "Pack Freelance",
+      displayName: t('pricing.packs.discovery.name'),
+      subtitle: t('pricing.packs.discovery.subtitle'),
+      keyLine: t('pricing.packs.discovery.keyLine'),
+      priceDetail: t('pricing.packs.discovery.priceDetail'),
+      price: "7€",
+      credits: t('pricing.packs.discovery.credits'), // Keeping logic if needed but not displaying it prominent
       cta: t('pricing.packs.discovery.cta'),
     },
     {
-      name: "Pack Power",
+      id: "power",
+      lookupKey: "Pack Power",
+      displayName: t('pricing.packs.power.name'),
+      subtitle: t('pricing.packs.power.subtitle'),
+      keyLine: t('pricing.packs.power.keyLine'),
+      priceDetail: t('pricing.packs.power.priceDetail'),
       price: "15€",
       credits: t('pricing.packs.power.credits'),
-      icon: Layers,
       cta: t('pricing.packs.power.cta'),
     },
   ];
@@ -407,57 +415,123 @@ export default function Pricing() {
             {t('pricing.subtitle')}
           </p>
 
-          {/* Billing Cycle Toggle */}
-          <div className="flex items-center justify-center mt-8 md:mt-12 mb-8 md:mb-12">
-            <div className="relative inline-flex items-center p-1.5 rounded-full bg-secondary/30 border border-border backdrop-blur-sm">
-              {/* Sliding Background Pill */}
-              <div
-                className={`absolute inset-y-1.5 rounded-full bg-background shadow-sm transition-all duration-300 ease-out ${billingCycle === "monthly" ? "left-1.5 w-[calc(50%-6px)]" : "left-[calc(50%)] w-[calc(50%-6px)]"
-                  }`}
-              />
+        </div>
 
-              <button
-                onClick={() => setBillingCycle("monthly")}
-                className={`relative z-10 px-6 md:px-8 py-2 md:py-2.5 rounded-full text-xs md:text-sm font-semibold transition-colors duration-300 ${billingCycle === "monthly"
-                  ? "text-foreground"
-                  : "text-muted-foreground hover:text-foreground/80"
+        {/* Credit Packs Section - NOW FIRST */}
+        <div className="max-w-4xl mx-auto mb-20 md:mb-24">
+          <div className="grid md:grid-cols-2 gap-6 max-w-2xl mx-auto">
+            {packs.map((pack) => (
+              <Card
+                key={pack.id}
+                className={`relative group overflow-hidden border-border/50 transition-all duration-300 ${pack.id === 'discovery'
+                  ? 'bg-primary/5 hover:bg-primary/10 border-primary/30 shadow-lg scale-105 z-10'
+                  : 'bg-secondary/10 hover:bg-secondary/20 hover:border-primary/20 hover:shadow-lg'
                   }`}
               >
-                {t('pricing.monthly')}
-              </button>
-              <button
-                onClick={() => setBillingCycle("yearly")}
-                className={`relative z-10 px-6 md:px-8 py-2 md:py-2.5 rounded-full text-xs md:text-sm font-semibold transition-colors duration-300 ${billingCycle === "yearly"
-                  ? "text-foreground"
-                  : "text-muted-foreground hover:text-foreground/80"
-                  }`}
-              >
-                {t('pricing.yearly')}
-              </button>
+                <div className={`absolute inset-0 bg-gradient-to-br opacity-0 group-hover:opacity-100 transition-opacity ${pack.id === 'discovery' ? 'from-primary/10 via-transparent to-transparent' : 'from-secondary/10 via-transparent to-transparent'
+                  }`} />
 
-              {/* Modern Badge - Only visible when Yearly is selected and on larger screens */}
-              <div
-                className={`absolute left-full ml-4 top-1/2 -translate-y-1/2 hidden lg:flex items-center transition-all duration-300 ${billingCycle === "yearly"
-                  ? "opacity-100 translate-x-0"
-                  : "opacity-0 -translate-x-2 pointer-events-none"
-                  }`}
-              >
-                {/* Arrow */}
-                <div className="w-4 h-px bg-primary/30 mr-2 relative overflow-visible">
-                  <div className="absolute right-0 top-1/2 -translate-y-1/2 w-1.5 h-1.5 border-t border-r border-primary/30 rotate-45" />
-                </div>
+                <CardContent className="p-6 md:p-8 flex flex-col items-center text-center gap-4 relative z-10">
+                  {pack.id === 'discovery' && (
+                    <div className="absolute top-0 right-0 p-3">
+                      <Sparkles className="w-5 h-5 text-primary animate-pulse" />
+                    </div>
+                  )}
 
-                <div className="flex items-center gap-1.5 pl-1.5 pr-2.5 py-1 rounded-full bg-primary/10 border border-primary/20 text-xs font-bold text-primary shadow-sm whitespace-nowrap">
-                  <Sparkles className="w-3 h-3 fill-primary" />
-                  <span>{t('pricing.discount')}</span>
-                </div>
+                  <div className="space-y-2">
+                    <h3 className="font-bold text-2xl">{pack.displayName}</h3>
+                    <p className="text-muted-foreground font-medium text-sm px-4">{pack.subtitle}</p>
+                  </div>
+
+                  <div className="space-y-1 my-2">
+                    <div className="flex items-baseline justify-center gap-1">
+                      <span className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-foreground to-foreground/80">{pack.price}</span>
+                    </div>
+                    <p className="text-sm font-bold text-primary">{pack.keyLine}</p>
+                    <p className="text-xs text-muted-foreground">{pack.priceDetail}</p>
+                  </div>
+
+                  <Button
+                    variant={pack.id === 'discovery' ? 'default' : 'outline'}
+                    className={`w-full rounded-xl font-bold h-auto py-4 whitespace-normal leading-tight text-base transition-all duration-300 ${pack.id === 'discovery' ? 'shadow-lg shadow-primary/20 hover:shadow-primary/40' : ''
+                      }`}
+                    onClick={() => handlePackPurchase(pack.lookupKey)}
+                    disabled={loadingPack === pack.lookupKey}
+                  >
+                    {loadingPack === pack.lookupKey ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      pack.cta
+                    )}
+                  </Button>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+
+          <div className="text-center mt-6 flex flex-col gap-2">
+            <p className="text-sm text-muted-foreground font-medium bg-secondary/30 inline-block mx-auto px-4 py-1.5 rounded-full">
+              {t('pricing.creditUsage')}
+            </p>
+          </div>
+        </div>
+
+        {/* Subscription Section Header */}
+        <div className="text-center mb-10 max-w-2xl mx-auto">
+          <h2 className="text-2xl md:text-3xl font-bold mb-3">{t('offer.proSubscription.title')}</h2>
+          <p className="text-muted-foreground">{t('offer.proSubscription.subtitle')}</p>
+        </div>
+
+        {/* Billing Cycle Toggle */}
+        <div className="flex items-center justify-center mb-10 md:mb-12">
+          <div className="relative inline-flex items-center p-1.5 rounded-full bg-secondary/30 border border-border backdrop-blur-sm">
+            {/* Sliding Background Pill */}
+            <div
+              className={`absolute inset-y-1.5 rounded-full bg-background shadow-sm transition-all duration-300 ease-out ${billingCycle === "monthly" ? "left-1.5 w-[calc(50%-6px)]" : "left-[calc(50%)] w-[calc(50%-6px)]"
+                }`}
+            />
+
+            <button
+              onClick={() => setBillingCycle("monthly")}
+              className={`relative z-10 px-6 md:px-8 py-2 md:py-2.5 rounded-full text-xs md:text-sm font-semibold transition-colors duration-300 ${billingCycle === "monthly"
+                ? "text-foreground"
+                : "text-muted-foreground hover:text-foreground/80"
+                }`}
+            >
+              {t('pricing.monthly')}
+            </button>
+            <button
+              onClick={() => setBillingCycle("yearly")}
+              className={`relative z-10 px-6 md:px-8 py-2 md:py-2.5 rounded-full text-xs md:text-sm font-semibold transition-colors duration-300 ${billingCycle === "yearly"
+                ? "text-foreground"
+                : "text-muted-foreground hover:text-foreground/80"
+                }`}
+            >
+              {t('pricing.yearly')}
+            </button>
+
+            {/* Modern Badge - Only visible when Yearly is selected and on larger screens */}
+            <div
+              className={`absolute left-full ml-4 top-1/2 -translate-y-1/2 hidden lg:flex items-center transition-all duration-300 ${billingCycle === "yearly"
+                ? "opacity-100 translate-x-0"
+                : "opacity-0 -translate-x-2 pointer-events-none"
+                }`}
+            >
+              {/* Arrow */}
+              <div className="w-4 h-px bg-primary/30 mr-2 relative overflow-visible">
+                <div className="absolute right-0 top-1/2 -translate-y-1/2 w-1.5 h-1.5 border-t border-r border-primary/30 rotate-45" />
+              </div>
+
+              <div className="flex items-center gap-1.5 pl-1.5 pr-2.5 py-1 rounded-full bg-primary/10 border border-primary/20 text-xs font-bold text-primary shadow-sm whitespace-nowrap">
+                <Sparkles className="w-3 h-3 fill-primary" />
+                <span>{t('pricing.discount')}</span>
               </div>
             </div>
           </div>
         </div>
 
         {/* Subscription Cards */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto mb-24">
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-7xl mx-auto mb-24">
           {plans.map((plan, index) => (
             <Card
               key={plan.name}
@@ -530,59 +604,14 @@ export default function Pricing() {
           ))}
         </div>
 
-        {/* Credit Packs Section */}
-        <div className="max-w-4xl mx-auto text-center border-t border-border/50 pt-16">
-          <h2 className="text-3xl font-bold mb-4">
-            {t('pricing.notReadyTitle')}
-          </h2>
-          <p className="text-lg text-foreground/70 mb-2">
-            {t('pricing.packSubtitle')}
-          </p>
-          <div className="flex items-center justify-center gap-2 text-sm text-foreground/60 mb-10 mx-auto">
-            <HelpCircle className="w-4 h-4" />
-            <span>{t('pricing.packNote')}</span>
-          </div>
-
-          <div className="grid md:grid-cols-2 gap-6 max-w-2xl mx-auto">
-            {packs.map((pack) => (
-              <Card key={pack.name} className="relative group overflow-hidden bg-secondary/10 border-border/50 hover:bg-secondary/20 hover:border-primary/20 hover:shadow-lg transition-all duration-300">
-                <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-
-                <CardContent className="p-6 flex flex-col items-center text-center gap-5 relative z-10">
-                  <div className="p-3.5 bg-background rounded-2xl shadow-sm ring-1 ring-inset ring-foreground/5 group-hover:scale-110 group-hover:rotate-3 transition-transform duration-300">
-                    <pack.icon className="w-7 h-7 text-primary" />
-                  </div>
-
-                  <div className="space-y-1">
-                    <h3 className="font-bold text-xl">{pack.name}</h3>
-                    <p className="text-muted-foreground font-medium">{pack.credits}</p>
-                  </div>
-
-                  <div className="flex items-baseline justify-center gap-1 my-1">
-                    <span className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-foreground to-foreground/70">{pack.price}</span>
-                  </div>
-
-                  <Button
-                    variant="outline"
-                    className="w-full rounded-xl font-bold hover:bg-primary hover:text-primary-foreground border-primary/20 hover:border-primary transition-all duration-300"
-                    onClick={() => handlePackPurchase(pack.name)}
-                    disabled={loadingPack === pack.name}
-                  >
-                    {loadingPack === pack.name ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      pack.cta
-                    )}
-                  </Button>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
+        {/* Old Credit Packs Section Removed from here */}
 
         <div className="mt-20 text-center space-y-4 animate-fade-in-up">
           <p className="text-foreground/70 text-lg font-medium">
             {t('pricing.allCardsAccepted')}
+            <span className="block md:inline md:ml-2 text-sm text-foreground/50">
+              • {t('pricing.noSubscription')}
+            </span>
           </p>
           <p className="text-base text-foreground/60">
             {t('pricing.questions')} {" "}

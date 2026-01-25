@@ -3353,7 +3353,7 @@ const ImageFocusLayout = ({ slide, colors, variation = 'default', onSelect, sele
             <div className="relative w-full h-full overflow-hidden flex" style={{ backgroundColor: colors.bg }}>
                 {/* Image Side (Left) */}
                 <div className="w-1/2 h-full relative overflow-hidden">
-                    <div className="absolute inset-0 bg-cover bg-center transition-transform hover:scale-110 duration-[20000ms]"
+                    <div className="absolute inset-0 bg-cover bg-center transition-transform hover:scale-110 duration-[20s]"
                         style={{ backgroundImage: `url(${imageUrl || `https://source.unsplash.com/800x1200/?${encodeURIComponent(slide.title)}`})` }} />
                     <div className="absolute inset-0 bg-black/10" />
                 </div>

@@ -204,7 +204,7 @@ export default function Dashboard() {
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-2 border-b border-border pb-2">
+      <div className="flex gap-2 border-b border-border pb-2 overflow-x-auto scrollbar-hide -mx-4 px-4 md:mx-0 md:px-0">
         <Button
           variant={activeTab === "owned" ? "solid" : "ghost"}
           onClick={() => setActiveTab("owned")}

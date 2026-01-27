@@ -55,8 +55,8 @@ export function TemplateSelector({ selectedTemplate, onSelectTemplate }: Templat
             </div>
 
             {/* Category Tabs */}
-            <div className="flex justify-center mb-8 overflow-x-auto pb-4 no-scrollbar">
-                <div className="flex bg-muted/30 p-1 rounded-full backdrop-blur-sm border border-border/50">
+            <div className="flex justify-start md:justify-center mb-8 overflow-x-auto pb-4 no-scrollbar px-4 -mx-4 md:mx-0">
+                <div className="flex bg-muted/30 p-1 rounded-full backdrop-blur-sm border border-border/50 min-w-max">
                     {categories.map((cat) => (
                         <button
                             key={cat}

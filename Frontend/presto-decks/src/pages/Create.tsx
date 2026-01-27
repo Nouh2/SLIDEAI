@@ -204,7 +204,19 @@ export default function Create() {
                                 onSelectTemplate={setSelectedTemplate}
                             />
 
-                            <div className="flex justify-center gap-4">
+                            <div className="flex flex-col-reverse sm:flex-row justify-center gap-4">
+                                <Button
+                                    size="lg"
+                                    variant="outline"
+                                    onClick={() => {
+                                        setSelectedTemplate(null);
+                                        setStep('customize');
+                                    }}
+                                    className="w-full sm:w-auto"
+                                >
+                                    {t('create.skipStep')}
+                                </Button>
+
                                 <Button
                                     size="lg"
                                     onClick={() => {
@@ -218,24 +230,13 @@ export default function Create() {
                                         }
                                         setStep('customize');
                                     }}
-                                    className="bg-gradient-to-r from-primary to-secondary text-white gap-2"
+                                    className="bg-gradient-to-r from-primary to-secondary text-white gap-2 w-full sm:w-auto"
                                 >
                                     <div className="flex flex-col items-start gap-0.5">
                                         <span className="text-base font-bold leading-none">{t('create.continue')}</span>
                                         <span className="text-[10px] font-medium opacity-80">{t('create.continueSub')}</span>
                                     </div>
                                     <ArrowRight className="h-4 w-4 ml-1" />
-                                </Button>
-
-                                <Button
-                                    size="lg"
-                                    variant="outline"
-                                    onClick={() => {
-                                        setSelectedTemplate(null);
-                                        setStep('customize');
-                                    }}
-                                >
-                                    {t('create.skipStep')}
                                 </Button>
                             </div>
                         </motion.div>
@@ -435,6 +436,7 @@ export default function Create() {
                                     </CardContent>
                                 </Card>
                             </div>
+
                         </motion.div>
                     )}
                 </AnimatePresence>

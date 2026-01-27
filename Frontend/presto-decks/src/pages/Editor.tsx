@@ -28,7 +28,21 @@ import {
   Palette,
   Plus,
   Type,
+  Menu,
+  Layers,
+  Settings,
+  PanelRightOpen,
+  PanelLeftOpen,
+  Image as ImageIcon,
+  Square
 } from "lucide-react";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 import { Reorder, AnimatePresence } from "framer-motion";
 import { PresentationBuilderLoader } from "@/components/layout/PresentationBuilderLoader";
 
@@ -146,6 +160,12 @@ export default function Editor() {
   const [showWatermark, setShowWatermark] = useState(false);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
 
+  // Mobile sheet states
+  const [isSlidesSheetOpen, setIsSlidesSheetOpen] = useState(false);
+  const [isPropertiesSheetOpen, setIsPropertiesSheetOpen] = useState(false);
+  const [activeMobileTab, setActiveMobileTab] = useState<'slides' | 'properties' | 'add'>('slides');
+  const [isMobileSlideshowOpen, setIsMobileSlideshowOpen] = useState(false);
+
   // Auto-save debounce ref
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const pendingSaveRef = useRef<any>(null);
@@ -211,9 +231,11 @@ export default function Editor() {
       const targetWidth = 1920;
       const targetHeight = 1080;
 
+      const isMobile = window.innerWidth < 768;
+
       // Add padding calculation - account for navigation buttons and breathing room
-      const horizontalPadding = isFullscreen ? 0 : 160; // Space for nav buttons (left/right arrows)
-      const verticalPadding = isFullscreen ? 0 : 120;   // Space for bottom pill and breathing room
+      const horizontalPadding = isFullscreen ? 0 : (isMobile ? 0 : 160); // Reduced padding on mobile
+      const verticalPadding = isFullscreen ? 0 : (isMobile ? 20 : 120);   // Reduced padding on mobile
 
       const availableWidth = width - horizontalPadding;
       const availableHeight = height - verticalPadding;
@@ -221,8 +243,8 @@ export default function Editor() {
       const scaleX = availableWidth / targetWidth;
       const scaleY = availableHeight / targetHeight;
 
-      // Cap the scale to prevent overflow - max 0.55 for non-fullscreen
-      const maxScale = isFullscreen ? 1 : 0.55;
+      // Cap the scale to prevent overflow - max 0.55 for non-fullscreen desktop
+      const maxScale = isFullscreen ? 1 : (isMobile ? 1 : 0.55);
       setSlideScale(Math.min(scaleX, scaleY, maxScale));
     };
 
@@ -383,6 +405,9 @@ export default function Editor() {
 
 
   const handleElementSelect = (element: any) => {
+    // Disable selection on mobile
+    if (window.innerWidth < 768) return;
+
     // Add slide index to ID to make it unique across deck
     const fullId = `${selectedSlide}-${element.id}`;
     setSelectedElement({ ...element, id: fullId });
@@ -719,7 +744,7 @@ export default function Editor() {
     >
       {/* 1. Header (Hidden in Fullscreen) */}
       {!isFullscreen && (
-        <div className="h-16 flex items-center justify-between px-6 border-b border-border bg-background/90 backdrop-blur-md z-50 shadow-sm shrink-0">
+        <div className="h-16 flex items-center justify-between px-4 md:px-6 border-b border-border bg-background/90 backdrop-blur-md z-50 shadow-sm shrink-0">
           <div className="flex items-center space-x-6">
             <Link to="/" className="group flex items-center justify-center w-10 h-10 rounded-xl hover:bg-muted transition-all">
               <Home className="h-5 w-5 text-muted-foreground group-hover:text-foreground transition-colors" />
@@ -731,7 +756,7 @@ export default function Editor() {
               <Input
                 defaultValue={currentProject.title}
                 readOnly
-                className="h-6 text-sm font-semibold border-0 bg-transparent p-0 focus-visible:ring-0 w-64 text-foreground hover:text-primary transition-colors cursor-default"
+                className="h-6 text-sm font-semibold border-0 bg-transparent p-0 focus-visible:ring-0 w-32 md:w-64 text-foreground hover:text-primary transition-colors cursor-default"
               />
               <span className="text-[10px] font-medium text-muted-foreground flex items-center gap-2 mt-0.5">
                 {saveStatus === 'saving' && (
@@ -767,7 +792,7 @@ export default function Editor() {
 
             <Button
               onClick={toggleFullscreen}
-              className="h-10 px-5 rounded-xl bg-primary hover:bg-primary/90 text-white shadow-lg shadow-primary/20 font-medium transition-all duration-300 hover:scale-105 hover:-translate-y-0.5"
+              className="hidden md:flex h-10 px-5 rounded-xl bg-primary hover:bg-primary/90 text-white shadow-lg shadow-primary/20 font-medium transition-all duration-300 hover:scale-105 hover:-translate-y-0.5"
             >
               <Play className="h-4 w-4 mr-2 fill-current" />
               {t('editorPage.actions.slideshow')}
@@ -826,14 +851,16 @@ export default function Editor() {
                   </Button>
                 </FontSelectorDialog>
               )}
-              <AddElementMenu onAdd={handleAddElement} />
+              <div className="hidden md:block">
+                <AddElementMenu onAdd={handleAddElement} />
+              </div>
               <Button
                 variant="outline"
                 onClick={() => setIsExportDialogOpen(true)}
-                className="h-10 px-5 rounded-xl border-2 hover:border-primary hover:text-primary hover:bg-primary/5 transition-all duration-300 hover:scale-105 hover:-translate-y-0.5"
+                className="h-10 w-10 md:w-auto px-0 md:px-5 rounded-xl border-2 hover:border-primary hover:text-primary hover:bg-primary/5 transition-all duration-300 hover:scale-105 hover:-translate-y-0.5"
               >
-                <Download className="w-4 h-4 mr-2" />
-                {t('editorPage.actions.export')}
+                <Download className="w-4 h-4 md:mr-2" />
+                <span className="hidden md:inline">{t('editorPage.actions.export')}</span>
               </Button>
             </div>
           </div>
@@ -844,7 +871,7 @@ export default function Editor() {
 
         {/* 2. Vertical Timeline (Left Sidebar) - Now displays all slides */}
         {!isFullscreen && (
-          <div className="w-64 flex flex-col border-r border-border bg-surface/50 backdrop-blur-sm z-30">
+          <div className="hidden md:flex w-64 flex-col border-r border-border bg-surface/50 backdrop-blur-sm z-30">
             <div className="p-4 border-b border-border flex items-center justify-between bg-surface/80">
               <span className="text-xs font-bold tracking-widest uppercase text-muted-foreground">{t('editorPage.sidebar.slides')}</span>
               <span className="text-[10px] bg-muted px-1.5 py-0.5 rounded text-muted-foreground">{currentProject.slides.length}</span>
@@ -1075,7 +1102,7 @@ export default function Editor() {
 
         {/* 4. Right Sidebar: Layout Switcher or Properties */}
         {!isFullscreen && (
-          <div className="w-[280px] border-l border-border bg-surface/50 backdrop-blur-sm z-30 flex flex-col shrink-0">
+          <div className="hidden md:flex w-[280px] border-l border-border bg-surface/50 backdrop-blur-sm z-30 flex-col shrink-0">
             {selectedElement ? (
               <PropertiesPanel
                 element={selectedElement}
@@ -1103,6 +1130,135 @@ export default function Editor() {
         )}
 
       </div>
+
+      {/* Mobile Toolbar */}
+      {!isFullscreen && (
+        <div className="md:hidden h-16 bg-surface border-t border-border flex items-center justify-around px-4 z-50 shrink-0">
+          <Sheet open={isSlidesSheetOpen} onOpenChange={setIsSlidesSheetOpen}>
+            <SheetTrigger asChild>
+              <Button variant="ghost" size="icon" className="flex flex-col gap-1 h-auto py-2">
+                <Layers className="h-5 w-5" />
+                <span className="text-[10px] font-medium">Slides</span>
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="left" className="w-[80vw] p-0 flex flex-col">
+              <SheetHeader className="p-4 border-b">
+                <SheetTitle>{t('editorPage.sidebar.slides')}</SheetTitle>
+              </SheetHeader>
+              <div className="flex-1 overflow-y-auto p-4 custom-scrollbar">
+                {/* Reusing the slide list logic for mobile */}
+                <div className="space-y-4">
+                  {currentProject.slides.map((slide: any, idx: number) => (
+                    <div
+                      key={slide.id}
+                      onClick={() => {
+                        setSelectedSlide(idx);
+                        setSelectedElement(null);
+                        setIsSlidesSheetOpen(false);
+                      }}
+                      className={`relative cursor-pointer rounded-lg border transition-all ${selectedSlide === idx
+                        ? "border-primary ring-2 ring-primary/10 bg-primary/5"
+                        : "border-border bg-surface"
+                        }`}
+                    >
+                      <div className="p-2 flex items-center gap-3">
+                        <div className="h-6 w-6 rounded-full bg-background flex items-center justify-center text-xs font-bold border border-border">
+                          {idx + 1}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium truncate">
+                            {slide.title || t('editorPage.slide.untitled')}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+
+                </div>
+              </div>
+            </SheetContent>
+          </Sheet>
+
+          {/* Mobile Slideshow Trigger */}
+          <Button variant="ghost" size="icon" className="flex flex-col gap-1 h-auto py-2" onClick={() => setIsMobileSlideshowOpen(true)}>
+            <Play className="h-5 w-5" />
+            <span className="text-[10px] font-medium">Play</span>
+          </Button>
+
+        </div>
+      )}
+
+      {/* Mobile Slideshow Overlay */}
+      {isMobileSlideshowOpen && (
+        <div className="fixed inset-0 z-[100] bg-black flex items-center justify-center overflow-hidden">
+          {/* Close Button */}
+          <Button
+            variant="ghost"
+            size="icon"
+            className="absolute top-4 right-4 z-50 text-white/50 hover:text-white hover:bg-white/10"
+            onClick={() => setIsMobileSlideshowOpen(false)}
+          >
+            <Minimize2 className="h-6 w-6" />
+          </Button>
+
+          {/* Navigation Controls (Overlay) */}
+          <div className="absolute inset-0 z-40 flex flex-col justify-between pointer-events-none">
+            {/* Use full screen tap zones or buttons? Buttons for clarity */}
+            <div className="flex-1 flex w-full">
+              <div
+                className="w-1/4 h-full pointer-events-auto flex items-center justify-start pl-4"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (selectedSlide > 0) setSelectedSlide(prev => prev - 1);
+                }}
+              >
+                {selectedSlide > 0 && <ChevronLeft className="text-white/30 h-8 w-8" />}
+              </div>
+              <div className="flex-1"></div>
+              <div
+                className="w-1/4 h-full pointer-events-auto flex items-center justify-end pr-4"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (selectedSlide < currentProject.slides.length - 1) setSelectedSlide(prev => prev + 1);
+                }}
+              >
+                {selectedSlide < currentProject.slides.length - 1 && <ChevronRight className="text-white/30 h-8 w-8" />}
+              </div>
+            </div>
+          </div>
+
+          {/* Slide Container - Rotated 90deg if portrait */}
+          {/* We use a container that is forced to 1920x1080 aspect ratio but scaled/rotated to fit screen */}
+          <div
+            className="relative transform transition-transform duration-300 origin-center"
+            style={{
+              width: '100vw',
+              height: '100vh',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}
+          >
+            <div
+              style={{
+                width: '1920px',
+                height: '1080px',
+                transform: window.innerWidth < window.innerHeight
+                  ? `rotate(90deg) scale(${window.innerWidth / 1080})` // Rotate and fit width to height (since now width is the long side)
+                  : `scale(${Math.min(window.innerWidth / 1920, window.innerHeight / 1080)})`, // Standard landscape fit
+                transformOrigin: 'center center'
+              }}
+            >
+              <ModernSlideRenderer
+                slide={currentProject.slides[selectedSlide]}
+                theme={currentProject.theme}
+                colorPalette={currentProject.colorScheme}
+                className="w-full h-full"
+              />
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Export Dialog */}
       <ExportDialog

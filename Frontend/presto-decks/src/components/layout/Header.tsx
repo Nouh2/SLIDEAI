@@ -163,7 +163,7 @@ export const Header = () => {
                         className="justify-start px-0 text-zinc-500 hover:text-red-500 transition-colors"
                       >
                         <LogOut className="h-4 w-4 mr-2" />
-                        {t('auth.signOut')}
+                        {t('account.signOut')}
                       </Button>
                     </>
                   ) : (

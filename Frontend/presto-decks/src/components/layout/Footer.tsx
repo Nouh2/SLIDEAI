@@ -9,8 +9,6 @@ export const Footer = () => {
     product: [
       { label: t('footer.links.examples'), href: "/examples" },
       { label: t('footer.links.pricing'), href: "/pricing" },
-      { label: t('footer.links.changelog'), href: "/changelog" },
-      { label: t('footer.links.roadmap'), href: "/roadmap" },
     ],
     legal: [
       { label: t('footer.links.privacy'), href: "/privacy" },
@@ -68,9 +66,9 @@ export const Footer = () => {
 
           <div>
             <h3 className="font-semibold mb-3 text-sm">{t('footer.contact')}</h3>
-            <p className="text-xs text-[var(--muted)]">
+            <a href="mailto:contact@slideai.fr" className="text-xs text-[var(--muted)] hover:text-[var(--primary)] transition-colors">
               contact@slideai.fr
-            </p>
+            </a>
           </div>
         </div>
 

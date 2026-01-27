@@ -101,9 +101,11 @@ export class SubscriptionService {
             });
         }
 
+        const limits = this.getPlanLimits(subscription.plan, subscription.creditsRemaining);
+
         return {
             ...subscription,
-            limits: PLAN_LIMITS[subscription.plan] || PLAN_LIMITS.free,
+            limits,
         };
     }
 
@@ -135,7 +137,7 @@ export class SubscriptionService {
         }
 
         const sub = await this.getOrCreateSubscription(userId, userEmail);
-        const limits = PLAN_LIMITS[sub.plan] || PLAN_LIMITS.free;
+        const limits = this.getPlanLimits(sub.plan, sub.creditsRemaining);
 
         // Unlimited pour pro/business
         if (limits.creditsPerMonth === -1) {
@@ -162,7 +164,7 @@ export class SubscriptionService {
      */
     async consumeCredit(userId: string, userEmail?: string): Promise<void> {
         const sub = await this.getOrCreateSubscription(userId, userEmail);
-        const limits = PLAN_LIMITS[sub.plan] || PLAN_LIMITS.free;
+        const limits = this.getPlanLimits(sub.plan, sub.creditsRemaining);
 
         // Ne pas décrémenter pour les plans illimités
         if (limits.creditsPerMonth === -1) {
@@ -181,6 +183,7 @@ export class SubscriptionService {
      * Réinitialise les crédits mensuels.
      */
     private async resetCredits(userId: string, plan: string): Promise<void> {
+        // Here we just use the static definition because reset always goes back to the monthly allowance
         const limits = PLAN_LIMITS[plan] || PLAN_LIMITS.free;
         const now = new Date();
         const nextResetAt = new Date(now.getFullYear(), now.getMonth() + 1, 1);
@@ -199,15 +202,31 @@ export class SubscriptionService {
      */
     async hasFeature(userId: string, feature: string): Promise<boolean> {
         const sub = await this.getOrCreateSubscription(userId);
-        const limits = PLAN_LIMITS[sub.plan] || PLAN_LIMITS.free;
+        const limits = this.getPlanLimits(sub.plan, sub.creditsRemaining);
         return limits.features.includes(feature);
     }
 
     /**
      * Retourne les limites d'un plan.
+     * Si l'utilisateur a un plan FREE mais plus de crédits que la limite gratuite,
+     * on considère qu'il a acheté un pack et on lui donne les avantages PRO.
      */
-    getPlanLimits(plan: string) {
-        return PLAN_LIMITS[plan] || PLAN_LIMITS.free;
+    getPlanLimits(plan: string, creditsRemaining?: number) {
+        const defaultLimits = PLAN_LIMITS[plan] || PLAN_LIMITS.free;
+
+        // "BOOST" LOGIC:
+        // If user is on FREE plan AND has more credits than the free monthly allowance (2),
+        // we assume they purchased a pack (or accrued credits) and grant PRO features/limits.
+        // We do NOT grant unlimited credits (since they are burning them), but we unlock features.
+        if (plan === 'free' && creditsRemaining !== undefined && creditsRemaining > PLAN_LIMITS.free.creditsPerMonth) {
+            // Apply PRO limits but keep the credit consumption logic
+            return {
+                ...PLAN_LIMITS.pro,
+                creditsPerMonth: PLAN_LIMITS.free.creditsPerMonth, // Keep tracking credits (don't set to -1 unlimited)
+            };
+        }
+
+        return defaultLimits;
     }
 
     /**
@@ -242,15 +261,25 @@ export class SubscriptionService {
 
                     if (creditsToAdd > 0) {
                         // Make sure user has a subscription record to add credits to
-                        await this.getOrCreateSubscription(userId, session.customer_email);
+                        const sub = await this.getOrCreateSubscription(userId, session.customer_email);
+                        const freeLimit = PLAN_LIMITS.free.creditsPerMonth;
+
+                        // LOGIC: Reset to base (2) if below, THEN add pack.
+                        // This ensures the user gets the full value of the pack as "extra" credits above the free tier.
+                        let baseCredits = sub.creditsRemaining;
+                        if (sub.plan === 'free' && baseCredits < freeLimit) {
+                            baseCredits = freeLimit; // Reset to 2
+                        }
+
+                        const newTotal = baseCredits + creditsToAdd;
 
                         await this.prisma.subscription.update({
                             where: { userId },
                             data: {
-                                creditsRemaining: { increment: creditsToAdd },
+                                creditsRemaining: newTotal,
                             },
                         });
-                        console.log(`[Stripe Webhook] Added ${creditsToAdd} credits for pack: ${packType} to user: ${userId}`);
+                        console.log(`[Stripe Webhook] Pack purchased. Reset base to ${baseCredits} and added ${creditsToAdd}. New total: ${newTotal}. User: ${userId}`);
                     } else {
                         console.warn(`[Stripe Webhook] Unknown packType: ${packType}`);
                     }
@@ -329,7 +358,7 @@ export class SubscriptionService {
      */
     async checkProjectLimit(userId: string): Promise<boolean> {
         const sub = await this.getOrCreateSubscription(userId);
-        const limits = PLAN_LIMITS[sub.plan]?.limits || PLAN_LIMITS.free.limits;
+        const limits = this.getPlanLimits(sub.plan, sub.creditsRemaining).limits;
 
         if (limits.maxProjects === -1) return true;
 
@@ -359,7 +388,7 @@ export class SubscriptionService {
      */
     async checkPdfPageLimit(userId: string, pageCount: number): Promise<boolean> {
         const sub = await this.getOrCreateSubscription(userId);
-        const limits = PLAN_LIMITS[sub.plan]?.limits || PLAN_LIMITS.free.limits;
+        const limits = this.getPlanLimits(sub.plan, sub.creditsRemaining).limits;
 
         if (limits.pdfPages === -1) return true;
 
@@ -377,7 +406,7 @@ export class SubscriptionService {
      */
     async checkAiAddLimit(userId: string, currentUsage: number): Promise<boolean> {
         const sub = await this.getOrCreateSubscription(userId);
-        const limits = PLAN_LIMITS[sub.plan]?.limits || PLAN_LIMITS.free.limits;
+        const limits = this.getPlanLimits(sub.plan, sub.creditsRemaining).limits;
 
         if (limits.aiAddPerPresentation === -1) return true;
 
@@ -395,7 +424,7 @@ export class SubscriptionService {
      */
     async checkAiWandLimit(userId: string, currentUsage: number): Promise<boolean> {
         const sub = await this.getOrCreateSubscription(userId);
-        const limits = PLAN_LIMITS[sub.plan]?.limits || PLAN_LIMITS.free.limits;
+        const limits = this.getPlanLimits(sub.plan, sub.creditsRemaining).limits;
 
         if (limits.aiWandPerPresentation === -1) return true;
 

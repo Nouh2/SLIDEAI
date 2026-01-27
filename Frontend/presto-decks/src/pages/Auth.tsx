@@ -177,9 +177,6 @@ export default function AuthPage() {
       </div>
 
       {/* Footer */}
-      <p className="mt-8 text-center text-sm text-muted-foreground">
-        {t('auth.trustNote')}
-      </p>
     </div>
   );
 }

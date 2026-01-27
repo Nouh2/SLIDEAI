@@ -76,6 +76,9 @@ export default function Dashboard() {
   // Load presentations via API
   useEffect(() => {
     const fetchPresentations = async () => {
+      // Don't fetch if showing success screen
+      if (showSuccess) return;
+
       setIsLoading(true);
 
       const { data: { session } } = await supabase.auth.getSession();

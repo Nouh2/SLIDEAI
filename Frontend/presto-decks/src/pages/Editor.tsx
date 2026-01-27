@@ -364,7 +364,7 @@ export default function Editor() {
           .select('*')
           .order('created_at', { ascending: false })
           .limit(1)
-          .single();
+          .maybeSingle();
 
         if (dbError || !data) {
           setError(t('editorPage.errors.notFound'));

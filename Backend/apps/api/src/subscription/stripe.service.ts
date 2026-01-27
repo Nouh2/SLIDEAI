@@ -43,9 +43,9 @@ export class StripeService implements OnModuleInit {
             success_url: `${frontendUrl}/app?session_id={CHECKOUT_SESSION_ID}`,
             cancel_url: `${frontendUrl}/pricing`,
             metadata: {
-                userId,
                 plan,
             },
+            allow_promotion_codes: true,
         });
 
         return { url: session.url };
@@ -84,9 +84,9 @@ export class StripeService implements OnModuleInit {
             success_url: `${frontendUrl}/app?pack_success=true`,
             cancel_url: `${frontendUrl}/pricing`,
             metadata: {
-                userId,
                 packType,
             },
+            allow_promotion_codes: true,
         });
 
         return { url: session.url };

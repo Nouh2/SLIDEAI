@@ -50,23 +50,28 @@ export default function Dashboard() {
   const [viewOnlyPresentations, setViewOnlyPresentations] = useState<Presentation[]>([]);
   const [searchParams, setSearchParams] = useSearchParams();
   const [subscription, setSubscription] = useState<any>(null);
-  const [showSuccess, setShowSuccess] = useState(false);
 
-  // Check for successful payment
+  // Initialize state directly from window location to avoid race conditions
+  const [showSuccess, setShowSuccess] = useState(() => {
+    const params = new URLSearchParams(window.location.search);
+    return !!(params.get("session_id") || params.get("pack_success"));
+  });
+
+  // Clean URL when success is detected
   useEffect(() => {
     const sessionId = searchParams.get("session_id");
     const packSuccess = searchParams.get("pack_success");
 
     if (sessionId || packSuccess) {
-      setShowSuccess(true);
+      if (!showSuccess) setShowSuccess(true);
 
-      // Clean URL
+      // Clean URL silently
       const newParams = new URLSearchParams(searchParams);
       newParams.delete("session_id");
       newParams.delete("pack_success");
-      setSearchParams(newParams);
+      setSearchParams(newParams, { replace: true });
     }
-  }, [searchParams, setSearchParams]);
+  }, [searchParams, setSearchParams, showSuccess]);
 
   // Load presentations via API
   useEffect(() => {
@@ -163,16 +168,16 @@ export default function Dashboard() {
     return list;
   }, [currentList, search, filter, sortBy]);
 
+  if (showSuccess) {
+    return <PaymentSuccess onContinue={() => setShowSuccess(false)} />;
+  }
+
   if (isLoading) {
     return (
       <div className="min-h-[60vh] flex items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
-  }
-
-  if (showSuccess) {
-    return <PaymentSuccess onContinue={() => setShowSuccess(false)} />;
   }
 
   return (

@@ -2,6 +2,7 @@ import { useMemo, useState, useEffect } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { ProjectThumbnail } from "@/components/dashboard/ProjectThumbnail";
+import { PaymentSuccess } from "@/components/dashboard/PaymentSuccess";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -49,21 +50,23 @@ export default function Dashboard() {
   const [viewOnlyPresentations, setViewOnlyPresentations] = useState<Presentation[]>([]);
   const [searchParams, setSearchParams] = useSearchParams();
   const [subscription, setSubscription] = useState<any>(null);
+  const [showSuccess, setShowSuccess] = useState(false);
 
   // Check for successful payment
   useEffect(() => {
     const sessionId = searchParams.get("session_id");
-    if (sessionId) {
-      toast({
-        title: t('dashboard.paymentSuccess'),
-        description: t('dashboard.paymentSuccessMsg'),
-        className: "bg-green-500/10 border-green-500/50 text-green-500",
-      });
+    const packSuccess = searchParams.get("pack_success");
+
+    if (sessionId || packSuccess) {
+      setShowSuccess(true);
+
       // Clean URL
-      searchParams.delete("session_id");
-      setSearchParams(searchParams);
+      const newParams = new URLSearchParams(searchParams);
+      newParams.delete("session_id");
+      newParams.delete("pack_success");
+      setSearchParams(newParams);
     }
-  }, [searchParams, setSearchParams, toast, t]);
+  }, [searchParams, setSearchParams]);
 
   // Load presentations via API
   useEffect(() => {
@@ -166,6 +169,10 @@ export default function Dashboard() {
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
+  }
+
+  if (showSuccess) {
+    return <PaymentSuccess onContinue={() => setShowSuccess(false)} />;
   }
 
   return (

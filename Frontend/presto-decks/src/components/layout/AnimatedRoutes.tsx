@@ -88,7 +88,7 @@ export const AnimatedRoutes = () => {
                     } />
 
                     {/* Compat Lovable */}
-                    <Route path="/app" element={<Navigate to="/editor" replace />} />
+                    <Route path="/app" element={<Navigate to="/dashboard" replace />} />
                     <Route path="/app/:traceId" element={
                         <ProtectedRoute>
                             <PageTransition><Editor /></PageTransition>

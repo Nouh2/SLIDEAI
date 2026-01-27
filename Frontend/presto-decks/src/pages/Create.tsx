@@ -382,7 +382,7 @@ export default function Create() {
                                                             value={slides}
                                                             onValueChange={setSlides}
                                                             min={5}
-                                                            max={20}
+                                                            max={50}
                                                             step={1}
                                                             className="py-2"
                                                         />

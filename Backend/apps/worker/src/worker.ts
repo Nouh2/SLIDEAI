@@ -415,7 +415,15 @@ const generateWorker = new Worker(
 
       // Deck parsed successfully
 
-      // (Save block moved from here)
+      // INJECT COLORS FROM THEME (Override AI generation)
+      // We force the specific colors defined in the theme config
+      deck.colorPalette = {
+        primary: themeConfig.colors.accent,
+        secondary: themeConfig.colors.accentSecondary,
+        accent: themeConfig.colors.chartColors[2] || themeConfig.colors.accent, // Use a third color for accent if possible
+        bg: themeConfig.colors.background,
+        text: themeConfig.colors.text
+      };
 
       deck = sanitizeDeck(deck, prompt);
       deck.theme = themeConfig.id;

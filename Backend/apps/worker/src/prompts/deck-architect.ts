@@ -408,7 +408,19 @@ ${langInstruction}
 Generate a professional, rich presentation following the exact JSON schema.
 `;
 
-  // If document text is provided, activate HIGH-DENSITY DOCUMENT MODE
+  // Force HIGH DENSITY for long presentations (>15 slides) to prevent content dilution
+  if ((slideCount && slideCount > 15) || (documentText && documentText.length > 0)) {
+    userPrompt += `
+═══════════════════════════════════════════════════
+⚠️ HIGH VOLUME CONTENT STRATEGY
+═══════════════════════════════════════════════════
+You are generating a LARGE/DETAILED deck.
+1. **DO NOT DILUTE CONTENT**: Every slide must be dense, valuable, and "hyper-complete".
+2. **Deep Dives**: Dedicate multiple slides to single complex topics rather than skimming.
+3. **data-rich**: Use more tables, detailed lists, and multi-point comparisons.
+4. **Avoid Fluff**: No filler slides. If you have 50 slides, you need 50 pages of solid content.
+`;
+  }
   if (documentText && documentText.trim().length > 0) {
     userPrompt += `
 ═══════════════════════════════════════════════════
@@ -416,12 +428,12 @@ Generate a professional, rich presentation following the exact JSON schema.
 ═══════════════════════════════════════════════════
 
 CRITICAL OVERRIDE INSTRUCTIONS:
-1. IGNORE the slide count above. Generate 12-20 slides to FULLY cover this document.
+1. **SLIDE COUNT**: You MUST generate EXACTLY ${slideCount || '12-20'} slides to cover this document.
 2. Be VERBOSE - use long bullet points (2-3 sentences each).
 3. Extract ALL chapters, key figures, definitions, statistics, and technical details.
 4. **LAYOUT PREFERENCE**: Prioritize text-columns, table, and section layouts. Use text-columns for all dense explanatory slides.
 5. This is for a CONSULTING REPORT / study document, NOT a stage presentation.
-5. Fill the slides with dense, actionable content. No empty spaces.
+6. Fill the slides with dense, actionable content. No empty spaces.
 
 📄 SOURCE DOCUMENT MATERIAL:
 ${documentText}
@@ -429,6 +441,16 @@ ${documentText}
 ═══════════════════════════════════════════════════
 END OF DOCUMENT - Generate comprehensive coverage above.
 ═══════════════════════════════════════════════════
+`;
+  } else {
+    // Strengthen slide count instruction for normal mode
+    userPrompt += `
+═══════════════════════════════════════════════════
+⚠️ SLIDE COUNT ENFORCEMENT
+═══════════════════════════════════════════════════
+You MUST generate EXACTLY ${slideCount} slides.
+Do not generate fewer. Do not generate more.
+Plan your content distribution to fill exactly ${slideCount} slides.
 `;
   }
 

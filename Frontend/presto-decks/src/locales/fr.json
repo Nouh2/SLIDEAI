@@ -674,6 +674,18 @@
       "gdpr": "RGPD"
     }
   },
+  "cookie": {
+    "title": "Gestion des cookies",
+    "text": "Nous utilisons des cookies pour améliorer votre expérience et analyser notre trafic. Vous pouvez accepter ou refuser leur utilisation.",
+    "accept": "Accepter",
+    "refuse": "Refuser",
+    "manage": "Paramétrer",
+    "necessary": "Nécessaires",
+    "necessaryDesc": "Indispensables au fonctionnement du site.",
+    "analytics": "Analytiques",
+    "analyticsDesc": "Nous aident à améliorer nos services.",
+    "save": "Enregistrer mes choix"
+  },
   "socialProof": {
     "stats": {
       "presentations": "Présentations créées",

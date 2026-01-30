@@ -13,13 +13,13 @@ i18n
             fr: { translation: fr },
             en: { translation: en },
         },
-        fallbackLng: 'fr',
+        fallbackLng: 'en',
         supportedLngs: ['fr', 'en'],
         interpolation: {
             escapeValue: false, // React already escapes values
         },
         detection: {
-            order: ['localStorage', 'navigator'],
+            order: ['localStorage'],
             caches: ['localStorage'],
         },
     });

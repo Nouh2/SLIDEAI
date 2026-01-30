@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef } from "react";
+import { SEO } from "@/components/common/SEO";
 import { useTranslation } from "react-i18next";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { api } from "@/lib/api";
@@ -304,6 +305,14 @@ export default function ViewPage() {
             ref={containerRef}
             className="h-screen flex flex-col overflow-hidden font-sans bg-background text-foreground"
         >
+            <SEO
+                title={project?.title || "Présentation SlideAI"}
+                description={project?.subtitle || "Regardez cette présentation créée avec SlideAI."}
+                url={`/view/${token}`}
+                // Use the first slide's background or a default OG image if available
+                image={project?.slides?.[0]?.backgroundImage || "/og-image.png"}
+            />
+
             {/* Header (Hidden in Fullscreen) */}
             {!isFullscreen && (
                 <div className="h-16 flex items-center justify-between px-6 border-b border-border bg-background/90 backdrop-blur-md z-50 shadow-sm shrink-0">

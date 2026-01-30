@@ -656,6 +656,18 @@
       "gdpr": "GDPR"
     }
   },
+  "cookie": {
+    "title": "Cookie Management",
+    "text": "We use cookies to enhance your experience and analyze our traffic. You can accept or refuse their use.",
+    "accept": "Accept",
+    "refuse": "Refuse",
+    "manage": "Manage",
+    "necessary": "Necessary",
+    "necessaryDesc": "Essential for the site to work.",
+    "analytics": "Analytics",
+    "analyticsDesc": "Help us improve our services.",
+    "save": "Save preferences"
+  },
   "socialProof": {
     "stats": {
       "presentations": "Presentations created",

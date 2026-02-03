@@ -30,7 +30,8 @@ export function Hero() {
     };
 
     return (
-        <section className="min-h-[70vh] flex flex-col items-center justify-center py-10 px-4 md:py-16 relative z-10 overflow-hidden will-change-transform">
+        <section className="min-h-[70vh] flex flex-col items-center justify-center py-10 px-4 md:py-16 relative z-10 overflow-hidden"
+            style={{ willChange: 'transform' }}>
 
             {/* Animated background elements */}
             <div className="absolute inset-0 -z-10 pointer-events-none overflow-hidden">

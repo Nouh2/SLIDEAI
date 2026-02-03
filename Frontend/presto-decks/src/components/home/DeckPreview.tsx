@@ -45,7 +45,7 @@ export function DeckPreview() {
                 </div>
 
                 {/* 3D Deck Preview */}
-                <div className="relative w-full max-w-5xl mx-auto h-[400px] md:h-[500px] perspective-1000">
+                <div className="relative w-full max-w-5xl mx-auto h-[400px] md:h-[500px] perspective-1000" style={{ willChange: 'transform' }}>
                     <div className="absolute inset-0 flex items-center justify-center" style={{
                         perspective: "1200px",
                     }}>

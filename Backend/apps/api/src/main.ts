@@ -35,6 +35,8 @@ async function bootstrap() {
         ...envOrigins,
         'https://slideai.fr',
         'https://www.slideai.fr',
+        'https://slideai.tech',
+        'https://www.slideai.tech',
         'http://localhost:5173', // Ensure dev default is present if needed
         'http://localhost:3000'
       ];

@@ -8,6 +8,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { AnimatedBackground } from "@/components/layout/AnimatedBackground";
 import { AnimatedRoutes } from "@/components/layout/AnimatedRoutes";
 import { CookieConsent } from "@/components/common/CookieConsent";
+import { GoogleAnalytics } from "@/components/common/GoogleAnalytics";
 import { Analytics } from "@vercel/analytics/react";
 
 import { Toaster } from "@/components/ui/toaster";
@@ -26,6 +27,7 @@ export default function App() {
             <Footer />
           </div>
           <Analytics />
+          <GoogleAnalytics />
           <CookieConsent />
           <Toaster />
         </BrowserRouter>

@@ -140,7 +140,7 @@ const generateSchema = z.object({
     language: z.enum(['fr', 'en', 'es']).default('en'),
     tone: z.enum(['pro', 'casual']).default('pro'),
     length: z.enum(['short', 'medium', 'long']).default('medium'),
-    slideCount: z.preprocess((val) => (typeof val === 'string' ? parseInt(val, 10) : val), z.number().int().min(3).max(20).default(8)),
+    slideCount: z.preprocess((val) => (typeof val === 'string' ? parseInt(val, 10) : val), z.number().int().min(3).max(50).default(8)),
     theme: z.enum([
         'startup-pitch',
         'product-launch',

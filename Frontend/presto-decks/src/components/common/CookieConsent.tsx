@@ -36,6 +36,7 @@ export const CookieConsent = () => {
         }
 
         localStorage.setItem("cookie-consent", consentValue);
+        window.dispatchEvent(new Event("cookie-consent-updated"));
         setIsVisible(false);
     };
 

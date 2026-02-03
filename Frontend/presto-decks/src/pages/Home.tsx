@@ -30,9 +30,6 @@ export default function Home() {
       {/* Hero Section */}
       <Hero />
 
-      {/* Livrables Section (DeckPreview) */}
-      <DeckPreview />
-
       {/* Pourquoi Freelance */}
       <WhyFreelance />
 

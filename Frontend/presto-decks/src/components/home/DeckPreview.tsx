@@ -45,7 +45,7 @@ export function DeckPreview() {
                 </div>
 
                 {/* 3D Deck Preview */}
-                <div className="relative w-full max-w-5xl mx-auto h-[280px] md:h-[500px] perspective-1000">
+                <div className="relative w-full max-w-5xl mx-auto h-[400px] md:h-[500px] perspective-1000">
                     <div className="absolute inset-0 flex items-center justify-center" style={{
                         perspective: "1200px",
                     }}>
@@ -99,7 +99,7 @@ export function DeckPreview() {
                             initial={{ opacity: 0, y: 50, scale: 0.95 }}
                             whileInView={{ opacity: 1, y: 0, scale: 1 }}
                             transition={{ duration: 0.8, delay: 0.3 }}
-                            className="absolute w-[75%] md:w-[70%] aspect-video rounded-2xl border-2 border-primary/40 shadow-neon-hover overflow-hidden z-10 glass-premium"
+                            className="absolute w-[85%] md:w-[70%] aspect-[4/5] md:aspect-video rounded-2xl border-2 border-primary/40 shadow-neon-hover overflow-hidden z-10 glass-premium"
                             style={{
                                 transform: "translateZ(0px)",
                             }}
@@ -126,25 +126,25 @@ export function DeckPreview() {
                                 </div>
 
                                 {/* Content */}
-                                <div className="absolute inset-0 p-6 md:p-10 flex flex-col justify-center items-center text-center space-y-4 md:space-y-6 z-10">
+                                <div className="absolute inset-0 p-4 md:p-10 flex flex-col justify-center items-center text-center space-y-2 md:space-y-6 z-10">
                                     <motion.div
-                                        className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/40 backdrop-blur-md border border-white/50 shadow-sm"
+                                        className="inline-flex items-center gap-2 px-3 py-1.5 md:px-4 md:py-2 rounded-full bg-white/40 backdrop-blur-md border border-white/50 shadow-sm"
                                         animate={{ scale: [1, 1.05, 1] }}
                                         transition={{ duration: 3, repeat: Infinity }}
                                     >
-                                        <Sparkles className="w-4 h-4 text-primary" />
-                                        <span className="text-primary text-xs md:text-sm font-bold tracking-widest uppercase">{t('deckPreview.slide.brand')}</span>
+                                        <Sparkles className="w-3 h-3 md:w-4 md:h-4 text-primary" />
+                                        <span className="text-primary text-[10px] md:text-sm font-bold tracking-widest uppercase">{t('deckPreview.slide.brand')}</span>
                                     </motion.div>
 
-                                    <h2 className="text-2xl md:text-4xl font-bold text-foreground leading-tight">
+                                    <h2 className="text-xl md:text-4xl font-bold text-foreground leading-tight">
                                         {t('deckPreview.slide.title')}<br />
                                         <span className="text-gradient-primary">{t('deckPreview.slide.highlight')}</span>
                                     </h2>
 
-                                    <p className="text-muted-foreground text-sm md:text-base max-w-md leading-relaxed font-medium">
+                                    <p className="text-muted-foreground text-xs md:text-base max-w-md leading-relaxed font-medium line-clamp-3 md:line-clamp-none">
                                         {t('deckPreview.slide.desc')}
                                     </p>
-                                    <p className="text-[10px] md:text-xs text-muted-foreground/60 uppercase tracking-wider font-semibold mt-2">
+                                    <p className="text-[10px] md:text-xs text-muted-foreground/60 uppercase tracking-wider font-semibold mt-1">
                                         {t('deckPreview.slide.subFooter')}
                                     </p>
 

@@ -27,7 +27,7 @@
     "badge": "SlideAI v2.0",
     "title": "Freelance ? Transforme tes documents clients en livrables professionnels en 40 secondes.",
     "subtitle": "Importe un PDF ou un Word, SlideAI génère des slides prêtes à livrer. Pack test : 5 présentations pour 7€ – sans abonnement.",
-    "cta": "Tester le Pack Freelance – 7€",
+    "cta": "Essayer gratuitement",
     "microProofs": {
       "target": "Pensé pour freelances marketing, consultants & coachs",
       "roi": "1 client = outil rentabilisé",
@@ -401,6 +401,7 @@
         "keyLine": "5 livrables clients",
         "priceDetail": "paiement unique",
         "credits": "5 présentations",
+        "badge": "Idéal pour tester",
         "cta": "Tester sur une vraie mission"
       },
       "power": {
@@ -413,7 +414,7 @@
       }
     },
     "noSubscription": "Aucun abonnement. Aucun renouvellement automatique.",
-    "creditUsage": "💡 Utilise tes crédits quand tu veux. Un client = un livrable."
+    "creditUsage": "Utilise tes crédits quand tu veux. Un client = un livrable."
   },
   "account": {
     "title": "Mon Compte",
@@ -690,7 +691,9 @@
     "stats": {
       "presentations": "Présentations créées",
       "users": "Utilisateurs actifs",
-      "satisfaction": "Satisfaction client"
+      "satisfaction": "Satisfaction client",
+      "generatedCount": "5000+ slides générées ce mois-ci",
+      "rating": "4.9/5 par les fondateurs"
     },
     "heading": {
       "lovedBy": "Aimé par les",
@@ -833,6 +836,12 @@
         "useCases": "bilan carbone, stratégie RSE"
       }
     }
+  },
+  "blog": {
+    "title": "Le Blog SlideAI",
+    "subtitle": "L'actualité de l'IA et les meilleures pratiques pour réussir vos présentations.",
+    "readMore": "Lire l'article",
+    "loading": "Chargement des articles..."
   },
   "editorPage": {
     "errors": {

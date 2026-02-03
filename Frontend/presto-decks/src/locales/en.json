@@ -27,7 +27,7 @@
     "badge": "SlideAI v2.0",
     "title": "Freelancer? Turn your client documents into professional deliverables in 40 seconds.",
     "subtitle": "Import a PDF or Word, SlideAI generates ready-to-deliver slides. Test Pack: 5 presentations for €7 – no subscription.",
-    "cta": "Try the Freelance Pack – €7",
+    "cta": "Try for free",
     "microProofs": {
       "target": "Designed for marketing freelancers, consultants & coaches",
       "roi": "1 client = tool paid off",
@@ -383,6 +383,7 @@
         "keyLine": "5 client deliverables",
         "priceDetail": "one-time payment",
         "credits": "5 presentations",
+        "badge": "Best for testing",
         "cta": "Test on a real mission"
       },
       "power": {
@@ -395,7 +396,7 @@
       }
     },
     "noSubscription": "No subscription. No automatic renewal.",
-    "creditUsage": "💡 Use credits whenever you want. One client = one deliverable."
+    "creditUsage": "Use credits whenever you want. One client = one deliverable."
   },
   "account": {
     "title": "My Account",
@@ -672,7 +673,9 @@
     "stats": {
       "presentations": "Presentations created",
       "users": "Active users",
-      "satisfaction": "Customer satisfaction"
+      "satisfaction": "Customer satisfaction",
+      "generatedCount": "5000+ slides generated this month",
+      "rating": "4.9/5 by founders"
     },
     "heading": {
       "lovedBy": "Loved by",
@@ -950,5 +953,11 @@
         "description": "Manage your presentations efficiently with an organized and beautiful workspace."
       }
     }
+  },
+  "blog": {
+    "title": "The SlideAI Blog",
+    "subtitle": "AI news and best practices for creating successful presentations.",
+    "readMore": "Read article",
+    "loading": "Loading articles..."
   }
 }

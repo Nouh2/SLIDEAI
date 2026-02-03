@@ -12,7 +12,7 @@ export function SEO({
     title,
     description = "Generate, edit, and share professional PowerPoint presentations with AI.",
     image = "/og-image.png",
-    url = "https://slideai-theta.vercel.app/",
+    url = "https://www.slideai.fr/",
     type = "website"
 }: SEOProps) {
 
@@ -20,8 +20,8 @@ export function SEO({
     const fullTitle = title === siteTitle ? title : `${title} | ${siteTitle}`;
 
     // Ensure absolute URLs for OG images
-    const fullImage = image.startsWith("http") ? image : `https://slideai-theta.vercel.app${image.startsWith("/") ? "" : "/"}${image}`;
-    const fullUrl = url.startsWith("http") ? url : `https://slideai-theta.vercel.app${url.startsWith("/") ? "" : "/"}${url}`;
+    const fullImage = image.startsWith("http") ? image : `https://www.slideai.fr${image.startsWith("/") ? "" : "/"}${image}`;
+    const fullUrl = url.startsWith("http") ? url : `https://www.slideai.fr${url.startsWith("/") ? "" : "/"}${url}`;
 
     return (
         <Helmet>

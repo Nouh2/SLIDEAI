@@ -22,6 +22,8 @@ const NotFound = lazy(() => import("@/pages/NotFound"));
 const JoinPage = lazy(() => import("@/pages/JoinPage"));
 const ViewPage = lazy(() => import("@/pages/ViewPage"));
 const ResetPassword = lazy(() => import("@/pages/ResetPassword"));
+const Blog = lazy(() => import("@/pages/Blog"));
+const BlogPost = lazy(() => import("@/pages/BlogPost"));
 
 const PageLoader = () => (
     <div className="h-[calc(100vh-4rem)] w-full flex items-center justify-center">
@@ -42,6 +44,8 @@ export const AnimatedRoutes = () => {
                     <Route path="/privacy" element={<PageTransition><PrivacyPage /></PageTransition>} />
                     <Route path="/terms" element={<PageTransition><TermsPage /></PageTransition>} />
                     <Route path="/gdpr" element={<PageTransition><GdprPage /></PageTransition>} />
+                    <Route path="/blog" element={<PageTransition><Blog /></PageTransition>} />
+                    <Route path="/blog/:slug" element={<PageTransition><BlogPost /></PageTransition>} />
 
                     {/* GUEST ONLY ROUTES - Redirect to dashboard if logged in */}
                     <Route path="/" element={

@@ -378,6 +378,7 @@ export default function Pricing() {
   const packs = [
     {
       id: "discovery",
+      badge: t('pricing.packs.discovery.badge'),
       lookupKey: "Pack Freelance",
       displayName: t('pricing.packs.discovery.name'),
       subtitle: t('pricing.packs.discovery.subtitle'),
@@ -423,12 +424,22 @@ export default function Pricing() {
             {packs.map((pack) => (
               <Card
                 key={pack.id}
-                className={`relative group overflow-hidden border-border/50 transition-all duration-300 ${pack.id === 'discovery'
+                className={`relative group border-border/50 transition-all duration-300 rounded-2xl ${pack.id === 'discovery'
                   ? 'bg-primary/5 hover:bg-primary/10 border-primary/30 shadow-lg scale-105 z-10'
                   : 'bg-secondary/10 hover:bg-secondary/20 hover:border-primary/20 hover:shadow-lg'
                   }`}
               >
-                <div className={`absolute inset-0 bg-gradient-to-br opacity-0 group-hover:opacity-100 transition-opacity ${pack.id === 'discovery' ? 'from-primary/10 via-transparent to-transparent' : 'from-secondary/10 via-transparent to-transparent'
+                {/* Badge for pack if exists */}
+                {(pack as any).badge && (
+                  <div className="absolute -top-4 left-1/2 -translate-x-1/2 z-30">
+                    <div className="flex items-center gap-1.5 rounded-full bg-gradient-to-r from-primary to-blue-500 px-3 py-1 text-[10px] font-bold text-white shadow-lg whitespace-nowrap">
+                      <Sparkles className="h-3 w-3" />
+                      <span>{(pack as any).badge}</span>
+                    </div>
+                  </div>
+                )}
+
+                <div className={`absolute inset-0 bg-gradient-to-br opacity-0 group-hover:opacity-100 transition-opacity rounded-2xl ${pack.id === 'discovery' ? 'from-primary/10 via-transparent to-transparent' : 'from-secondary/10 via-transparent to-transparent'
                   }`} />
 
                 <CardContent className="p-6 md:p-8 flex flex-col items-center text-center gap-4 relative z-10">
@@ -438,7 +449,7 @@ export default function Pricing() {
                     </div>
                   )}
 
-                  <div className="space-y-2">
+                  <div className="space-y-2 relative">
                     <h3 className="font-bold text-2xl">{pack.displayName}</h3>
                     <p className="text-muted-foreground font-medium text-sm px-4">{pack.subtitle}</p>
                   </div>

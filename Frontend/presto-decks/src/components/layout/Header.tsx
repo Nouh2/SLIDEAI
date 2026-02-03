@@ -57,6 +57,13 @@ export const Header = () => {
       >
         {t('header.pricing')}
       </Link>
+      <Link
+        to="/blog"
+        className="text-sm font-medium text-zinc-950 hover:text-[#1fb6ff] transition-colors"
+        onClick={() => setOpen(false)}
+      >
+        Blog
+      </Link>
     </>
   );
 
@@ -82,6 +89,9 @@ export const Header = () => {
           )}
           <Link to="/pricing" className="text-sm font-medium text-zinc-950 hover:text-[#1fb6ff] transition-colors">
             {t('header.pricing')}
+          </Link>
+          <Link to="/blog" className="text-sm font-medium text-zinc-950 hover:text-[#1fb6ff] transition-colors">
+            Blog
           </Link>
         </nav>
 

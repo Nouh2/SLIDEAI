@@ -17,6 +17,7 @@ import { exportToPDF } from '@/lib/export';
 import { exportToPPTX } from '@/lib/export/pptx';
 import { ModernSlideRenderer } from '@/components/slides/ModernSlideRenderer';
 import type { ExportProgress } from '@/lib/export';
+import { Analytics, ANALYTICS_EVENTS } from '@/lib/analytics';
 
 interface ExportDialogProps {
     open: boolean;
@@ -60,6 +61,8 @@ export function ExportDialog({ open, onOpenChange, presentation }: ExportDialogP
                 presentation.title,
                 setExportProgress
             );
+
+            Analytics.trackEvent(ANALYTICS_EVENTS.PRESENTATION.CATEGORY, ANALYTICS_EVENTS.PRESENTATION.EXPORT, 'PDF');
 
             // Keep success state visible briefly
             setTimeout(() => {

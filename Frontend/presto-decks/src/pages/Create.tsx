@@ -14,6 +14,7 @@ import { getTemplateById } from "@/data/slideTemplates";
 import { projectService } from "@/lib/projects";
 import { supabase } from "@/contexts/AuthContext";
 import { OutOfCreditsModal } from "@/components/OutOfCreditsModal";
+import { Analytics, ANALYTICS_EVENTS } from "@/lib/analytics";
 
 
 
@@ -94,6 +95,7 @@ export default function Create() {
 
         try {
             setIsGenerating(true);
+            Analytics.trackEvent(ANALYTICS_EVENTS.PRESENTATION.CATEGORY, ANALYTICS_EVENTS.PRESENTATION.GENERATE_START);
 
             // Get current session for auth token
             const { data: { session } } = await supabase.auth.getSession();
@@ -146,6 +148,7 @@ export default function Create() {
             });
 
             navigate(`/editor/${traceId}`);
+            Analytics.trackEvent(ANALYTICS_EVENTS.PRESENTATION.CATEGORY, ANALYTICS_EVENTS.PRESENTATION.GENERATE_COMPLETE);
         } catch (e: any) {
             // Check if this is a credit limit error
             const errorMessage = e?.message ?? "Impossible de lancer la génération";

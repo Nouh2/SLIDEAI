@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { supabase } from "@/contexts/AuthContext";
 import { Auth } from "@supabase/auth-ui-react";
 import { ThemeSupa } from "@supabase/auth-ui-shared";
+import { Analytics, ANALYTICS_EVENTS } from "@/lib/analytics";
 
 export default function AuthPage() {
   const navigate = useNavigate();
@@ -18,6 +19,7 @@ export default function AuthPage() {
       if (event === "PASSWORD_RECOVERY") {
         navigate("/reset-password");
       } else if (event === "SIGNED_IN" && session) {
+        Analytics.trackEvent(ANALYTICS_EVENTS.AUTH.CATEGORY, ANALYTICS_EVENTS.AUTH.LOGIN);
         navigate(returnTo);
       }
     });

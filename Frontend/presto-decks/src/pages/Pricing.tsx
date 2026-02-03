@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CheckCircle2, Sparkles, Zap, Layers, HelpCircle, Loader2 } from "lucide-react";
 import { supabase } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import { Analytics, ANALYTICS_EVENTS } from "@/lib/analytics";
 
 export default function Pricing() {
   const { t } = useTranslation();
@@ -67,9 +68,12 @@ export default function Pricing() {
       }
     };
     fetchSubscription();
+
+    Analytics.trackEvent(ANALYTICS_EVENTS.ECOMMERCE.CATEGORY, ANALYTICS_EVENTS.ECOMMERCE.VIEW_PRICING);
   }, []);
 
   const handleSubscribe = async (planName: string) => {
+    Analytics.trackEvent(ANALYTICS_EVENTS.ECOMMERCE.CATEGORY, ANALYTICS_EVENTS.ECOMMERCE.SELECT_PLAN, planName);
     if (planName === "Free") {
       navigate("/app");
       return;
@@ -187,6 +191,7 @@ export default function Pricing() {
   };
 
   const handlePackPurchase = async (packName: string) => {
+    Analytics.trackEvent(ANALYTICS_EVENTS.ECOMMERCE.CATEGORY, ANALYTICS_EVENTS.ECOMMERCE.SELECT_PLAN, packName);
     setLoadingPack(packName);
     try {
       const { data: { session } } = await supabase.auth.getSession();

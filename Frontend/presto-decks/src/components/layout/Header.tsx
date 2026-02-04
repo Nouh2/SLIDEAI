@@ -1,7 +1,7 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
-import { Logo } from "./Logo";
+import { LogoConcept as Logo } from "./LogoConcept";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 import { useAuth } from "@/contexts/AuthContext";
 import { LogOut, User as UserIcon, LayoutDashboard, Menu } from "lucide-react";

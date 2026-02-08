@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Gallery Hero Builder</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap');
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #f0f0f0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 40px;
+        }
+
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        .canvas-wrapper {
+            margin-top: 20px;
+            border: 1px solid #ddd;
+        }
+
+        .controls {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+        }
+
+        button {
+            padding: 10px 20px;
+            background: #2563eb;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        button:hover {
+            background: #1d4ed8;
+        }
+
+        input[type="file"] {
+            padding: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>Product Hunt Gallery "Hero" Builder</h1>
+        <p>1. Upload your "After" screenshot (the beautiful slide).</p>
+        <p>2. The tool will generate the "Before/After" composition automatically.</p>
+        <p>3. Right-click the image to save.</p>
+
+        <div class="controls">
+            <input type="file" id="uploadAfter" accept="image/*">
+        </div>
+
+        <canvas id="canvas" width="1270" height="760" class="canvas-wrapper"></canvas>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+
+        // Assets
+        const logoColor = '#06b6d4';
+
+        // Draw Initial State
+        function draw() {
+            // Background
+            const gradient = ctx.createLinearGradient(0, 0, 1270, 760);
+            gradient.addColorStop(0, '#f8fafc');
+            gradient.addColorStop(1, '#e2e8f0');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, 1270, 760);
+
+            // "Before" Document (Left) - A messy text doc
+            ctx.fillStyle = 'white';
+            ctx.shadowColor = 'rgba(0,0,0,0.1)';
+            ctx.shadowBlur = 20;
+            ctx.shadowOffsetY = 10;
+            ctx.fillRect(100, 180, 400, 500);
+            ctx.shadowColor = 'transparent';
+
+            // Fake Text Lines on Before Doc
+            ctx.fillStyle = '#cbd5e1';
+            for (let i = 0; i < 15; i++) {
+                ctx.fillRect(140, 240 + (i * 25), Math.random() * 200 + 100, 10);
+            }
+            // A "Messy" stamp
+            ctx.strokeStyle = '#ef4444';
+            ctx.lineWidth = 4;
+            ctx.beginPath();
+            ctx.moveTo(150, 200);
+            ctx.lineTo(250, 300);
+            ctx.moveTo(250, 200);
+            ctx.lineTo(150, 300);
+            ctx.stroke();
+
+            // Label "BEFORE"
+            ctx.fillStyle = '#64748b';
+            ctx.font = 'bold 24px Inter';
+            ctx.textAlign = 'center';
+            ctx.fillText('YOUR DOCS', 300, 150);
+
+
+            // Arrow / Transformation (Center)
+            ctx.fillStyle = logoColor;
+            ctx.font = 'bold 150px Inter';
+            ctx.fillText('→', 635, 450);
+
+            // "Magic" Text
+            ctx.fillStyle = '#0ea5e9';
+            ctx.font = '600 20px Inter';
+            ctx.fillText('AI DESIGN', 635, 380);
+
+
+            // "After" Placeholder (Right)
+            ctx.fillStyle = '#e2e8f0';
+            ctx.fillRect(770, 180, 400, 500);
+            ctx.fillStyle = '#94a3b8';
+            ctx.font = '20px Inter';
+            ctx.fillText('Upload Screenshot...', 970, 430);
+
+            // Label "AFTER"
+            ctx.fillStyle = '#0ea5e9';
+            ctx.font = 'bold 24px Inter';
+            ctx.fillText('SLIDEAI DECK', 970, 150);
+        }
+
+        draw();
+
+        // Handle Upload
+        document.getElementById('uploadAfter').addEventListener('change', function (e) {
+            const file = e.target.files[0];
+            const reader = new FileReader();
+            reader.onload = function (event) {
+                const img = new Image();
+                img.onload = function () {
+                    // Redraw background to clear placeholder
+                    draw();
+                    // Draw "After" Image - fitted and cropped nicely
+                    // We want to simulate a "Screen" look
+
+                    ctx.save();
+                    // Draw a container for the screenshot (Laptop/Screen style)
+                    ctx.fillStyle = 'white';
+                    ctx.shadowColor = 'rgba(0,0,0,0.15)';
+                    ctx.shadowBlur = 30;
+                    ctx.shadowOffsetY = 15;
+                    ctx.fillRect(750, 160, 440, 540); // Frame
+
+                    // Clip content
+                    ctx.beginPath();
+                    ctx.rect(770, 180, 400, 500);
+                    ctx.clip();
+
+                    // Draw Image (Cover fit)
+                    // Calculate a ratio to cover the 400x500 area
+                    const scale = Math.max(400 / img.width, 500 / img.height);
+                    const x = (400 - img.width * scale) / 2;
+                    const y = (500 - img.height * scale) / 2;
+                    ctx.drawImage(img, 770 + x, 180 + y, img.width * scale, img.height * scale);
+
+                    ctx.restore();
+                }
+                img.src = event.target.result;
+            }
+            reader.readAsDataURL(file);
+        });
+
+    </script>
+</body>
+
+</html>

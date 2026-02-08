@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Logo Generator</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 50px;
+            background: #f0f0f0;
+        }
+
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        canvas {
+            display: none;
+        }
+
+        img {
+            border: 1px solid #ddd;
+            margin: 20px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>Product Hunt Thumbnail (240x240)</h1>
+        <p>Right-click the image below and "Save Image As"</p>
+
+        <!-- The Resulting PNG will appear here -->
+        <img id="result" width="240" height="240" alt="Generating..." />
+
+        <!-- Hidden Canvas for Rasterization -->
+        <canvas id="canvas" width="240" height="240"></canvas>
+
+        <!-- Source SVG -->
+        <svg id="sourceSvg" width="240" height="240" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
+            style="display:none;">
+            <defs>
+                <linearGradient id="magicGradient" x1="0%" y1="100%" x2="100%" y2="0%">
+                    <stop offset="0%" stopColor="#06b6d4" />
+                    <stop offset="100%" stopColor="#0ea5e9" stop-opacity="0.8" />
+                </linearGradient>
+            </defs>
+            <rect width="24" height="24" fill="white" />
+            <g transform="translate(2, 2) scale(0.83)">
+                <path
+                    d="M5 3C3.89543 3 3 3.89543 3 5V19C3 20.1046 3.89543 21 5 21H16C17.1046 21 18 20.1046 18 19V8L13 3H5Z"
+                    stroke="url(#magicGradient)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                    fill="white" />
+                <path d="M15 3V6C15 7.10457 15.8954 8 17 8H20" stroke="url(#magicGradient)" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round" opacity="0.5" />
+                <rect x="19" y="4" width="2" height="2" rx="0.5" fill="url(#magicGradient)" />
+                <rect x="21" y="7" width="1.5" height="1.5" rx="0.5" fill="url(#magicGradient)" />
+                <rect x="17.5" y="2" width="1" height="1" rx="0.2" fill="url(#magicGradient)" opacity="0.8" />
+                <path d="M21 1.5L21.5 2.5L22.5 3L21.5 3.5L21 4.5L20.5 3.5L19.5 3L20.5 2.5L21 1.5Z"
+                    fill="url(#magicGradient)" />
+            </g>
+        </svg>
+    </div>
+
+    <script>
+        window.onload = function () {
+            const svg = document.getElementById('sourceSvg');
+            const canvas = document.getElementById('canvas');
+            const ctx = canvas.getContext('2d');
+            const imgParams = document.getElementById('result');
+
+            const svgData = new XMLSerializer().serializeToString(svg);
+            const img = new Image();
+            img.onload = function () {
+                ctx.drawImage(img, 0, 0, 240, 240);
+                imgParams.src = canvas.toDataURL("image/png");
+            };
+            img.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgData)));
+        };
+    </script>
+</body>
+
+</html>

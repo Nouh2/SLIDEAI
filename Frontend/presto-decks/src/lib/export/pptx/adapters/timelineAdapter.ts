@@ -1,8 +1,9 @@
 // src/lib/export/pptx/adapters/timelineAdapter.ts
-// Adapter for timeline/process slides
+// Adapter for timeline/process slides - Matches frontend TimelineLayout
 
 import pptxgen from 'pptxgenjs';
-import { LayoutAdapter, SlideData, ColorPalette, toHex, SLIDE_WIDTH, SLIDE_HEIGHT } from '../types';
+import { LayoutAdapter, SlideData, ColorPalette, toHex } from '../types';
+import { LAYOUT, SLIDE, addGradientBackground, addSlideFooter, getFontSize } from '../layoutTokens';
 
 export const timelineAdapter: LayoutAdapter = {
     canHandle: (slide: SlideData) => {
@@ -17,17 +18,17 @@ export const timelineAdapter: LayoutAdapter = {
     },
 
     render: async (slide, pptxSlide, colors, pptx) => {
-        // Background
-        pptxSlide.background = { color: toHex(colors.bg) };
+        // Add gradient background
+        addGradientBackground(pptxSlide, colors, toHex);
 
         // Title
         if (slide.title) {
             pptxSlide.addText(slide.title, {
-                x: 0.8,
-                y: 0.4,
-                w: SLIDE_WIDTH - 1.6,
-                h: 0.7,
-                fontSize: 32,
+                x: LAYOUT.margin.px16,
+                y: LAYOUT.margin.py12,
+                w: SLIDE.WIDTH - (LAYOUT.margin.px16 * 2),
+                h: 0.8,
+                fontSize: LAYOUT.timeline.title.fontSize,
                 bold: true,
                 fontFace: 'Arial',
                 color: toHex(colors.text),
@@ -45,22 +46,23 @@ export const timelineAdapter: LayoutAdapter = {
 
         if (items.length === 0) {
             pptxSlide.addText('Timeline data not available', {
-                x: 2,
-                y: 3,
-                w: SLIDE_WIDTH - 4,
+                x: SLIDE.WIDTH * 0.2,
+                y: SLIDE.HEIGHT * 0.4,
+                w: SLIDE.WIDTH * 0.6,
                 h: 1,
                 fontSize: 24,
                 fontFace: 'Arial',
                 color: toHex(colors.text),
+                transparency: 50,
                 align: 'center',
             });
             return;
         }
 
         // Draw horizontal timeline
-        const lineY = 3.5;
-        const startX = 1.5;
-        const endX = SLIDE_WIDTH - 1.5;
+        const lineY = SLIDE.HEIGHT * 0.48;
+        const startX = LAYOUT.margin.px20;
+        const endX = SLIDE.WIDTH - LAYOUT.margin.px20;
         const lineWidth = endX - startX;
 
         // Main timeline line
@@ -68,33 +70,34 @@ export const timelineAdapter: LayoutAdapter = {
             x: startX,
             y: lineY,
             w: lineWidth,
-            h: 0.05,
+            h: LAYOUT.timeline.lineThickness,
             fill: { color: toHex(colors.primary) },
         });
 
         // Timeline items
-        const itemGap = lineWidth / (items.length);
+        const itemGap = lineWidth / items.length;
 
         items.forEach((item: any, i: number) => {
             const x = startX + (i * itemGap) + (itemGap / 2);
+            const dotR = LAYOUT.timeline.dotRadius;
 
-            // Circle marker
+            // Circle marker with border (matches frontend rounded-full bg-primary)
             pptxSlide.addShape('ellipse', {
-                x: x - 0.25,
-                y: lineY - 0.225,
-                w: 0.5,
-                h: 0.5,
+                x: x - dotR,
+                y: lineY - dotR + 0.015,
+                w: dotR * 2,
+                h: dotR * 2,
                 fill: { color: toHex(colors.primary) },
-                line: { color: toHex(colors.bg), width: 3 },
+                line: { color: toHex(colors.bg), width: 4 },
             });
 
-            // Step number
+            // Step number inside circle
             pptxSlide.addText(String(i + 1), {
-                x: x - 0.25,
-                y: lineY - 0.225,
-                w: 0.5,
-                h: 0.5,
-                fontSize: 14,
+                x: x - dotR,
+                y: lineY - dotR + 0.015,
+                w: dotR * 2,
+                h: dotR * 2,
+                fontSize: 12,
                 bold: true,
                 fontFace: 'Arial',
                 color: 'FFFFFF',
@@ -102,28 +105,28 @@ export const timelineAdapter: LayoutAdapter = {
                 valign: 'middle',
             });
 
-            // Date/label above
+            // Date/label above (matches uppercase tracking-wider)
             const dateText = item.date || item.year || item.period || `Step ${i + 1}`;
-            pptxSlide.addText(dateText, {
-                x: x - 1,
+            pptxSlide.addText(dateText.toUpperCase(), {
+                x: x - 1.2,
                 y: lineY - 0.9,
-                w: 2,
+                w: 2.4,
                 h: 0.5,
-                fontSize: 12,
+                fontSize: 10,
                 bold: true,
                 fontFace: 'Arial',
                 color: toHex(colors.primary),
                 align: 'center',
             });
 
-            // Title below
+            // Title below line
             const title = item.title || item.event || item.name || '';
             pptxSlide.addText(title, {
                 x: x - 1.2,
-                y: lineY + 0.5,
+                y: lineY + 0.45,
                 w: 2.4,
                 h: 0.5,
-                fontSize: 14,
+                fontSize: LAYOUT.timeline.itemTitleSize,
                 bold: true,
                 fontFace: 'Arial',
                 color: toHex(colors.text),
@@ -134,17 +137,26 @@ export const timelineAdapter: LayoutAdapter = {
             const desc = item.description || '';
             if (desc) {
                 pptxSlide.addText(desc, {
-                    x: x - 1.2,
+                    x: x - 1.3,
                     y: lineY + 1,
-                    w: 2.4,
-                    h: 1,
-                    fontSize: 11,
+                    w: 2.6,
+                    h: 1.2,
+                    fontSize: LAYOUT.timeline.itemDescSize,
                     fontFace: 'Arial',
                     color: toHex(colors.text),
+                    transparency: 30,
                     align: 'center',
                     valign: 'top',
                 });
             }
+        });
+
+        // Footer
+        addSlideFooter(pptxSlide, {
+            title: slide.title,
+            colors,
+            toHex,
+            showPageNumber: true,
         });
     },
 };

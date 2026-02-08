@@ -13,6 +13,24 @@ export interface GenerateRequest {
   slideCount?: number;
   file?: File; // Optional document upload for RAG
   accessToken?: string; // Supabase auth token
+  // Smart Report Parsing fields
+  parseToken?: string; // Token from parseDocument response
+  sectionIds?: string[]; // Which sections to include
+  sectionVisuals?: Record<string, 'image' | 'chart-bar' | 'chart-pie' | 'chart-line' | 'text-only'>;
+  // Brand kit fields
+  brandColors?: {
+    primary: string;
+    secondary: string;
+    accent: string;
+    background: string;
+    text: string;
+  };
+  brandFonts?: {
+    heading: string;
+    body: string;
+  };
+  brandLogoUrl?: string;
+  templateOverlay?: TemplateOverlay;
 }
 
 export interface ExportRequest {
@@ -48,6 +66,74 @@ export interface JobStatusResponse {
   slideIndex?: number;
   // For modify-color-palette jobs
   newPalette?: any;
+}
+
+// ========== SMART REPORT PARSING TYPES ==========
+export interface DocumentSection {
+  id: string;
+  title: string;
+  level: number;
+  pageStart: number;
+  pageEnd: number;
+  charCount: number;
+  estimatedSlides: number;
+}
+
+export interface ParseDocumentResponse {
+  success: boolean;
+  error?: string;
+  document?: {
+    title: string;
+    totalPages: number;
+    totalChars: number;
+    sections: DocumentSection[];
+  };
+  parseToken?: string;
+}
+
+// ========== BRAND KIT TYPES ==========
+export interface TemplateOverlay {
+  logo?: {
+    position: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right';
+    size: 'small' | 'medium' | 'large';
+    showOnCover: boolean;
+    showOnContent: boolean;
+  };
+  footer?: {
+    text: string;
+    showPageNumber: boolean;
+  };
+}
+
+export interface BrandKit {
+  id: string;
+  user_id: string;
+  name: string;
+  colors: {
+    primary: string;
+    secondary: string;
+    accent: string;
+    background: string;
+    text: string;
+  };
+  fonts: {
+    heading: string;
+    body: string;
+  };
+  logo_url?: string;
+  template_overlay?: TemplateOverlay;
+  is_default: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface BrandKitInput {
+  name: string;
+  colors: BrandKit['colors'];
+  fonts: BrandKit['fonts'];
+  logo_url?: string;
+  template_overlay?: TemplateOverlay;
+  is_default?: boolean;
 }
 
 export interface DeckData {
@@ -107,6 +193,13 @@ export const api = {
         if (request.length) formData.append('length', request.length);
         if (request.theme) formData.append('theme', request.theme);
         if (request.slideCount) formData.append('slideCount', String(request.slideCount));
+
+        // Brand kit - Serialize objects to JSON strings for multipart
+        if (request.brandColors) formData.append('brandColors', JSON.stringify(request.brandColors));
+        if (request.brandFonts) formData.append('brandFonts', JSON.stringify(request.brandFonts));
+        if (request.brandLogoUrl) formData.append('brandLogoUrl', request.brandLogoUrl);
+        if (request.templateOverlay) formData.append('templateOverlay', JSON.stringify(request.templateOverlay));
+
         formData.append('file', request.file);
 
         response = await fetch(`${API_BASE_URL}/generate`, {
@@ -127,6 +220,10 @@ export const api = {
             length: request.length,
             theme: request.theme,
             slideCount: request.slideCount,
+            brandColors: request.brandColors,
+            brandFonts: request.brandFonts,
+            brandLogoUrl: request.brandLogoUrl,
+            templateOverlay: request.templateOverlay,
           }),
         });
       }
@@ -142,6 +239,74 @@ export const api = {
       return data;
     } catch (error) {
       console.error('API Error (generate):', error);
+      throw error;
+    }
+  },
+
+  /**
+   * 📄 Parse document structure (Smart Report Parsing)
+   * POST /v1/parse-document
+   */
+  async parseDocument(file: File, accessToken: string): Promise<ParseDocumentResponse> {
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const response = await fetch(`${API_BASE_URL}/parse-document`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${accessToken}` },
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const error = await response.json().catch(() => ({ message: 'Erreur lors de l\'analyse' }));
+        throw new Error(error.message || 'Erreur API');
+      }
+
+      return response.json();
+    } catch (error) {
+      console.error('API Error (parseDocument):', error);
+      throw error;
+    }
+  },
+
+  /**
+   * 🎯 Generate presentation from parsed document with section selection
+   * POST /v1/generate (with parseToken)
+   */
+  async generateFromSections(
+    request: {
+      prompt: string;
+      parseToken: string;
+      sectionIds?: string[];
+      sectionVisuals?: Record<string, 'image' | 'chart-bar' | 'chart-pie' | 'chart-line' | 'text-only'>;
+      language?: string;
+      tone?: string;
+      theme?: string;
+      slideCount?: number;
+      // Brand kit fields
+      brandColors?: GenerateRequest['brandColors'];
+      brandFonts?: GenerateRequest['brandFonts'];
+      brandLogoUrl?: string;
+      templateOverlay?: TemplateOverlay;
+    },
+    accessToken: string
+  ): Promise<GenerateResponse> {
+    try {
+      const response = await fetch(`${API_BASE_URL}/generate`, {
+        method: 'POST',
+        headers: buildHeaders(accessToken, 'application/json'),
+        body: JSON.stringify(request),
+      });
+
+      if (!response.ok) {
+        const error = await response.json().catch(() => ({ message: 'Erreur lors de la génération' }));
+        throw new Error(error.message || 'Erreur API');
+      }
+
+      return response.json();
+    } catch (error) {
+      console.error('API Error (generateFromSections):', error);
       throw error;
     }
   },
@@ -258,24 +423,55 @@ export const api = {
    * 📎 Upload a file (document, image, etc.)
    * POST /v1/upload
    */
-  async uploadFile(file: File): Promise<{ url: string }> {
+  async uploadFile(file: File, accessToken: string): Promise<{ url: string }> {
     try {
       const formData = new FormData();
       formData.append("file", file);
 
       const response = await fetch(`${API_BASE_URL}/upload`, {
         method: "POST",
+        headers: {
+          'Authorization': `Bearer ${accessToken}`
+        },
         body: formData,
       });
 
       if (!response.ok) {
-        throw new Error("Erreur lors de l'upload");
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || `Erreur lors de l'upload: ${response.statusText}`);
       }
 
       const data = await response.json();
       return data;
     } catch (error) {
       console.error("Upload Error:", error);
+      throw error;
+    }
+  },
+
+  /**
+   * 🌈 Extract theme from PPTX
+   * POST /v1/brand/extract-theme
+   */
+  async extractTheme(file: File, accessToken: string): Promise<{ colors: BrandKit['colors'], fonts: BrandKit['fonts'] }> {
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const response = await fetch(`${API_BASE_URL}/brand/extract-theme`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${accessToken}` },
+        body: formData
+      });
+
+      if (!response.ok) {
+        const err = await response.json().catch(() => ({ message: 'Erreur extraction' }));
+        throw new Error(err.message || 'Impossible d\'extraire le thème');
+      }
+
+      return response.json();
+    } catch (error) {
+      console.error("Theme Extraction Error:", error);
       throw error;
     }
   },

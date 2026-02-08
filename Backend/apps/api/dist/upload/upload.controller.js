@@ -10,10 +10,8 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
-// apps/api/src/upload/upload.controller.ts
-import { Controller, Post, UseInterceptors, UploadedFile, UseGuards, BadRequestException } from '@nestjs/common';
-import { FileInterceptor } from '@nestjs/platform-express';
-import AWS from 'aws-sdk';
+import { Controller, Post, UseGuards, BadRequestException, Req, InternalServerErrorException } from '@nestjs/common';
+import { createClient } from '@supabase/supabase-js';
 import { ulid } from 'ulid';
 import { SupabaseGuard } from '../auth/supabase.guard.js';
 // ============================================
@@ -25,6 +23,7 @@ const ALLOWED_MIME_TYPES = [
     'image/png',
     'image/gif',
     'image/webp',
+    'image/svg+xml',
     'application/pdf',
     'application/vnd.openxmlformats-officedocument.wordprocessingml.document', // .docx
     'application/msword', // .doc
@@ -77,57 +76,71 @@ function sanitizeFilename(filename) {
     return sanitized;
 }
 let UploadController = class UploadController {
-    s3;
+    supabase;
+    bucket;
     constructor() {
-        this.s3 = new AWS.S3({
-            endpoint: `https://${process.env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
-            accessKeyId: process.env.R2_ACCESS_KEY_ID,
-            secretAccessKey: process.env.R2_SECRET_ACCESS_KEY,
-            signatureVersion: 'v4',
-            s3ForcePathStyle: true,
+        const supabaseUrl = process.env.SUPABASE_URL;
+        const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+        this.bucket = process.env.SUPABASE_BUCKET || 'uploads';
+        if (!supabaseUrl || !supabaseKey) {
+            console.warn('Supabase URL or Key key missing. Uploads will fail.');
+        }
+        this.supabase = createClient(supabaseUrl, supabaseKey, {
+            auth: {
+                persistSession: false,
+                autoRefreshToken: false,
+            }
         });
     }
-    async uploadFile(file) {
-        // ✅ Validate file exists
-        if (!file || !file.buffer) {
+    async uploadFile(req) {
+        if (!req.isMultipart()) {
+            throw new BadRequestException('Request is not multipart');
+        }
+        const data = await req.file();
+        if (!data) {
             throw new BadRequestException('Aucun fichier fourni');
         }
-        // ✅ Validate MIME type is allowed
-        if (!ALLOWED_MIME_TYPES.includes(file.mimetype)) {
-            throw new BadRequestException(`Type de fichier non autorisé: ${file.mimetype}. Types acceptés: images (JPEG, PNG, GIF, WebP), PDF, DOCX, TXT`);
+        const buffer = await data.toBuffer();
+        if (!ALLOWED_MIME_TYPES.includes(data.mimetype)) {
+            throw new BadRequestException(`Type de fichier non autorisé: ${data.mimetype}. Types acceptés: images (JPEG, PNG, GIF, WebP, SVG), PDF, DOCX, TXT`);
         }
-        // ✅ Verify magic bytes match claimed MIME type (prevents fake extensions)
-        if (!verifyMagicBytes(file.buffer, file.mimetype)) {
+        if (!verifyMagicBytes(buffer, data.mimetype)) {
             throw new BadRequestException('Le contenu du fichier ne correspond pas à son type déclaré. Veuillez vérifier le fichier.');
         }
-        // ✅ Sanitize filename to prevent path traversal
-        const safeFilename = sanitizeFilename(file.originalname);
-        const key = `uploads/${ulid()}-${safeFilename}`;
-        await this.s3
-            .putObject({
-            Bucket: process.env.R2_BUCKET,
-            Key: key,
-            Body: file.buffer,
-            ContentType: file.mimetype,
-        })
-            .promise();
-        // Note: Consider using a CDN domain instead of exposing the R2 account ID
-        const url = `https://${process.env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com/${process.env.R2_BUCKET}/${key}`;
-        return { url };
+        const safeFilename = sanitizeFilename(data.filename);
+        const key = `${ulid()}-${safeFilename}`; // Supabase paths don't strictly need 'uploads/' prefix if in 'uploads' bucket, but key is the path.
+        try {
+            const { data: uploadData, error } = await this.supabase.storage
+                .from(this.bucket)
+                .upload(key, buffer, {
+                contentType: data.mimetype,
+                upsert: false
+            });
+            if (error) {
+                console.error('Supabase Storage Upload Error:', error);
+                throw new Error(error.message);
+            }
+            const { data: publicUrlData } = this.supabase.storage
+                .from(this.bucket)
+                .getPublicUrl(key);
+            return { url: publicUrlData.publicUrl };
+        }
+        catch (error) {
+            console.error('Upload Controller Error:', error);
+            throw new InternalServerErrorException(`Erreur lors de l'upload: ${error.message || error}`);
+        }
     }
 };
 __decorate([
     Post('/upload'),
-    UseInterceptors(FileInterceptor('file')),
-    __param(0, UploadedFile()),
+    __param(0, Req()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], UploadController.prototype, "uploadFile", null);
 UploadController = __decorate([
     Controller('/v1'),
-    UseGuards(SupabaseGuard) // ✅ SÉCURISÉ : Requiert une authentification pour tous les endpoints
-    ,
+    UseGuards(SupabaseGuard),
     __metadata("design:paramtypes", [])
 ], UploadController);
 export { UploadController };

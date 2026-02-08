@@ -1,8 +1,9 @@
 // src/lib/export/pptx/adapters/chartAdapter.ts
-// Adapter for chart slides using native PptxGenJS charts
+// Adapter for chart slides - Matches frontend ChartLayout component
 
 import pptxgen from 'pptxgenjs';
-import { LayoutAdapter, SlideData, ColorPalette, toHex, SLIDE_WIDTH, SLIDE_HEIGHT } from '../types';
+import { LayoutAdapter, SlideData, ColorPalette, toHex } from '../types';
+import { LAYOUT, SLIDE, addGradientBackground, addSlideFooter } from '../layoutTokens';
 
 // Map our chart types to PptxGenJS chart types
 const CHART_TYPE_MAP: Record<string, pptxgen.CHART_NAME> = {
@@ -11,6 +12,7 @@ const CHART_TYPE_MAP: Record<string, pptxgen.CHART_NAME> = {
     'line': 'line',
     'pie': 'pie',
     'doughnut': 'doughnut',
+    'donut': 'doughnut',
     'area': 'area',
     'radar': 'radar',
 };
@@ -21,6 +23,7 @@ export const chartAdapter: LayoutAdapter = {
         const hasChart = (
             (slide.chart?.data?.length > 0) ||
             (slide.chart?.categories?.length > 0) ||
+            (slide.chart?.series?.length > 0) ||
             (slide.content?.chart?.data?.length > 0) ||
             (slide.content?.labels?.length > 0 && slide.content?.datasets?.length > 0)
         );
@@ -28,17 +31,17 @@ export const chartAdapter: LayoutAdapter = {
     },
 
     render: async (slide, pptxSlide, colors, pptx) => {
-        // Background
-        pptxSlide.background = { color: toHex(colors.bg) };
+        // Add gradient background
+        addGradientBackground(pptxSlide, colors, toHex);
 
         // Title
         if (slide.title) {
             pptxSlide.addText(slide.title, {
-                x: 0.8,
-                y: 0.4,
-                w: SLIDE_WIDTH - 1.6,
-                h: 0.7,
-                fontSize: 32,
+                x: LAYOUT.chart.title.x,
+                y: LAYOUT.chart.title.y,
+                w: SLIDE.WIDTH - (LAYOUT.chart.title.x * 2),
+                h: 0.8,
+                fontSize: LAYOUT.chart.title.fontSize,
                 bold: true,
                 fontFace: 'Arial',
                 color: toHex(colors.text),
@@ -62,12 +65,19 @@ export const chartAdapter: LayoutAdapter = {
                 labels: chartData.labels,
                 values: dataset.data || [],
             }));
+        } else if (chartData?.series && chartData?.categories) {
+            // Series format with categories
+            chartDataForPptx = chartData.series.map((series: any, idx: number) => ({
+                name: series.name || `Series ${idx + 1}`,
+                labels: chartData.categories,
+                values: series.data || [],
+            }));
         } else if (chartData?.data && chartData?.categories) {
             // Simple format
             chartDataForPptx = [{
                 name: 'Data',
                 labels: chartData.categories,
-                values: chartData.data.map((d: any) => d.value || d),
+                values: chartData.data.map((d: any) => (typeof d === 'number' ? d : d.value || d)),
             }];
         } else if (chartData?.data && Array.isArray(chartData.data)) {
             // Array of objects with name/value
@@ -81,37 +91,47 @@ export const chartAdapter: LayoutAdapter = {
         }
 
         if (chartDataForPptx.length === 0) {
-            // Fallback - add placeholder text
+            // Fallback - add placeholder
+            pptxSlide.addShape('roundRect', {
+                x: LAYOUT.chart.area.x,
+                y: LAYOUT.chart.area.y,
+                w: LAYOUT.chart.area.w,
+                h: LAYOUT.chart.area.h,
+                fill: { color: toHex(colors.bg), transparency: 80 },
+                line: { color: toHex(colors.primary), width: 1, dashType: 'dash' },
+                rectRadius: LAYOUT.radius['2xl'],
+            });
             pptxSlide.addText('Chart data not available', {
-                x: 2,
-                y: 3,
-                w: SLIDE_WIDTH - 4,
-                h: 1,
+                x: LAYOUT.chart.area.x,
+                y: SLIDE.HEIGHT * 0.45,
+                w: LAYOUT.chart.area.w,
+                h: 0.8,
                 fontSize: 24,
                 fontFace: 'Arial',
                 color: toHex(colors.text),
+                transparency: 50,
                 align: 'center',
             });
             return;
         }
 
-        // Chart colors
+        // Chart colors (matches frontend chartColors array)
         const chartColors = [
             toHex(colors.primary),
             toHex(colors.secondary),
             toHex(colors.accent),
-            '3B82F6', // Blue
             '10B981', // Green
             'F59E0B', // Amber
             'EF4444', // Red
+            '8B5CF6', // Purple
         ];
 
-        // Add chart
+        // Add chart with proper positioning
         pptxSlide.addChart(pptxChartType as pptxgen.CHART_NAME, chartDataForPptx, {
-            x: 1,
-            y: 1.3,
-            w: SLIDE_WIDTH - 2,
-            h: SLIDE_HEIGHT - 2,
+            x: LAYOUT.chart.area.x,
+            y: LAYOUT.chart.area.y,
+            w: LAYOUT.chart.area.w,
+            h: LAYOUT.chart.area.h,
             showLegend: true,
             legendPos: 'b',
             showTitle: false,
@@ -120,7 +140,21 @@ export const chartAdapter: LayoutAdapter = {
             catAxisTitle: '',
             dataLabelPosition: 'outEnd',
             showValue: pptxChartType === 'pie' || pptxChartType === 'doughnut',
-            barGapWidthPct: 50,
+            barGapWidthPct: 40,
+            // Styling to match frontend
+            valAxisLabelColor: toHex(colors.text),
+            catAxisLabelColor: toHex(colors.text),
+            legendColor: toHex(colors.text),
+            valAxisLineShow: false,
+            valGridLine: { color: toHex(colors.text), style: 'dash', size: 0.5 },
+        });
+
+        // Footer
+        addSlideFooter(pptxSlide, {
+            title: slide.title,
+            colors,
+            toHex,
+            showPageNumber: true,
         });
     },
 };

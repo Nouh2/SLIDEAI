@@ -1,7 +1,9 @@
+import { FastifyRequest } from 'fastify';
 export declare class UploadController {
-    private s3;
+    private supabase;
+    private bucket;
     constructor();
-    uploadFile(file: Express.Multer.File): Promise<{
+    uploadFile(req: FastifyRequest): Promise<{
         url: string;
     }>;
 }

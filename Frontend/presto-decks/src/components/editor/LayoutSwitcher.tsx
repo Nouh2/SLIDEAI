@@ -12,9 +12,10 @@ interface LayoutSwitcherProps {
     theme: string;
     colors: any;
     onUpdateSlide: (newSlide: SlideData) => void;
+    onImageReplace?: () => void;
 }
 
-export function LayoutSwitcher({ currentSlide, theme, colors, onUpdateSlide }: LayoutSwitcherProps) {
+export function LayoutSwitcher({ currentSlide, theme, colors, onUpdateSlide, onImageReplace }: LayoutSwitcherProps) {
     const [originalSlide, setOriginalSlide] = React.useState<SlideData | null>(null);
     const { t } = useTranslation();
 
@@ -258,6 +259,33 @@ export function LayoutSwitcher({ currentSlide, theme, colors, onUpdateSlide }: L
                     })}
                 </div>
             </ScrollArea>
+
+            {/* Background Settings Footer */}
+            <div className="p-4 border-t border-border mt-auto bg-surface/30">
+                <div className="space-y-3">
+                    <h3 className="font-semibold text-xs uppercase tracking-wider opacity-70 mb-2">Background</h3>
+                    <div className="flex flex-col gap-2">
+                        {currentSlide.backgroundImage && (
+                            <div className="relative aspect-video rounded-md overflow-hidden bg-muted border border-border/50 h-16 w-full">
+                                <img
+                                    src={currentSlide.backgroundImage}
+                                    className="w-full h-full object-cover opacity-80"
+                                    alt="Background"
+                                />
+                            </div>
+                        )}
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            className="w-full justify-center gap-2"
+                            onClick={onImageReplace}
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2" /><circle cx="9" cy="9" r="2" /><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21" /></svg>
+                            {currentSlide.backgroundImage ? t('editor.replaceImage') : t('editor.addImage')}
+                        </Button>
+                    </div>
+                </div>
+            </div>
         </div>
     );
 }

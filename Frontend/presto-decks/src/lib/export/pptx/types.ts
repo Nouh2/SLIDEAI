@@ -56,6 +56,20 @@ export interface PresentationData {
     slides: SlideData[];
     theme: string;
     colorScheme?: ColorPalette;
+    // Template Branding
+    brandLogoUrl?: string;
+    templateOverlay?: {
+        logo?: {
+            position: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right';
+            size: 'small' | 'medium' | 'large';
+            showOnCover: boolean;
+            showOnContent: boolean;
+        };
+        footer?: {
+            text?: string;
+            showPageNumber: boolean;
+        };
+    };
 }
 
 // Layout adapter interface

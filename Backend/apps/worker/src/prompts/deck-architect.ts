@@ -435,6 +435,23 @@ CRITICAL OVERRIDE INSTRUCTIONS:
 5. This is for a CONSULTING REPORT / study document, NOT a stage presentation.
 6. Fill the slides with dense, actionable content. No empty spaces.
 
+═══════════════════════════════════════════════════
+📍 SOURCE REFERENCE (EVIDENCE LINKING) - MANDATORY
+═══════════════════════════════════════════════════
+
+The document sections include [SOURCE: Page X] or [SOURCE: Pages X-Y] markers.
+For EACH slide you generate from document content, you MUST include a sourceRef object:
+
+"sourceRef": {
+  "sectionTitle": "Original section title from the document",
+  "pageStart": 14,  // Starting page number (integer)
+  "pageEnd": 16     // Ending page number (integer)
+}
+
+This enables traceability so users can verify the source of generated content.
+Extract the page numbers from the [SOURCE: ...] markers in the document.
+If a slide combines multiple sections, use the FIRST section's source reference.
+
 📄 SOURCE DOCUMENT MATERIAL:
 ${documentText}
 

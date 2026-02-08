@@ -19,7 +19,7 @@ import { THEMES, normalizeTheme, type ThemeConfig } from './config/themes';
 import { DECK_ARCHITECT_PROMPT, buildUserPrompt } from './prompts/deck-architect';
 import { SLIDE_REGENERATOR_PROMPT, buildSlideRegeneratorPrompt } from './prompts/slide-regenerator';
 import { SLIDE_ADDER_PROMPT, buildSlideAdderPrompt } from './prompts/slide-adder';
-import { getUnsplashImage } from './utils/unsplash';
+import { getUnsplashImage, fetchImagesForDeck } from './utils/unsplash';
 import { sanitizeDeck, type Deck, type Slide } from './utils/sanitize';
 import { renderSlide, defineThemeMasters } from './renderers';
 import { DECK_RESPONSE_SCHEMA, SINGLE_SLIDE_RESPONSE_SCHEMA } from './schemas/deck-schema';
@@ -264,14 +264,14 @@ const generateWorker = new Worker(
   'generate',
   async (job) => {
     const { traceId, data, user } = job.data as any;
-    let { prompt, slideCount, theme, language, documentText } = data ?? {};
+    let { prompt, slideCount, theme, language, documentText, brandLogoUrl, templateOverlay, brandColors, brandFonts } = data ?? {};
     const userId = user?.sub || 'anonymous'; // Extract user ID from JWT
 
     console.log(`\n========== GENERATE JOB: ${traceId} ==========`);
     console.log(`[Generate] User ID: ${userId}`);
     console.log(`[Generate] Prompt: "${prompt?.slice(0, 100)}..."`);
     console.log(`[Generate] Requested slides: ${slideCount}, Theme: ${theme}`);
-    console.log(`[Generate] Document text provided: ${documentText ? `Yes (${documentText.length} chars)` : 'No'}`);
+    console.log(`[Generate] Brand colors provided: ${!!brandColors}`);
 
     await setJob(traceId, {
       status: 'processing',
@@ -415,19 +415,110 @@ const generateWorker = new Worker(
 
       // Deck parsed successfully
 
-      // INJECT COLORS FROM THEME (Override AI generation)
-      // We force the specific colors defined in the theme config
-      deck.colorPalette = {
-        primary: themeConfig.colors.accent,
-        secondary: themeConfig.colors.accentSecondary,
-        accent: themeConfig.colors.chartColors[2] || themeConfig.colors.accent, // Use a third color for accent if possible
-        bg: themeConfig.colors.background,
-        text: themeConfig.colors.text
-      };
+      // INJECT COLORS FROM THEME OR BRAND KIT
+      // INJECT COLORS FROM THEME OR BRAND KIT
+      if (brandColors) {
+        console.log('[Generate] Applying Brand Kit Colors');
+        deck.colorPalette = {
+          primary: brandColors.primary,
+          secondary: brandColors.secondary,
+          accent: brandColors.accent,
+          bg: brandColors.background,
+          text: brandColors.text
+        };
+
+        // CRITICAL: Also update themeConfig to ensure consistency across all renderers (PPTX, etc.)
+        themeConfig.colors = {
+          ...themeConfig.colors,
+          background: brandColors.background,
+          surface: brandColors.background, // Use bg for surface to keep it consistent
+          text: brandColors.text,
+          textSecondary: brandColors.text, // Fallback for now
+          accent: brandColors.primary, // Brand Primary -> Theme Accent (Standard mapping)
+          accentSecondary: brandColors.secondary,
+          chartColors: [
+            brandColors.primary,
+            brandColors.secondary,
+            brandColors.accent,
+            brandColors.text,
+            brandColors.background
+          ]
+        };
+      } else {
+        // We force the specific colors defined in the theme config
+        deck.colorPalette = {
+          primary: themeConfig.colors.accent,
+          secondary: themeConfig.colors.accentSecondary,
+          accent: themeConfig.colors.chartColors[2] || themeConfig.colors.accent, // Use a third color for accent if possible
+          bg: themeConfig.colors.background,
+          text: themeConfig.colors.text
+        };
+      }
+
+      // Inject Brand Fonts if available
+      if (brandFonts) {
+        deck.fontConfig = brandFonts;
+        themeConfig.fonts = brandFonts; // Propagate to themeConfig as well
+      }
+
+      // BRAND KIT ENFORCEMENT: Strip AI-generated style overrides
+      if (brandColors && deck.slides) {
+        console.log('[Generate] Enforcing Brand Kit: Stripping AI style overrides...');
+        deck.slides.forEach((slide: any) => {
+          // 1. Clean Floating Elements
+          if (slide.elements && Array.isArray(slide.elements)) {
+            slide.elements.forEach((el: any) => {
+              if (el.style) {
+                // Remove specific color overrides so they fall back to the palette
+                delete el.style.color;
+                delete el.style.backgroundColor;
+                delete el.style.borderColor;
+                // Enforce font if needed
+                if (brandFonts) {
+                  el.style.fontFamily = brandFonts.body;
+                }
+              }
+            });
+          }
+
+          // 2. Clean Chart Colors (if AI tried to set them)
+          if (slide.content?.chart?.series) {
+            // We generally let the renderer assign colors from chartColors palette,
+            // but if the series has specific 'color' property, we should remove it?
+            slide.content.chart.series.forEach((s: any) => {
+              if (s.color) delete s.color;
+            });
+          }
+        });
+      }
 
       deck = sanitizeDeck(deck, prompt);
       deck.theme = themeConfig.id;
       deck.themeConfig = themeConfig;
+
+      // === POST-PROCESSING: Enrich SourceRef with Content Snippets ===
+      const sectionMeta = data.sectionMeta as any[];
+      if (sectionMeta && Array.isArray(sectionMeta) && deck.slides) {
+        console.log(`[Generate] Enriching ${deck.slides.length} slides with source content...`);
+        deck.slides.forEach(slide => {
+          const sourceRef = slide.sourceRef;
+          if (sourceRef && sourceRef.sectionTitle) {
+            // Find matching section by title (fuzzy match or exact)
+            const matchedSection = sectionMeta.find(s =>
+              s.title.toLowerCase().includes(sourceRef.sectionTitle.toLowerCase()) ||
+              sourceRef.sectionTitle.toLowerCase().includes(s.title.toLowerCase())
+            );
+
+            if (matchedSection && matchedSection.content) {
+              sourceRef.originalText = matchedSection.content;
+            }
+          }
+        });
+      }
+
+      // Inject Custom Templates data
+      if (brandLogoUrl) deck.brandLogoUrl = brandLogoUrl;
+      if (templateOverlay) deck.templateOverlay = templateOverlay;
 
       // === DEBUG: Save final processed deck to file ===
       fs.writeFileSync(
@@ -442,22 +533,30 @@ const generateWorker = new Worker(
       // Slides processed
 
       // 4. Fetch images for each slide
-      // Fetch Unsplash images silently
-      deck.slides = await Promise.all(
-        deck.slides.map(async (slide: Slide) => {
-          let backgroundImage = '';
-          let unsplashPhotographer = undefined;
-          if (slide.imageSearchQuery) {
-            const imageResult = await getUnsplashImage(
-              slide.imageSearchQuery,
-              themeConfig.imageKeywords
-            );
-            backgroundImage = imageResult.url;
-            unsplashPhotographer = imageResult.photographer;
-          }
-          return { ...slide, backgroundImage, unsplashPhotographer };
-        })
+      // Fetch Unsplash images silently (Batched to avoid rate limiting)
+
+      console.log(`[Generate] Fetching images for ${deck.slides.length} slides (batched)...`);
+
+      // We need to map the results back to the slides
+      // fetchImagesForDeck takes a simplified array, so we need to coordinate
+      const slidesWithQueries = deck.slides.map(s => ({
+        imageSearchQuery: s.imageSearchQuery
+      }));
+
+      const imageResults = await fetchImagesForDeck(
+        slidesWithQueries,
+        themeConfig.imageKeywords
       );
+
+      // Apply results to slides
+      deck.slides = deck.slides.map((slide, index) => {
+        const result = imageResults[index];
+        return {
+          ...slide,
+          backgroundImage: result?.url || '',
+          unsplashPhotographer: result?.photographer
+        };
+      });
 
       // SAVE TO SUPABASE with real user ID (AFTER images are fetched)
       if (supabase) {

@@ -16,6 +16,7 @@ import { SupabaseGuard } from '../auth/supabase.guard.js';
 import { z } from 'zod';
 import { QueueService } from '../queues/queue.service.js';
 import { SubscriptionService } from '../subscription/subscription.service.js';
+import { DocumentParserService, ParsedDocument, DocumentSection } from './document-parser.service.js';
 import { ulid } from 'ulid';
 import IORedis from 'ioredis';
 import { createRequire } from 'module';
@@ -175,7 +176,50 @@ const generateSchema = z.object({
     'health-medical',
     'sustainability'
   ]).default('startup-pitch'),
+  // Smart Report Parsing: Use previously parsed document instead of raw upload
+  parseToken: z.string().optional(),
+  // Section IDs to include (from /parse-document response). If empty, uses all sections.
+  sectionIds: z.array(z.string()).optional(),
+  // Section-specific visual preferences (e.g., "sec_1": "chart-bar", "sec_2": "text-only")
+  // Section-specific visual preferences (e.g., "sec_1": "chart-bar", "sec_2": "text-only")
+  sectionVisuals: z.record(z.string(), z.enum(['image', 'chart-bar', 'chart-pie', 'chart-line', 'text-only'])).optional(),
+
+  // Brand Kit & Templates
+  brandColors: z.preprocess(
+    (val) => (typeof val === 'string' ? JSON.parse(val) : val),
+    z.object({
+      primary: z.string(),
+      secondary: z.string(),
+      accent: z.string(),
+      background: z.string(),
+      text: z.string(),
+    }).optional()
+  ),
+  brandFonts: z.preprocess(
+    (val) => (typeof val === 'string' ? JSON.parse(val) : val),
+    z.object({
+      heading: z.string(),
+      body: z.string(),
+    }).optional()
+  ),
+  brandLogoUrl: z.string().optional(),
+  templateOverlay: z.preprocess(
+    (val) => (typeof val === 'string' ? JSON.parse(val) : val),
+    z.object({
+      logo: z.object({
+        position: z.enum(['top-left', 'top-right', 'bottom-left', 'bottom-right']).default('top-left'),
+        size: z.enum(['small', 'medium', 'large']).default('medium'),
+        showOnCover: z.boolean().default(true),
+        showOnContent: z.boolean().default(true),
+      }).optional(),
+      footer: z.object({
+        text: z.string().optional(),
+        showPageNumber: z.boolean().default(true),
+      }).optional(),
+    }).optional()
+  ),
 });
+
 
 // ============================================
 // CONTROLLER
@@ -197,6 +241,7 @@ export class GenerateController {
   constructor(
     private queues: QueueService,
     private subscriptionService: SubscriptionService,
+    private documentParser: DocumentParserService,
   ) {
     this.redis = new IORedis(getRedisUrl(), {
       maxRetriesPerRequest: null,
@@ -279,6 +324,51 @@ export class GenerateController {
       }
     }
 
+    // === Smart Report Parsing: Use parsed document from Redis if parseToken provided ===
+    if (data.parseToken) {
+      const parsedRaw = await this.redis.get(`parsed:${data.parseToken}`);
+      if (parsedRaw) {
+        const parsed = JSON.parse(parsedRaw);
+
+        // Verify user ownership
+        if (parsed.userId !== userId) {
+          throw new Error('Invalid parse token');
+        }
+
+        // Filter sections if sectionIds provided
+        let sectionsToUse = parsed.sections || [];
+        if (data.sectionIds && data.sectionIds.length > 0) {
+          sectionsToUse = sectionsToUse.filter((s: any) => data.sectionIds!.includes(s.id));
+        }
+
+        // Build document text from selected sections WITH PAGE MARKERS for source tracing
+        documentText = sectionsToUse
+          .map((s: any) => {
+            const pageInfo = s.pageStart === s.pageEnd
+              ? `Page ${s.pageStart}`
+              : `Pages ${s.pageStart}-${s.pageEnd}`;
+            return `## ${s.title} [SOURCE: ${pageInfo}]\n\n${s.content}`;
+          })
+          .join('\n\n---\n\n');
+
+        // Pass section metadata to worker for sourceRef generation
+        (data as any).sectionMeta = sectionsToUse.map((s: any) => ({
+          id: s.id,
+          title: s.title,
+          pageStart: s.pageStart,
+          pageEnd: s.pageEnd,
+          content: s.content ? s.content.substring(0, 500) + (s.content.length > 500 ? '...' : '') : ''
+        }));
+
+        console.log(`[DEBUG] Using ${sectionsToUse.length} sections from parsed document (${documentText.length} chars)`);
+
+        // Pass section visuals to worker if provided
+        if (data.sectionVisuals) {
+          (data as any).sectionVisuals = data.sectionVisuals;
+        }
+      }
+    }
+
     // Store initial job state
     await this.redis.set(
       `job:${traceId}`,
@@ -329,5 +419,108 @@ export class GenerateController {
     }
     const parsed = JSON.parse(raw);
     return { traceId, ...parsed };
+  }
+
+  /**
+   * Parse document structure (Smart Report Parsing)
+   * Returns detected sections/chapters for user selection before generation
+   * PROTECTED: Requires valid Supabase JWT
+   */
+  @Post('/parse-document')
+  @UseGuards(SupabaseGuard)
+  async parseDocument(@Req() req: FastifyRequest & { user: any }) {
+    let fileBuffer: Buffer | null = null;
+    let fileMimetype = '';
+    let fileFilename = '';
+
+    if (!req.isMultipart()) {
+      return { error: 'Multipart form data required', success: false };
+    }
+
+    const parts = req.parts();
+    for await (const part of parts) {
+      if (part.type === 'file') {
+        const chunks: Buffer[] = [];
+        for await (const chunk of part.file) {
+          chunks.push(chunk);
+        }
+        fileBuffer = Buffer.concat(chunks);
+        fileMimetype = part.mimetype;
+        fileFilename = part.filename;
+      }
+    }
+
+    if (!fileBuffer) {
+      return { error: 'No file uploaded', success: false };
+    }
+
+    console.log(`[ParseDocument] Parsing: ${fileFilename} (${fileMimetype}, ${fileBuffer.length} bytes)`);
+
+    const userId = req.user.sub;
+
+    // Check subscription limits for PDF page count
+    // (We'll check after parsing to know page count)
+
+    let parsed: ParsedDocument;
+
+    try {
+      const fname = fileFilename.toLowerCase();
+      if (fileMimetype === 'application/pdf' || fname.endsWith('.pdf')) {
+        parsed = await this.documentParser.parsePDF(fileBuffer);
+
+        // Check PDF page limit
+        await this.subscriptionService.checkPdfPageLimit(userId, parsed.totalPages);
+      } else if (
+        fileMimetype === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ||
+        fname.endsWith('.docx')
+      ) {
+        parsed = await this.documentParser.parseDOCX(fileBuffer);
+      } else {
+        return { error: 'Unsupported file type. Please upload PDF or DOCX.', success: false };
+      }
+    } catch (error: any) {
+      if (error.status === 403) {
+        throw error; // Rethrow subscription limit errors
+      }
+      console.error('[ParseDocument] Parsing error:', error.message);
+      return { error: 'Failed to parse document', success: false };
+    }
+
+    console.log(`[ParseDocument] Found ${parsed.sections.length} sections in "${parsed.title}"`);
+
+    return {
+      success: true,
+      document: {
+        title: parsed.title,
+        totalPages: parsed.totalPages,
+        totalChars: parsed.totalChars,
+        sections: parsed.sections.map(s => ({
+          id: s.id,
+          title: s.title,
+          level: s.level,
+          pageStart: s.pageStart,
+          pageEnd: s.pageEnd,
+          charCount: s.charCount,
+          estimatedSlides: s.estimatedSlides,
+          // Don't send full content to frontend - too heavy
+        })),
+      },
+      // Store parsed data in Redis for later use in /generate
+      parseToken: await this.storeParsedDocument(parsed, userId),
+    };
+  }
+
+  /**
+   * Store parsed document in Redis for subsequent generation
+   */
+  private async storeParsedDocument(parsed: ParsedDocument, userId: string): Promise<string> {
+    const token = ulid();
+    await this.redis.set(
+      `parsed:${token}`,
+      JSON.stringify({ ...parsed, userId }),
+      'EX',
+      3600 // 1 hour expiry
+    );
+    return token;
   }
 }

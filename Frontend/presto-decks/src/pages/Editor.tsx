@@ -56,7 +56,9 @@ import { ColorPaletteDialog } from "@/components/editor/ColorPaletteDialog";
 import { ExportDialog } from "@/components/editor/ExportDialog";
 import { BugReportDialog } from "@/components/editor/BugReportDialog";
 import { FontSelectorDialog, FontConfig, AVAILABLE_FONTS } from "@/components/editor/FontSelectorDialog";
-
+import { ImageReplacementModal } from "@/components/editor/ImageReplacementModal";
+import { SourceCitation } from "@/components/editor/SourceCitation";
+import { TemplateOverlay } from "@/components/slides/TemplateOverlay";
 
 
 // Helper to adapt API deck format to frontend format
@@ -119,11 +121,15 @@ const adaptDeck = (deck: any) => {
       },
 
       notes: s.notes || "",
+      sourceRef: s.sourceRef, // Pass through RAG citation
     })),
     theme: deck.theme || rootData.theme || "startup-pitch",
     themeConfig: deck.themeConfig || rootData.themeConfig,
     colorScheme: deck.colorPalette || deck.colorScheme || rootData.colorPalette || rootData.colorScheme,
     fontConfig: deck.fontConfig || rootData.fontConfig,
+    // Custom Templates data
+    brandLogoUrl: deck.brandLogoUrl || rootData.brandLogoUrl,
+    templateOverlay: deck.templateOverlay || rootData.templateOverlay,
   };
 };
 
@@ -159,6 +165,7 @@ export default function Editor() {
   const [accessToken, setAccessToken] = useState<string | null>(null);
   const [showWatermark, setShowWatermark] = useState(false);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
+  const [isImageModalOpen, setIsImageModalOpen] = useState(false);
 
   // Mobile sheet states
   const [isSlidesSheetOpen, setIsSlidesSheetOpen] = useState(false);
@@ -975,6 +982,10 @@ export default function Editor() {
                         <span className={`text-[10px] font-medium transition-colors ${selectedSlide === idx ? "text-primary" : "text-muted-foreground"}`}>
                           {idx + 1}. {slide.title || t('editorPage.slide.untitled')}
                         </span>
+                        {/* Evidence Linking: Source Citation Badge */}
+                        {slide.sourceRef && (
+                          <SourceCitation sourceRef={slide.sourceRef} />
+                        )}
                       </div>
                     </div>
                   </Reorder.Item>
@@ -1052,16 +1063,26 @@ export default function Editor() {
                 transformOrigin: 'top left',
               }}
             >
-              <ModernSlideRenderer
-                slide={currentProject.slides[selectedSlide]}
-                theme={currentProject.theme}
-                colorPalette={currentProject.colorScheme}
-                fontConfig={currentProject.fontConfig}
-                className="w-full h-full"
-                onElementSelect={isFullscreen ? undefined : handleElementSelect}
-                selectedElementId={!isFullscreen && selectedElement ? selectedElement.id.split('-').slice(1).join('-') : null}
-                showWatermark={showWatermark}
-              />
+              <TemplateOverlay
+                config={currentProject.templateOverlay}
+                logoUrl={currentProject.brandLogoUrl}
+                slideNumber={selectedSlide + 1}
+                totalSlides={currentProject.slides.length}
+                isFirst={selectedSlide === 0}
+              >
+                <ModernSlideRenderer
+                  slide={currentProject.slides[selectedSlide]}
+                  theme={currentProject.theme}
+                  colorPalette={currentProject.colorScheme}
+                  fontConfig={currentProject.fontConfig}
+                  className="w-full h-full"
+                  onElementSelect={isFullscreen ? undefined : handleElementSelect}
+                  selectedElementId={!isFullscreen && selectedElement ? selectedElement.id.split('-').slice(1).join('-') : null}
+                  showWatermark={showWatermark}
+                  // Pass template overlay config for page number control
+                  templateOverlay={currentProject.templateOverlay}
+                />
+              </TemplateOverlay>
             </div>
           </div>
 
@@ -1108,6 +1129,7 @@ export default function Editor() {
                 element={selectedElement}
                 onUpdate={handleElementUpdate}
                 onTableAction={handleTableAction}
+                onImageReplace={() => setIsImageModalOpen(true)}
                 onClose={() => setSelectedElement(null)}
               />
             ) : (
@@ -1124,6 +1146,7 @@ export default function Editor() {
                   };
                   setCurrentProject({ ...currentProject, slides: newSlides });
                 }}
+                onImageReplace={() => setIsImageModalOpen(true)}
               />
             )}
           </div>
@@ -1265,6 +1288,40 @@ export default function Editor() {
         open={isExportDialogOpen}
         onOpenChange={setIsExportDialogOpen}
         presentation={currentProject}
+      />
+
+      {/* Image Replacement Modal */}
+      <ImageReplacementModal
+        open={isImageModalOpen}
+        onOpenChange={setIsImageModalOpen}
+        currentImage={selectedElement?.type === 'image' ? selectedElement.value : currentProject.slides[selectedSlide]?.backgroundImage}
+        onImageSelect={(imageUrl, attribution) => {
+          if (!currentProject) return;
+
+          // If an image element is selected, update that element
+          if (selectedElement?.type === 'image' && selectedElement.path) {
+            handleElementUpdate(selectedElement.path + '.value', imageUrl);
+            handleElementUpdate(selectedElement.path + '.content', imageUrl);
+          } else {
+            // Otherwise update the slide's background image
+            const newProject = { ...currentProject };
+            const newSlides = [...newProject.slides];
+            newSlides[selectedSlide] = {
+              ...newSlides[selectedSlide],
+              backgroundImage: imageUrl,
+              unsplashPhotographer: attribution || undefined
+            };
+            newProject.slides = newSlides;
+            setCurrentProject(newProject);
+            triggerAutoSave(newProject);
+          }
+
+          toast({
+            title: "Image mise à jour",
+            description: attribution ? `Photo par ${attribution.name}` : "Votre image a été appliquée"
+          });
+          setIsImageModalOpen(false);
+        }}
       />
     </div >
   );

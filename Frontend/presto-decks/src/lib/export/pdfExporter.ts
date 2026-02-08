@@ -1,6 +1,5 @@
 // src/lib/export/pdfExporter.ts
 // PDF export utility using html2canvas and jsPDF
-// Optimized for speed and file size
 
 import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
@@ -10,122 +9,98 @@ import { ExportProgressCallback } from './types';
 const SLIDE_WIDTH = 1920;
 const SLIDE_HEIGHT = 1080;
 
-// Export settings - optimized for small file size
+// Export settings
 const EXPORT_SETTINGS = {
-    scale: 1.2,           // Lower scale for smaller files (still decent quality)
-    imageFormat: 'JPEG',  // JPEG is ~10x smaller than PNG
-    imageQuality: 0.65,   // Lower quality = smaller size (still looks good)
-    batchSize: 4,         // Capture 4 slides in parallel
+    scale: 1.5,
+    imageQuality: 0.85,
+    captureDelay: 100,
 };
 
 /**
- * Creates a hidden container to render slides for export
+ * Waits for all images in an element to load
  */
-const createRenderContainer = (id: string): HTMLDivElement => {
-    const container = document.createElement('div');
-    container.id = `render-container-${id}`;
-    container.style.cssText = `
-        position: fixed;
-        left: -9999px;
-        top: 0;
-        width: ${SLIDE_WIDTH}px;
-        height: ${SLIDE_HEIGHT}px;
-        overflow: hidden;
-        background: white;
-        z-index: -9999;
-    `;
-    document.body.appendChild(container);
-    return container;
-};
-
-/**
- * Clones a slide element for rendering
- */
-const cloneSlideForRender = (slideElement: HTMLElement, container: HTMLDivElement): void => {
-    // Clone the slide
-    const clone = slideElement.cloneNode(true) as HTMLElement;
-
-    // Set to exact slide dimensions
-    clone.style.cssText = `
-        width: ${SLIDE_WIDTH}px !important;
-        height: ${SLIDE_HEIGHT}px !important;
-        transform: none !important;
-        position: relative !important;
-        overflow: hidden !important;
-    `;
-
-    // Clear and append
-    container.innerHTML = '';
-    container.appendChild(clone);
-};
-
-/**
- * Captures a single slide element as image data
- */
-const captureSlideAsImageData = async (
-    slideElement: HTMLElement,
-    containerId: string
-): Promise<string> => {
-    // Create dedicated container for this capture
-    const container = createRenderContainer(containerId);
-
-    try {
-        // Clone slide into render container
-        cloneSlideForRender(slideElement, container);
-
-        // Small delay to ensure styles are applied
-        await new Promise(resolve => setTimeout(resolve, 50));
-
-        // Capture with html2canvas
-        const canvas = await html2canvas(container, {
-            width: SLIDE_WIDTH,
-            height: SLIDE_HEIGHT,
-            scale: EXPORT_SETTINGS.scale,
-            useCORS: true,
-            allowTaint: true,
-            backgroundColor: '#FFFFFF',
-            logging: false,
-            imageTimeout: 10000,
+const waitForImages = async (element: HTMLElement): Promise<void> => {
+    const images = element.querySelectorAll('img');
+    const promises = Array.from(images).map(img => {
+        if (img.complete) return Promise.resolve();
+        return new Promise<void>((resolve) => {
+            img.onload = () => resolve();
+            img.onerror = () => resolve();
         });
-
-        // Convert to JPEG for much smaller file size
-        return canvas.toDataURL(`image/jpeg`, EXPORT_SETTINGS.imageQuality);
-
-    } finally {
-        // Cleanup container
-        if (container.parentNode) {
-            container.parentNode.removeChild(container);
-        }
-    }
+    });
+    await Promise.all(promises);
 };
 
 /**
- * Process slides in batches for faster export
+ * Captures a single slide element
  */
-const captureSlidesInBatches = async (
+const captureSlide = async (slideElement: HTMLElement): Promise<string> => {
+    // Wait for images
+    await waitForImages(slideElement);
+
+    // Small delay for CSS
+    await new Promise(resolve => setTimeout(resolve, EXPORT_SETTINGS.captureDelay));
+
+    // Capture with html2canvas
+    const canvas = await html2canvas(slideElement, {
+        width: SLIDE_WIDTH,
+        height: SLIDE_HEIGHT,
+        scale: EXPORT_SETTINGS.scale,
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: '#ffffff',
+        logging: false,
+        imageTimeout: 15000,
+        windowWidth: SLIDE_WIDTH,
+        windowHeight: SLIDE_HEIGHT,
+        x: 0,
+        y: 0,
+        scrollX: 0,
+        scrollY: 0,
+    });
+
+    return canvas.toDataURL('image/jpeg', EXPORT_SETTINGS.imageQuality);
+};
+
+/**
+ * Captures all slides sequentially
+ */
+const captureAllSlides = async (
     slideElements: HTMLElement[],
     onProgress?: ExportProgressCallback
 ): Promise<string[]> => {
     const results: string[] = [];
-    const batchSize = EXPORT_SETTINGS.batchSize;
 
-    for (let i = 0; i < slideElements.length; i += batchSize) {
-        const batch = slideElements.slice(i, i + batchSize);
-
+    for (let i = 0; i < slideElements.length; i++) {
         onProgress?.({
             current: i,
             total: slideElements.length,
             status: 'rendering',
-            message: `Capture des slides ${i + 1}-${Math.min(i + batchSize, slideElements.length)}/${slideElements.length}...`
+            message: `Capture de la slide ${i + 1}/${slideElements.length}...`
         });
 
-        // Capture batch in parallel
-        const batchPromises = batch.map((slide, idx) =>
-            captureSlideAsImageData(slide, `batch-${i}-${idx}`)
-        );
+        try {
+            const imageData = await captureSlide(slideElements[i]);
+            results.push(imageData);
+        } catch (error) {
+            console.error(`Error capturing slide ${i + 1}:`, error);
+            // Create fallback
+            const canvas = document.createElement('canvas');
+            canvas.width = SLIDE_WIDTH;
+            canvas.height = SLIDE_HEIGHT;
+            const ctx = canvas.getContext('2d');
+            if (ctx) {
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(0, 0, SLIDE_WIDTH, SLIDE_HEIGHT);
+                ctx.fillStyle = '#333';
+                ctx.font = '48px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText(`Slide ${i + 1}`, SLIDE_WIDTH / 2, SLIDE_HEIGHT / 2);
+            }
+            results.push(canvas.toDataURL('image/jpeg', 0.8));
+        }
 
-        const batchResults = await Promise.all(batchPromises);
-        results.push(...batchResults);
+        await new Promise(resolve => setTimeout(resolve, 30));
     }
 
     return results;
@@ -133,10 +108,6 @@ const captureSlidesInBatches = async (
 
 /**
  * Exports presentation slides to PDF
- * 
- * @param slideElements - Array of slide DOM elements to capture
- * @param title - Presentation title (used for filename)
- * @param onProgress - Optional callback for progress updates
  */
 export const exportToPDF = async (
     slideElements: HTMLElement[],
@@ -155,8 +126,7 @@ export const exportToPDF = async (
     });
 
     try {
-        // Capture all slides (in batches for speed)
-        const imageDataArray = await captureSlidesInBatches(slideElements, onProgress);
+        const imageDataArray = await captureAllSlides(slideElements, onProgress);
 
         onProgress?.({
             current: slideElements.length,
@@ -165,16 +135,15 @@ export const exportToPDF = async (
             message: 'Génération du PDF...'
         });
 
-        // Create PDF with landscape orientation
+        // Create PDF
         const pdf = new jsPDF({
             orientation: 'landscape',
             unit: 'px',
             format: [SLIDE_WIDTH, SLIDE_HEIGHT],
             hotfixes: ['px_scaling'],
-            compress: true, // Enable compression
+            compress: true,
         });
 
-        // Add all captured slides to PDF
         for (let i = 0; i < imageDataArray.length; i++) {
             if (i > 0) {
                 pdf.addPage([SLIDE_WIDTH, SLIDE_HEIGHT], 'landscape');
@@ -182,19 +151,14 @@ export const exportToPDF = async (
             pdf.addImage(
                 imageDataArray[i],
                 'JPEG',
-                0,
-                0,
-                SLIDE_WIDTH,
-                SLIDE_HEIGHT,
+                0, 0,
+                SLIDE_WIDTH, SLIDE_HEIGHT,
                 undefined,
-                'FAST' // Fast compression
+                'MEDIUM'
             );
         }
 
-        // Sanitize filename
         const sanitizedTitle = title.replace(/[^a-zA-Z0-9-_\s]/g, '').trim() || 'presentation';
-
-        // Save PDF
         pdf.save(`${sanitizedTitle}.pdf`);
 
         onProgress?.({
@@ -210,10 +174,6 @@ export const exportToPDF = async (
     }
 };
 
-/**
- * Gets all slide elements from the presentation
- * This function should be called from the Editor component
- */
 export const getSlideElements = (containerSelector: string = '[data-slide-content]'): HTMLElement[] => {
     return Array.from(document.querySelectorAll(containerSelector)) as HTMLElement[];
 };

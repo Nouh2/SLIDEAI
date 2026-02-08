@@ -49,6 +49,12 @@ export interface Slide {
     title: string;
     imageSearchQuery?: string;
     backgroundImage?: string;
+    sourceRef?: {
+        sectionTitle: string;
+        pageStart: number;
+        pageEnd: number;
+        originalText?: string;
+    };
     content: SlideContent;
 }
 
@@ -65,6 +71,24 @@ export interface Deck {
     };
     themeConfig?: ThemeConfig;
     slides: Slide[];
+    // Custom Templates data
+    brandLogoUrl?: string;
+    fontConfig?: {
+        heading: string;
+        body: string;
+    };
+    templateOverlay?: {
+        logo?: {
+            position: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right';
+            size: 'small' | 'medium' | 'large';
+            showOnCover: boolean;
+            showOnContent: boolean;
+        };
+        footer?: {
+            text?: string;
+            showPageNumber: boolean;
+        };
+    };
 }
 
 // ============================================

@@ -15,6 +15,7 @@ const Examples = lazy(() => import("@/pages/Examples"));
 const Account = lazy(() => import("@/pages/Account"));
 const Auth = lazy(() => import("@/pages/Auth"));
 const Brand = lazy(() => import("@/pages/Brand"));
+const BrandKitPage = lazy(() => import("@/pages/BrandKitPage"));
 const PrivacyPage = lazy(() => import("@/pages/PrivacyPage"));
 const TermsPage = lazy(() => import("@/pages/TermsPage"));
 const GdprPage = lazy(() => import("@/pages/GdprPage"));
@@ -41,6 +42,11 @@ export const AnimatedRoutes = () => {
                     {/* PUBLIC ROUTES - Accessible to everyone */}
                     <Route path="/pricing" element={<PageTransition><Pricing /></PageTransition>} />
                     <Route path="/brand" element={<PageTransition><Brand /></PageTransition>} />
+                    <Route path="/brand-kit" element={
+                        <ProtectedRoute>
+                            <PageTransition><BrandKitPage /></PageTransition>
+                        </ProtectedRoute>
+                    } />
                     <Route path="/privacy" element={<PageTransition><PrivacyPage /></PageTransition>} />
                     <Route path="/terms" element={<PageTransition><TermsPage /></PageTransition>} />
                     <Route path="/gdpr" element={<PageTransition><GdprPage /></PageTransition>} />

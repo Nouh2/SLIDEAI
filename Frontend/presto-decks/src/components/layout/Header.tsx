@@ -44,6 +44,13 @@ export const Header = () => {
         {t('header.create')}
       </Link>
       <Link
+        to="/brand-kit"
+        className="text-sm font-medium text-zinc-950 hover:text-[#1fb6ff] transition-colors"
+        onClick={() => setOpen(false)}
+      >
+        Brand Kit
+      </Link>
+      <Link
         to="/examples"
         className="text-sm font-medium text-zinc-950 hover:text-[#1fb6ff] transition-colors"
         onClick={() => setOpen(false)}
@@ -81,6 +88,9 @@ export const Header = () => {
           )}
           <Link to="/create" className="text-sm font-medium text-zinc-950 hover:text-[#1fb6ff] transition-colors">
             {t('header.create')}
+          </Link>
+          <Link to="/brand-kit" className="text-sm font-medium text-zinc-950 hover:text-[#1fb6ff] transition-colors">
+            Brand Kit
           </Link>
           {!user && (
             <Link to="/examples" className="text-sm font-medium text-zinc-950 hover:text-[#1fb6ff] transition-colors">

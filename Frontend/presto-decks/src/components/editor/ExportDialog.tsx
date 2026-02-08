@@ -15,7 +15,9 @@ import { Progress } from '@/components/ui/progress';
 import { FileText, FileSpreadsheet, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
 import { exportToPDF } from '@/lib/export';
 import { exportToPPTX } from '@/lib/export/pptx';
+
 import { ModernSlideRenderer } from '@/components/slides/ModernSlideRenderer';
+import { TemplateOverlay } from '@/components/slides/TemplateOverlay';
 import type { ExportProgress } from '@/lib/export';
 import { Analytics, ANALYTICS_EVENTS } from '@/lib/analytics';
 
@@ -133,38 +135,50 @@ export function ExportDialog({ open, onOpenChange, presentation }: ExportDialogP
                         <button
                             onClick={handlePDFExport}
                             disabled={isExporting}
-                            className="group relative flex flex-col items-center p-6 rounded-2xl border-2 border-border bg-surface/50 hover:border-primary hover:bg-primary/5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+                            className="group relative flex flex-col items-center p-6 rounded-2xl border-2 border-border bg-surface/50 hover:border-primary hover:bg-primary/5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 text-left"
                         >
                             <div className="w-14 h-14 rounded-xl bg-red-500/10 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                                 <FileText className="w-7 h-7 text-red-500" />
                             </div>
-                            <h3 className="font-bold text-foreground mb-1">PDF</h3>
+                            <h3 className="font-bold text-foreground mb-1">PDF <span className="text-xs font-normal text-blue-500 bg-blue-500/10 px-2 py-0.5 rounded-full ml-1">Bêta</span></h3>
                             <p className="text-xs text-muted-foreground text-center">
-                                {t('export.pdfDesc')}
+                                Export fonctionnel mais quelques imperfections mineures possibles.
                             </p>
-                            <span className="absolute top-3 right-3 text-[10px] font-bold uppercase tracking-wider text-emerald-500 bg-emerald-500/10 px-2 py-0.5 rounded-full">
-                                {t('export.ready')}
-                            </span>
                         </button>
 
                         {/* PPTX Option - Coming Soon */}
-                        <div
-                            className="group relative flex flex-col items-center p-6 rounded-2xl border-2 border-border bg-surface/50 opacity-60 cursor-not-allowed"
+                        <button
+                            disabled={true}
+                            className="group relative flex flex-col items-center p-6 rounded-2xl border-2 border-border bg-surface/30 opacity-60 cursor-not-allowed"
                         >
-                            <div className="w-14 h-14 rounded-xl bg-orange-500/10 flex items-center justify-center mb-4">
-                                <FileSpreadsheet className="w-7 h-7 text-orange-400" />
+                            <div className="w-14 h-14 rounded-xl bg-orange-500/10 flex items-center justify-center mb-4 grayscale">
+                                <FileSpreadsheet className="w-7 h-7 text-orange-500" />
                             </div>
-                            <h3 className="font-bold text-muted-foreground mb-1">PowerPoint</h3>
+                            <h3 className="font-bold text-foreground mb-1">PowerPoint</h3>
                             <p className="text-xs text-muted-foreground text-center">
-                                {t('export.comingSoon')}
+                                Bientôt disponible - En cours d'amélioration pour une fidélité parfaite.
                             </p>
-                            <span className="absolute top-3 right-3 text-[10px] font-bold uppercase tracking-wider text-amber-500 bg-amber-500/10 px-2 py-0.5 rounded-full">
-                                Beta
+                            <span className="absolute top-3 right-3 text-[10px] font-bold uppercase tracking-wider text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
+                                Bientôt
                             </span>
-                            <p className="text-[10px] text-muted-foreground text-center mt-2">
-                                {t('export.workingOnIt')}
+                        </button>
+
+                        {/* Google Slides Option */}
+                        <button
+                            disabled={true}
+                            className="group relative flex flex-col items-center p-6 rounded-2xl border-2 border-border bg-surface/30 opacity-60 cursor-not-allowed col-span-2 md:col-span-1 md:col-start-1 md:col-end-3 mx-auto w-full max-w-[50%] hidden md:flex"
+                        >
+                            <div className="w-14 h-14 rounded-xl bg-yellow-500/10 flex items-center justify-center mb-4 grayscale">
+                                <FileSpreadsheet className="w-7 h-7 text-yellow-500" />
+                            </div>
+                            <h3 className="font-bold text-foreground mb-1">Google Slides</h3>
+                            <p className="text-xs text-muted-foreground text-center">
+                                Arrive prochainement
                             </p>
-                        </div>
+                            <span className="absolute top-3 right-3 text-[10px] font-bold uppercase tracking-wider text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
+                                Bientôt
+                            </span>
+                        </button>
                     </div>
                 )}
 
@@ -214,24 +228,52 @@ export function ExportDialog({ open, onOpenChange, presentation }: ExportDialogP
                     </div>
                 )}
 
-                {/* Hidden slides container for rendering */}
+                {/* Hidden slides container for PDF rendering */}
                 <div
                     ref={hiddenSlidesRef}
-                    className="fixed left-[-9999px] top-0 z-[-9999]"
-                    style={{ width: 1920, height: 1080 }}
+                    aria-hidden="true"
+                    style={{
+                        position: 'fixed',
+                        left: -9999,
+                        top: 0,
+                        width: 1920,
+                        height: 1080,
+                        overflow: 'visible',
+                        pointerEvents: 'none',
+                        zIndex: -9999,
+                    }}
                 >
                     {presentation?.slides.map((slide: any, index: number) => (
                         <div
                             key={slide.id || index}
                             data-slide-export
-                            style={{ width: 1920, height: 1080, overflow: 'hidden' }}
+                            data-slide-index={index}
+                            style={{
+                                position: 'absolute',
+                                top: index * 1100,
+                                left: 0,
+                                width: 1920,
+                                height: 1080,
+                                overflow: 'hidden',
+                                background: '#fff',
+                            }}
                         >
-                            <ModernSlideRenderer
-                                slide={slide}
-                                theme={presentation.theme}
-                                colorPalette={presentation.colorScheme}
-                                className="w-full h-full"
-                            />
+                            <div style={{ width: 1920, height: 1080, overflow: 'hidden' }}>
+                                <TemplateOverlay
+                                    config={presentation.templateOverlay}
+                                    logoUrl={presentation.brandLogoUrl}
+                                    slideNumber={index + 1}
+                                    totalSlides={presentation.slides.length}
+                                    isFirst={index === 0}
+                                >
+                                    <ModernSlideRenderer
+                                        slide={slide}
+                                        theme={presentation.theme}
+                                        colorPalette={presentation.colorScheme}
+                                        className="w-[1920px] h-[1080px] min-w-[1920px] min-h-[1080px]"
+                                    />
+                                </TemplateOverlay>
+                            </div>
                         </div>
                     ))}
                 </div>

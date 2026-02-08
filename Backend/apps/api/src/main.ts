@@ -10,7 +10,10 @@ import { ConfigService } from '@nestjs/config';
 async function bootstrap() {
   const app = await NestFactory.create<NestFastifyApplication>(
     AppModule,
-    new FastifyAdapter({ logger: false, rawBody: true } as any),
+    new FastifyAdapter({
+      logger: false,
+      bodyLimit: 50 * 1024 * 1024 // 50MB limit
+    }),
     { snapshot: true, rawBody: true },
   );
 

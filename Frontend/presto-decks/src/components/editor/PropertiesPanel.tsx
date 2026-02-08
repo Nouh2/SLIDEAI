@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { X, Type, List, Image as ImageIcon, Plus, Table, Trash2 } from "lucide-react";
+import { X, Type, List, Image as ImageIcon, Plus, Table, Trash2, RefreshCw } from "lucide-react";
 
 export interface SelectedElement {
     id: string; // Unique ID composed of slideIndex + path
@@ -17,10 +17,11 @@ interface PropertiesPanelProps {
     element: SelectedElement | null;
     onUpdate: (path: string, value: any) => void;
     onTableAction?: (action: 'add-row' | 'delete-row', path: string) => void;
+    onImageReplace?: () => void; // Callback to open image replacement modal
     onClose: () => void;
 }
 
-export function PropertiesPanel({ element, onUpdate, onTableAction, onClose }: PropertiesPanelProps) {
+export function PropertiesPanel({ element, onUpdate, onTableAction, onImageReplace, onClose }: PropertiesPanelProps) {
     const [localValue, setLocalValue] = useState<string>("");
     const { t } = useTranslation();
 
@@ -89,6 +90,35 @@ export function PropertiesPanel({ element, onUpdate, onTableAction, onClose }: P
                                 </Button>
                             </div>
                         )}
+                    </div>
+                ) : element.type === 'image' ? (
+                    <div className="space-y-6">
+                        <div className="p-4 border border-border/50 rounded-xl bg-muted/20 space-y-4">
+                            <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
+                                <ImageIcon className="w-3 h-3" /> {t('editor.imageSettings')}
+                            </Label>
+
+                            {/* Current image preview */}
+                            {element.value && (
+                                <div className="relative aspect-video rounded-lg overflow-hidden bg-muted">
+                                    <img
+                                        src={element.value}
+                                        alt="Current"
+                                        className="w-full h-full object-cover"
+                                    />
+                                </div>
+                            )}
+
+                            {/* Replace button */}
+                            <Button
+                                variant="outline"
+                                className="w-full justify-center gap-2 h-10 hover:border-primary hover:text-primary hover:bg-primary/5 transition-colors"
+                                onClick={() => onImageReplace?.()}
+                            >
+                                <RefreshCw className="w-4 h-4" />
+                                {t('editor.replaceImage')}
+                            </Button>
+                        </div>
                     </div>
                 ) : (
                     <div className="text-sm text-muted-foreground p-4 border border-dashed rounded-lg text-center">

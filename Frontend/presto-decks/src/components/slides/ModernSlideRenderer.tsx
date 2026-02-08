@@ -23,6 +23,7 @@ interface SlideRendererProps {
     onElementSelect?: (element: { id: string; type: 'text' | 'image' | 'list' | 'chart'; path: string; value: any; label: string }) => void;
     selectedElementId?: string | null;
     showWatermark?: boolean;
+    templateOverlay?: any; // Add templateOverlay prop
 }
 
 // Helper wrapper for editable elements
@@ -220,11 +221,12 @@ const AbstractShapes = ({ colors, variant = 'default' }: { colors: any; variant?
 };
 
 // Slide footer with number - styled to match theme
-const SlideFooter = ({ slideNumber, title, colors, unsplashPhotographer }: {
+const SlideFooter = ({ slideNumber, title, colors, unsplashPhotographer, showPageNumber = true }: {
     slideNumber?: number;
     title: string;
     colors?: any;
     unsplashPhotographer?: { name: string; username: string; link: string };
+    showPageNumber?: boolean;
 }) => (
     <div
         className="absolute bottom-0 left-0 right-0 h-20 flex items-center justify-between px-12"
@@ -232,12 +234,14 @@ const SlideFooter = ({ slideNumber, title, colors, unsplashPhotographer }: {
             borderTop: `1px solid ${colors?.primary || '#e5e5e5'}20`,
         }}
     >
-        <span
-            className="text-lg font-semibold"
-            style={{ color: colors?.primary || '#666' }}
-        >
-            {slideNumber || 1}
-        </span>
+        {showPageNumber && (
+            <span
+                className="text-lg font-semibold"
+                style={{ color: colors?.primary || '#666' }}
+            >
+                {slideNumber || 1}
+            </span>
+        )}
 
         {/* Unsplash Attribution - discrete style */}
         {unsplashPhotographer && (
@@ -285,7 +289,7 @@ const SlideFooter = ({ slideNumber, title, colors, unsplashPhotographer }: {
 
 // Cover/Hero slide - Opening slide
 // Cover/Hero slide - Opening slide
-const CoverHeroLayout = ({ slide, colors, onSelect, selectedId }: { slide: any; colors: any; onSelect?: any; selectedId?: string | null }) => (
+const CoverHeroLayout = ({ slide, colors, onSelect, selectedId, showPageNumber }: { slide: any; colors: any; onSelect?: any; selectedId?: string | null; showPageNumber?: boolean }) => (
     <div className="relative w-full h-full overflow-hidden" style={{ backgroundColor: colors.bg }}>
         <AbstractShapes colors={colors} />
 
@@ -350,7 +354,7 @@ const CoverHeroLayout = ({ slide, colors, onSelect, selectedId }: { slide: any; 
             )}
         </div>
 
-        <SlideFooter title={slide.title} slideNumber={1} colors={colors} />
+        <SlideFooter title={slide.title} slideNumber={1} colors={colors} showPageNumber={showPageNumber} />
     </div>
 );
 
@@ -364,7 +368,7 @@ const CoverHeroLayout = ({ slide, colors, onSelect, selectedId }: { slide: any; 
 // Stats/Metrics layout - Big numbers with Visual Variants
 type StatsVariation = 'classic-grid' | 'metric-cards' | 'big-hero-stat' | 'data-progress' | 'trend-focus';
 
-const StatsLayout = ({ slide, colors, variation = 'classic-grid', onSelect, selectedId }: { slide: any; colors: any; variation?: StatsVariation; onSelect?: any; selectedId?: string | null }) => {
+const StatsLayout = ({ slide, colors, variation = 'classic-grid', onSelect, selectedId, showPageNumber }: { slide: any; colors: any; variation?: StatsVariation; onSelect?: any; selectedId?: string | null; showPageNumber?: boolean }) => {
     // Support multiple AI formats: stats, statistics, metrics
     let stats = slide.stats || slide.content?.stats || slide.content?.statistics || slide.metrics || slide.content?.metrics || [];
 
@@ -429,7 +433,7 @@ const StatsLayout = ({ slide, colors, variation = 'classic-grid', onSelect, sele
                         ))}
                     </div>
                 </div>
-                <SlideFooter title={slide.title} colors={colors} />
+                <SlideFooter title={slide.title} colors={colors} showPageNumber={showPageNumber} />
             </div>
         );
     }
@@ -562,7 +566,7 @@ const StatsLayout = ({ slide, colors, variation = 'classic-grid', onSelect, sele
                         );
                     })}
                 </div>
-                <SlideFooter title={slide.title} colors={colors} />
+                <SlideFooter title={slide.title} colors={colors} showPageNumber={showPageNumber} />
             </div>
         );
     }
@@ -612,7 +616,7 @@ const StatsLayout = ({ slide, colors, variation = 'classic-grid', onSelect, sele
                         </div>
                     ))}
                 </div>
-                <SlideFooter title={slide.title} colors={colors} />
+                <SlideFooter title={slide.title} colors={colors} showPageNumber={showPageNumber} />
             </div>
         );
     }
@@ -677,7 +681,7 @@ const StatsLayout = ({ slide, colors, variation = 'classic-grid', onSelect, sele
                 </div>
             </div>
 
-            <SlideFooter title={slide.title} colors={colors} />
+            <SlideFooter title={slide.title} colors={colors} showPageNumber={showPageNumber} />
         </div>
     );
 };
@@ -836,7 +840,7 @@ const ChartVisuals = ({ chart, colors, height = 400 }: { chart: any, colors: any
 // Chart Layout - Multiple variants
 type ChartVariation = 'default-container' | 'split-detail' | 'floating-card' | 'full-bleed-hero' | 'minimal-stat';
 
-const ChartLayout = ({ slide, colors, variation = 'default-container', onSelect, selectedId }: { slide: any; colors: any, variation?: ChartVariation; onSelect?: any; selectedId?: string | null }) => {
+const ChartLayout = ({ slide, colors, variation = 'default-container', onSelect, selectedId, showPageNumber }: { slide: any; colors: any, variation?: ChartVariation; onSelect?: any; selectedId?: string | null; showPageNumber?: boolean }) => {
     // Normalization logic
     let chart = slide.chart || slide.content?.chart;
 
@@ -1085,7 +1089,7 @@ const ChartLayout = ({ slide, colors, variation = 'default-container', onSelect,
                 </div>
             </div>
 
-            <SlideFooter title={slide.title} slideNumber={5} colors={colors} />
+            <SlideFooter title={slide.title} slideNumber={5} colors={colors} showPageNumber={showPageNumber} />
         </div>
     );
 };
@@ -1095,7 +1099,7 @@ const ChartLayout = ({ slide, colors, variation = 'default-container', onSelect,
 // Table layout - Multiple variants for different data types
 type TableVariation = 'default' | 'pricing-tiers' | 'data-grid' | 'feature-matrix';
 
-const TableLayout = ({ slide, colors, variation = 'default', onSelect, selectedId }: { slide: any; colors: any, variation?: TableVariation; onSelect?: any; selectedId?: string | null }) => {
+const TableLayout = ({ slide, colors, variation = 'default', onSelect, selectedId, showPageNumber }: { slide: any; colors: any, variation?: TableVariation; onSelect?: any; selectedId?: string | null; showPageNumber?: boolean }) => {
     let table = slide.table || slide.content?.table;
 
     // Determine path prefix for editing
@@ -1466,7 +1470,7 @@ const TableLayout = ({ slide, colors, variation = 'default', onSelect, selectedI
                 )}
             </div>
 
-            <SlideFooter title={slide.title} slideNumber={6} colors={colors} />
+            <SlideFooter title={slide.title} slideNumber={6} colors={colors} showPageNumber={showPageNumber} />
         </div>
     );
 };
@@ -1476,7 +1480,7 @@ const TableLayout = ({ slide, colors, variation = 'default', onSelect, selectedI
 // Timeline layout - Process steps (Variants: default, vertical, zigzag)
 type TimelineVariation = 'horizontal-line' | 'vertical-alternating' | 'connected-cards' | 'stepped-process' | 'minimal-list';
 
-const TimelineLayout = ({ slide, colors, variation = 'horizontal-line', onSelect, selectedId }: { slide: any; colors: any, variation?: TimelineVariation; onSelect?: any; selectedId?: string | null }) => {
+const TimelineLayout = ({ slide, colors, variation = 'horizontal-line', onSelect, selectedId, showPageNumber }: { slide: any; colors: any, variation?: TimelineVariation; onSelect?: any; selectedId?: string | null; showPageNumber?: boolean }) => {
     const timeline = slide.timeline || slide.content?.timeline;
     // Support AI format: content.steps or content.events with {date, event} objects
     let items = timeline?.items || [];
@@ -1556,7 +1560,7 @@ const TimelineLayout = ({ slide, colors, variation = 'horizontal-line', onSelect
                         </div>
                     ))}
                 </div>
-                <SlideFooter title={slide.title} colors={colors} />
+                <SlideFooter title={slide.title} colors={colors} showPageNumber={showPageNumber} />
             </div>
         );
     }
@@ -1826,8 +1830,8 @@ const TimelineLayout = ({ slide, colors, variation = 'horizontal-line', onSelect
 // Comparison layout - Multiple variants
 type ComparisonVariation = 'balanced-split' | 'versus-cards' | 'feature-grid' | 'before-after' | 'pros-cons';
 
-const ComparisonLayout = ({ slide, colors, variation = 'balanced-split', onSelect, selectedId }: { slide: any; colors: any, variation?: ComparisonVariation; onSelect?: any; selectedId?: string | null }) => {
-    console.log(`[ComparisonLayout] Render with variation: ${variation}`);
+const ComparisonLayout = ({ slide, colors, variation = 'balanced-split', onSelect, selectedId, showPageNumber }: { slide: any; colors: any, variation?: ComparisonVariation; onSelect?: any; selectedId?: string | null; showPageNumber?: boolean }) => {
+
     const comparison = slide.comparison || slide.content?.comparison;
     const columns = slide.columns || slide.content?.columns;
 
@@ -1999,7 +2003,7 @@ const ComparisonLayout = ({ slide, colors, variation = 'balanced-split', onSelec
                         )}
                     </div>
                 </div>
-                <SlideFooter title={slide.title} colors={colors} />
+                <SlideFooter title={slide.title} colors={colors} showPageNumber={showPageNumber} />
             </div>
         );
     }
@@ -2077,7 +2081,7 @@ const ComparisonLayout = ({ slide, colors, variation = 'balanced-split', onSelec
                         </div>
                     </div>
                 </div>
-                <SlideFooter title={slide.title} colors={colors} />
+                <SlideFooter title={slide.title} colors={colors} showPageNumber={showPageNumber} />
             </div>
         );
     }
@@ -2239,7 +2243,7 @@ const ComparisonLayout = ({ slide, colors, variation = 'balanced-split', onSelec
                         </ul>
                     </div>
                 </div>
-                <SlideFooter title={slide.title} colors={colors} />
+                <SlideFooter title={slide.title} colors={colors} showPageNumber={showPageNumber} />
             </div>
         );
     }
@@ -2326,7 +2330,7 @@ const ComparisonLayout = ({ slide, colors, variation = 'balanced-split', onSelec
                     </div>
                 </div>
             </div>
-            <SlideFooter title={slide.title} slideNumber={8} colors={colors} />
+            <SlideFooter title={slide.title} slideNumber={8} colors={colors} showPageNumber={showPageNumber} />
         </div>
     );
 };
@@ -2335,7 +2339,7 @@ const ComparisonLayout = ({ slide, colors, variation = 'balanced-split', onSelec
 // Infographic layout - Multiple variants for different flow types
 type InfographicVariation = 'funnel' | 'pyramid' | 'process' | 'cycle-flow' | 'hub-spoke';
 
-const InfographicLayout = ({ slide, colors, variation = 'funnel', onSelect, selectedId }: { slide: any; colors: any, variation?: InfographicVariation; onSelect?: any; selectedId?: string | null }) => {
+const InfographicLayout = ({ slide, colors, variation = 'funnel', onSelect, selectedId, showPageNumber }: { slide: any; colors: any, variation?: InfographicVariation; onSelect?: any; selectedId?: string | null; showPageNumber?: boolean }) => {
     let infographic = slide.infographic || slide.content?.infographic;
 
     // Support AI format: type and steps directly in content
@@ -2360,7 +2364,7 @@ const InfographicLayout = ({ slide, colors, variation = 'funnel', onSelect, sele
     // If variation is passed, we should trust it effectively as ModernSlideRenderer handles the 'smart' selection
     const type = variation || infographic?.type || 'funnel';
 
-    console.log(`[InfographicLayout] Rendering variation: ${type} (prop: ${variation}, internal: ${infographic?.type})`);
+
 
     // --- PATH RESOLUTION ---
     let stepsPath = 'content.infographic.steps';
@@ -2661,7 +2665,7 @@ const InfographicLayout = ({ slide, colors, variation = 'funnel', onSelect, sele
 // Quote layout - Testimonial or key quote with beautiful styling
 type QuoteVariation = 'centered-hero' | 'side-accent' | 'minimal-elegant';
 
-const QuoteLayout = ({ slide, colors, variation = 'centered-hero', onSelect, selectedId }: { slide: any; colors: any; variation?: QuoteVariation; onSelect?: any; selectedId?: string | null }) => {
+const QuoteLayout = ({ slide, colors, variation = 'centered-hero', onSelect, selectedId, showPageNumber }: { slide: any; colors: any; variation?: QuoteVariation; onSelect?: any; selectedId?: string | null; showPageNumber?: boolean }) => {
     const quote = slide.quote || slide.content?.quote;
     const quoteText = quote?.text || slide.content?.text || '';
     const author = quote?.author || '';
@@ -2718,7 +2722,7 @@ const QuoteLayout = ({ slide, colors, variation = 'centered-hero', onSelect, sel
                         </div>
                     </div>
                 </div>
-                <SlideFooter title={slide.title} colors={colors} unsplashPhotographer={slide.unsplashPhotographer} />
+                <SlideFooter title={slide.title} colors={colors} unsplashPhotographer={slide.unsplashPhotographer} showPageNumber={showPageNumber} />
             </div>
         );
     }
@@ -2759,7 +2763,7 @@ const QuoteLayout = ({ slide, colors, variation = 'centered-hero', onSelect, sel
                         )}
                     </div>
                 </div>
-                <SlideFooter title={slide.title} colors={colors} unsplashPhotographer={slide.unsplashPhotographer} />
+                <SlideFooter title={slide.title} colors={colors} unsplashPhotographer={slide.unsplashPhotographer} showPageNumber={showPageNumber} />
             </div>
         );
     }
@@ -2818,7 +2822,7 @@ const QuoteLayout = ({ slide, colors, variation = 'centered-hero', onSelect, sel
                 </div>
             </div>
 
-            <SlideFooter title={slide.title} colors={colors} unsplashPhotographer={slide.unsplashPhotographer} />
+            <SlideFooter title={slide.title} colors={colors} unsplashPhotographer={slide.unsplashPhotographer} showPageNumber={showPageNumber} />
         </div>
     );
 };
@@ -2827,7 +2831,7 @@ const QuoteLayout = ({ slide, colors, variation = 'centered-hero', onSelect, sel
 // Text Heavy Layout - 3 Columns with Visual Variants
 type TextColumnVariation = 'classic' | 'modern-cards' | 'numbered-editorial' | 'side-highlight' | 'vertical-separators' | 'bento-text';
 
-const ThreeColumnTextLayout = ({ slide, colors, variation = 'classic', onSelect, selectedId }: { slide: any; colors: any; variation?: TextColumnVariation; onSelect?: any; selectedId?: string | null }) => {
+const ThreeColumnTextLayout = ({ slide, colors, variation = 'classic', onSelect, selectedId, showPageNumber }: { slide: any; colors: any; variation?: TextColumnVariation; onSelect?: any; selectedId?: string | null; showPageNumber?: boolean }) => {
     // Support AI format: content.columns with {header, body} or {title, text} objects
     let columns: Array<{ title: string; text: string }> = [];
 
@@ -3136,7 +3140,7 @@ const ThreeColumnTextLayout = ({ slide, colors, variation = 'classic', onSelect,
                         </div>
                     ))}
                 </div>
-                <SlideFooter title={slide.title} colors={colors} />
+                <SlideFooter title={slide.title} colors={colors} showPageNumber={showPageNumber} />
             </div>
         );
     }
@@ -3284,7 +3288,7 @@ const ThreeColumnTextLayout = ({ slide, colors, variation = 'classic', onSelect,
                 </div>
             </div>
 
-            <SlideFooter title={slide.title} colors={colors} />
+            <SlideFooter title={slide.title} colors={colors} showPageNumber={showPageNumber} />
         </div >
     );
 };
@@ -3295,7 +3299,7 @@ const ThreeColumnTextLayout = ({ slide, colors, variation = 'classic', onSelect,
 // Image focus layout - Splash screens and gallery views
 type ImageFocusVariation = 'default' | 'text-mask' | 'split-curtain' | 'polaroid-pile';
 
-const ImageFocusLayout = ({ slide, colors, variation = 'default', onSelect, selectedId }: { slide: any; colors: any, variation?: ImageFocusVariation; onSelect?: any; selectedId?: string | null }) => {
+const ImageFocusLayout = ({ slide, colors, variation = 'default', onSelect, selectedId, showPageNumber }: { slide: any; colors: any, variation?: ImageFocusVariation; onSelect?: any; selectedId?: string | null; showPageNumber?: boolean }) => {
     // Basic shared logic
     const imageUrl = slide.backgroundImage && !slide.backgroundImage.includes('placehold') ? slide.backgroundImage :
         (slide.imageSearchQuery ? `https://source.unsplash.com/1600x900/?${encodeURIComponent(slide.imageSearchQuery)}` : null);
@@ -3396,7 +3400,7 @@ const ImageFocusLayout = ({ slide, colors, variation = 'default', onSelect, sele
                         </div>
                     </div>
                 </div>
-                <SlideFooter title={slide.title} colors={colors} unsplashPhotographer={slide.unsplashPhotographer} />
+                <SlideFooter title={slide.title} colors={colors} unsplashPhotographer={slide.unsplashPhotographer} showPageNumber={showPageNumber} />
             </div>
         );
     }
@@ -3512,7 +3516,7 @@ const ImageFocusLayout = ({ slide, colors, variation = 'default', onSelect, sele
                     )}
                 </EditableElement>
             </div>
-            <SlideFooter title={slide.title} colors={colors} unsplashPhotographer={slide.unsplashPhotographer} />
+            <SlideFooter title={slide.title} colors={colors} unsplashPhotographer={slide.unsplashPhotographer} showPageNumber={showPageNumber} />
         </div>
     );
 };
@@ -3521,7 +3525,7 @@ const ImageFocusLayout = ({ slide, colors, variation = 'default', onSelect, sele
 // Section divider layout - Bold typographic transitions
 type SectionVariation = 'default' | 'big-number-outline' | 'minimal-bar' | 'abstract-mesh';
 
-const SectionDividerLayout = ({ slide, colors, variation = 'default', onSelect, selectedId }: { slide: any; colors: any, variation?: SectionVariation; onSelect?: any; selectedId?: string | null }) => {
+const SectionDividerLayout = ({ slide, colors, variation = 'default', onSelect, selectedId, showPageNumber }: { slide: any; colors: any, variation?: SectionVariation; onSelect?: any; selectedId?: string | null; showPageNumber?: boolean }) => {
 
     const sectionIndex = slide.index || 1;
     const paddedIndex = sectionIndex < 10 ? `0${sectionIndex}` : `${sectionIndex}`;
@@ -3653,7 +3657,7 @@ const SectionDividerLayout = ({ slide, colors, variation = 'default', onSelect, 
                         )}
                     </EditableElement>
                 </div>
-                <SlideFooter title={slide.title} colors={colors} unsplashPhotographer={slide.unsplashPhotographer} />
+                <SlideFooter title={slide.title} colors={colors} unsplashPhotographer={slide.unsplashPhotographer} showPageNumber={showPageNumber} />
             </div>
         );
     }
@@ -3681,7 +3685,7 @@ const SectionDividerLayout = ({ slide, colors, variation = 'default', onSelect, 
                     <p className="text-2xl opacity-80">{slide.subtitle}</p>
                 </EditableElement>
             </div>
-            <SlideFooter title={slide.title} colors={colors} unsplashPhotographer={slide.unsplashPhotographer} />
+            <SlideFooter title={slide.title} colors={colors} unsplashPhotographer={slide.unsplashPhotographer} showPageNumber={showPageNumber} />
         </div>
     );
 };
@@ -3690,7 +3694,7 @@ const SectionDividerLayout = ({ slide, colors, variation = 'default', onSelect, 
 // Bento Grid Layout - Modern CSS Grid features
 type BentoVariation = 'default' | 'magazine-grid' | 'feature-focus' | 'asymmetric-masonry';
 
-const BentoGridLayout = ({ slide, colors, variation = 'default', onSelect, selectedId }: { slide: any; colors: any, variation?: BentoVariation; onSelect?: any; selectedId?: string | null }) => {
+const BentoGridLayout = ({ slide, colors, variation = 'default', onSelect, selectedId, showPageNumber }: { slide: any; colors: any, variation?: BentoVariation; onSelect?: any; selectedId?: string | null; showPageNumber?: boolean }) => {
     const items = slide.content?.items || slide.items || [];
     // Ensure we have at least 3 items to look good, max 5 for this specific layout
     const displayItems = items.slice(0, 5);
@@ -4068,7 +4072,7 @@ const BentoGridLayout = ({ slide, colors, variation = 'default', onSelect, selec
                     })}
                 </div>
             </div>
-            <SlideFooter title={slide.title} slideNumber={8} colors={colors} unsplashPhotographer={slide.unsplashPhotographer} />
+            <SlideFooter title={slide.title} slideNumber={8} colors={colors} unsplashPhotographer={slide.unsplashPhotographer} showPageNumber={showPageNumber} />
         </div>
     );
 };
@@ -4076,7 +4080,7 @@ const BentoGridLayout = ({ slide, colors, variation = 'default', onSelect, selec
 // Product Showcase Layout - Tech focused
 type ShowcaseVariation = 'default' | 'lifestyle-split' | 'app-mockup' | 'exploded-view';
 
-const ProductShowcaseLayout = ({ slide, colors, variation = 'default', onSelect, selectedId }: { slide: any; colors: any, variation?: ShowcaseVariation; onSelect?: any; selectedId?: string | null }) => {
+const ProductShowcaseLayout = ({ slide, colors, variation = 'default', onSelect, selectedId, showPageNumber }: { slide: any; colors: any, variation?: ShowcaseVariation; onSelect?: any; selectedId?: string | null; showPageNumber?: boolean }) => {
     const items = slide.content?.items || slide.items || [];
     // Ensure we have an image
     const mainImage = slide.backgroundImage || (slide.imageSearchQuery ? `https://source.unsplash.com/1600x900/?${encodeURIComponent(slide.imageSearchQuery)}` : null);
@@ -4386,7 +4390,7 @@ const ProductShowcaseLayout = ({ slide, colors, variation = 'default', onSelect,
 // Supports: Classic, Split Card, Hero Block, Minimal Offset, Magazine
 type MasterVariation = 'classic' | 'split-card' | 'hero-block' | 'minimal-offset' | 'magazine';
 
-const MasterContentLayout = ({ slide, colors, variation = 'classic', onSelect, selectedId }: { slide: any; colors: any; variation?: MasterVariation; onSelect?: any; selectedId?: string | null }) => {
+const MasterContentLayout = ({ slide, colors, variation = 'classic', onSelect, selectedId, showPageNumber }: { slide: any; colors: any; variation?: MasterVariation; onSelect?: any; selectedId?: string | null; showPageNumber?: boolean }) => {
     // Determine content
     const bullets = slide.bullets || slide.content?.bullets || [];
     const text = slide.text || slide.content?.text || slide.content?.description;
@@ -4522,7 +4526,7 @@ const MasterContentLayout = ({ slide, colors, variation = 'classic', onSelect, s
                         </div>
                     ))}
                 </div>
-                <SlideFooter title={slide.title} slideNumber={3} colors={colors} unsplashPhotographer={slide.unsplashPhotographer} />
+                <SlideFooter title={slide.title} slideNumber={3} colors={colors} unsplashPhotographer={slide.unsplashPhotographer} showPageNumber={showPageNumber} />
             </div>
         );
     }
@@ -4583,7 +4587,7 @@ const MasterContentLayout = ({ slide, colors, variation = 'classic', onSelect, s
                         </div>
                     </div>
                 </div>
-                <SlideFooter title={slide.title} slideNumber={3} colors={colors} unsplashPhotographer={slide.unsplashPhotographer} />
+                <SlideFooter title={slide.title} slideNumber={3} colors={colors} unsplashPhotographer={slide.unsplashPhotographer} showPageNumber={showPageNumber} />
             </div>
         );
     }
@@ -4622,12 +4626,12 @@ const MasterContentLayout = ({ slide, colors, variation = 'classic', onSelect, s
                     ))}
                 </div>
             </div>
-            <SlideFooter title={slide.title} slideNumber={3} colors={colors} unsplashPhotographer={slide.unsplashPhotographer} />
+            <SlideFooter title={slide.title} slideNumber={3} colors={colors} unsplashPhotographer={slide.unsplashPhotographer} showPageNumber={showPageNumber} />
         </div>
     );
 };
 
-const ContentBulletsLayout = ({ slide, colors, onSelect, selectedId }: { slide: any; colors: any; onSelect?: any; selectedId?: string | null }) => {
+const ContentBulletsLayout = ({ slide, colors, onSelect, selectedId, showPageNumber }: { slide: any; colors: any; onSelect?: any; selectedId?: string | null; showPageNumber?: boolean }) => {
     const bullets = slide.bullets || slide.content?.bullets || [];
     return (
         <div className="relative w-full h-full overflow-hidden p-16 flex flex-col justify-center" style={{ backgroundColor: colors.bg }}>
@@ -4668,7 +4672,7 @@ const ContentBulletsLayout = ({ slide, colors, onSelect, selectedId }: { slide: 
                     ))}
                 </ul>
             </div>
-            <SlideFooter title={slide.title} slideNumber={slide.index || 1} colors={colors} unsplashPhotographer={slide.unsplashPhotographer} />
+            <SlideFooter title={slide.title} slideNumber={slide.index || 1} colors={colors} unsplashPhotographer={slide.unsplashPhotographer} showPageNumber={showPageNumber} />
         </div>
     );
 };
@@ -4678,7 +4682,7 @@ const ContentBulletsLayout = ({ slide, colors, onSelect, selectedId }: { slide: 
 // ============================================
 type CoverVariation = 'centered-minimal' | 'full-split' | 'diagonal-hero' | 'typographic-giant' | 'boxed-modern' | 'gradient-mesh' | 'dark-tech' | 'offset-gallery' | 'floating-glass' | 'cinematic';
 
-const MasterCoverLayout = ({ slide, colors, variation = 'centered-minimal', onSelect, selectedId }: { slide: any; colors: any; variation?: CoverVariation; onSelect?: any; selectedId?: string | null }) => {
+const MasterCoverLayout = ({ slide, colors, variation = 'centered-minimal', onSelect, selectedId, showPageNumber }: { slide: any; colors: any; variation?: CoverVariation; onSelect?: any; selectedId?: string | null; showPageNumber?: boolean }) => {
     const subtitle = slide.subtitle || slide.content?.subtitle || slide.title?.split(':')[1] || "";
     const mainTitle = slide.title?.split(':')[0] || slide.title || "Untitled Presentation";
     const bullets = slide.bullets || slide.content?.bullets || [];
@@ -4740,7 +4744,7 @@ const MasterCoverLayout = ({ slide, colors, variation = 'centered-minimal', onSe
                         </div>
                     )}
                 </div>
-                <SlideFooter title="" slideNumber={1} colors={colors} unsplashPhotographer={slide.unsplashPhotographer} />
+                <SlideFooter title="" slideNumber={1} colors={colors} unsplashPhotographer={slide.unsplashPhotographer} showPageNumber={showPageNumber} />
             </div>
         );
     }
@@ -4850,7 +4854,7 @@ const MasterCoverLayout = ({ slide, colors, variation = 'centered-minimal', onSe
                         <img src={imageSrc} className="w-full h-full object-cover" alt="" />
                     </div>
                 )}
-                <SlideFooter title="" slideNumber={1} colors={colors} unsplashPhotographer={slide.unsplashPhotographer} />
+                <SlideFooter title="" slideNumber={1} colors={colors} unsplashPhotographer={slide.unsplashPhotographer} showPageNumber={showPageNumber} />
             </div>
         );
     }
@@ -4881,7 +4885,7 @@ const MasterCoverLayout = ({ slide, colors, variation = 'centered-minimal', onSe
                         <p className="text-3xl font-mono text-right" style={{ color: colors.bg }}>// {subtitle}</p>
                     </EditableElement>
                 </div>
-                <SlideFooter title="" slideNumber={1} colors={colors} unsplashPhotographer={slide.unsplashPhotographer} />
+                <SlideFooter title="" slideNumber={1} colors={colors} unsplashPhotographer={slide.unsplashPhotographer} showPageNumber={showPageNumber} />
             </div>
         );
     }
@@ -4929,7 +4933,7 @@ const MasterCoverLayout = ({ slide, colors, variation = 'centered-minimal', onSe
                         </div>
                     )}
                 </div>
-                <SlideFooter title="" slideNumber={1} colors={colors} unsplashPhotographer={slide.unsplashPhotographer} />
+                <SlideFooter title="" slideNumber={1} colors={colors} unsplashPhotographer={slide.unsplashPhotographer} showPageNumber={showPageNumber} />
             </div>
         );
     }
@@ -4990,7 +4994,7 @@ const MasterCoverLayout = ({ slide, colors, variation = 'centered-minimal', onSe
                         </div>
                     )}
                 </div>
-                <SlideFooter title="" slideNumber={1} colors={colors} unsplashPhotographer={slide.unsplashPhotographer} />
+                <SlideFooter title="" slideNumber={1} colors={colors} unsplashPhotographer={slide.unsplashPhotographer} showPageNumber={showPageNumber} />
             </div>
         );
     }
@@ -5042,7 +5046,7 @@ const MasterCoverLayout = ({ slide, colors, variation = 'centered-minimal', onSe
                 <div className="absolute bottom-10 right-10 flex gap-2">
                     {[1, 2, 3].map(i => <div key={i} className="w-2 h-2 bg-white rounded-full opacity-50" />)}
                 </div>
-                <SlideFooter title="" slideNumber={1} colors={colors} unsplashPhotographer={slide.unsplashPhotographer} />
+                <SlideFooter title="" slideNumber={1} colors={colors} unsplashPhotographer={slide.unsplashPhotographer} showPageNumber={showPageNumber} />
             </div>
         );
     }
@@ -5097,7 +5101,7 @@ const MasterCoverLayout = ({ slide, colors, variation = 'centered-minimal', onSe
                     )}
                 </div>
                 <div className="col-span-4 rounded-3xl opacity-20" style={{ backgroundColor: colors.primary }} />
-                <SlideFooter title="" slideNumber={1} colors={colors} unsplashPhotographer={slide.unsplashPhotographer} />
+                <SlideFooter title="" slideNumber={1} colors={colors} unsplashPhotographer={slide.unsplashPhotographer} showPageNumber={showPageNumber} />
             </div>
         );
     }
@@ -5146,7 +5150,7 @@ const MasterCoverLayout = ({ slide, colors, variation = 'centered-minimal', onSe
                     )}
                     <button className="px-12 py-4 font-bold rounded-full hover:scale-105 transition-transform" style={{ backgroundColor: '#ffffff', color: '#000000' }}>START</button>
                 </div>
-                <SlideFooter title="" slideNumber={1} colors={colors} unsplashPhotographer={slide.unsplashPhotographer} />
+                <SlideFooter title="" slideNumber={1} colors={colors} unsplashPhotographer={slide.unsplashPhotographer} showPageNumber={showPageNumber} />
             </div>
         );
     }
@@ -5196,7 +5200,7 @@ const MasterCoverLayout = ({ slide, colors, variation = 'centered-minimal', onSe
                     </div>
                 )}
             </div>
-            <SlideFooter title="" slideNumber={1} colors={colors} unsplashPhotographer={slide.unsplashPhotographer} />
+            <SlideFooter title="" slideNumber={1} colors={colors} unsplashPhotographer={slide.unsplashPhotographer} showPageNumber={showPageNumber} />
         </div>
     );
 };
@@ -5204,8 +5208,23 @@ const MasterCoverLayout = ({ slide, colors, variation = 'centered-minimal', onSe
 // ============================================
 // MAIN COMPONENT
 // ============================================
-
-export const ModernSlideRenderer = ({ slide, theme, className, colorPalette, fontConfig, onElementSelect, selectedElementId, showWatermark }: SlideRendererProps) => {
+// Main component
+export const ModernSlideRenderer = ({
+    slide,
+    theme = 'modern',
+    className,
+    colorPalette,
+    fontConfig,
+    onElementSelect,
+    selectedElementId,
+    showWatermark,
+    showPageNumber, // This is coming from props as override
+    templateOverlay // Destructure added prop
+}: SlideRendererProps) => {
+    // If templateOverlay config exists, prioritize its setting over the prop
+    const finalShowPageNumber = templateOverlay?.footer?.showPageNumber !== undefined
+        ? templateOverlay.footer.showPageNumber
+        : (showPageNumber ?? true);
     // Get template colors
     const template = getTemplateById(theme);
 
@@ -5230,7 +5249,7 @@ export const ModernSlideRenderer = ({ slide, theme, className, colorPalette, fon
         const getComparisonVariation = (): ComparisonVariation => {
             // 0. Manual Override
             if (slide.variation && ['balanced-split', 'versus-cards', 'feature-grid', 'before-after', 'pros-cons'].includes(slide.variation)) {
-                console.log(`[getComparisonVariation] Using manual variation: ${slide.variation}`);
+
                 return slide.variation as ComparisonVariation;
             }
 
@@ -5298,7 +5317,7 @@ export const ModernSlideRenderer = ({ slide, theme, className, colorPalette, fon
 
         // Debug logging
         const contentKeys = Object.keys(slide.content || {}).filter(k => slide.content[k]);
-        console.log(`[SlideRenderer] Slide: "${slide.title}" | type: "${normalizedType}" | content keys: [${contentKeys.join(', ')}]`);
+
 
         // Smart content detection: check actual data presence before layout matching
         // Support BOTH expected format AND AI's actual output format
@@ -5420,7 +5439,7 @@ export const ModernSlideRenderer = ({ slide, theme, className, colorPalette, fon
                 else if (theme.includes('creative') || theme.includes('marketing'))
                     picked = variations[baseHash % 2 === 0 ? 1 : 3]; // metric-cards or data-progress
             }
-            console.log(`  → Picked stats variation: ${picked}`);
+
             return picked;
         };
 
@@ -5460,7 +5479,7 @@ export const ModernSlideRenderer = ({ slide, theme, className, colorPalette, fon
                 else if (theme.includes('creative') || theme.includes('marketing'))
                     picked = variations[baseHash % 2 === 0 ? 0 : 1]; // horizontal-line or vertical-alternating
             }
-            console.log(`  → Picked timeline variation: ${picked}`);
+
             return picked;
         };
 
@@ -5609,7 +5628,7 @@ export const ModernSlideRenderer = ({ slide, theme, className, colorPalette, fon
 
             const pickedIndex = baseHash % variations.length;
             const finalPick = variations[pickedIndex];
-            console.log(`[SectionVar] ID:${slide.id} Title:${slide.title?.substring(0, 10)}... Theme:${theme} -> Picked:${finalPick} (Rand:${pseudoRandom.toFixed(2)})`);
+
             return finalPick;
         };
 
@@ -5693,58 +5712,58 @@ export const ModernSlideRenderer = ({ slide, theme, className, colorPalette, fon
 
         // PRIORITY 1: Content-based detection (what data actually exists)
         if (hasChart) {
-            console.log('  → Matched: ChartLayout (has chart data)');
+
             return <ChartLayout slide={slide} colors={colors} variation={getChartVariation()} onSelect={onElementSelect} selectedId={selectedElementId} />;
         } else if (hasInfographic) {
-            console.log('  → Matched: InfographicLayout (has infographic data)');
+
             return <InfographicLayout slide={slide} colors={colors} variation={getInfographicVariation()} onSelect={onElementSelect} selectedId={selectedElementId} />;
         } else if (hasTimeline) {
-            console.log('  → Matched: TimelineLayout (has timeline data)');
+
             return <TimelineLayout slide={slide} colors={colors} variation={getTimelineVariation()} onSelect={onElementSelect} selectedId={selectedElementId} />;
         }
         if (hasTable) {
-            console.log('  → Matched: TableLayout (has table data)');
+
             return <TableLayout slide={slide} colors={colors} variation={getTableVariation()} onSelect={onElementSelect} selectedId={selectedElementId} />;
         }
         if (hasComparison) {
-            console.log('  → Matched: ComparisonLayout (has comparison data)');
+
             return <ComparisonLayout slide={slide} colors={colors} variation={getComparisonVariation()} onSelect={onElementSelect} selectedId={selectedElementId} />;
         }
         if (hasStats) {
-            console.log('  → Matched: StatsLayout (has stats data)');
+
             return <StatsLayout slide={slide} colors={colors} variation={getStatsVariation()} onSelect={onElementSelect} selectedId={selectedElementId} />;
         }
         if (hasTextColumns) {
-            console.log('  → Matched: ThreeColumnTextLayout (has columns data)');
+
             return <ThreeColumnTextLayout slide={slide} colors={colors} variation={getMultiColumnVariation()} onSelect={onElementSelect} selectedId={selectedElementId} />;
         }
         if (hasItems && (normalizedType.includes('bento') || normalizedType.includes('grid'))) {
-            console.log('  → Matched: BentoGridLayout (has items + bento/grid type)');
+
             return <BentoGridLayout slide={slide} colors={colors} variation={getBentoVariation()} onSelect={onElementSelect} selectedId={selectedElementId} />;
         }
         const itemsArray = slide.content?.items || [];
         if (hasItems && itemsArray.length >= 3) {
             // Fallback to Bento if has items but not explicitly requested, 30% chance or if type is 'features'
             if (normalizedType.includes('feature') || Math.random() > 0.7) {
-                console.log('  → Matched: BentoGridLayout (smart inference)');
+
                 return <BentoGridLayout slide={slide} colors={colors} variation={getBentoVariation()} onSelect={onElementSelect} selectedId={selectedElementId} />;
             }
         }
         if (hasQuote) {
-            console.log('  → Matched: ThreeColumnTextLayout (was QuoteLargeLayout)');
+
             return <ThreeColumnTextLayout slide={slide} colors={colors} variation={getMultiColumnVariation()} onSelect={onElementSelect} selectedId={selectedElementId} />;
         }
 
         // PRIORITY 2: Layout type string matching (fallback)
         if (normalizedType.includes('showcase') || normalizedType.includes('product')) {
-            console.log('  → Matched: ProductShowcaseLayout (explicit)');
+
             return <ProductShowcaseLayout slide={slide} colors={colors} variation={getShowcaseVariation()} onSelect={onElementSelect} selectedId={selectedElementId} />;
         }
 
         // Smart Injection: If theme is 'tech' or 'product' and has items, use Showcase occasionally
         if ((theme.includes('tech') || theme.includes('product')) && hasItems && itemsArray.length >= 3) {
             if (Math.random() > 0.6) {
-                console.log('  → Matched: ProductShowcaseLayout (smart theme injection)');
+
                 return <ProductShowcaseLayout slide={slide} colors={colors} variation={getShowcaseVariation()} onSelect={onElementSelect} selectedId={selectedElementId} />;
             }
         }
@@ -5754,7 +5773,7 @@ export const ModernSlideRenderer = ({ slide, theme, className, colorPalette, fon
         // STANDARD CONTENT - SMART VARIATION ENGINE
         // Instead of returning generic bullets, pick a variation
         if (normalizedType.includes('content') || normalizedType.includes('bullet') || normalizedType === 'text') {
-            console.log('  → Matched: MasterContentLayout (Smart Variation Engine)');
+
 
             // Use combination of slide index + title for variety but not total randomness
             // FIX: Made deterministic by removing Date.now() and Math.random()
@@ -5798,13 +5817,13 @@ export const ModernSlideRenderer = ({ slide, theme, className, colorPalette, fon
                 }
             }
 
-            console.log(`  → Picked variation: ${picked}`);
+
             return <MasterContentLayout slide={slide} colors={colors} variation={picked} onSelect={onElementSelect} selectedId={selectedElementId} />;
         }
 
         // Cover / Hero layouts
         if (normalizedType.includes('cover') || normalizedType.includes('hero')) {
-            console.log('  → Matched: MasterCoverLayout (Smart Variation Engine)');
+
 
             // Use combination of slide index + title + subtitle for variety
             const salt = (slide.id || slide.title || 'cover') + (slide.subtitle || '');
@@ -5857,32 +5876,32 @@ export const ModernSlideRenderer = ({ slide, theme, className, colorPalette, fon
                 else if (theme.includes('startup')) picked = variations[themeHash % 2 === 0 ? 2 : 4]; // diagonal-hero or boxed-modern
             }
 
-            console.log(`  → Picked cover variation: ${picked}`);
-            return <MasterCoverLayout slide={slide} colors={colors} variation={picked} onSelect={onElementSelect} selectedId={selectedElementId} />;
+
+            return <MasterCoverLayout showPageNumber={finalShowPageNumber} slide={slide} colors={colors} variation={picked} onSelect={onElementSelect} selectedId={selectedElementId} />;
         }
 
         // Section divider
         if (normalizedType.includes('section') || normalizedType.includes('divider')) {
-            console.log('  → Matched: SectionDividerLayout (type contains section/divider)');
-            return <SectionDividerLayout slide={slide} colors={colors} variation={getSectionVariation()} onSelect={onElementSelect} selectedId={selectedElementId} />;
+
+            return <SectionDividerLayout showPageNumber={finalShowPageNumber} slide={slide} colors={colors} variation={getSectionVariation()} onSelect={onElementSelect} selectedId={selectedElementId} />;
         }
 
         // Stats/Metrics by type - STRICT CHECK
         if (normalizedType.includes('stat') || normalizedType.includes('metric') || normalizedType.includes('kpi')) {
             if (hasStats) {
-                console.log('  → Matched: StatsLayout (type match + data verified)');
-                return <StatsLayout slide={slide} colors={colors} variation={getStatsVariation()} onSelect={onElementSelect} selectedId={selectedElementId} />;
+
+                return <StatsLayout showPageNumber={finalShowPageNumber} slide={slide} colors={colors} variation={getStatsVariation()} onSelect={onElementSelect} selectedId={selectedElementId} />;
             }
-            console.log('  → Fallback: Stats layout requested but no data -> transitioning to text layout');
+
         }
 
         // Chart by type - STRICT CHECK: Only if data exists, otherwise fallback to text
         if (normalizedType.includes('chart') || (normalizedType.includes('graph') && !normalizedType.includes('infographic'))) {
             if (hasChart) {
-                console.log('  → Matched: ChartLayout (type match + data verified)');
-                return <ChartLayout slide={slide} colors={colors} variation={getChartVariation()} onSelect={onElementSelect} selectedId={selectedElementId} />;
+
+                return <ChartLayout showPageNumber={finalShowPageNumber} slide={slide} colors={colors} variation={getChartVariation()} onSelect={onElementSelect} selectedId={selectedElementId} />;
             } else {
-                console.log('  → Fallback: Chart type requested but no data -> defaulting to Content/ThreeCol');
+
                 // Fall through to default content handler
             }
         }
@@ -5890,27 +5909,27 @@ export const ModernSlideRenderer = ({ slide, theme, className, colorPalette, fon
         // Timeline/Process by type - STRICT CHECK
         if (normalizedType.includes('timeline') || normalizedType.includes('roadmap') || normalizedType.includes('process')) {
             if (hasTimeline) {
-                console.log('  → Matched: TimelineLayout (type match + data verified)');
-                return <TimelineLayout slide={slide} colors={colors} variation={getTimelineVariation()} onSelect={onElementSelect} selectedId={selectedElementId} />;
+
+                return <TimelineLayout showPageNumber={finalShowPageNumber} slide={slide} colors={colors} variation={getTimelineVariation()} onSelect={onElementSelect} selectedId={selectedElementId} />;
             } else if (hasInfographic) {
-                return <InfographicLayout slide={slide} colors={colors} variation={getInfographicVariation()} onSelect={onElementSelect} selectedId={selectedElementId} />;
+                return <InfographicLayout showPageNumber={finalShowPageNumber} slide={slide} colors={colors} variation={getInfographicVariation()} onSelect={onElementSelect} selectedId={selectedElementId} />;
             }
             // Fallback if no timeline data
-            console.log('  → Fallback: Timeline type requested but no data -> defaulting to Content/ThreeCol');
+
         }
 
         // Comparison - STRICT CHECK
         if (normalizedType.includes('comparison') || normalizedType.includes('versus') || normalizedType.includes('before')) {
             if (hasComparison) {
-                console.log('  → Matched: ComparisonLayout (type match + data verified)');
-                return <ComparisonLayout slide={slide} colors={colors} variation={getComparisonVariation()} onSelect={onElementSelect} selectedId={selectedElementId} />;
+
+                return <ComparisonLayout showPageNumber={finalShowPageNumber} slide={slide} colors={colors} variation={getComparisonVariation()} onSelect={onElementSelect} selectedId={selectedElementId} />;
             }
-            console.log('  → Fallback: Comparison layout requested but no data -> transitioning to text layout');
+
         }
 
         // Infographic
         if (normalizedType.includes('infographic') || normalizedType.includes('funnel') || normalizedType.includes('pyramid')) {
-            console.log('  → Matched: InfographicLayout (type contains infographic/funnel/pyramid)');
+
             return <InfographicLayout slide={slide} colors={colors} variation={getInfographicVariation()} onSelect={onElementSelect} selectedId={selectedElementId} />;
         }
 
@@ -5925,48 +5944,48 @@ export const ModernSlideRenderer = ({ slide, theme, className, colorPalette, fon
                 hash |= 0;
             }
             const quoteVariation = quoteVariations[Math.abs(hash) % quoteVariations.length];
-            console.log(`  → Matched: QuoteLayout (variation: ${quoteVariation})`);
-            return <QuoteLayout slide={slide} colors={colors} variation={quoteVariation} onSelect={onElementSelect} selectedId={selectedElementId} />;
+
+            return <QuoteLayout showPageNumber={finalShowPageNumber} slide={slide} colors={colors} variation={quoteVariation} onSelect={onElementSelect} selectedId={selectedElementId} />;
         }
 
         // Bento grid
         if (normalizedType.includes('bento') || normalizedType.includes('grid') || normalizedType.includes('feature')) {
-            console.log('  → Matched: BentoGridLayout (type contains bento/grid/feature)');
-            return <BentoGridLayout slide={slide} colors={colors} variation={getBentoVariation()} onSelect={onElementSelect} selectedId={selectedElementId} />;
+
+            return <BentoGridLayout showPageNumber={finalShowPageNumber} slide={slide} colors={colors} variation={getBentoVariation()} onSelect={onElementSelect} selectedId={selectedElementId} />;
         }
 
         // Image focus
         if (normalizedType.includes('image') || normalizedType.includes('splash') || normalizedType.includes('full')) {
-            console.log('  → Matched: ImageFocusLayout (type contains image/splash/full)');
-            return <ImageFocusLayout slide={slide} colors={colors} variation={getImageFocusVariation()} onSelect={onElementSelect} selectedId={selectedElementId} />;
+
+            return <ImageFocusLayout showPageNumber={finalShowPageNumber} slide={slide} colors={colors} variation={getImageFocusVariation()} onSelect={onElementSelect} selectedId={selectedElementId} />;
         }
 
         // Text Columns (explicit type match fallback)
         if (normalizedType.includes('text') && normalizedType.includes('column')) {
-            console.log('  → Matched: ThreeColumnTextLayout (explicit text-column type)');
-            return <ThreeColumnTextLayout slide={slide} colors={colors} variation={getMultiColumnVariation()} onSelect={onElementSelect} selectedId={selectedElementId} />;
+
+            return <ThreeColumnTextLayout showPageNumber={finalShowPageNumber} slide={slide} colors={colors} variation={getMultiColumnVariation()} onSelect={onElementSelect} selectedId={selectedElementId} />;
         }
 
         // Columns layout (legacy support) - Strict exclusion of text-columns
         if (normalizedType.includes('column') && !normalizedType.includes('text')) {
-            console.log('  → Matched: ComparisonLayout (type contains column - legacy)');
+
             return <ComparisonLayout slide={slide} colors={colors} variation={getComparisonVariation()} onSelect={onElementSelect} selectedId={selectedElementId} />;
         }
 
         // Bento fallback for items
         if (hasItems) {
-            console.log('  → Matched: BentoGridLayout (has items data, fallback)');
-            return <BentoGridLayout slide={slide} colors={colors} variation={getBentoVariation()} onSelect={onElementSelect} selectedId={selectedElementId} />;
+
+            return <BentoGridLayout showPageNumber={finalShowPageNumber} slide={slide} colors={colors} variation={getBentoVariation()} onSelect={onElementSelect} selectedId={selectedElementId} />;
         }
 
         // Default: Content with bullets
-        console.log('  → Matched: ContentBulletsLayout (default fallback)');
-        return <ContentBulletsLayout slide={slide} colors={colors} onSelect={onElementSelect} selectedId={selectedElementId} />;
+
+        return <ContentBulletsLayout showPageNumber={finalShowPageNumber} slide={slide} colors={colors} onSelect={onElementSelect} selectedId={selectedElementId} />;
     };
 
     return (
         <div
-            className={cn("w-full h-full", className)}
+            className={cn("w-full h-full relative overflow-hidden", className)}
             style={{
                 backgroundColor: colors.bg,
                 color: colors.text,

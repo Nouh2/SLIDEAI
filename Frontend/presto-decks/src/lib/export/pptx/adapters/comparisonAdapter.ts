@@ -1,8 +1,9 @@
 // src/lib/export/pptx/adapters/comparisonAdapter.ts
-// Adapter for comparison/vs slides
+// Adapter for comparison/vs slides - Matches frontend ComparisonLayout
 
 import pptxgen from 'pptxgenjs';
-import { LayoutAdapter, SlideData, ColorPalette, toHex, SLIDE_WIDTH, SLIDE_HEIGHT } from '../types';
+import { LayoutAdapter, SlideData, ColorPalette, toHex } from '../types';
+import { LAYOUT, SLIDE, addGradientBackground, addSlideFooter, getFontSize } from '../layoutTokens';
 
 export const comparisonAdapter: LayoutAdapter = {
     canHandle: (slide: SlideData) => {
@@ -18,17 +19,17 @@ export const comparisonAdapter: LayoutAdapter = {
     },
 
     render: async (slide, pptxSlide, colors, pptx) => {
-        // Background
-        pptxSlide.background = { color: toHex(colors.bg) };
+        // Add gradient background
+        addGradientBackground(pptxSlide, colors, toHex);
 
         // Title
         if (slide.title) {
             pptxSlide.addText(slide.title, {
-                x: 0.5,
-                y: 0.3,
-                w: SLIDE_WIDTH - 1,
-                h: 0.7,
-                fontSize: 28,
+                x: LAYOUT.margin.px12,
+                y: LAYOUT.comparison.title.y,
+                w: SLIDE.WIDTH - (LAYOUT.margin.px12 * 2),
+                h: 0.8,
+                fontSize: LAYOUT.comparison.title.fontSize,
                 bold: true,
                 fontFace: 'Arial',
                 color: toHex(colors.text),
@@ -48,37 +49,45 @@ export const comparisonAdapter: LayoutAdapter = {
             points: comparison?.right?.points || comparison?.rightPoints || columns?.[1]?.bullets || [],
         };
 
-        const halfWidth = (SLIDE_WIDTH - 2) / 2 - 0.3;
-        const startY = 1.2;
-        const cardHeight = SLIDE_HEIGHT - startY - 0.6;
+        // Calculate dimensions
+        const marginX = LAYOUT.margin.px16;
+        const gapBetween = LAYOUT.comparison.columns.gap;
+        const halfWidth = (SLIDE.WIDTH - (marginX * 2) - gapBetween) / 2;
+        const startY = 1.4;
+        const cardHeight = SLIDE.HEIGHT - startY - LAYOUT.footer.height - 0.3;
 
-        // Left side card
+        // ==================
+        // LEFT SIDE
+        // ==================
+        const leftX = marginX;
+
+        // Left card background
         pptxSlide.addShape('roundRect', {
-            x: 0.5,
+            x: leftX,
             y: startY,
             w: halfWidth,
             h: cardHeight,
-            fill: { color: toHex(colors.bg) },
+            fill: { color: toHex(colors.bg), transparency: 70 },
             line: { color: toHex(colors.primary), width: 2 },
-            rectRadius: 0.1,
+            rectRadius: LAYOUT.radius['2xl'],
         });
 
-        // Left header bar
+        // Left header bar (rounded top)
         pptxSlide.addShape('rect', {
-            x: 0.5,
+            x: leftX,
             y: startY,
             w: halfWidth,
-            h: 0.6,
+            h: 0.7,
             fill: { color: toHex(colors.primary) },
         });
 
         // Left title
         pptxSlide.addText(left.title, {
-            x: 0.5,
-            y: startY,
+            x: leftX,
+            y: startY + 0.05,
             w: halfWidth,
             h: 0.6,
-            fontSize: 18,
+            fontSize: LAYOUT.comparison.columns.headerSize,
             bold: true,
             fontFace: 'Arial',
             color: 'FFFFFF',
@@ -91,34 +100,39 @@ export const comparisonAdapter: LayoutAdapter = {
             pptxSlide.addText(
                 left.points.map((p: string) => ({
                     text: p,
-                    options: { bullet: { type: 'bullet', color: toHex(colors.primary) } },
+                    options: {
+                        bullet: { type: 'bullet' as const, color: toHex(colors.primary) },
+                        paraSpaceAfter: 8,
+                    },
                 })),
                 {
-                    x: 0.7,
-                    y: startY + 0.8,
-                    w: halfWidth - 0.4,
-                    h: cardHeight - 1,
-                    fontSize: 13,
+                    x: leftX + 0.3,
+                    y: startY + 0.9,
+                    w: halfWidth - 0.6,
+                    h: cardHeight - 1.2,
+                    fontSize: LAYOUT.comparison.columns.pointSize,
                     fontFace: 'Arial',
                     color: toHex(colors.text),
                     valign: 'top',
-                    paraSpaceAfter: 6,
+                    lineSpacingMultiple: 1.2,
                 }
             );
         }
 
-        // Right side
-        const rightX = 0.5 + halfWidth + 0.6;
+        // ==================
+        // RIGHT SIDE
+        // ==================
+        const rightX = marginX + halfWidth + gapBetween;
 
-        // Right side card
+        // Right card background
         pptxSlide.addShape('roundRect', {
             x: rightX,
             y: startY,
             w: halfWidth,
             h: cardHeight,
-            fill: { color: toHex(colors.bg) },
+            fill: { color: toHex(colors.bg), transparency: 70 },
             line: { color: toHex(colors.secondary), width: 2 },
-            rectRadius: 0.1,
+            rectRadius: LAYOUT.radius['2xl'],
         });
 
         // Right header bar
@@ -126,17 +140,17 @@ export const comparisonAdapter: LayoutAdapter = {
             x: rightX,
             y: startY,
             w: halfWidth,
-            h: 0.6,
+            h: 0.7,
             fill: { color: toHex(colors.secondary) },
         });
 
         // Right title
         pptxSlide.addText(right.title, {
             x: rightX,
-            y: startY,
+            y: startY + 0.05,
             w: halfWidth,
             h: 0.6,
-            fontSize: 18,
+            fontSize: LAYOUT.comparison.columns.headerSize,
             bold: true,
             fontFace: 'Arial',
             color: 'FFFFFF',
@@ -149,45 +163,64 @@ export const comparisonAdapter: LayoutAdapter = {
             pptxSlide.addText(
                 right.points.map((p: string) => ({
                     text: p,
-                    options: { bullet: { type: 'bullet', color: toHex(colors.secondary) } },
+                    options: {
+                        bullet: { type: 'bullet' as const, color: toHex(colors.secondary) },
+                        paraSpaceAfter: 8,
+                    },
                 })),
                 {
-                    x: rightX + 0.2,
-                    y: startY + 0.8,
-                    w: halfWidth - 0.4,
-                    h: cardHeight - 1,
-                    fontSize: 13,
+                    x: rightX + 0.3,
+                    y: startY + 0.9,
+                    w: halfWidth - 0.6,
+                    h: cardHeight - 1.2,
+                    fontSize: LAYOUT.comparison.columns.pointSize,
                     fontFace: 'Arial',
                     color: toHex(colors.text),
                     valign: 'top',
-                    paraSpaceAfter: 6,
+                    lineSpacingMultiple: 1.2,
                 }
             );
         }
 
-        // VS badge in center
-        const centerX = SLIDE_WIDTH / 2 - 0.35;
-        const centerY = startY + 0.1;
+        // VS Badge in center
+        const centerX = SLIDE.WIDTH / 2 - 0.4;
+        const centerY = startY + 0.08;
 
         pptxSlide.addShape('ellipse', {
             x: centerX,
             y: centerY,
-            w: 0.7,
-            h: 0.7,
+            w: 0.8,
+            h: 0.8,
             fill: { color: toHex(colors.accent) },
+            shadow: {
+                type: 'outer',
+                blur: 6,
+                offset: 2,
+                angle: 45,
+                color: '000000',
+                opacity: 0.2,
+            },
         });
 
         pptxSlide.addText('VS', {
             x: centerX,
             y: centerY,
-            w: 0.7,
-            h: 0.7,
-            fontSize: 12,
+            w: 0.8,
+            h: 0.8,
+            fontSize: 14,
             bold: true,
             fontFace: 'Arial',
             color: 'FFFFFF',
             align: 'center',
             valign: 'middle',
+        });
+
+        // Footer
+        addSlideFooter(pptxSlide, {
+            title: slide.title,
+            colors,
+            toHex,
+            showPageNumber: true,
         });
     },
 };

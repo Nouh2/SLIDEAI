@@ -1,8 +1,9 @@
 // src/lib/export/pptx/adapters/sectionAdapter.ts
-// Adapter for section divider slides
+// Adapter for section divider slides - Matches frontend SectionDividerLayout
 
 import pptxgen from 'pptxgenjs';
-import { LayoutAdapter, SlideData, ColorPalette, toHex, SLIDE_WIDTH, SLIDE_HEIGHT } from '../types';
+import { LayoutAdapter, SlideData, ColorPalette, toHex } from '../types';
+import { LAYOUT, SLIDE, addSlideFooter } from '../layoutTokens';
 
 export const sectionAdapter: LayoutAdapter = {
     canHandle: (slide: SlideData) => {
@@ -11,59 +12,82 @@ export const sectionAdapter: LayoutAdapter = {
     },
 
     render: async (slide, pptxSlide, colors, pptx) => {
-        // Full primary color background
+        // Full primary color background (matches frontend primary bg)
         pptxSlide.background = { color: toHex(colors.primary) };
 
-        // Large section number or decorative element
+        // Add subtle texture pattern
+        pptxSlide.addShape('rect', {
+            x: 0,
+            y: 0,
+            w: SLIDE.WIDTH,
+            h: SLIDE.HEIGHT,
+            fill: { color: '000000', transparency: 95 },
+        });
+
+        // Large section number if available (matches frontend 3D-style number)
         const sectionNum = slide.content?.sectionNumber || '';
         if (sectionNum) {
             pptxSlide.addText(String(sectionNum), {
-                x: 0.5,
-                y: 0.5,
-                w: 3,
-                h: 2,
-                fontSize: 100,
+                x: SLIDE.WIDTH * 0.05,
+                y: SLIDE.HEIGHT * 0.08,
+                w: SLIDE.WIDTH * 0.3,
+                h: SLIDE.HEIGHT * 0.35,
+                fontSize: 120,
                 bold: true,
                 fontFace: 'Arial',
                 color: 'FFFFFF',
+                transparency: 20,
             });
         }
 
-        // Decorative line
+        // Decorative accent line (centered, before title)
+        const accentW = SLIDE.WIDTH * 0.12;
         pptxSlide.addShape('rect', {
-            x: 1,
-            y: 3.2,
-            w: 2,
-            h: 0.08,
+            x: (SLIDE.WIDTH - accentW) / 2,
+            y: LAYOUT.section.title.y - 0.25,
+            w: accentW,
+            h: 0.06,
             fill: { color: 'FFFFFF' },
         });
 
-        // Title
+        // Title - Large and centered
         const title = slide.title || 'Section';
         pptxSlide.addText(title, {
-            x: 1,
-            y: 3.5,
-            w: SLIDE_WIDTH - 2,
-            h: 1.5,
-            fontSize: 48,
+            x: SLIDE.WIDTH * 0.1,
+            y: LAYOUT.section.title.y,
+            w: SLIDE.WIDTH * 0.8,
+            h: 1.2,
+            fontSize: LAYOUT.section.title.fontSize,
             bold: true,
             fontFace: 'Arial',
             color: 'FFFFFF',
-            valign: 'top',
+            align: 'center',
+            valign: 'middle',
         });
 
-        // Subtitle
+        // Subtitle if present
         const subtitle = slide.subtitle || slide.content?.subtitle;
         if (subtitle) {
             pptxSlide.addText(subtitle, {
-                x: 1,
-                y: 5,
-                w: SLIDE_WIDTH - 2,
+                x: SLIDE.WIDTH * 0.15,
+                y: LAYOUT.section.subtitle.y,
+                w: SLIDE.WIDTH * 0.7,
                 h: 0.8,
-                fontSize: 22,
+                fontSize: LAYOUT.section.subtitle.fontSize,
                 fontFace: 'Arial',
                 color: 'FFFFFF',
+                transparency: 20,
+                align: 'center',
+                valign: 'middle',
             });
         }
+
+        // Footer (optional - some section slides skip it)
+        addSlideFooter(pptxSlide, {
+            title: slide.title,
+            colors: { ...colors, text: '#FFFFFF', primary: '#FFFFFF' },
+            toHex,
+            showPageNumber: false,
+        });
     },
 };

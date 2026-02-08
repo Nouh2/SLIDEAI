@@ -1,8 +1,9 @@
 // src/lib/export/pptx/adapters/statsAdapter.ts
-// Adapter for stats/metrics slides
+// Adapter for stats/metrics slides - Matches frontend StatsLayout component
 
 import pptxgen from 'pptxgenjs';
-import { LayoutAdapter, SlideData, ColorPalette, toHex, SLIDE_WIDTH, SLIDE_HEIGHT } from '../types';
+import { LayoutAdapter, SlideData, ColorPalette, toHex } from '../types';
+import { LAYOUT, SLIDE, addGradientBackground, addSlideFooter } from '../layoutTokens';
 
 export const statsAdapter: LayoutAdapter = {
     canHandle: (slide: SlideData) => {
@@ -17,57 +18,82 @@ export const statsAdapter: LayoutAdapter = {
     },
 
     render: async (slide, pptxSlide, colors, pptx) => {
-        // Background
-        pptxSlide.background = { color: toHex(colors.bg) };
+        // Add gradient background (matches AbstractShapes)
+        addGradientBackground(pptxSlide, colors, toHex);
+
+        // Background image if available (subtle overlay)
+        if (slide.backgroundImage || slide.imageSearchQuery) {
+            try {
+                if (slide.backgroundImage) {
+                    pptxSlide.addImage({
+                        path: slide.backgroundImage,
+                        x: 0, y: 0,
+                        w: SLIDE.WIDTH, h: SLIDE.HEIGHT,
+                        sizing: { type: 'cover', w: SLIDE.WIDTH, h: SLIDE.HEIGHT },
+                    });
+                }
+                // Overlay
+                pptxSlide.addShape('rect', {
+                    x: 0, y: 0, w: SLIDE.WIDTH, h: SLIDE.HEIGHT,
+                    fill: { color: toHex(colors.bg), transparency: 10 },
+                });
+            } catch (e) { /* ignore */ }
+        }
 
         // Get stats data
         const stats = slide.stats || slide.metrics || slide.content?.stats || slide.content?.statistics || [];
+        const displayStats = stats.slice(0, 4);
+        const statCount = displayStats.length;
 
-        // Title
+        // Title - Centered at top (matches text-6xl/7xl font-bold)
         if (slide.title) {
             pptxSlide.addText(slide.title, {
-                x: 0.5,
-                y: 0.4,
-                w: SLIDE_WIDTH - 1,
-                h: 0.8,
-                fontSize: 32,
+                x: LAYOUT.stats.title.x,
+                y: LAYOUT.stats.title.y,
+                w: LAYOUT.stats.title.w,
+                h: LAYOUT.stats.title.h,
+                fontSize: LAYOUT.stats.title.fontSize,
                 bold: true,
                 fontFace: 'Arial',
                 color: toHex(colors.text),
-                align: 'center',
+                align: LAYOUT.stats.title.align,
             });
         }
 
-        // Stats grid (up to 4)
-        const displayStats = stats.slice(0, 4);
-        const cardWidth = 2.8;
-        const cardHeight = 2.2;
-        const gap = 0.3;
-        const totalWidth = displayStats.length * cardWidth + (displayStats.length - 1) * gap;
-        const startX = (SLIDE_WIDTH - totalWidth) / 2;
-        const startY = 1.8;
+        // Stats cards grid (matches flex-1 flex flex-wrap gap-8)
+        const gridY = LAYOUT.stats.grid.startY;
+        const cardH = LAYOUT.stats.grid.cardHeight;
 
         displayStats.forEach((stat: any, i: number) => {
-            const x = startX + i * (cardWidth + gap);
+            const { x, w } = LAYOUT.stats.getCardLayout(statCount, i);
 
-            // Card background with border
+            // Card background with rounded corners (matches rounded-[40px] bg-surface/40)
             pptxSlide.addShape('roundRect', {
                 x: x,
-                y: startY,
-                w: cardWidth,
-                h: cardHeight,
-                fill: { color: toHex(colors.bg) },
-                line: { color: toHex(colors.primary), width: 2 },
-                rectRadius: 0.1,
+                y: gridY,
+                w: w,
+                h: cardH,
+                fill: { color: toHex(colors.bg), transparency: 60 },
+                line: { color: toHex(colors.text), transparency: 80, width: 0.75 },
+                rectRadius: LAYOUT.stats.grid.cardRadius,
+                shadow: {
+                    type: 'outer',
+                    blur: 8,
+                    offset: 4,
+                    angle: 45,
+                    color: toHex(colors.primary),
+                    opacity: 0.1,
+                },
             });
 
-            // Stat value
-            pptxSlide.addText(String(stat.value || stat.number || '0'), {
+            // Stat value (matches text-5xl/6xl font-bold, primary color)
+            const value = String(stat.value || stat.number || '0');
+            pptxSlide.addText(value, {
                 x: x,
-                y: startY + 0.4,
-                w: cardWidth,
-                h: 1,
-                fontSize: 36,
+                y: gridY + cardH * 0.25,
+                w: w,
+                h: cardH * 0.35,
+                fontSize: LAYOUT.stats.grid.valueSize,
                 bold: true,
                 fontFace: 'Arial',
                 color: toHex(colors.primary),
@@ -75,15 +101,17 @@ export const statsAdapter: LayoutAdapter = {
                 valign: 'middle',
             });
 
-            // Stat label
-            pptxSlide.addText(String(stat.label || stat.title || 'Metric'), {
+            // Stat label (matches text-xl opacity-80)
+            const label = String(stat.label || stat.title || 'Metric');
+            pptxSlide.addText(label, {
                 x: x + 0.2,
-                y: startY + 1.5,
-                w: cardWidth - 0.4,
-                h: 0.6,
-                fontSize: 12,
+                y: gridY + cardH * 0.65,
+                w: w - 0.4,
+                h: cardH * 0.25,
+                fontSize: LAYOUT.stats.grid.labelSize,
                 fontFace: 'Arial',
                 color: toHex(colors.text),
+                transparency: 20,
                 align: 'center',
                 valign: 'top',
             });
@@ -93,15 +121,24 @@ export const statsAdapter: LayoutAdapter = {
         const description = slide.content?.description || slide.content?.text;
         if (description) {
             pptxSlide.addText(description, {
-                x: 1,
-                y: 4.5,
-                w: SLIDE_WIDTH - 2,
-                h: 1,
+                x: SLIDE.WIDTH * 0.1,
+                y: gridY + cardH + 0.4,
+                w: SLIDE.WIDTH * 0.8,
+                h: 0.8,
                 fontSize: 14,
                 fontFace: 'Arial',
                 color: toHex(colors.text),
+                transparency: 40,
                 align: 'center',
             });
         }
+
+        // Footer
+        addSlideFooter(pptxSlide, {
+            title: slide.title,
+            colors,
+            toHex,
+            showPageNumber: true,
+        });
     },
 };

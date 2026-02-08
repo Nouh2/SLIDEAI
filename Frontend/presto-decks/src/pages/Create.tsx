@@ -7,9 +7,11 @@ import { Sparkles, Wand2, ArrowRight, Zap, Paperclip, FileText, X, Loader2, Chev
 
 import { Slider } from "@/components/ui/slider";
 import { useToast } from "@/hooks/use-toast";
-import { api } from "@/lib/api";
+import { api, ParseDocumentResponse, BrandKit } from "@/lib/api";
 import { motion, AnimatePresence } from "framer-motion";
 import { TemplateSelector } from "@/components/create/TemplateSelector";
+import { DocumentStructureStep } from "@/components/create/DocumentStructureStep";
+import { BrandKitSelector } from "@/components/brand/BrandKitSelector";
 import { getTemplateById } from "@/data/slideTemplates";
 import { projectService } from "@/lib/projects";
 import { supabase } from "@/contexts/AuthContext";
@@ -18,8 +20,9 @@ import { Analytics, ANALYTICS_EVENTS } from "@/lib/analytics";
 
 
 
+
 export default function Create() {
-    const [step, setStep] = useState<'template' | 'customize'>("template");
+    const [step, setStep] = useState<'template' | 'customize' | 'document-structure'>("template");
     const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
     const [vision, setVision] = useState("");
     const { t, i18n } = useTranslation();
@@ -29,16 +32,21 @@ export default function Create() {
     const [slides, setSlides] = useState([10]);
     const [isGenerating, setIsGenerating] = useState(false);
     const [isUploading, setIsUploading] = useState(false);
+    const [isParsing, setIsParsing] = useState(false);
     const [attachedFile, setAttachedFile] = useState<File | null>(null);
 
+    // Smart Report Parsing state
+    const [parsedDocument, setParsedDocument] = useState<ParseDocumentResponse | null>(null);
+    const [parseToken, setParseToken] = useState<string | null>(null);
 
     const [isDragging, setIsDragging] = useState(false);
     const [showOutOfCreditsModal, setShowOutOfCreditsModal] = useState(false);
+    const [selectedBrandKit, setSelectedBrandKit] = useState<BrandKit | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const navigate = useNavigate();
     const { toast } = useToast();
 
-    const processFile = (file: File) => {
+    const processFile = async (file: File) => {
         // Limit file size to 10MB
         if (file.size > 10 * 1024 * 1024) {
             toast({
@@ -50,10 +58,50 @@ export default function Create() {
         }
 
         setAttachedFile(file);
-        toast({
-            title: t('create.fileAdded'),
-            description: t('create.fileAddedMsg'),
-        });
+
+        // For PDF/DOCX files, try to parse structure for Smart Report feature
+        const fname = file.name.toLowerCase();
+        if (fname.endsWith('.pdf') || fname.endsWith('.docx')) {
+            try {
+                setIsParsing(true);
+                const { data: { session } } = await supabase.auth.getSession();
+                if (!session) {
+                    toast({ title: t('create.sessionExpired'), variant: "destructive" });
+                    return;
+                }
+
+                const result = await api.parseDocument(file, session.access_token);
+                if (result.success && result.document && result.document.sections.length > 1) {
+                    // Document has structure - offer section selection
+                    setParsedDocument(result);
+                    setParseToken(result.parseToken || null);
+                    toast({
+                        title: "Structure détectée",
+                        description: `${result.document.sections.length} chapitres trouvés. Vous pouvez sélectionner lesquels inclure.`,
+                    });
+                } else {
+                    // No structure or single section - proceed normally
+                    toast({
+                        title: t('create.fileAdded'),
+                        description: t('create.fileAddedMsg'),
+                    });
+                }
+            } catch (e: any) {
+                console.error('Parse error:', e);
+                // Continue without structure - fallback to normal flow
+                toast({
+                    title: t('create.fileAdded'),
+                    description: t('create.fileAddedMsg'),
+                });
+            } finally {
+                setIsParsing(false);
+            }
+        } else {
+            toast({
+                title: t('create.fileAdded'),
+                description: t('create.fileAddedMsg'),
+            });
+        }
 
         if (fileInputRef.current) fileInputRef.current.value = "";
     };
@@ -80,6 +128,81 @@ export default function Create() {
         const file = e.dataTransfer.files?.[0];
         if (file) {
             processFile(file);
+        }
+    };
+
+    // Smart Report: Generate from selected sections
+    const handleGenerateFromSections = async (selection: {
+        sectionIds: string[];
+        sectionVisuals: Record<string, 'image' | 'chart-bar' | 'chart-pie' | 'chart-line' | 'text-only'>;
+        structurePrompt: string; // NEW: Receive the plan instruction
+        totalSlides: number; // NEW: Received from Smart Plan
+    }) => {
+        if (!parseToken) return;
+
+        try {
+            setIsGenerating(true);
+            Analytics.trackEvent(ANALYTICS_EVENTS.PRESENTATION.CATEGORY, ANALYTICS_EVENTS.PRESENTATION.GENERATE_START);
+
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!session) {
+                toast({ title: t('create.sessionExpired'), variant: "destructive" });
+                navigate("/auth");
+                return;
+            }
+
+            const template = selectedTemplate ? getTemplateById(selectedTemplate) : null;
+
+            // INJECTED PROMPT: Original Vision + The Strict Plan
+            const prompt = (vision.trim() || `Générer une présentation à partir du document "${parsedDocument?.document?.title}"`)
+                + selection.structurePrompt;
+
+            const data = await api.generateFromSections(
+                {
+                    prompt,
+                    parseToken,
+                    sectionIds: selection.sectionIds,
+                    sectionVisuals: selection.sectionVisuals,
+                    language: contentLanguage,
+                    theme: template?.id,
+                    slideCount: selection.totalSlides, // USE SMART PLAN COUNT
+                    // Brand kit integration
+                    brandColors: selectedBrandKit?.colors,
+                    brandFonts: selectedBrandKit?.fonts,
+                    brandLogoUrl: selectedBrandKit?.logo_url,
+                    templateOverlay: selectedBrandKit?.template_overlay,
+                },
+                session.access_token
+            );
+
+            const traceId = data.traceId;
+
+            projectService.add({
+                id: traceId,
+                title: parsedDocument?.document?.title || "Présentation",
+                prompt,
+                slides: new Array(selection.totalSlides).fill({}), // USE SMART PLAN COUNT
+                theme: template ? { id: template.id, name: template.name } : "modern",
+                createdAt: new Date().toISOString().split('T')[0],
+                usage: 0,
+            });
+
+            toast({
+                title: t('create.generationStarted'),
+                description: t('create.redirecting'),
+            });
+
+            navigate(`/editor/${traceId}`);
+            Analytics.trackEvent(ANALYTICS_EVENTS.PRESENTATION.CATEGORY, ANALYTICS_EVENTS.PRESENTATION.GENERATE_COMPLETE);
+        } catch (e: any) {
+            const errorMessage = e?.message ?? "Impossible de lancer la génération";
+            if (errorMessage.includes("limite") || errorMessage.includes("crédit") || e?.status === 403) {
+                setShowOutOfCreditsModal(true);
+            } else {
+                toast({ title: "Erreur", description: errorMessage, variant: "destructive" });
+            }
+        } finally {
+            setIsGenerating(false);
         }
     };
 
@@ -125,8 +248,13 @@ export default function Create() {
                 length: "medium",
                 slideCount: slides[0],
                 theme: template?.id,
-                file: attachedFile || undefined, // Pass file for RAG extraction
-                accessToken: session.access_token, // Pass auth token
+                file: attachedFile || undefined,
+                accessToken: session.access_token,
+                // Brand kit integration
+                brandColors: selectedBrandKit?.colors,
+                brandFonts: selectedBrandKit?.fonts,
+                brandLogoUrl: selectedBrandKit?.logo_url,
+                templateOverlay: selectedBrandKit?.template_overlay,
             });
 
             const traceId = data.traceId;
@@ -194,7 +322,47 @@ export default function Create() {
                 </div>
 
                 <AnimatePresence mode="wait">
-                    {step === 'template' ? (
+                    {step === 'document-structure' && parsedDocument?.document ? (
+                        <motion.div
+                            key="document-structure"
+                            initial={{ opacity: 0, x: 20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: -20 }}
+                            className="space-y-6"
+                        >
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => {
+                                    setStep('customize');
+                                    setParsedDocument(null);
+                                    setParseToken(null);
+                                }}
+                                className="gap-2"
+                            >
+                                <ChevronLeft className="h-4 w-4" />
+                                Retour
+                            </Button>
+
+                            <div className="text-center space-y-2">
+                                <h2 className="text-2xl font-bold">Configurer la génération</h2>
+                                <p className="text-muted-foreground">
+                                    Sélectionnez les chapitres à inclure et le type de visuel pour chaque section
+                                </p>
+                            </div>
+
+                            <DocumentStructureStep
+                                document={parsedDocument.document}
+                                onConfirm={handleGenerateFromSections}
+                                onCancel={() => {
+                                    setStep('customize');
+                                    setParsedDocument(null);
+                                    setParseToken(null);
+                                }}
+                                isGenerating={isGenerating}
+                            />
+                        </motion.div>
+                    ) : step === 'template' ? (
                         <motion.div
                             key="template"
                             initial={{ opacity: 0, x: -20 }}
@@ -315,12 +483,33 @@ export default function Create() {
                                                                     <span className="text-xs text-muted-foreground">{(attachedFile.size / 1024).toFixed(0)} KB</span>
                                                                 </div>
                                                             </div>
-                                                            <button
-                                                                onClick={() => setAttachedFile(null)}
-                                                                className="text-muted-foreground hover:text-destructive transition-colors p-1 hover:bg-destructive/10 rounded-full"
-                                                            >
-                                                                <X className="w-4 h-4" />
-                                                            </button>
+                                                            <div className="flex items-center gap-2">
+                                                                {/* Button to configure chapters if document was parsed */}
+                                                                {parsedDocument?.document && parsedDocument.document.sections.length > 1 && (
+                                                                    <Button
+                                                                        size="sm"
+                                                                        variant="outline"
+                                                                        onClick={() => setStep('document-structure')}
+                                                                        className="text-xs h-7 px-2"
+                                                                    >
+                                                                        <FileText className="w-3 h-3 mr-1" />
+                                                                        {parsedDocument.document.sections.length} chapitres
+                                                                    </Button>
+                                                                )}
+                                                                {isParsing && (
+                                                                    <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
+                                                                )}
+                                                                <button
+                                                                    onClick={() => {
+                                                                        setAttachedFile(null);
+                                                                        setParsedDocument(null);
+                                                                        setParseToken(null);
+                                                                    }}
+                                                                    className="text-muted-foreground hover:text-destructive transition-colors p-1 hover:bg-destructive/10 rounded-full"
+                                                                >
+                                                                    <X className="w-4 h-4" />
+                                                                </button>
+                                                            </div>
                                                         </motion.div>
                                                     )}
                                                 </AnimatePresence>
@@ -375,21 +564,23 @@ export default function Create() {
                                                         </div>
                                                     </div>
 
-                                                    {/* Slider moves here */}
-                                                    <div className="space-y-3 px-1">
-                                                        <div className="flex justify-between items-center">
-                                                            <label className="text-xs font-medium text-muted-foreground">{t('create.slideCount')}</label>
-                                                            <span className="text-xs font-mono bg-muted px-2 py-0.5 rounded text-foreground">{slides[0]}</span>
+                                                    {/* Slider moves here - HIDDEN if document is attached (Smart Plan handles it) */}
+                                                    {!parsedDocument && (
+                                                        <div className="space-y-3 px-1">
+                                                            <div className="flex justify-between items-center">
+                                                                <label className="text-xs font-medium text-muted-foreground">{t('create.slideCount')}</label>
+                                                                <span className="text-xs font-mono bg-muted px-2 py-0.5 rounded text-foreground">{slides[0]}</span>
+                                                            </div>
+                                                            <Slider
+                                                                value={slides}
+                                                                onValueChange={setSlides}
+                                                                min={5}
+                                                                max={50}
+                                                                step={1}
+                                                                className="py-2"
+                                                            />
                                                         </div>
-                                                        <Slider
-                                                            value={slides}
-                                                            onValueChange={setSlides}
-                                                            min={5}
-                                                            max={50}
-                                                            step={1}
-                                                            className="py-2"
-                                                        />
-                                                    </div>
+                                                    )}
 
                                                     {/* Language Selector */}
                                                     <div className="space-y-3 px-1">
@@ -414,6 +605,17 @@ export default function Create() {
                                                                 </button>
                                                             ))}
                                                         </div>
+                                                    </div>
+
+                                                    {/* Brand Kit Selector */}
+                                                    <div className="space-y-3 px-1">
+                                                        <div className="flex justify-between items-center">
+                                                            <label className="text-xs font-medium text-muted-foreground">Charte graphique</label>
+                                                        </div>
+                                                        <BrandKitSelector
+                                                            selectedKit={selectedBrandKit}
+                                                            onSelect={setSelectedBrandKit}
+                                                        />
                                                     </div>
                                                 </div>
 

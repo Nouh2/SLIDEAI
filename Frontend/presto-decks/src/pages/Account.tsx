@@ -4,7 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { User, CreditCard, FileText, Settings, LogOut, Loader2, Mail, Hash, Zap, Clock, Shield, Sparkles, Lock } from "lucide-react";
+import { User, CreditCard, FileText, Settings, LogOut, Loader2, Mail, Hash, Zap, Clock, Shield, Sparkles, Lock, Palette } from "lucide-react";
+import { BrandKitManager } from "@/components/brand/BrandKitManager";
 import { supabase } from "@/contexts/AuthContext";
 import { User as SupabaseUser } from "@supabase/supabase-js";
 import { api } from "@/lib/api";
@@ -157,7 +158,7 @@ export default function Account() {
         </div>
 
         <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="grid w-full max-w-2xl grid-cols-3 p-1 bg-secondary/30 backdrop-blur-sm rounded-xl">
+          <TabsList className="grid w-full max-w-3xl grid-cols-4 p-1 bg-secondary/30 backdrop-blur-sm rounded-xl">
             <TabsTrigger value="overview" className="rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all duration-300">
               <User className="mr-2 h-4 w-4" />
               {t('account.overview')}
@@ -165,6 +166,10 @@ export default function Account() {
             <TabsTrigger value="subscription" className="rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all duration-300">
               <CreditCard className="mr-2 h-4 w-4" />
               {t('account.subscription')}
+            </TabsTrigger>
+            <TabsTrigger value="branding" className="rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all duration-300">
+              <Palette className="mr-2 h-4 w-4" />
+              Chartes Graphiques
             </TabsTrigger>
             <TabsTrigger value="history" className="rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all duration-300">
               <Clock className="mr-2 h-4 w-4" />
@@ -343,6 +348,18 @@ export default function Account() {
                     {t('account.stripeNote')}
                   </p>
                 </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="branding" className="space-y-6 mt-8 animate-fade-in">
+            <Card className="border-border/50 shadow-lg">
+              <CardHeader>
+                <CardTitle>Mes Chartes Graphiques</CardTitle>
+                <CardDescription>Gérez les couleurs, polices et logos de vos présentations</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <BrandKitManager mode="manage" />
               </CardContent>
             </Card>
           </TabsContent>

@@ -236,6 +236,20 @@ export const DECK_RESPONSE_SCHEMA = {
                                 }
                             }
                         }
+                    },
+
+                    // Source Reference - for Evidence Linking (traceability)
+                    // This is at SLIDE level, not inside content
+                    sourceRef: {
+                        type: SchemaType.OBJECT,
+                        nullable: true,
+                        description: "Source reference for content traceability (from parsed documents)",
+                        properties: {
+                            sectionTitle: { type: SchemaType.STRING, description: "Original section title from the source document" },
+                            pageStart: { type: SchemaType.NUMBER, description: "Starting page number in source document" },
+                            pageEnd: { type: SchemaType.NUMBER, description: "Ending page number in source document" }
+                        },
+                        required: ["sectionTitle", "pageStart", "pageEnd"]
                     }
                 },
                 required: ["layout", "title", "imageSearchQuery", "content"]

@@ -15,6 +15,31 @@ const DEFAULT_COLORS: ColorPalette = {
     text: '#0F172A',
 };
 
+// Helper: Get logo coordinates based on position and size
+const getLogoPosition = (position: string, size: string) => {
+    let x = 0.5;
+    let y = 0.5;
+    let w = 1.0;
+    let h = 1.0;
+
+    // Size
+    switch (size) {
+        case 'small': w = 0.8; h = 0.8; break;
+        case 'large': w = 1.5; h = 1.5; break;
+        case 'medium': default: w = 1.2; h = 1.2; break;
+    }
+
+    // Position
+    switch (position) {
+        case 'top-right': x = SLIDE_WIDTH - w - 0.5; y = 0.3; break;
+        case 'bottom-left': x = 0.5; y = SLIDE_HEIGHT - h - 0.3; break;
+        case 'bottom-right': x = SLIDE_WIDTH - w - 0.5; y = SLIDE_HEIGHT - h - 0.3; break;
+        case 'top-left': default: x = 0.5; y = 0.3; break;
+    }
+
+    return { x, y, w, h };
+};
+
 /**
  * Export presentation to PowerPoint format
  * 
@@ -92,17 +117,79 @@ export const exportToPPTX = async (
             });
         }
 
-        // Add slide number
-        pptxSlide.addText(String(i + 1), {
-            x: SLIDE_WIDTH - 0.8,
-            y: SLIDE_HEIGHT - 0.5,
-            w: 0.5,
-            h: 0.3,
-            fontSize: 10,
-            fontFace: 'Arial',
-            color: toHex(colors.text),
-            align: 'right',
-        });
+        // === CUSTOM TEMPLATE ELEMENTS ===
+        if (presentation.templateOverlay) {
+            const { logo, footer } = presentation.templateOverlay;
+            const isCover = i === 0 || slideData.layout === 'cover';
+
+            // 1. Logo Overlay
+            if (logo && presentation.brandLogoUrl) {
+                const shouldShow = isCover ? logo.showOnCover : logo.showOnContent;
+                if (shouldShow) {
+                    const { x, y, w, h } = getLogoPosition(logo.position, logo.size);
+                    pptxSlide.addImage({
+                        path: presentation.brandLogoUrl,
+                        x, y, w, h
+                    });
+                }
+            }
+
+            // 2. Footer Overlay
+            if (footer) {
+                // Footer Text
+                if (footer.text) {
+                    pptxSlide.addText(footer.text, {
+                        x: 0.5,
+                        y: SLIDE_HEIGHT - 0.5,
+                        w: SLIDE_WIDTH * 0.6,
+                        h: 0.3,
+                        fontSize: 10,
+                        fontFace: 'Arial',
+                        color: toHex(colors.text), // Use text color, maybe opacity?
+                        transparency: 50,
+                        align: 'left',
+                    });
+                }
+
+                // Page Number (Override default if configured)
+                if (footer.showPageNumber) {
+                    pptxSlide.addText(String(i + 1), {
+                        x: SLIDE_WIDTH - 0.8,
+                        y: SLIDE_HEIGHT - 0.5,
+                        w: 0.5,
+                        h: 0.3,
+                        fontSize: 10,
+                        fontFace: 'Arial',
+                        color: toHex(colors.text),
+                        align: 'right',
+                    });
+                }
+            } else {
+                // Default page number if no footer config
+                pptxSlide.addText(String(i + 1), {
+                    x: SLIDE_WIDTH - 0.8,
+                    y: SLIDE_HEIGHT - 0.5,
+                    w: 0.5,
+                    h: 0.3,
+                    fontSize: 10,
+                    fontFace: 'Arial',
+                    color: toHex(colors.text),
+                    align: 'right',
+                });
+            }
+        } else {
+            // Default page number logic (fallback)
+            pptxSlide.addText(String(i + 1), {
+                x: SLIDE_WIDTH - 0.8,
+                y: SLIDE_HEIGHT - 0.5,
+                w: 0.5,
+                h: 0.3,
+                fontSize: 10,
+                fontFace: 'Arial',
+                color: toHex(colors.text),
+                align: 'right',
+            });
+        }
     }
 
     onProgress?.({

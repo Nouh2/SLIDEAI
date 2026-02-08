@@ -8,12 +8,15 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 import { Module } from '@nestjs/common';
 import { GenerateController } from './generate.controller.js';
 import { SubscriptionModule } from '../subscription/subscription.module.js';
+import { DocumentParserService } from './document-parser.service.js';
 let GenerateModule = class GenerateModule {
 };
 GenerateModule = __decorate([
     Module({
         imports: [SubscriptionModule],
         controllers: [GenerateController],
+        providers: [DocumentParserService],
+        exports: [DocumentParserService],
     })
 ], GenerateModule);
 export { GenerateModule };

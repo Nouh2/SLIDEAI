@@ -7,6 +7,7 @@ import { supabase } from "@/contexts/AuthContext";
 import { Loader2, AlertCircle, Eye, ChevronLeft, ChevronRight, Home, Maximize2, Minimize2, Play } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ModernSlideRenderer } from "@/components/slides/ModernSlideRenderer";
+import { TemplateOverlay } from "@/components/slides/TemplateOverlay";
 
 type ViewStatus = "loading" | "viewing" | "error" | "auth_required";
 
@@ -53,6 +54,9 @@ const adaptDeck = (deck: any) => {
         theme: deck.theme || rootData.theme || "startup-pitch",
         themeConfig: deck.themeConfig || rootData.themeConfig,
         colorScheme: deck.colorPalette || deck.colorScheme || rootData.colorPalette || rootData.colorScheme,
+        // Custom Templates data
+        brandLogoUrl: deck.brandLogoUrl || rootData.brandLogoUrl,
+        templateOverlay: deck.templateOverlay || rootData.templateOverlay,
     };
 };
 
@@ -375,13 +379,21 @@ export default function ViewPage() {
                         style={{ transform: `scale(${slideScale})` }}
                     >
                         {currentSlide && (
-                            <ModernSlideRenderer
-                                slide={currentSlide}
-                                theme={project.theme}
-                                colorPalette={project.colorScheme}
-                                className="w-full h-full"
-                                showWatermark={showWatermark}
-                            />
+                            <TemplateOverlay
+                                config={project.templateOverlay}
+                                logoUrl={project.brandLogoUrl}
+                                slideNumber={currentSlideIndex + 1}
+                                totalSlides={project.slides.length}
+                                isFirst={currentSlideIndex === 0}
+                            >
+                                <ModernSlideRenderer
+                                    slide={currentSlide}
+                                    theme={project.theme}
+                                    colorPalette={project.colorScheme}
+                                    className="w-full h-full"
+                                    showWatermark={showWatermark}
+                                />
+                            </TemplateOverlay>
                         )}
                     </div>
                 </div>

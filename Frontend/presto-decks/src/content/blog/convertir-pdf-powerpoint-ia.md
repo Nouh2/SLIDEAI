@@ -5,7 +5,7 @@ date: "2024-02-12"
 author: "L'équipe SlideAI"
 category: "Tutoriels"
 language: "fr"
-image: "https://images.unsplash.com/photo-1586281380349-632531db7ed4?q=80&w=2070&auto=format&fit=crop"
+coverImage: "https://images.unsplash.com/photo-1586281380349-632531db7ed4?q=80&w=2070&auto=format&fit=crop"
 ---
 
 Vous avez un rapport PDF de 50 pages et vous devez en faire une présentation pour demain ? Ne commencez pas à copier-coller manuellement. L'intelligence artificielle est désormais capable de faire ce travail ingrat pour vous, avec une précision bluffante.

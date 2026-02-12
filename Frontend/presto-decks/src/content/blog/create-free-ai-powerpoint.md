@@ -1,11 +1,11 @@
 ---
 title: "How to Create a Free AI PowerPoint in 3 Minutes?"
 description: "Discover how to use AI to generate PowerPoint presentations for free. Step-by-step guide to create professional slides effortlessly."
-pubDate: "2024-05-25"
+date: "2024-05-25"
 author: "SlideAI Team"
 category: "Tutorials"
 language: "en"
-image: "/images/blog/creer-powerpoint-ia-gratuit.jpg"
+coverImage: "https://images.unsplash.com/photo-1557804506-669a67965ba0?q=80&w=2874&auto=format&fit=crop"
 tags: ["AI", "PowerPoint", "Productivity", "Free Tools"]
 ---
 

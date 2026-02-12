@@ -1,11 +1,11 @@
 ---
 title: "Comment Créer un PowerPoint avec IA Gratuit en 3 minutes ?"
 description: "Découvrez comment utiliser une IA pour générer des présentations PowerPoint gratuitement. Guide étape par étape pour créer des slides professionnelles sans effort."
-pubDate: "2024-05-25"
+date: "2024-05-25"
 author: "SlideAI Team"
 category: "Tutoriels"
 language: "fr"
-image: "/images/blog/creer-powerpoint-ia-gratuit.jpg"
+coverImage: "https://images.unsplash.com/photo-1557804506-669a67965ba0?q=80&w=2874&auto=format&fit=crop"
 tags: ["IA", "PowerPoint", "Productivité", "Outils Gratuits"]
 ---
 

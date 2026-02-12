@@ -13,11 +13,14 @@ const SITEMAP_PATH = path.join(PUBLIC_DIR, 'sitemap.xml');
 
 const STATIC_ROUTES = [
     { url: '/', changefreq: 'weekly', priority: 1.0 },
+    { url: '/pdf-to-powerpoint', changefreq: 'weekly', priority: 0.9 },
     { url: '/pricing', changefreq: 'monthly', priority: 0.8 },
     { url: '/examples', changefreq: 'weekly', priority: 0.8 },
-    { url: '/auth', changefreq: 'monthly', priority: 0.5 },
     { url: '/blog', changefreq: 'daily', priority: 0.9 },
-    // Add other static routes here if needed
+    { url: '/auth', changefreq: 'monthly', priority: 0.5 },
+    { url: '/privacy', changefreq: 'monthly', priority: 0.3 },
+    { url: '/terms', changefreq: 'monthly', priority: 0.3 },
+    { url: '/gdpr', changefreq: 'monthly', priority: 0.3 },
 ];
 
 async function generateSitemap() {

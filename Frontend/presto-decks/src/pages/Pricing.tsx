@@ -111,18 +111,18 @@ export default function Pricing() {
       if (data.url) {
         window.location.href = data.url;
       } else {
-        throw new Error("Erreur lors de la création de la session de paiement");
+        throw new Error(t('pricing.errors.checkout'));
       }
     } catch (error) {
       console.error(error);
-      toast.error("Une erreur est survenue. Veuillez réessayer.");
+      toast.error(t('pricing.errors.generic'));
     } finally {
       setLoadingPlan(null);
     }
   };
 
   const handleCancelSubscription = async () => {
-    if (!confirm(t('dashboard.deleteConfirmTitle'))) return; // Simplified confirm for now, or just generic confirm. 
+    if (!window.confirm(t('pricing.errors.cancelConfirm'))) return;
     // Actually the French hardcoded string was: "Êtes-vous sûr de vouloir résilier..."
     // Let's use a key if possible, or keep hardcoded if not in JSON? 
     // I should probably add a key for subscription cancel confirm.
@@ -168,7 +168,7 @@ export default function Pricing() {
 
       const data = await response.json();
       if (response.ok) {
-        toast.success(data.message || "Abonnement résilié avec succès.");
+        toast.success(data.message || t('pricing.success.cancel'));
         // Refresh subscription state
         const subResponse = await fetch(`${import.meta.env.VITE_API_URL}/subscription`, {
           headers: { 'Authorization': `Bearer ${session.access_token}` }
@@ -180,11 +180,11 @@ export default function Pricing() {
           // Usually plan status remains active until period end.
         }
       } else {
-        throw new Error(data.message || "Erreur lors de la résiliation");
+        throw new Error(data.message || t('pricing.errors.cancel'));
       }
     } catch (error: any) {
       console.error(error);
-      toast.error(error.message || "Erreur lors de la résiliation.");
+      toast.error(error.message || t('pricing.errors.cancel'));
     } finally {
       setLoadingPlan(null);
     }
@@ -203,7 +203,7 @@ export default function Pricing() {
 
       const packInfo = PACK_PRICE_IDS[packName];
       if (!packInfo) {
-        toast.error("Pack non reconnu");
+        toast.error(t('pricing.errors.packNotFound'));
         return;
       }
 
@@ -223,11 +223,11 @@ export default function Pricing() {
       if (data.url) {
         window.location.href = data.url;
       } else {
-        throw new Error("Erreur lors de la création de la session de paiement");
+        throw new Error(t('pricing.errors.checkout'));
       }
     } catch (error) {
       console.error(error);
-      toast.error("Une erreur est survenue. Veuillez réessayer.");
+      toast.error(t('pricing.errors.generic'));
     } finally {
       setLoadingPack(null);
     }

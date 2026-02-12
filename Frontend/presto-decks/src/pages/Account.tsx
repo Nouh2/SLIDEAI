@@ -136,7 +136,9 @@ export default function Account() {
   const isFree = !subscription || subscription.plan === 'free';
   const isUnlimited = subscription?.creditsRemaining === -1;
   const planColor = isFree ? "text-muted-foreground" : "text-primary";
-  const planName = subscription?.plan ? `Plan ${subscription.plan.charAt(0).toUpperCase() + subscription.plan.slice(1)}` : `Plan ${t('pricing.plans.free.name')}`;
+  const planName = subscription?.plan
+    ? t(`pricing.plans.${subscription.plan}.name`)
+    : t('pricing.plans.free.name');
 
   return (
     <div className="container py-12">
@@ -169,7 +171,7 @@ export default function Account() {
             </TabsTrigger>
             <TabsTrigger value="branding" className="rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all duration-300">
               <Palette className="mr-2 h-4 w-4" />
-              Chartes Graphiques
+              {t('account.branding')}
             </TabsTrigger>
             <TabsTrigger value="history" className="rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all duration-300">
               <Clock className="mr-2 h-4 w-4" />
@@ -313,11 +315,10 @@ export default function Account() {
                       <span className="text-xl font-bold text-foreground">{subscription?.creditsRemaining ?? 0}</span>
                     </div>
                     <div className="w-full bg-secondary rounded-full h-3 overflow-hidden">
-                      {/* Assuming max credits around 15 for starter for viz purposes, or just show 100% if full. 
-                            Ideally need maxCredits in subscription data. For now using arbitrary scale or fallback. */}
+                      {/* Using 15 as a default max for starter plans if not specified in metadata */}
                       <div
                         className="bg-primary h-full rounded-full transition-all duration-1000 ease-out"
-                        style={{ width: `${Math.min(((subscription?.creditsRemaining || 0) / 15) * 100, 100)}%` }}
+                        style={{ width: `${Math.min(((subscription?.creditsRemaining || 0) / (subscription?.creditsTotal || 15)) * 100, 100)}%` }}
                       />
                     </div>
                     <p className="text-xs text-muted-foreground text-center">
@@ -355,8 +356,8 @@ export default function Account() {
           <TabsContent value="branding" className="space-y-6 mt-8 animate-fade-in">
             <Card className="border-border/50 shadow-lg">
               <CardHeader>
-                <CardTitle>Mes Chartes Graphiques</CardTitle>
-                <CardDescription>Gérez les couleurs, polices et logos de vos présentations</CardDescription>
+                <CardTitle>{t('account.brandingTitle')}</CardTitle>
+                <CardDescription>{t('account.brandingDesc')}</CardDescription>
               </CardHeader>
               <CardContent>
                 <BrandKitManager mode="manage" />
@@ -383,9 +384,9 @@ export default function Account() {
                         <FileText className="w-5 h-5 text-primary" />
                       </div>
                       <div>
-                        <h4 className="font-semibold text-foreground">{pres.title || "Sans titre"}</h4>
+                        <h4 className="font-semibold text-foreground">{pres.title || t('common.untitled')}</h4>
                         <p className="text-xs text-muted-foreground">
-                          {new Date(pres.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}
+                          {new Date(pres.created_at).toLocaleDateString(undefined, { day: 'numeric', month: 'long', year: 'numeric' })}
                         </p>
                       </div>
                     </div>

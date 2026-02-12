@@ -4,6 +4,7 @@
 import pptxgen from 'pptxgenjs';
 import { LayoutAdapter, SlideData, ColorPalette, toHex } from '../types';
 import { LAYOUT, SLIDE, addGradientBackground, addSlideFooter } from '../layoutTokens';
+import i18n from '@/lib/i18n';
 
 export const coverAdapter: LayoutAdapter = {
     canHandle: (slide: SlideData) => {
@@ -43,7 +44,7 @@ export const coverAdapter: LayoutAdapter = {
         });
 
         // Title - Large, centered (matches text-8xl/9xl font-bold, centered)
-        const mainTitle = slide.title || 'Untitled';
+        const mainTitle = slide.title || i18n.t('common.untitled');
         pptxSlide.addText(mainTitle, {
             x: LAYOUT.cover.title.x,
             y: LAYOUT.cover.title.y,

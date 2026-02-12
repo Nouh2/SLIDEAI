@@ -1,6 +1,7 @@
 import { Buffer } from 'buffer';
 globalThis.Buffer = Buffer;
 import matter from 'gray-matter';
+import i18n from '@/lib/i18n';
 
 export interface BlogPost {
     slug: string;
@@ -40,7 +41,7 @@ function getParsedPosts(): BlogPost[] {
 
             posts.push({
                 slug,
-                title: data.title || 'Untitled',
+                title: data.title || i18n.t('common.untitled'),
                 date: data.date || new Date().toISOString(),
                 author: data.author || 'SlideAI',
                 excerpt: data.excerpt || '',

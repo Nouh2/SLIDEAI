@@ -77,7 +77,7 @@ export function BrandKitManager({ onSelect, selectedId, mode = 'manage' }: Brand
         try {
             const { data: { session } } = await supabase.auth.getSession();
             if (!session) {
-                toast({ title: "Session expirée", variant: "destructive" });
+                toast({ title: t("brand.sessionExpired"), variant: "destructive" });
                 return;
             }
 
@@ -85,10 +85,10 @@ export function BrandKitManager({ onSelect, selectedId, mode = 'manage' }: Brand
             const { url } = await api.uploadFile(file, session.access_token);
 
             setFormData(prev => ({ ...prev, logo_url: url }));
-            toast({ title: "Logo uploadé", description: "Votre logo a été ajouté avec succès" });
+            toast({ title: t("brand.logoUploaded"), description: t("brand.uploadSuccess") });
         } catch (error) {
             console.error("Upload failed", error);
-            toast({ title: "Erreur d'upload", description: "Impossible d'uploader le logo", variant: "destructive" });
+            toast({ title: t("brand.error"), description: t("brand.uploadError"), variant: "destructive" });
         } finally {
             setIsUploading(false);
         }
@@ -138,7 +138,7 @@ export function BrandKitManager({ onSelect, selectedId, mode = 'manage' }: Brand
 
     const handleSave = async () => {
         if (!formData.name.trim()) {
-            toast({ title: 'Erreur', description: 'Le nom est requis', variant: 'destructive' });
+            toast({ title: t('brand.error'), description: t('brand.nameRequired'), variant: 'destructive' });
             return;
         }
 
@@ -146,7 +146,7 @@ export function BrandKitManager({ onSelect, selectedId, mode = 'manage' }: Brand
 
         try {
             const { data: { user } } = await supabase.auth.getUser();
-            if (!user) throw new Error('Non connecté');
+            if (!user) throw new Error(t('brand.sessionExpired'));
 
             if (editingKit) {
                 // Update existing
@@ -164,7 +164,7 @@ export function BrandKitManager({ onSelect, selectedId, mode = 'manage' }: Brand
                     .eq('id', editingKit.id);
 
                 if (error) throw error;
-                toast({ title: 'Kit mis à jour', description: 'Votre brand kit a été modifié' });
+                toast({ title: t('brand.kitUpdated'), description: t('brand.saveSuccessUpdate') });
             } else {
                 // Create new
                 const { error } = await supabase
@@ -180,7 +180,7 @@ export function BrandKitManager({ onSelect, selectedId, mode = 'manage' }: Brand
                     });
 
                 if (error) throw error;
-                toast({ title: 'Kit créé', description: 'Votre nouveau brand kit est prêt' });
+                toast({ title: t('brand.kitCreated'), description: t('brand.saveSuccessCreate') });
             }
 
             // If setting as default, unset others
@@ -198,14 +198,14 @@ export function BrandKitManager({ onSelect, selectedId, mode = 'manage' }: Brand
             fetchBrandKits();
         } catch (e: any) {
             console.error('Save error:', e);
-            toast({ title: 'Erreur', description: e.message || 'Impossible de sauvegarder', variant: 'destructive' });
+            toast({ title: t('brand.error'), description: e.message || t('brand.saveError'), variant: 'destructive' });
         } finally {
             setIsSaving(false);
         }
     };
 
     const handleDelete = async (kit: BrandKit) => {
-        if (!confirm(`Supprimer le kit "${kit.name}" ?`)) return;
+        if (!confirm(t('brand.deleteConfirm', { name: kit.name }))) return;
 
         try {
             const { error } = await supabase
@@ -214,10 +214,10 @@ export function BrandKitManager({ onSelect, selectedId, mode = 'manage' }: Brand
                 .eq('id', kit.id);
 
             if (error) throw error;
-            toast({ title: 'Supprimé', description: 'Le brand kit a été supprimé' });
+            toast({ title: t('brand.deleted'), description: t('brand.deleteSuccess') });
             fetchBrandKits();
         } catch (e: any) {
-            toast({ title: 'Erreur', description: 'Impossible de supprimer', variant: 'destructive' });
+            toast({ title: t('brand.error'), description: t('brand.deleteError'), variant: 'destructive' });
         }
     };
 
@@ -279,15 +279,15 @@ export function BrandKitManager({ onSelect, selectedId, mode = 'manage' }: Brand
                     <div>
                         <h3 className="text-lg font-semibold flex items-center gap-2">
                             <Palette className="w-5 h-5 text-primary" />
-                            Mes Brand Kits
+                            {t('brand.myBrandKits')}
                         </h3>
                         <p className="text-sm text-muted-foreground">
-                            Gérez vos chartes graphiques pour les appliquer à vos présentations
+                            {t('brand.subtitle')}
                         </p>
                     </div>
                     <Button onClick={() => { resetForm(); setEditingKit(null); setIsDialogOpen(true); }}>
                         <Plus className="w-4 h-4 mr-2" />
-                        Nouveau Kit
+                        {t('brand.newKit')}
                     </Button>
                 </div>
             )}
@@ -297,11 +297,11 @@ export function BrandKitManager({ onSelect, selectedId, mode = 'manage' }: Brand
                 <Card className="border-dashed">
                     <CardContent className="py-12 text-center">
                         <Palette className="w-12 h-12 mx-auto mb-4 text-muted-foreground/40" />
-                        <p className="text-muted-foreground mb-4">Aucun brand kit créé</p>
+                        <p className="text-muted-foreground mb-4">{t('brand.noneCreated')}</p>
                         {mode === 'manage' && (
                             <Button variant="outline" onClick={() => setIsDialogOpen(true)}>
                                 <Plus className="w-4 h-4 mr-2" />
-                                Créer mon premier kit
+                                {t('brand.createFirstKit')}
                             </Button>
                         )}
                     </CardContent>
@@ -371,7 +371,7 @@ export function BrandKitManager({ onSelect, selectedId, mode = 'manage' }: Brand
                                 {selectedId === kit.id && (
                                     <div className="mt-3 flex items-center gap-1 text-xs text-primary font-medium">
                                         <Check className="w-3 h-3" />
-                                        Sélectionné
+                                        {t('brand.selected')}
                                     </div>
                                 )}
                             </CardContent>
@@ -386,10 +386,10 @@ export function BrandKitManager({ onSelect, selectedId, mode = 'manage' }: Brand
                     <DialogHeader>
                         <DialogTitle className="flex items-center gap-2">
                             <Palette className="w-5 h-5" />
-                            {editingKit ? 'Modifier le Brand Kit' : 'Nouveau Brand Kit'}
+                            {editingKit ? t('brand.editKit') : t('brand.newBrandKit')}
                         </DialogTitle>
                         <DialogDescription>
-                            Définissez les couleurs, polices et logo de votre marque
+                            {t('brand.kitDesc')}
                         </DialogDescription>
                     </DialogHeader>
 
@@ -397,9 +397,9 @@ export function BrandKitManager({ onSelect, selectedId, mode = 'manage' }: Brand
                         {/* Name */}
                         {/* Name */}
                         <div className="space-y-2">
-                            <Label>Nom du kit</Label>
+                            <Label>{t('brand.kitName')}</Label>
                             <Input
-                                placeholder="Ex: Acme Corp, Client XYZ..."
+                                placeholder={t('brand.kitNamePlaceholder')}
                                 value={formData.name}
                                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                             />
@@ -409,8 +409,8 @@ export function BrandKitManager({ onSelect, selectedId, mode = 'manage' }: Brand
                         <div className="p-4 bg-primary/5 border border-primary/10 rounded-xl space-y-3">
                             <div className="flex items-center justify-between">
                                 <div>
-                                    <Label className="text-primary font-semibold">Importer depuis PowerPoint</Label>
-                                    <p className="text-xs text-muted-foreground">Récupérez automatiquement les couleurs et polices.</p>
+                                    <Label className="text-primary font-semibold">{t('brand.importPptx')}</Label>
+                                    <p className="text-xs text-muted-foreground">{t('brand.importPptxDesc')}</p>
                                 </div>
                                 <div className="flex items-center gap-2">
                                     <Button
@@ -421,7 +421,7 @@ export function BrandKitManager({ onSelect, selectedId, mode = 'manage' }: Brand
                                         disabled={isUploading}
                                     >
                                         {isUploading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Upload className="w-4 h-4 mr-2" />}
-                                        Importer .pptx
+                                        {t('brand.importPptxBtn')}
                                     </Button>
                                     <input
                                         id="pptx-upload"
@@ -445,10 +445,10 @@ export function BrandKitManager({ onSelect, selectedId, mode = 'manage' }: Brand
                                                     fonts: theme.fonts
                                                 }));
 
-                                                toast({ title: "Thème importé", description: "Couleurs et polices extraites avec succès !" });
+                                                toast({ title: t("brand.themeImportSuccess") });
                                             } catch (error: any) {
                                                 console.error(error);
-                                                toast({ title: "Erreur", description: error.message || "Impossible de lire le fichier", variant: "destructive" });
+                                                toast({ title: t("brand.error"), description: error.message || t("brand.fileReadError"), variant: "destructive" });
                                             } finally {
                                                 setIsUploading(false);
                                                 e.target.value = '';
@@ -461,7 +461,7 @@ export function BrandKitManager({ onSelect, selectedId, mode = 'manage' }: Brand
 
                         {/* Color Presets */}
                         <div className="space-y-2">
-                            <Label className="text-xs text-muted-foreground">Palettes prédéfinies</Label>
+                            <Label className="text-xs text-muted-foreground">{t('brand.presets')}</Label>
                             <div className="flex gap-2 flex-wrap">
                                 {COLOR_PRESETS.map((preset) => (
                                     <button
@@ -486,7 +486,7 @@ export function BrandKitManager({ onSelect, selectedId, mode = 'manage' }: Brand
 
                         {/* Colors */}
                         <div className="space-y-3">
-                            <Label>Couleurs</Label>
+                            <Label>{t('brand.colors')}</Label>
                             <div className="grid grid-cols-5 gap-3">
                                 {Object.entries(formData.colors).map(([key, value]) => (
                                     <div key={key} className="space-y-1">
@@ -510,7 +510,7 @@ export function BrandKitManager({ onSelect, selectedId, mode = 'manage' }: Brand
                         {/* Fonts */}
                         <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-2">
-                                <Label>Police Titres</Label>
+                                <Label>{t('brand.headingFont')}</Label>
                                 <Select
                                     value={formData.fonts.heading}
                                     onValueChange={(v) => setFormData({
@@ -531,7 +531,7 @@ export function BrandKitManager({ onSelect, selectedId, mode = 'manage' }: Brand
                                 </Select>
                             </div>
                             <div className="space-y-2">
-                                <Label>Police Texte</Label>
+                                <Label>{t('brand.bodyFont')}</Label>
                                 <Select
                                     value={formData.fonts.body}
                                     onValueChange={(v) => setFormData({
@@ -557,13 +557,13 @@ export function BrandKitManager({ onSelect, selectedId, mode = 'manage' }: Brand
                         <div className="space-y-4 p-4 bg-muted/30 rounded-xl border">
                             <div className="flex items-center gap-2">
                                 <ImageIcon className="w-4 h-4 text-primary" />
-                                <Label className="font-semibold">Paramètres du Template</Label>
+                                <Label className="font-semibold">{t('brand.templateSettings')}</Label>
                             </div>
 
                             {/* Logo Position */}
                             <div className="space-y-4">
                                 <div className="space-y-2">
-                                    <Label className="text-xs text-muted-foreground">Logo Image</Label>
+                                    <Label className="text-xs text-muted-foreground">{t('brand.logoImage')}</Label>
                                     <div className="flex items-center gap-4">
                                         {formData.logo_url ? (
                                             <div className="relative group">
@@ -589,7 +589,7 @@ export function BrandKitManager({ onSelect, selectedId, mode = 'manage' }: Brand
                                                     disabled={isUploading}
                                                 >
                                                     {isUploading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Upload className="w-4 h-4 mr-2" />}
-                                                    Uploader un logo
+                                                    {t('brand.logoUpload')}
                                                 </Button>
                                                 <input
                                                     id="logo-upload"
@@ -601,14 +601,14 @@ export function BrandKitManager({ onSelect, selectedId, mode = 'manage' }: Brand
                                             </div>
                                         )}
                                         <div className="text-xs text-muted-foreground">
-                                            PNG, JPG ou SVG. Max 5MB.
+                                            {t('brand.logoUploadDesc')}
                                         </div>
                                     </div>
                                 </div>
 
                                 <div className="grid grid-cols-2 gap-4">
                                     <div className="space-y-2">
-                                        <Label className="text-xs text-muted-foreground">Position du logo</Label>
+                                        <Label className="text-xs text-muted-foreground">{t('brand.logoPosition')}</Label>
                                         <Select
                                             value={formData.template_overlay?.logo?.position || 'top-left'}
                                             onValueChange={(v: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right') => setFormData({
@@ -623,15 +623,15 @@ export function BrandKitManager({ onSelect, selectedId, mode = 'manage' }: Brand
                                                 <SelectValue />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                <SelectItem value="top-left">↖ Haut gauche</SelectItem>
-                                                <SelectItem value="top-right">↗ Haut droite</SelectItem>
-                                                <SelectItem value="bottom-left">↙ Bas gauche</SelectItem>
-                                                <SelectItem value="bottom-right">↘ Bas droite</SelectItem>
+                                                <SelectItem value="top-left">{t('brand.positions.topLeft')}</SelectItem>
+                                                <SelectItem value="top-right">{t('brand.positions.topRight')}</SelectItem>
+                                                <SelectItem value="bottom-left">{t('brand.positions.bottomLeft')}</SelectItem>
+                                                <SelectItem value="bottom-right">{t('brand.positions.bottomRight')}</SelectItem>
                                             </SelectContent>
                                         </Select>
                                     </div>
                                     <div className="space-y-2">
-                                        <Label className="text-xs text-muted-foreground">Taille du logo</Label>
+                                        <Label className="text-xs text-muted-foreground">{t('brand.logoSize')}</Label>
                                         <Select
                                             value={formData.template_overlay?.logo?.size || 'medium'}
                                             onValueChange={(v: 'small' | 'medium' | 'large') => setFormData({
@@ -646,9 +646,9 @@ export function BrandKitManager({ onSelect, selectedId, mode = 'manage' }: Brand
                                                 <SelectValue />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                <SelectItem value="small">Petit</SelectItem>
-                                                <SelectItem value="medium">Moyen</SelectItem>
-                                                <SelectItem value="large">Grand</SelectItem>
+                                                <SelectItem value="small">{t('brand.sizes.small')}</SelectItem>
+                                                <SelectItem value="medium">{t('brand.sizes.medium')}</SelectItem>
+                                                <SelectItem value="large">{t('brand.sizes.large')}</SelectItem>
                                             </SelectContent>
                                         </Select>
                                     </div>
@@ -671,7 +671,7 @@ export function BrandKitManager({ onSelect, selectedId, mode = 'manage' }: Brand
                                         })}
                                         className="rounded"
                                     />
-                                    <Label htmlFor="logo_cover" className="cursor-pointer text-xs">Sur slide de couverture</Label>
+                                    <Label htmlFor="logo_cover" className="cursor-pointer text-xs">{t('brand.logoShowCover')}</Label>
                                 </div>
                                 <div className="flex items-center gap-2">
                                     <input
@@ -687,15 +687,15 @@ export function BrandKitManager({ onSelect, selectedId, mode = 'manage' }: Brand
                                         })}
                                         className="rounded"
                                     />
-                                    <Label htmlFor="logo_content" className="cursor-pointer text-xs">Sur slides de contenu</Label>
+                                    <Label htmlFor="logo_content" className="cursor-pointer text-xs">{t('brand.logoShowContent')}</Label>
                                 </div>
                             </div>
 
                             {/* Footer Settings */}
                             <div className="space-y-2">
-                                <Label className="text-xs text-muted-foreground">Texte du footer</Label>
+                                <Label className="text-xs text-muted-foreground">{t('brand.footerText')}</Label>
                                 <Input
-                                    placeholder="Ex: © 2024 Acme Corp | Confidentiel"
+                                    placeholder={t('brand.footerPlaceholder')}
                                     value={formData.template_overlay?.footer?.text || ''}
                                     onChange={(e) => setFormData({
                                         ...formData,
@@ -721,7 +721,7 @@ export function BrandKitManager({ onSelect, selectedId, mode = 'manage' }: Brand
                                     })}
                                     className="rounded"
                                 />
-                                <Label htmlFor="show_page_number" className="cursor-pointer text-xs">Afficher le numéro de page</Label>
+                                <Label htmlFor="show_page_number" className="cursor-pointer text-xs">{t('brand.showPageNumber')}</Label>
                             </div>
                         </div>
 
@@ -735,13 +735,13 @@ export function BrandKitManager({ onSelect, selectedId, mode = 'manage' }: Brand
                                 className="rounded"
                             />
                             <Label htmlFor="is_default" className="cursor-pointer">
-                                Définir comme kit par défaut
+                                {t('brand.setDefault')}
                             </Label>
                         </div>
 
                         {/* Preview */}
                         <div className="space-y-2">
-                            <Label>Aperçu</Label>
+                            <Label>{t('brand.preview')}</Label>
                             <div
                                 className="p-6 rounded-xl border"
                                 style={{ backgroundColor: formData.colors.background }}
@@ -753,7 +753,7 @@ export function BrandKitManager({ onSelect, selectedId, mode = 'manage' }: Brand
                                         fontFamily: formData.fonts.heading
                                     }}
                                 >
-                                    Titre de présentation
+                                    {t('brand.previewTitle')}
                                 </h4>
                                 <p
                                     className="mb-3"
@@ -762,26 +762,26 @@ export function BrandKitManager({ onSelect, selectedId, mode = 'manage' }: Brand
                                         fontFamily: formData.fonts.body
                                     }}
                                 >
-                                    Ceci est un exemple de texte pour visualiser votre charte graphique.
+                                    {t('brand.previewText')}
                                 </p>
                                 <div className="flex gap-2">
                                     <span
                                         className="px-3 py-1 rounded-full text-white text-sm"
                                         style={{ backgroundColor: formData.colors.primary }}
                                     >
-                                        Primaire
+                                        {t('brand.primary')}
                                     </span>
                                     <span
                                         className="px-3 py-1 rounded-full text-white text-sm"
                                         style={{ backgroundColor: formData.colors.secondary }}
                                     >
-                                        Secondaire
+                                        {t('brand.secondary')}
                                     </span>
                                     <span
                                         className="px-3 py-1 rounded-full text-sm"
                                         style={{ backgroundColor: formData.colors.accent, color: formData.colors.text }}
                                     >
-                                        Accent
+                                        {t('brand.accent')}
                                     </span>
                                 </div>
                             </div>
@@ -790,18 +790,18 @@ export function BrandKitManager({ onSelect, selectedId, mode = 'manage' }: Brand
 
                     <DialogFooter>
                         <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
-                            Annuler
+                            {t('brand.cancel')}
                         </Button>
                         <Button onClick={handleSave} disabled={isSaving}>
                             {isSaving ? (
                                 <>
                                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                                    Enregistrement...
+                                    {t('brand.saving')}
                                 </>
                             ) : (
                                 <>
                                     <Check className="w-4 h-4 mr-2" />
-                                    {editingKit ? 'Mettre à jour' : 'Créer le kit'}
+                                    {editingKit ? t('brand.save') : t('brand.createKit')}
                                 </>
                             )}
                         </Button>

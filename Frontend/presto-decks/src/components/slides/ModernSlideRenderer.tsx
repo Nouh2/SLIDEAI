@@ -1,6 +1,7 @@
 // src/components/slides/ModernSlideRenderer.tsx
 // Enhanced slide renderer with support for charts, tables, timelines, infographics
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
 import { cn } from "@/lib/utils";
 import { getTemplateById } from "@/data/slideTemplates";
@@ -64,6 +65,7 @@ const EditableElement = ({
 
 // FloatingElement component for draggable/resizable elements
 const FloatingElement = ({ element, colors, onSelect, isSelected }: { element: any; colors: any; onSelect?: any; isSelected?: boolean }) => {
+    const { t } = useTranslation();
     const { id, type, x, y, width, height, rotation, opacity, path, value, label } = element;
 
     const elementStyle: React.CSSProperties = {
@@ -95,7 +97,7 @@ const FloatingElement = ({ element, colors, onSelect, isSelected }: { element: a
                 <img src={value || element.content} alt="custom" className="w-full h-full object-cover rounded-lg shadow-lg pointer-events-none" />
             ) : (
                 <div
-                    dangerouslySetInnerHTML={{ __html: value || element.content || "Double click to edit" }}
+                    dangerouslySetInnerHTML={{ __html: value || element.content || t('common.doubleClickToEdit') }}
                     className="min-w-[100px] min-h-[1em] outline-none"
                     style={{ fontSize: 'inherit' }}
                 />
@@ -289,74 +291,77 @@ const SlideFooter = ({ slideNumber, title, colors, unsplashPhotographer, showPag
 
 // Cover/Hero slide - Opening slide
 // Cover/Hero slide - Opening slide
-const CoverHeroLayout = ({ slide, colors, onSelect, selectedId, showPageNumber }: { slide: any; colors: any; onSelect?: any; selectedId?: string | null; showPageNumber?: boolean }) => (
-    <div className="relative w-full h-full overflow-hidden" style={{ backgroundColor: colors.bg }}>
-        <AbstractShapes colors={colors} />
+const CoverHeroLayout = ({ slide, colors, onSelect, selectedId, showPageNumber }: { slide: any; colors: any; onSelect?: any; selectedId?: string | null; showPageNumber?: boolean }) => {
+    const { t } = useTranslation();
+    return (
+        <div className="relative w-full h-full overflow-hidden" style={{ backgroundColor: colors.bg }}>
+            <AbstractShapes colors={colors} />
 
-        {/* Background image with overlay */}
-        {(slide.backgroundImage || slide.imageSearchQuery) && !slide.backgroundImage?.includes('placehold') && (
-            <>
-                <div
-                    className="absolute inset-0 bg-cover bg-center"
-                    style={{ backgroundImage: `url(${slide.backgroundImage || `https://source.unsplash.com/1600x900/?${encodeURIComponent(slide.imageSearchQuery)}`})` }}
-                />
-                <div className="absolute inset-0" style={{ backgroundColor: `${colors.bg}CC` }} />
-            </>
-        )}
-
-        <div className="relative z-10 flex flex-col items-center justify-center h-full px-20 pb-32 text-center">
-            <EditableElement
-                element={{ id: 'title', type: 'text', value: slide.title, path: 'title', label: 'Title' }}
-                onSelect={onSelect}
-                isSelected={selectedId === 'title'}
-            >
-                <h1 className="text-8xl md:text-9xl font-bold mb-10 leading-tight">
-                    {(slide.title || 'Untitled').split(' ').map((word: string, i: number) => {
-                        const isKeyword = ['vision', 'pitch', 'strategy', 'innovation', 'future', 'ai', 'tech'].some(kw =>
-                            word.toLowerCase().includes(kw)
-                        );
-                        return isKeyword ?
-                            <span key={i} style={{ color: colors.primary }}>{word} </span> :
-                            <span key={i} style={{ color: colors.text }}>{word} </span>;
-                    })}
-                </h1>
-            </EditableElement>
-
-            {(slide.subtitle || slide.content?.subtitle) && (
-                <div className="inline-block px-12 py-6 rounded-full bg-surface border border-border shadow-md">
-                    <EditableElement
-                        element={{ id: 'subtitle', type: 'text', value: slide.subtitle || slide.content?.subtitle, path: slide.subtitle ? 'subtitle' : 'content.subtitle', label: 'Subtitle' }}
-                        onSelect={onSelect}
-                        isSelected={selectedId === 'subtitle'}
-                    >
-                        <p className="text-3xl opacity-80" style={{ color: colors.text }}>{slide.subtitle || slide.content?.subtitle}</p>
-                    </EditableElement>
-                </div>
+            {/* Background image with overlay */}
+            {(slide.backgroundImage || slide.imageSearchQuery) && !slide.backgroundImage?.includes('placehold') && (
+                <>
+                    <div
+                        className="absolute inset-0 bg-cover bg-center"
+                        style={{ backgroundImage: `url(${slide.backgroundImage || `https://source.unsplash.com/1600x900/?${encodeURIComponent(slide.imageSearchQuery)}`})` }}
+                    />
+                    <div className="absolute inset-0" style={{ backgroundColor: `${colors.bg}CC` }} />
+                </>
             )}
 
-            {/* Key bullets if present */}
-            {(slide.bullets?.length > 0 || slide.content?.bullets?.length > 0) && (
-                <ul className="mt-10 space-y-3 text-left">
-                    {(slide.bullets || slide.content?.bullets || []).slice(0, 4).map((bullet: string, i: number) => (
+            <div className="relative z-10 flex flex-col items-center justify-center h-full px-20 pb-32 text-center">
+                <EditableElement
+                    element={{ id: 'title', type: 'text', value: slide.title, path: 'title', label: 'Title' }}
+                    onSelect={onSelect}
+                    isSelected={selectedId === 'title'}
+                >
+                    <h1 className="text-8xl md:text-9xl font-bold mb-10 leading-tight">
+                        {(slide.title || t('common.untitled')).split(' ').map((word: string, i: number) => {
+                            const isKeyword = ['vision', 'pitch', 'strategy', 'innovation', 'future', 'ai', 'tech'].some(kw =>
+                                word.toLowerCase().includes(kw)
+                            );
+                            return isKeyword ?
+                                <span key={i} style={{ color: colors.primary }}>{word} </span> :
+                                <span key={i} style={{ color: colors.text }}>{word} </span>;
+                        })}
+                    </h1>
+                </EditableElement>
+
+                {(slide.subtitle || slide.content?.subtitle) && (
+                    <div className="inline-block px-12 py-6 rounded-full bg-surface border border-border shadow-md">
                         <EditableElement
-                            key={i}
-                            element={{ id: `bullets-${i}`, type: 'list', value: bullet, path: slide.bullets ? `bullets[${i}]` : `content.bullets[${i}]`, label: `Bullet ${i + 1}` }}
+                            element={{ id: 'subtitle', type: 'text', value: slide.subtitle || slide.content?.subtitle, path: slide.subtitle ? 'subtitle' : 'content.subtitle', label: 'Subtitle' }}
                             onSelect={onSelect}
-                            isSelected={selectedId === `bullets-${i}`}
+                            isSelected={selectedId === 'subtitle'}
                         >
-                            <li className="flex items-center gap-4">
-                                <span className="w-3 h-3 rounded-full" style={{ backgroundColor: colors.primary }} />
-                                <span className="text-2xl opacity-80" style={{ color: colors.text }}>{bullet}</span>
-                            </li>
+                            <p className="text-3xl opacity-80" style={{ color: colors.text }}>{slide.subtitle || slide.content?.subtitle}</p>
                         </EditableElement>
-                    ))}
-                </ul>
-            )}
-        </div>
+                    </div>
+                )}
 
-        <SlideFooter title={slide.title} slideNumber={1} colors={colors} showPageNumber={showPageNumber} />
-    </div>
-);
+                {/* Key bullets if present */}
+                {(slide.bullets?.length > 0 || slide.content?.bullets?.length > 0) && (
+                    <ul className="mt-10 space-y-3 text-left">
+                        {(slide.bullets || slide.content?.bullets || []).slice(0, 4).map((bullet: string, i: number) => (
+                            <EditableElement
+                                key={i}
+                                element={{ id: `bullets-${i}`, type: 'list', value: bullet, path: slide.bullets ? `bullets[${i}]` : `content.bullets[${i}]`, label: `Bullet ${i + 1}` }}
+                                onSelect={onSelect}
+                                isSelected={selectedId === `bullets-${i}`}
+                            >
+                                <li className="flex items-center gap-4">
+                                    <span className="w-3 h-3 rounded-full" style={{ backgroundColor: colors.primary }} />
+                                    <span className="text-2xl opacity-80" style={{ color: colors.text }}>{bullet}</span>
+                                </li>
+                            </EditableElement>
+                        ))}
+                    </ul>
+                )}
+            </div>
+
+            <SlideFooter title={slide.title} slideNumber={1} colors={colors} showPageNumber={showPageNumber} />
+        </div>
+    );
+};
 
 // Section divider - Bold title slide
 

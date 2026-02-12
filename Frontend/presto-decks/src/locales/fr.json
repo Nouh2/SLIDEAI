@@ -21,7 +21,8 @@
     "success": "Succès",
     "loading": "Chargement...",
     "retry": "Réessayer",
-    "untitled": "Sans titre"
+    "untitled": "Sans titre",
+    "doubleClickToEdit": "Double clic pour modifier"
   },
   "hero": {
     "badge": "SlideAI v2.0",
@@ -346,6 +347,7 @@
     "contactUs": "Contactez-nous",
     "plans": {
       "free": {
+        "name": "Gratuit",
         "description": "Suffisant pour tester l'outil",
         "features": {
           "presentations": "2 présentations par mois",
@@ -362,6 +364,7 @@
         }
       },
       "starter": {
+        "name": "Starter",
         "description": "Pour les étudiants et l'usage occasionnel",
         "features": {
           "presentations": "15 présentations / mois",
@@ -375,6 +378,7 @@
         "cta": "Choisir Starter"
       },
       "pro": {
+        "name": "Pro",
         "description": "Pour les freelances qui livrent chaque semaine",
         "features": {
           "unlimitedGen": "Génération illimitée",
@@ -387,6 +391,7 @@
         }
       },
       "business": {
+        "name": "Business",
         "description": "Pour les équipes",
         "features": {
           "allPro": "Tout du plan Pro",
@@ -417,7 +422,17 @@
       }
     },
     "noSubscription": "Aucun abonnement. Aucun renouvellement automatique.",
-    "creditUsage": "Utilise tes crédits quand tu veux. Un client = un livrable."
+    "creditUsage": "Utilise tes crédits quand tu veux. Un client = un livrable.",
+    "errors": {
+      "checkout": "Erreur lors de la création de la session de paiement",
+      "cancel": "Erreur lors de la résiliation",
+      "packNotFound": "Pack non reconnu",
+      "generic": "Une erreur est survenue. Veuillez réessayer.",
+      "cancelConfirm": "Êtes-vous sûr de vouloir résilier votre abonnement ?"
+    },
+    "success": {
+      "cancel": "Abonnement résilié avec succès."
+    }
   },
   "account": {
     "title": "Mon Compte",
@@ -456,7 +471,84 @@
     "createPresentation": "Créer une présentation",
     "passwordMismatch": "Les mots de passe ne correspondent pas.",
     "passwordTooShort": "Le mot de passe doit faire au moins 6 caractères.",
-    "passwordUpdated": "Votre mot de passe a été mis à jour."
+    "passwordUpdated": "Votre mot de passe a été mis à jour.",
+    "branding": "Chartes Graphiques",
+    "brandingTitle": "Mes Brand Kits",
+    "brandingDesc": "Personnalisez vos présentations avec vos propres styles."
+  },
+  "brand": {
+    "title": "Brand Kits",
+    "subtitle": "Gérez vos chartes graphiques, logos et polices pour vos présentations.",
+    "newKit": "Nouveau Kit",
+    "createFirstKit": "Créer mon premier kit",
+    "myBrandKits": "Mes Brand Kits",
+    "noneCreated": "Aucun brand kit créé",
+    "kitName": "Nom du kit",
+    "kitNamePlaceholder": "Ex: Acme Corp, Client XYZ...",
+    "saveKit": "Enregistrer le kit",
+    "createKit": "Créer le kit",
+    "importPptx": "Importer depuis PowerPoint",
+    "importPptxDesc": "Récupérez automatiquement les couleurs et polices.",
+    "importPptxBtn": "Importer .pptx",
+    "addLogo": "Ajouter un logo",
+    "colors": "Couleurs",
+    "fonts": "Polices",
+    "headingFont": "Police Titres",
+    "bodyFont": "Police Texte",
+    "templateSettings": "Paramètres du Template",
+    "logoImage": "Logo Image",
+    "logoUpload": "Uploader un logo",
+    "logoUploadDesc": "PNG, JPG ou SVG. Max 5MB.",
+    "logoPosition": "Position du logo",
+    "logoSize": "Taille du logo",
+    "logoShowCover": "Sur slide de couverture",
+    "logoShowContent": "Sur slides de contenu",
+    "footerText": "Texte du footer",
+    "footerPlaceholder": "Ex: © 2024 Acme Corp | Confidentiel",
+    "showPageNumber": "Afficher le numéro de page",
+    "setDefault": "Définir comme kit par défaut",
+    "preview": "Aperçu",
+    "previewTitle": "Titre de présentation",
+    "previewText": "Ceci est un exemple de texte pour visualiser votre charte graphique.",
+    "primary": "Primaire",
+    "secondary": "Secondaire",
+    "accent": "Accent",
+    "cancel": "Annuler",
+    "saving": "Enregistrement...",
+    "save": "Sauvegarder",
+    "editKit": "Modifier le Brand Kit",
+    "newBrandKit": "Nouveau Brand Kit",
+    "kitDesc": "Définissez les couleurs, polices et logo de votre marque",
+    "selected": "Sélectionné",
+    "presets": "Palettes prédéfinies",
+    "deleteConfirm": "Supprimer le kit \"{{name}}\" ?",
+    "deleteSuccess": "Le brand kit a été supprimé",
+    "deleteError": "Impossible de supprimer",
+    "saveSuccessUpdate": "Votre brand kit a été modifié",
+    "saveSuccessCreate": "Votre nouveau brand kit est prêt",
+    "saveError": "Impossible de sauvegarder",
+    "uploadSuccess": "Votre logo a été ajouté avec succès",
+    "uploadError": "Impossible d'uploader le logo",
+    "themeImportSuccess": "Couleurs et polices extraites avec succès !",
+    "fileReadError": "Impossible de lire le fichier",
+    "sessionExpired": "Session expirée",
+    "logoUploaded": "Logo uploadé",
+    "error": "Erreur",
+    "nameRequired": "Le nom est requis",
+    "kitUpdated": "Kit mis à jour",
+    "kitCreated": "Kit créé",
+    "deleted": "Supprimé",
+    "positions": {
+      "topLeft": "↖ Haut gauche",
+      "topRight": "↗ Haut droite",
+      "bottomLeft": "↙ Bas gauche",
+      "bottomRight": "↘ Bas droite"
+    },
+    "sizes": {
+      "small": "Petit",
+      "medium": "Moyen",
+      "large": "Grand"
+    }
   },
   "join": {
     "invalidLink": "Lien de partage invalide.",

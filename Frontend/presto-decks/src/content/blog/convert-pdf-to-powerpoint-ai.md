@@ -4,6 +4,7 @@ description: "Learn how artificial intelligence can transform your static PDF do
 date: "2024-02-12"
 author: "The SlideAI Team"
 category: "Tutorials"
+language: "en"
 image: "https://images.unsplash.com/photo-1586281380349-632531db7ed4?q=80&w=2070&auto=format&fit=crop"
 ---
 

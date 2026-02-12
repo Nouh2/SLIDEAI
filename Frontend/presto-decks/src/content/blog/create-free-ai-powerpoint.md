@@ -4,6 +4,7 @@ description: "Discover how to use AI to generate PowerPoint presentations for fr
 pubDate: "2024-05-25"
 author: "SlideAI Team"
 category: "Tutorials"
+language: "en"
 image: "/images/blog/creer-powerpoint-ia-gratuit.jpg"
 tags: ["AI", "PowerPoint", "Productivity", "Free Tools"]
 ---

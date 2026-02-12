@@ -4,6 +4,7 @@ description: "Découvrez comment utiliser une IA pour générer des présentatio
 pubDate: "2024-05-25"
 author: "SlideAI Team"
 category: "Tutoriels"
+language: "fr"
 image: "/images/blog/creer-powerpoint-ia-gratuit.jpg"
 tags: ["IA", "PowerPoint", "Productivité", "Outils Gratuits"]
 ---

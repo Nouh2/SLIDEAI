@@ -4,6 +4,7 @@ description: "Découvrez comment l'intelligence artificielle peut transformer vo
 date: "2024-02-12"
 author: "L'équipe SlideAI"
 category: "Tutoriels"
+language: "fr"
 image: "https://images.unsplash.com/photo-1586281380349-632531db7ed4?q=80&w=2070&auto=format&fit=crop"
 ---
 

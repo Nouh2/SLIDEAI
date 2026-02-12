@@ -11,13 +11,13 @@ coverImage: "https://images.unsplash.com/photo-1556761175-5973dc0f32e7?q=80&w=28
 
 Vous avez une idée géniale, mais comment la présenter ?
 
-Les investisseurs (VCs) voient des centaines de présentations par mois. Ils passent en moyenne **3 minutes** sur un pitch deck. Si la structure n'est pas claire, vous perdez leur attention immédiatement.
+Les investisseurs ([VCs](https://www.investopedia.com/terms/v/venturecapital.asp)) voient des centaines de présentations par mois. Ils passent en moyenne **3 minutes** sur un [pitch deck](/create). Si la structure n'est pas claire, vous perdez leur attention immédiatement.
 
 Voici la structure de référence (utilisée par Airbnb, Uber, Buffer...) en **10 slides incontournables**.
 
 ## 1. La Phrase d'Accroche (Title Slide)
 Votre nom, votre logo, et une "Tagline" (slogan) qui résume votre proposition de valeur en 5 mots.
-*Exemple : "Airbnb : Réservez des logements de particuliers comme des chambres d'hôtel."*
+*Exemple : "[Airbnb](https://www.airbnb.com/) : Réservez des logements de particuliers comme des chambres d'hôtel."*
 
 ## 2. Le Problème (The Pain)
 Quel est le problème douloureux que vos clients rencontrent actuellement ?
@@ -25,7 +25,7 @@ Montrez que vous comprenez la douleur de votre marché (chiffres, histoires, cit
 
 ## 3. La Solution (The Solution)
 Comment votre produit résout-il *exactement* ce problème ?
-Montrez votre produit (screenshots, démo), ne parlez pas juste de théorie.
+Montrez votre produit ([screenshots](/examples), démo), ne parlez pas juste de théorie.
 
 ## 4. Le Marché (Market Size)
 Quelle est la taille de l'opportunité ?
@@ -34,7 +34,7 @@ Quelle est la taille de l'opportunité ?
 *   **SOM** (Serviceable Obtainable Market) : Ce que vous pouvez capturer dans les 3 ans.
 
 ## 5. Le Modèle Économique (Business Model)
-Comment gagnez-vous de l'argent ? (Abonnement, commission, vente unique...)
+Comment gagnez-vous de l'argent ? ([Abonnement](/pricing), commission, vente unique...)
 
 ## 6. La Concurrence (Competition)
 Qui sont vos concurrents et pourquoi êtes-vous meilleurs ?
@@ -66,6 +66,6 @@ Une slide simple avec votre email et votre numéro.
 
 Avoir la bonne structure est crucial, mais avoir un **design professionnel** est tout aussi important pour crédibiliser votre projet.
 
-**SlideAI** peut générer cette structure pour vous et appliquer un design investisseur-ready en quelques secondes.
+**SlideAI** peut générer cette structure pour vous et appliquer un design investisseur-ready en quelques secondes. (Vous hésitez ? Consultez notre comparatif des [Meilleures Alternatives à Gamma App](/blog/meilleures-alternatives-gamma-app)).
 
 [**Générer mon Pitch Deck avec SlideAI**](/create)

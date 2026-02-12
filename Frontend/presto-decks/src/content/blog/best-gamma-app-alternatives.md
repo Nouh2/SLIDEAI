@@ -11,14 +11,14 @@ coverImage: "https://images.unsplash.com/photo-1542744173-8e7e53415bb0?q=80&w=29
 
 Gamma App popularized AI presentation creation. It's a great tool, but it's not for everyone.
 
-Some users find its interface too complex, its designs too "generic", or its PowerPoint exports limited. If that's your case, here are the **3 best alternatives** to consider this year.
+Some users find its interface too complex, its designs too "generic", or its [PowerPoint](/) exports limited. If that's your case, here are the **3 best [alternatives](/blog)** to consider this year.
 
 ## 1. SlideAI: Simplicity and Design First
 
-If you're looking for a tool **specialized in professional presentations** (Pitch Decks, Reports, Courses), SlideAI is the ideal alternative.
+If you're looking for a tool **specialized in professional presentations** (see our guide on [The Perfect Pitch Deck Structure](/blog/perfect-pitch-deck-structure)), SlideAI is the ideal alternative.
 
 **Why choose SlideAI?**
-*   **Premium Design**: Unlike generic slides, SlideAI offers modern and clean layouts.
+*   **[Premium Design](/examples)**: Unlike generic slides, SlideAI offers modern and clean layouts.
 *   **100% Editable Export**: Everything you generate is editable.
 *   **Intuitive Interface**: No complex menus. Paste your text -> Get your slides.
 *   **Local Support**: A team based in France to help you.
@@ -27,7 +27,7 @@ If you're looking for a tool **specialized in professional presentations** (Pitc
 
 ## 2. Beautiful.ai: The Veteran
 
-Beautiful.ai is a powerful tool that has been around for a long time. It forces the user to adhere to strict design rules.
+[Beautiful.ai](https://www.beautiful.ai/) is a powerful tool that has been around for a long time. It forces the user to adhere to strict design rules.
 
 **Pros:**
 *   Very clean designs.
@@ -39,7 +39,7 @@ Beautiful.ai is a powerful tool that has been around for a long time. It forces 
 
 ## 3. Tome.app: For Visual Storytelling
 
-Tome focuses heavily on visual "storytelling", with deep integration of DALL-E for image generation.
+[Tome](https://tome.app/) focuses heavily on visual "storytelling", with deep integration of [DALL-E](https://openai.com/dall-e-3) to generate images.
 
 **Pros:**
 *   Very visual and immersive.

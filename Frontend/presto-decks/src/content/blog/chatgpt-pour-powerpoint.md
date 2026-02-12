@@ -9,16 +9,16 @@ coverImage: "https://images.unsplash.com/photo-1677442136019-21780ecad995?q=80&w
 
 # Comment utiliser ChatGPT pour créer un PowerPoint (Guide 2025)
 
-Vous avez passé des heures à peaufiner votre texte sur ChatGPT, mais maintenant vous devez le transformer en présentation PowerPoint ?
+Vous avez passé des heures à peaufiner votre texte sur ChatGPT, mais maintenant vous devez le transformer en [présentation PowerPoint](/) ?
 
-C'est un problème classique. ChatGPT est génial pour le texte, mais il ne peut pas (encore) générer directement un fichier `.pptx` visuellement abouti.
+C'est un problème classique. [ChatGPT](https://chat.openai.com/) est génial pour le texte, mais il ne peut pas (encore) générer directement un fichier [`.pptx`](/create) visuellement abouti.
 
 Dans ce guide, nous allons voir **3 méthodes** pour convertir ChatGPT en PowerPoint, de la plus laborieuse à la plus rapide.
 
 ## Méthode 1 : Le Copier-Coller Manuel (La méthode lente)
 
 C'est ce que font 90% des gens :
-1.  Demander à ChatGPT : *"Génère-moi le plan d'une présentation sur XYZ"*.
+1.  Demander à ChatGPT : *"Génère-moi le plan d'une présentation sur XYZ"*. (💡 Astuce : Suivez notre guide sur la [Structure d'un Pitch Deck Parfait](/blog/structure-pitch-deck-parfait) pour avoir le meilleur prompt).
 2.  Ouvrir PowerPoint.
 3.  Créer une slide pour chaque point clé.
 4.  Copier le titre, coller dans PowerPoint.
@@ -30,7 +30,7 @@ C'est ce que font 90% des gens :
 
 ## Méthode 2 : Utiliser du code VBA (La méthode "Geek")
 
-Une astuce consiste à demander à ChatGPT d'écrire une **macro VBA** pour générer les slides.
+Une astuce consiste à demander à ChatGPT d'écrire une **macro VBA** pour [générer les slides](/create).
 
 **Le prompt à utiliser :**
 > *"Agis comme un expert VBA. Écris-moi une macro VBA pour créer une présentation PowerPoint sur [SUJET]. Crée 10 slides avec titres et contenus."*
@@ -45,7 +45,7 @@ Ensuite, vous devez :
 
 ## Méthode 3 : La méthode SlideAI (Automatique & Design)
 
-La meilleure solution en 2025 est d'utiliser un outil spécialisé comme **SlideAI** qui fait le pont entre l'intelligence du texte et la beauté du design.
+La meilleure solution en 2025 est d'utiliser un outil spécialisé comme **[SlideAI](/)** qui fait le pont entre l'intelligence du texte et la beauté du design.
 
 **Comment ça marche ?**
 1.  Copiez votre texte (ou vos notes ChatGPT).
@@ -55,7 +55,7 @@ La meilleure solution en 2025 est d'utiliser un outil spécialisé comme **Slide
 En quelques secondes, l'IA :
 *   Analyse votre contenu.
 *   Découpe le texte intelligemment par slide.
-*   **Applique un design professionnel** automatiquement.
+*   **Applique un [design professionnel](/examples)** automatiquement.
 *   Ajoute des icônes et des images pertinentes.
 
 **Temps estimé :** 2 minutes.

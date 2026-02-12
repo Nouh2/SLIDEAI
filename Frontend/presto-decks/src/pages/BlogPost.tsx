@@ -61,10 +61,23 @@ export default function BlogPostPage() {
                         "datePublished": post.date,
                         "dateModified": post.date,
                         "author": [{
-                            "@type": "Person",
+                            "@type": "Organization",
                             "name": post.author,
                             "url": "https://www.slideai.fr"
-                        }]
+                        }],
+                        "publisher": {
+                            "@type": "Organization",
+                            "name": "SlideAI",
+                            "logo": {
+                                "@type": "ImageObject",
+                                "url": "https://www.slideai.fr/logo.png"
+                            }
+                        },
+                        "description": post.excerpt,
+                        "mainEntityOfPage": {
+                            "@type": "WebPage",
+                            "@id": `https://www.slideai.fr/blog/${post.slug}`
+                        }
                     })}
                 </script>
             </Helmet>

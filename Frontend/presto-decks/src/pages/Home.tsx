@@ -1,4 +1,5 @@
 import { useNavigate } from "react-router-dom";
+import { Helmet } from "react-helmet-async";
 import { useTranslation } from "react-i18next";
 import { Hero } from "@/components/home/Hero";
 import { DeckPreview } from "@/components/home/DeckPreview";
@@ -23,6 +24,24 @@ export default function Home() {
         title="SlideAI - Créez des slides gagnantes en 5 minutes"
         description="Générez, éditez et partagez des présentations PowerPoint professionnelles avec l'IA. Gagnez du temps et impressionnez votre audience."
       />
+
+      <Helmet>
+        <script type="application/ld+json">
+          {JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "SoftwareApplication",
+            "name": "SlideAI",
+            "applicationCategory": "DesignApplication",
+            "operatingSystem": "Web",
+            "offers": {
+              "@type": "Offer",
+              "price": "0",
+              "priceCurrency": "EUR"
+            },
+            "description": "Générez, éditez et partagez des présentations PowerPoint professionnelles avec l'IA."
+          })}
+        </script>
+      </Helmet>
 
       {/* SlideAI DNA: Grid Background - Full Page */}
       <div className="fixed inset-0 z-0 h-full w-full bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px] pointer-events-none"></div>

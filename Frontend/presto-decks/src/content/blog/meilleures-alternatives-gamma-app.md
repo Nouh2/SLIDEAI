@@ -11,14 +11,14 @@ coverImage: "https://images.unsplash.com/photo-1542744173-8e7e53415bb0?q=80&w=29
 
 Gamma App a popularisé la création de présentations par IA. C'est un excellent outil, mais il ne convient pas à tout le monde.
 
-Certains utilisateurs trouvent son interface trop complexe, ses designs trop "génériques" ou ses exports PowerPoint limités. Si c'est votre cas, voici les **3 meilleures alternatives** à considérer cette année.
+Certains utilisateurs trouvent son interface trop complexe, ses designs trop "génériques" ou ses exports [PowerPoint](/) limités. Si c'est votre cas, voici les **3 meilleures [alternatives](/blog)** à considérer cette année.
 
 ## 1. SlideAI : La Simplicité et le Design avant tout
 
-Si vous cherchez un outil **spécialisé dans les présentations professionnelles** (Pitch Decks, Rapports, Cours), SlideAI est l'alternative idéale.
+Si vous cherchez un outil **spécialisé dans les présentations professionnelles** (voir notre article sur [la structure idéale d'un Pitch Deck](/blog/structure-pitch-deck-parfait)), SlideAI est l'alternative idéale.
 
 **Pourquoi choisir SlideAI ?**
-*   **Design Premium** : Contrairement aux slides génériques, SlideAI propose des mises en page modernes et épurées.
+*   **[Design Premium](/examples)** : Contrairement aux slides génériques, SlideAI propose des mises en page modernes et épurées.
 *   **Export 100% Éditable** : Tout ce que vous générez est modifiable.
 *   **Interface Intuitive** : Pas de menus complexes. Collez votre texte -> Obtenez vos slides.
 *   **Support Français** : Une équipe basée en France pour vous aider.
@@ -27,7 +27,7 @@ Si vous cherchez un outil **spécialisé dans les présentations professionnelle
 
 ## 2. Beautiful.ai : Le Vétéran
 
-Beautiful.ai est un outil puissant qui existe depuis longtemps. Il force l'utilisateur à respecter des règles de design strictes.
+[Beautiful.ai](https://www.beautiful.ai/) est un outil puissant qui existe depuis longtemps. Il force l'utilisateur à respecter des règles de design strictes.
 
 **Points forts :**
 *   Designs très propres.
@@ -39,7 +39,7 @@ Beautiful.ai est un outil puissant qui existe depuis longtemps. Il force l'utili
 
 ## 3. Tome.app : Pour le Storytelling Visuel
 
-Tome se concentre beaucoup sur le "storytelling" visuel, avec une intégration poussée de DALL-E pour générer des images.
+[Tome](https://tome.app/) se concentre beaucoup sur le "storytelling" visuel, avec une intégration poussée de [DALL-E](https://openai.com/dall-e-3) pour générer des images.
 
 **Points forts :**
 *   Très visuel et immersif.

@@ -25,6 +25,7 @@ const ViewPage = lazy(() => import("@/pages/ViewPage"));
 const ResetPassword = lazy(() => import("@/pages/ResetPassword"));
 const Blog = lazy(() => import("@/pages/Blog"));
 const BlogPost = lazy(() => import("@/pages/BlogPost"));
+const ChartDemoPage = lazy(() => import("@/pages/ChartDemo"));
 
 const PageLoader = () => (
     <div className="h-[calc(100vh-4rem)] w-full flex items-center justify-center">
@@ -52,6 +53,8 @@ export const AnimatedRoutes = () => {
                     <Route path="/gdpr" element={<PageTransition><GdprPage /></PageTransition>} />
                     <Route path="/blog" element={<PageTransition><Blog /></PageTransition>} />
                     <Route path="/blog/:slug" element={<PageTransition><BlogPost /></PageTransition>} />
+                    <Route path="/charts-demo" element={<PageTransition><ChartDemoPage /></PageTransition>} />
+
 
                     {/* GUEST ONLY ROUTES - Redirect to dashboard if logged in */}
                     <Route path="/" element={

@@ -36,6 +36,9 @@ export function SEO({
             <meta property="og:description" content={description} />
             <meta property="og:image" content={fullImage} />
 
+            {/* Canonical URL */}
+            <link rel="canonical" href={fullUrl} />
+
             {/* Twitter */}
             <meta name="twitter:card" content="summary_large_image" />
             <meta name="twitter:url" content={fullUrl} />

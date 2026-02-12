@@ -15,6 +15,13 @@ const CHART_TYPE_MAP: Record<string, pptxgen.CHART_NAME> = {
     'donut': 'doughnut',
     'area': 'area',
     'radar': 'radar',
+    // New types mapping
+    'stacked-bar': 'bar',
+    'stacked-column': 'bar',
+    'horizontal-bar': 'bar',
+    'bar-h': 'bar',
+    'waterfall': 'bar', // Proxied via bar chart if native waterfall not supported well
+    'combo': 'bar', // Base type, will handle multi-type series
 };
 
 export const chartAdapter: LayoutAdapter = {
@@ -54,6 +61,12 @@ export const chartAdapter: LayoutAdapter = {
         // Determine chart type
         const chartTypeRaw = (chartData?.type || chartData?.chartType || 'bar').toLowerCase();
         const pptxChartType = CHART_TYPE_MAP[chartTypeRaw] || 'bar';
+
+        // Additional export options based on type
+        const isStacked = chartTypeRaw.includes('stacked');
+        const isHorizontal = chartTypeRaw.includes('horizontal') || chartTypeRaw === 'bar-h';
+        const isCombo = chartTypeRaw === 'combo';
+        const isArea = chartTypeRaw === 'area';
 
         // Build chart data for PptxGenJS
         let chartDataForPptx: Array<{ name: string; labels: string[]; values: number[] }> = [];
@@ -124,10 +137,11 @@ export const chartAdapter: LayoutAdapter = {
             'F59E0B', // Amber
             'EF4444', // Red
             '8B5CF6', // Purple
+            'EC4899', // Pink
         ];
 
-        // Add chart with proper positioning
-        pptxSlide.addChart(pptxChartType as pptxgen.CHART_NAME, chartDataForPptx, {
+        // Chart Options
+        const chartOptions: pptxgen.IChartOpts = {
             x: LAYOUT.chart.area.x,
             y: LAYOUT.chart.area.y,
             w: LAYOUT.chart.area.w,
@@ -141,13 +155,28 @@ export const chartAdapter: LayoutAdapter = {
             dataLabelPosition: 'outEnd',
             showValue: pptxChartType === 'pie' || pptxChartType === 'doughnut',
             barGapWidthPct: 40,
+
             // Styling to match frontend
             valAxisLabelColor: toHex(colors.text),
             catAxisLabelColor: toHex(colors.text),
             legendColor: toHex(colors.text),
             valAxisLineShow: false,
             valGridLine: { color: toHex(colors.text), style: 'dash', size: 0.5 },
-        });
+        };
+
+        // Specific overrides based on type
+        if (isStacked) {
+            chartOptions.barGrouping = 'stacked';
+        }
+        if (isHorizontal) {
+            chartOptions.barDir = 'bar'; // Horizontal bars
+        }
+        if (isArea) {
+            // PptxGenJS handles Area automatically based on type 'area'
+        }
+
+        // Add chart with proper positioning and options
+        pptxSlide.addChart(pptxChartType, chartDataForPptx, chartOptions);
 
         // Footer
         addSlideFooter(pptxSlide, {

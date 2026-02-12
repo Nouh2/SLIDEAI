@@ -689,13 +689,12 @@ const StatsLayout = ({ slide, colors, variation = 'classic-grid', onSelect, sele
 // Chart layout - Data visualization
 // Reusable Chart Visuals Component to be used across variants
 const ChartVisuals = ({ chart, colors, height = 400 }: { chart: any, colors: any, height?: number }) => {
-    const chartColors = [colors.primary, colors.secondary, colors.accent, '#10B981', '#F59E0B', '#EF4444'];
+    const chartColors = [colors.primary, colors.secondary, colors.accent, '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899'];
 
     // Helper for pie gradient
     const getPieGradient = () => {
         let gradient = 'conic-gradient(';
         let start = 0;
-        const total = (chart.series?.[0]?.data || []).reduce((a: number, b: number) => a + b, 0) || 100;
 
         // Handle direct data array for pie if series structure is flat
         const dataArray = chart.series?.[0]?.data || chart.data || [];
@@ -712,31 +711,243 @@ const ChartVisuals = ({ chart, colors, height = 400 }: { chart: any, colors: any
     };
 
     const dataArray = chart.series?.[0]?.data || chart.data || [];
+    const categories = chart.categories || [];
+
+    // Normalize Series Data for Multi-Series Charts
+    const series = chart.series || [{ name: 'Data', data: dataArray }];
+    const maxVal = Math.max(...series.flatMap((s: any) => s.data || [100]));
 
     // --- RENDERERS ---
 
-    // 1. BAR / COLUMN
+    // 1. BAR / COLUMN (Standard)
     if (chart.type === 'bar' || chart.type === 'column' || !chart.type) {
         return (
             <div className="w-full flex flex-col justify-end" style={{ height: `${height}px` }}>
-                <div className="flex items-end justify-center gap-4 sm:gap-8 h-full">
-                    {chart.categories?.map((cat: string, i: number) => {
-                        const maxVal = Math.max(...(dataArray.length ? dataArray : [100]));
-                        const value = dataArray[i] || 0;
-                        const barHeight = (value / maxVal) * 100;
+                <div className="flex items-end justify-center gap-4 sm:gap-8 h-full pb-8 border-b" style={{ borderColor: `${colors.text}20` }}>
+                    {categories.map((cat: string, i: number) => {
                         return (
-                            <div key={i} className="flex flex-col items-center gap-3 flex-1 h-full justify-end group">
-                                <span className="text-xl font-bold opacity-0 group-hover:opacity-100 transition-opacity transform -translate-y-2"
-                                    style={{ color: colors.text }}>{value}</span>
-                                <div
-                                    className="w-full max-w-24 rounded-t-xl transition-all duration-500 shadow-lg group-hover:scale-y-105 origin-bottom"
+                            <div key={i} className="flex flex-col items-center gap-2 flex-1 h-full justify-end group relative">
+                                {/* Grouped Bars if multiple series */}
+                                <div className="flex gap-1 items-end justify-center w-full h-full">
+                                    {series.map((s: any, sIdx: number) => {
+                                        const val = s.data[i] || 0;
+                                        const barHeight = (val / maxVal) * 100;
+                                        const color = chartColors[sIdx % chartColors.length];
+
+                                        return (
+                                            <div key={sIdx} className="relative flex flex-col items-center justify-end h-full flex-1 max-w-[40px]">
+                                                <span className="mb-2 text-xs font-bold absolute bottom-full whitespace-nowrap"
+                                                    style={{ color: colors.text }}>
+                                                    {val}
+                                                </span>
+                                                <div
+                                                    className="w-full rounded-t-sm transition-all duration-500 shadow-sm hover:opacity-80"
+                                                    style={{
+                                                        height: `${barHeight}%`,
+                                                        backgroundColor: color,
+                                                    }}
+                                                />
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                                <span className="absolute top-full mt-4 text-xs sm:text-sm font-medium text-center leading-tight w-full truncate"
+                                    style={{ color: colors.text, opacity: 0.8 }}>
+                                    {cat}
+                                </span>
+                            </div>
+                        );
+                    })}
+                </div>
+                {/* Legend */}
+                {series.length > 1 && (
+                    <div className="flex flex-wrap justify-center gap-6 mt-8">
+                        {series.map((s: any, i: number) => (
+                            <div key={i} className="flex items-center gap-2">
+                                <div className="w-3 h-3 rounded-full" style={{ backgroundColor: chartColors[i % chartColors.length] }} />
+                                <span className="text-sm font-medium" style={{ color: colors.text }}>{s.name}</span>
+                            </div>
+                        ))}
+                    </div>
+                )}
+            </div>
+        );
+    }
+
+    // 2. STACKED BAR / COLUMN
+    if (chart.type === 'stacked-bar' || chart.type === 'stacked-column') {
+        // Calculate max stack height
+        const stackedTotals = categories.map((_, i) =>
+            series.reduce((acc: number, s: any) => acc + (s.data[i] || 0), 0)
+        );
+        const maxStack = Math.max(...stackedTotals, 1);
+
+        return (
+            <div className="w-full flex flex-col justify-end" style={{ height: `${height}px` }}>
+                <div className="flex items-end justify-center gap-8 h-full pb-8 border-b" style={{ borderColor: `${colors.text}20` }}>
+                    {categories.map((cat: string, i: number) => {
+                        const total = stackedTotals[i];
+                        const totalHeightPct = (total / maxStack) * 100;
+
+                        return (
+                            <div key={i} className="flex flex-col items-center gap-2 flex-1 h-full justify-end group relative">
+                                <span className="mb-2 text-sm font-bold absolute bottom-[calc(100%+8px)]"
+                                    style={{ bottom: `${totalHeightPct}%`, color: colors.text }}>
+                                    {total}
+                                </span>
+
+                                <div className="w-full max-w-[60px] flex flex-col-reverse justify-start rounded-t-md overflow-hidden shadow-sm"
+                                    style={{ height: `${totalHeightPct}%` }}>
+                                    {series.map((s: any, sIdx: number) => {
+                                        const val = s.data[i] || 0;
+                                        const segmentHeight = (val / total) * 100;
+                                        const color = chartColors[sIdx % chartColors.length];
+
+                                        return (
+                                            <div key={sIdx}
+                                                className="w-full relative group/segment hover:opacity-90 transition-opacity border-t border-white/20 first:border-t-0"
+                                                style={{ height: `${segmentHeight}%`, backgroundColor: color }}
+                                                title={`${s.name}: ${val}`}
+                                            >
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+
+                                <span className="absolute top-full mt-4 text-xs sm:text-sm font-medium text-center leading-tight w-full truncate"
+                                    style={{ color: colors.text, opacity: 0.8 }}>
+                                    {cat}
+                                </span>
+                            </div>
+                        );
+                    })}
+                </div>
+                {/* Legend */}
+                <div className="flex flex-wrap justify-center gap-6 mt-8">
+                    {series.map((s: any, i: number) => (
+                        <div key={i} className="flex items-center gap-2">
+                            <div className="w-3 h-3 rounded-full" style={{ backgroundColor: chartColors[i % chartColors.length] }} />
+                            <span className="text-sm font-medium" style={{ color: colors.text }}>{s.name}</span>
+                        </div>
+                    ))}
+                </div>
+            </div>
+        );
+    }
+
+    // 3. HORIZONTAL BAR
+    if (chart.type === 'horizontal-bar' || chart.type === 'bar-h') {
+        const maxVal = Math.max(...series.flatMap((s: any) => s.data));
+
+        return (
+            <div className="w-full h-full flex flex-col justify-center gap-3 overflow-y-auto py-2 pr-2">
+                {categories.map((cat: string, i: number) => (
+                    <div key={i} className="w-full shrink-0">
+                        <div className="flex justify-between items-end mb-1">
+                            <span className="text-xs sm:text-sm font-medium truncate max-w-[200px]" style={{ color: colors.text }}>{cat}</span>
+                        </div>
+                        <div className="w-full bg-gray-100/50 rounded-full h-6 sm:h-8 flex items-center relative overflow-hidden">
+                            {/* Support stacked horiz, or just grouped. Assuming grouped for now or single series mostly */}
+                            {series.map((s: any, sIdx: number) => {
+                                const val = s.data[i] || 0;
+                                const widthPct = (val / maxVal) * 100;
+                                const color = chartColors[sIdx % chartColors.length];
+
+                                // Only render primary series for simple horiz bar visual, or stack if needed. 
+                                // Let's do simple Overlay for now (first series)
+                                if (sIdx > 0) return null;
+
+                                return (
+                                    <div key={sIdx}
+                                        className="h-full rounded-r-full flex items-center px-3 transition-all duration-1000 relative"
+                                        style={{ width: `${widthPct}%`, backgroundColor: color }}>
+                                        <span className="text-xs font-bold text-white drop-shadow-md sticky left-2">{val}</span>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </div>
+                ))}
+            </div>
+        );
+    }
+
+    // 4. WATERFALL CHART (McKinsey Style)
+    if (chart.type === 'waterfall') {
+        let currentTotal = 0;
+        const waterfallData = (series[0]?.data || []).map((val: number, i: number) => {
+            const isTotal = categories[i]?.toLowerCase().includes('total') || i === 0 || i === series[0]?.data.length - 1;
+            // Better logic: usually start and end are totals. 
+            // Or assume inputs are deltas directly. 
+            const start = currentTotal;
+            currentTotal += val;
+            const end = currentTotal;
+
+            // Logic for "Total" bars (grounded) vs "Delta" bars (floating)
+            // Specialized input needed for true totals, but let's approximate:
+            // If it's a "total" bar, it starts at 0.
+
+            return {
+                val,
+                start: isTotal ? 0 : (val >= 0 ? start : end),
+                height: Math.abs(val),
+                isPositive: val >= 0,
+                isTotal: categories[i]?.toLowerCase().includes('total') || categories[i]?.toLowerCase() === 'start' || categories[i]?.toLowerCase() === 'end',
+                endValue: currentTotal
+            };
+        });
+
+        // Correction for "Total" bars to show absolute height
+        waterfallData.forEach((d: any, i: number) => {
+            if (d.isTotal) {
+                d.start = 0;
+                d.height = d.endValue; // Absolute value typical for tot
+            }
+        });
+
+        const maxWaterfall = Math.max(...waterfallData.map((d: any) => d.start + d.height));
+
+        return (
+            <div className="w-full flex flex-col justify-end" style={{ height: `${height}px` }}>
+                <div className="flex items-end justify-center gap-2 h-full pb-8 border-b" style={{ borderColor: `${colors.text}20` }}>
+                    {categories.map((cat: string, i: number) => {
+                        const d = waterfallData[i];
+                        const bottomPct = (d.start / maxWaterfall) * 100;
+                        const heightPct = (d.height / maxWaterfall) * 100;
+
+                        // Colors: Total=Blue, Pos=Green, Neg=Red
+                        let bgColor = colors.primary;
+                        if (!d.isTotal) {
+                            bgColor = d.isPositive ? '#10B981' : '#EF4444';
+                        }
+
+                        return (
+                            <div key={i} className="flex flex-col items-center gap-2 flex-1 h-full relative group">
+                                <div className="w-full max-w-[60px] absolute transition-all duration-500 rounded-sm shadow-sm"
                                     style={{
-                                        height: `${barHeight}%`,
-                                        backgroundColor: chartColors[i % chartColors.length],
-                                        opacity: 0.9
-                                    }}
-                                />
-                                <span className="text-sm sm:text-lg font-medium text-center leading-tight" style={{ color: colors.text, opacity: 0.8 }}>{cat}</span>
+                                        bottom: `${bottomPct}%`,
+                                        height: `${heightPct}%`,
+                                        backgroundColor: bgColor
+                                    }}>
+                                    <span className="absolute -top-6 left-1/2 -translate-x-1/2 text-xs font-bold" style={{ color: colors.text }}>
+                                        {d.val > 0 && !d.isTotal ? '+' : ''}{d.val}
+                                    </span>
+                                </div>
+                                {/* Connector Lines */}
+                                {i < categories.length - 1 && (
+                                    <div className="absolute right-0 w-full border-t border-dashed opacity-30"
+                                        style={{
+                                            bottom: `${(d.isTotal ? d.height : (d.isPositive ? d.start + d.height : d.start)) / maxWaterfall * 100}%`,
+                                            borderColor: colors.text,
+                                            width: '100%',
+                                            transform: 'translateX(50%)'
+                                        }}
+                                    />
+                                )}
+                                <span className="absolute bottom-[-40px] text-xs font-medium text-center w-full truncate"
+                                    style={{ color: colors.text, opacity: 0.8 }}>
+                                    {cat}
+                                </span>
                             </div>
                         );
                     })}
@@ -745,7 +956,216 @@ const ChartVisuals = ({ chart, colors, height = 400 }: { chart: any, colors: any
         );
     }
 
-    // 2. PIE / DONUT
+    // 5. COMBO CHART (Bar + Line)
+    if (chart.type === 'combo') {
+        const barSeries = series.filter((s: any) => s.type !== 'line');
+        const lineSeries = series.filter((s: any) => s.type === 'line').length > 0 ? series.filter((s: any) => s.type === 'line') : [series[series.length - 1]];
+        // Default last to line if not specified? Or assume explicit types in series.
+
+        const maxVal = Math.max(...series.flatMap((s: any) => s.data));
+
+        return (
+            <div className="w-full relative" style={{ height: `${height}px` }}>
+                {/* 1. Render Bars Layer */}
+                <div className="absolute inset-0 flex items-end justify-center gap-4 sm:gap-8 pb-8 px-4">
+                    {categories.map((cat: string, i: number) => (
+                        <div key={i} className="flex-1 h-full flex items-end justify-center">
+                            {barSeries.map((s: any, sIdx: number) => {
+                                const val = s.data[i] || 0;
+                                const h = (val / maxVal) * 100;
+                                return (
+                                    <div key={sIdx} className="w-full max-w-[40px] opacity-80 rounded-t-sm relative flex items-center justify-center"
+                                        style={{ height: `${h}%`, backgroundColor: chartColors[sIdx] }}>
+                                        <span className="absolute bottom-full mb-1 text-xs font-bold" style={{ color: colors.text }}>{val}</span>
+                                    </div>
+                                );
+                            })}
+                            <span className="absolute bottom-0 text-xs text-center truncate w-20" style={{ color: colors.text }}>{cat}</span>
+                        </div>
+                    ))}
+                </div>
+
+                {/* 2. Render Line Layer (SVG Overlay) */}
+                <div className="absolute inset-x-4 bottom-8 top-0 pointer-events-none">
+                    <svg className="w-full h-full overflow-visible" viewBox="0 0 100 100" preserveAspectRatio="none">
+                        {lineSeries.map((s: any, sIdx: number) => {
+                            const data = s.data || [];
+                            const points = data.map((val: number, i: number) => {
+                                const x = (i / (data.length - 1 || 1)) * 100;
+                                // Simple centering correction:
+                                // If N bars, x should align with center of columns. 
+                                // This is roughly i / (N-1). Close enough for CSS.
+                                const y = 100 - (val / maxVal) * 100;
+                                return `${x},${y}`;
+                            }).join(' ');
+
+                            return (
+                                <g key={sIdx}>
+                                    <polyline
+                                        points={points}
+                                        fill="none"
+                                        stroke={colors.accent || '#F59E0B'}
+                                        strokeWidth="3"
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        className="drop-shadow-sm"
+                                        vectorEffect="non-scaling-stroke"
+                                    />
+                                </g>
+                            );
+                        })}
+                    </svg>
+
+                    {/* HTML Overlay for Markers & Labels (No Distortion) */}
+                    {lineSeries.map((s: any, sIdx: number) => {
+                        const data = s.data || [];
+                        return (
+                            <div key={sIdx} className="absolute inset-0 pointer-events-none">
+                                {data.map((val: number, i: number) => {
+                                    const x = (i / (data.length - 1 || 1)) * 100;
+                                    const y = 100 - (val / maxVal) * 100;
+
+                                    return (
+                                        <div
+                                            key={i}
+                                            className="absolute flex flex-col items-center transform -translate-x-1/2 -translate-y-1/2"
+                                            style={{ left: `${x}%`, top: `${y}%` }}
+                                        >
+                                            <div className="w-3 h-3 bg-white border-2 rounded-full shadow-sm z-10"
+                                                style={{ borderColor: colors.accent }} />
+                                            <span
+                                                className="absolute bottom-full mb-1 text-xs font-bold whitespace-nowrap z-20"
+                                                style={{ color: colors.text, textShadow: '0 1px 2px white' }}
+                                            >
+                                                {val}
+                                            </span>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        );
+                    })}
+                </div>
+            </div>
+        );
+    }
+
+    // 6. AREA CHART
+    if (chart.type === 'area') {
+        // Similar to Line but with Fill
+        const s = series[0];
+        const data = s.data || [];
+        const maxValArea = Math.max(...data);
+        const points = data.map((val: number, i: number) => {
+            const x = (i / (data.length - 1)) * 100;
+            const y = 100 - (val / maxValArea) * 100;
+            return `${x},${y}`;
+        }).join(' ');
+
+        // Close the path for fill
+        const areaPoints = `0,100 ${points} 100,100`;
+
+        return (
+            <div className="w-full h-full flex flex-col bg-white border border-gray-300 p-6 shadow-sm overflow-hidden text-black font-sans box-border" style={{ minHeight: `${height}px` }}>
+                {/* 1. HEADER: Action Title & Subtitle */}
+                <div className="mb-6 border-b-2 border-gray-800 pb-2">
+                    <h3 className="text-xl font-serif font-bold text-gray-900 leading-tight mb-1">
+                        {chart.title || "Consulting Action Title"}
+                    </h3>
+                    <p className="text-sm text-gray-600">
+                        {chart.subtitle || "Subtitle describing the chart analysis"}
+                    </p>
+                </div>
+
+                {/* 2. BODY: Chart Area */}
+                <div className="flex-1 relative border border-blue-500/0 p-4 rounded-sm flex flex-col">
+                    {/* Legend / Key (Top Right) */}
+                    <div className="flex justify-end gap-4 mb-4">
+                        <div className="flex items-center gap-2">
+                            <div className="w-8 h-0.5 bg-black"></div>
+                            <span className="text-xs font-bold text-gray-700">{s?.name || "Series 1"}</span>
+                        </div>
+                    </div>
+
+                    <div className="relative flex-1 w-full h-full min-h-[250px]">
+                        {/* Y-Axis Labels & Grid */}
+                        <div className="absolute inset-y-0 left-0 w-10 flex flex-col justify-between text-right pr-2 py-6 pointer-events-none z-10">
+                            {/* Manually distribute 5 ticks matches grid */}
+                            {[1, 0.75, 0.5, 0.25, 0].map((t) => (
+                                <span key={t} className="text-xs font-medium text-gray-500 h-4 -mt-2">
+                                    {Math.round(t * maxValArea)}
+                                </span>
+                            ))}
+                        </div>
+
+                        {/* Chart Drawing Area */}
+                        <div className="absolute inset-0 left-10 bottom-8 right-4 top-4">
+                            {/* Gridlines */}
+                            <div className="absolute inset-0 flex flex-col justify-between pointer-events-none">
+                                {[1, 0.75, 0.5, 0.25, 0].map((t) => (
+                                    <div key={t} className="w-full border-t border-gray-200 border-dashed h-0" />
+                                ))}
+                            </div>
+
+                            {/* SVG Graph */}
+                            <svg className="w-full h-full overflow-visible" viewBox="0 0 100 100" preserveAspectRatio="none">
+                                <defs>
+                                    <linearGradient id="consultingGradient" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="0%" stopColor="#000000" stopOpacity="0.05" />
+                                        <stop offset="100%" stopColor="#000000" stopOpacity="0.0" />
+                                    </linearGradient>
+                                </defs>
+                                <polygon points={areaPoints} fill="url(#consultingGradient)" />
+                                {/* Main Line */}
+                                <polyline points={points} fill="none" stroke="#000000" strokeWidth="2" vectorEffect="non-scaling-stroke" strokeLinejoin="round" />
+
+                                {/* End Point Dot */}
+                                <circle
+                                    cx={100}
+                                    cy={100 - (data[data.length - 1] / maxValArea * 100)}
+                                    r="4"
+                                    fill="#000000"
+                                    vectorEffect="non-scaling-stroke"
+                                />
+                                {/* End Point Label */}
+                                <text
+                                    x={100}
+                                    y={100 - (data[data.length - 1] / maxValArea * 100) - 5}
+                                    textAnchor="end"
+                                    fontSize="4"
+                                    fontWeight="bold"
+                                    fill="black"
+                                >
+                                    {data[data.length - 1]}
+                                </text>
+
+                                {/* Axes Lines */}
+                                <line x1="0" y1="0" x2="0" y2="100" stroke="#000000" strokeWidth="1" vectorEffect="non-scaling-stroke" /> {/* Y Axis */}
+                                <line x1="0" y1="100" x2="100" y2="100" stroke="#000000" strokeWidth="1" vectorEffect="non-scaling-stroke" /> {/* X Axis */}
+                            </svg>
+                        </div>
+
+                        {/* X-Axis Labels */}
+                        <div className="absolute bottom-0 left-10 right-4 flex justify-between pt-2">
+                            {categories.map((cat: string, i: number) => (
+                                <span key={i} className="text-xs font-bold text-gray-800 text-center w-full truncate">
+                                    {cat}
+                                </span>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+
+                {/* 3. FOOTER: Source */}
+                <div className="mt-4 pt-2 border-t border-gray-300 flex justify-between items-center text-[10px] text-gray-500">
+                    <span>Source: SLIDEAI Internal Analytics, 2024</span>
+                    <span>Confidential - For Internal Use Only</span>
+                </div>
+            </div>
+        );
+    }
+
+    // PIE / DONUT
     if (chart.type === 'pie' || chart.type === 'donut') {
         return (
             <div className="flex flex-col sm:flex-row items-center justify-center gap-12 h-full">
@@ -758,9 +1178,11 @@ const ChartVisuals = ({ chart, colors, height = 400 }: { chart: any, colors: any
                     )}
                 </div>
                 <div className="space-y-4">
-                    {chart.categories?.map((cat: string, i: number) => {
-                        const value = dataArray[i] || 0;
-                        const total = dataArray.reduce((a: number, b: number) => a + b, 0) || 1;
+                    {categories.map((cat: string, i: number) => {
+                        // Handle flat data
+                        const dataVal = chart.series?.[0]?.data || chart.data;
+                        const value = dataVal?.[i] || 0;
+                        const total = dataVal?.reduce((a: number, b: number) => a + b, 0) || 1;
                         const percentage = Math.round((value / total) * 100);
                         return (
                             <div key={i} className="flex items-center gap-3">
@@ -776,9 +1198,8 @@ const ChartVisuals = ({ chart, colors, height = 400 }: { chart: any, colors: any
         );
     }
 
-    // 3. LINE CHART
+    // LINE CHART
     if (chart.type === 'line') {
-        const maxVal = Math.max(...(dataArray.length ? dataArray : [100]));
         return (
             <div className="w-full relative" style={{ height: `${height}px` }}>
                 <div className="absolute inset-x-0 bottom-8 top-0 border-l-2 border-b-2" style={{ borderColor: `${colors.text}20` }}>
@@ -791,12 +1212,12 @@ const ChartVisuals = ({ chart, colors, height = 400 }: { chart: any, colors: any
 
                     {/* SVG Line */}
                     <svg className="w-full h-full overflow-visible" viewBox="0 0 100 100" preserveAspectRatio="none">
-                        {chart.series?.map((series: any, seriesIdx: number) => {
-                            const seriesData = series.data || [];
-                            const seriesMax = Math.max(...(seriesData.length ? seriesData : [100]));
-                            const points = seriesData.map((val: number, i: number) => {
-                                const x = (i / (seriesData.length - 1)) * 100;
-                                const y = 100 - (val / seriesMax) * 100;
+                        {series.map((s: any, seriesIdx: number) => {
+                            const data = s.data || [];
+                            // Share scale
+                            const points = data.map((val: number, i: number) => {
+                                const x = (i / (data.length - 1)) * 100;
+                                const y = 100 - (val / maxVal) * 100;
                                 return `${x},${y}`;
                             }).join(' ');
 
@@ -812,11 +1233,11 @@ const ChartVisuals = ({ chart, colors, height = 400 }: { chart: any, colors: any
                                         className="drop-shadow-md"
                                     />
                                     {/* Dots */}
-                                    {seriesData.map((val: number, i: number) => {
-                                        const x = (i / (seriesData.length - 1)) * 100;
-                                        const y = 100 - (val / seriesMax) * 100;
+                                    {data.map((val: number, i: number) => {
+                                        const x = (i / (data.length - 1)) * 100;
+                                        const y = 100 - (val / maxVal) * 100;
                                         return (
-                                            <circle key={i} cx={x} cy={y} r="1.5" fill={colors.bg} stroke={chartColors[seriesIdx % chartColors.length]} strokeWidth="1" />
+                                            <circle key={i} cx={x} cy={y} r="3" fill={colors.bg} stroke={chartColors[seriesIdx % chartColors.length]} strokeWidth="2" />
                                         )
                                     })}
                                 </g>
@@ -826,7 +1247,7 @@ const ChartVisuals = ({ chart, colors, height = 400 }: { chart: any, colors: any
                 </div>
                 {/* X-Axis Labels */}
                 <div className="absolute bottom-0 left-0 right-0 flex justify-between transform translate-y-full pt-4">
-                    {chart.categories?.map((cat: string, i: number) => (
+                    {categories.map((cat: string, i: number) => (
                         <span key={i} className="text-xs sm:text-sm text-center w-20 truncate" style={{ color: colors.text, opacity: 0.7 }}>{cat}</span>
                     ))}
                 </div>
@@ -834,7 +1255,12 @@ const ChartVisuals = ({ chart, colors, height = 400 }: { chart: any, colors: any
         );
     }
 
-    return null;
+    // Default fallback
+    return (
+        <div className="flex bg-gray-100 items-center justify-center h-[300px] text-gray-500">
+            Unknown Chart Type: {chart.type}
+        </div>
+    );
 };
 
 // Chart Layout - Multiple variants

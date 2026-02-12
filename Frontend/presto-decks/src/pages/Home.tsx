@@ -21,8 +21,8 @@ export default function Home() {
   return (
     <div className="min-h-screen w-full relative">
       <SEO
-        title="SlideAI - Créez des slides gagnantes en 5 minutes"
-        description="Générez, éditez et partagez des présentations PowerPoint professionnelles avec l'IA. Gagnez du temps et impressionnez votre audience."
+        title="SlideAI - IA PowerPoint Gratuit & Générateur de Présentation"
+        description="Générez, éditez et partagez des présentations PowerPoint professionnelles avec l'IA. Essayez notre IA PowerPoint gratuit pour créer des slides en quelques secondes."
       />
 
       <Helmet>

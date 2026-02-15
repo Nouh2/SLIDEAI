@@ -671,6 +671,146 @@ function renderInfographic(ctx: RenderContext) {
 }
 
 /**
+ * SWOT Analysis slide - Professional 2×2 matrix
+ */
+function renderSWOT(ctx: RenderContext) {
+    const content = ctx.slide.content;
+    const swot = content.swot;
+
+    addTitle(ctx);
+
+    if (!swot) return;
+
+    const quadrants = [
+        { title: 'Strengths', items: swot.strengths, color: '27AE60' },
+        { title: 'Weaknesses', items: swot.weaknesses, color: 'E74C3C' },
+        { title: 'Opportunities', items: swot.opportunities, color: '3498DB' },
+        { title: 'Threats', items: swot.threats, color: 'F39C12' },
+    ];
+
+    quadrants.forEach((q, idx) => {
+        const col = idx % 2;
+        const row = Math.floor(idx / 2);
+        const x = 0.8 + col * 5.8;
+        const y = 1.8 + row * 2.7;
+        const w = 5.3;
+        const h = 2.4;
+
+        // Quadrant background
+        ctx.pptxSlide.addShape('roundRect', {
+            x, y, w, h,
+            rectRadius: 0.1,
+            fill: { color: q.color, transparency: 85 },
+            line: { color: q.color, width: 2 },
+        });
+
+        // Quadrant header
+        ctx.pptxSlide.addText(q.title.toUpperCase(), {
+            x: x + 0.2, y: y + 0.1, w: w - 0.4, h: 0.5,
+            fontSize: 14,
+            bold: true,
+            color: q.color,
+            fontFace: ctx.theme.fonts.heading,
+        });
+
+        // Quadrant items
+        const items = (q.items || []).slice(0, 4);
+        items.forEach((item, itemIdx) => {
+            ctx.pptxSlide.addText(`• ${cleanText(item)}`, {
+                x: x + 0.3, y: y + 0.55 + itemIdx * 0.42, w: w - 0.6, h: 0.4,
+                fontSize: 11,
+                color: hex(ctx.theme.colors.text),
+                fontFace: ctx.theme.fonts.body,
+            });
+        });
+    });
+}
+
+/**
+ * Executive Summary slide - KPIs + key findings + next steps
+ */
+function renderExecutiveSummary(ctx: RenderContext) {
+    const content = ctx.slide.content;
+
+    addTitle(ctx);
+
+    // KPIs row at top
+    const stats = (content.stats || []).slice(0, 4);
+    if (stats.length > 0) {
+        const statWidth = 10 / stats.length;
+        stats.forEach((stat: { value: string; label: string }, idx: number) => {
+            const x = 1.5 + idx * statWidth;
+
+            ctx.pptxSlide.addShape('roundRect', {
+                x, y: 1.8, w: statWidth - 0.4, h: 1.2,
+                rectRadius: 0.08,
+                fill: { color: hex(ctx.theme.colors.chartColors[idx % 5]), transparency: 90 },
+                line: { color: hex(ctx.theme.colors.chartColors[idx % 5]), width: 1.5 },
+            });
+
+            ctx.pptxSlide.addText(cleanText(stat.value), {
+                x, y: 1.85, w: statWidth - 0.4, h: 0.6,
+                fontSize: 22,
+                bold: true,
+                color: hex(ctx.theme.colors.chartColors[idx % 5]),
+                fontFace: ctx.theme.fonts.heading,
+                align: 'center',
+            });
+
+            ctx.pptxSlide.addText(cleanText(stat.label), {
+                x, y: 2.5, w: statWidth - 0.4, h: 0.4,
+                fontSize: 10,
+                color: hex(ctx.theme.colors.textSecondary),
+                fontFace: ctx.theme.fonts.body,
+                align: 'center',
+            });
+        });
+    }
+
+    // Left column: Key Findings
+    const bullets = (content.bullets || []).slice(0, 5);
+    if (bullets.length > 0) {
+        ctx.pptxSlide.addText('KEY FINDINGS', {
+            x: 0.8, y: 3.3, w: 5.5, h: 0.4,
+            fontSize: 12,
+            bold: true,
+            color: hex(ctx.theme.colors.accent),
+            fontFace: ctx.theme.fonts.heading,
+        });
+
+        bullets.forEach((bullet: string, idx: number) => {
+            ctx.pptxSlide.addText(`• ${cleanText(bullet)}`, {
+                x: 1.0, y: 3.7 + idx * 0.45, w: 5.3, h: 0.4,
+                fontSize: 11,
+                color: hex(ctx.theme.colors.text),
+                fontFace: ctx.theme.fonts.body,
+            });
+        });
+    }
+
+    // Right column: Next Steps
+    const nextSteps = (content.nextSteps || []).slice(0, 5);
+    if (nextSteps.length > 0) {
+        ctx.pptxSlide.addText('NEXT STEPS', {
+            x: 6.8, y: 3.3, w: 5.5, h: 0.4,
+            fontSize: 12,
+            bold: true,
+            color: hex(ctx.theme.colors.accentSecondary),
+            fontFace: ctx.theme.fonts.heading,
+        });
+
+        nextSteps.forEach((step: string, idx: number) => {
+            ctx.pptxSlide.addText(`${idx + 1}. ${cleanText(step)}`, {
+                x: 7.0, y: 3.7 + idx * 0.45, w: 5.3, h: 0.4,
+                fontSize: 11,
+                color: hex(ctx.theme.colors.text),
+                fontFace: ctx.theme.fonts.body,
+            });
+        });
+    }
+}
+
+/**
  * Quote slide - Large quote with attribution
  */
 function renderQuote(ctx: RenderContext) {
@@ -877,6 +1017,11 @@ const LAYOUT_RENDERERS: Record<string, (ctx: RenderContext) => void> = {
     infographic: renderInfographic,
     funnel: renderInfographic,
     pyramid: renderInfographic,
+    swot: renderSWOT,
+    'swot-analysis': renderSWOT,
+    'executive-summary': renderExecutiveSummary,
+    'exec-summary': renderExecutiveSummary,
+    summary: renderExecutiveSummary,
     quote: renderQuote,
     testimonial: renderQuote,
     bento: renderBento,
@@ -918,6 +1063,13 @@ export function renderSlide(
 
     const renderer = getRenderer(slide.layout);
     renderer(ctx);
+
+    // Add speaker notes if available
+    // Add speaker notes if available
+    const notes = slide.notes || slide.content?.notes;
+    if (notes) {
+        pptxSlide.addNotes(notes);
+    }
 }
 
 /**

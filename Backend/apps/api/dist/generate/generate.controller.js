@@ -19,6 +19,7 @@ import { z } from 'zod';
 import { QueueService } from '../queues/queue.service.js';
 import { SubscriptionService } from '../subscription/subscription.service.js';
 import { DocumentParserService } from './document-parser.service.js';
+import { PPTXParserService } from './pptx-parser.service.js';
 import { ulid } from 'ulid';
 import IORedis from 'ioredis';
 import { createRequire } from 'module';
@@ -204,11 +205,13 @@ let GenerateController = class GenerateController {
     queues;
     subscriptionService;
     documentParser;
+    pptxParser;
     redis;
-    constructor(queues, subscriptionService, documentParser) {
+    constructor(queues, subscriptionService, documentParser, pptxParser) {
         this.queues = queues;
         this.subscriptionService = subscriptionService;
         this.documentParser = documentParser;
+        this.pptxParser = pptxParser;
         this.redis = new IORedis(getRedisUrl(), {
             maxRetriesPerRequest: null,
         });
@@ -364,53 +367,35 @@ let GenerateController = class GenerateController {
      * PROTECTED: Requires valid Supabase JWT
      */
     async parseDocument(req) {
-        let fileBuffer = null;
-        let fileMimetype = '';
-        let fileFilename = '';
-        if (!req.isMultipart()) {
-            return { error: 'Multipart form data required', success: false };
-        }
-        const parts = req.parts();
-        for await (const part of parts) {
-            if (part.type === 'file') {
-                const chunks = [];
-                for await (const chunk of part.file) {
-                    chunks.push(chunk);
-                }
-                fileBuffer = Buffer.concat(chunks);
-                fileMimetype = part.mimetype;
-                fileFilename = part.filename;
-            }
-        }
-        if (!fileBuffer) {
+        const userId = req.user.sub;
+        const data = await req.file();
+        if (!data) {
             return { error: 'No file uploaded', success: false };
         }
-        console.log(`[ParseDocument] Parsing: ${fileFilename} (${fileMimetype}, ${fileBuffer.length} bytes)`);
-        const userId = req.user.sub;
-        // Check subscription limits for PDF page count
-        // (We'll check after parsing to know page count)
+        const fileBuffer = await data.toBuffer();
+        const fileMimetype = data.mimetype;
+        const fname = data.filename;
+        console.log(`[GenerateController] Parsing document: ${fname} (${fileMimetype}) for user ${userId}`);
         let parsed;
         try {
-            const fname = fileFilename.toLowerCase();
             if (fileMimetype === 'application/pdf' || fname.endsWith('.pdf')) {
                 parsed = await this.documentParser.parsePDF(fileBuffer);
-                // Check PDF page limit
-                await this.subscriptionService.checkPdfPageLimit(userId, parsed.totalPages);
             }
             else if (fileMimetype === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ||
                 fname.endsWith('.docx')) {
                 parsed = await this.documentParser.parseDOCX(fileBuffer);
             }
+            else if (fileMimetype === 'application/vnd.openxmlformats-officedocument.presentationml.presentation' ||
+                fname.endsWith('.pptx')) {
+                parsed = await this.pptxParser.parsePPTX(fileBuffer);
+            }
             else {
-                return { error: 'Unsupported file type. Please upload PDF or DOCX.', success: false };
+                return { error: 'Unsupported file type. Please upload PDF, DOCX, or PPTX.', success: false };
             }
         }
         catch (error) {
-            if (error.status === 403) {
-                throw error; // Rethrow subscription limit errors
-            }
-            console.error('[ParseDocument] Parsing error:', error.message);
-            return { error: 'Failed to parse document', success: false };
+            console.error('[GenerateController] Error parsing document:', error);
+            return { error: 'Failed to parse document. Please ensure it is not password protected.', success: false };
         }
         console.log(`[ParseDocument] Found ${parsed.sections.length} sections in "${parsed.title}"`);
         return {
@@ -471,6 +456,7 @@ GenerateController = __decorate([
     Controller('/v1'),
     __metadata("design:paramtypes", [QueueService,
         SubscriptionService,
-        DocumentParserService])
+        DocumentParserService,
+        PPTXParserService])
 ], GenerateController);
 export { GenerateController };

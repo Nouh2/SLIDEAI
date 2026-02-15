@@ -16,8 +16,8 @@ export class PublicViewController {
      */
     @Get('view/:token')
     async getPublicViewPresentation(@Param('token') token: string) {
-        const presentation = await this.prisma.presentation.findUnique({
-            where: { viewOnlyToken: token },
+        const presentation = await this.prisma.presentations.findUnique({
+            where: { view_only_token: token },
             select: {
                 id: true,
                 title: true,

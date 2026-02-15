@@ -1,6 +1,6 @@
 // src/components/brand/BrandKitManager.tsx
 // Component for managing brand kits (colors, fonts, logos)
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { supabase } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -26,18 +26,59 @@ import { cn } from '@/lib/utils';
 import { BrandKit, BrandKitInput, TemplateOverlay, api } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
 
-// Available Google Fonts for selection
+// Available fonts for selection – covers common PowerPoint, Google, and web fonts
 const AVAILABLE_FONTS = [
+    // Sans-serif
     { value: 'Inter', label: 'Inter', category: 'Sans-serif' },
     { value: 'Roboto', label: 'Roboto', category: 'Sans-serif' },
     { value: 'Open Sans', label: 'Open Sans', category: 'Sans-serif' },
     { value: 'Montserrat', label: 'Montserrat', category: 'Sans-serif' },
     { value: 'Poppins', label: 'Poppins', category: 'Sans-serif' },
+    { value: 'Lato', label: 'Lato', category: 'Sans-serif' },
+    { value: 'Nunito', label: 'Nunito', category: 'Sans-serif' },
+    { value: 'Nunito Sans', label: 'Nunito Sans', category: 'Sans-serif' },
+    { value: 'Raleway', label: 'Raleway', category: 'Sans-serif' },
+    { value: 'Work Sans', label: 'Work Sans', category: 'Sans-serif' },
+    { value: 'Outfit', label: 'Outfit', category: 'Sans-serif' },
+    { value: 'DM Sans', label: 'DM Sans', category: 'Sans-serif' },
+    { value: 'Source Sans Pro', label: 'Source Sans Pro', category: 'Sans-serif' },
+    { value: 'Ubuntu', label: 'Ubuntu', category: 'Sans-serif' },
+    { value: 'Oswald', label: 'Oswald', category: 'Sans-serif' },
+    { value: 'Quicksand', label: 'Quicksand', category: 'Sans-serif' },
+    // PowerPoint / Office defaults
+    { value: 'Calibri', label: 'Calibri', category: 'Sans-serif' },
+    { value: 'Arial', label: 'Arial', category: 'Sans-serif' },
+    { value: 'Helvetica', label: 'Helvetica', category: 'Sans-serif' },
+    { value: 'Segoe UI', label: 'Segoe UI', category: 'Sans-serif' },
+    { value: 'Verdana', label: 'Verdana', category: 'Sans-serif' },
+    { value: 'Tahoma', label: 'Tahoma', category: 'Sans-serif' },
+    { value: 'Trebuchet MS', label: 'Trebuchet MS', category: 'Sans-serif' },
+    { value: 'Century Gothic', label: 'Century Gothic', category: 'Sans-serif' },
+    { value: 'Franklin Gothic Medium', label: 'Franklin Gothic Medium', category: 'Sans-serif' },
+    { value: 'Gill Sans', label: 'Gill Sans', category: 'Sans-serif' },
+    { value: 'Aptos', label: 'Aptos', category: 'Sans-serif' },
+    // Serif
     { value: 'Playfair Display', label: 'Playfair Display', category: 'Serif' },
     { value: 'Merriweather', label: 'Merriweather', category: 'Serif' },
     { value: 'Lora', label: 'Lora', category: 'Serif' },
     { value: 'Georgia', label: 'Georgia', category: 'Serif' },
+    { value: 'Times New Roman', label: 'Times New Roman', category: 'Serif' },
+    { value: 'Cambria', label: 'Cambria', category: 'Serif' },
+    { value: 'Garamond', label: 'Garamond', category: 'Serif' },
+    { value: 'Book Antiqua', label: 'Book Antiqua', category: 'Serif' },
+    { value: 'Palatino Linotype', label: 'Palatino Linotype', category: 'Serif' },
+    { value: 'PT Serif', label: 'PT Serif', category: 'Serif' },
+    { value: 'Noto Serif', label: 'Noto Serif', category: 'Serif' },
+    { value: 'EB Garamond', label: 'EB Garamond', category: 'Serif' },
+    // Monospace
     { value: 'Source Code Pro', label: 'Source Code Pro', category: 'Monospace' },
+    { value: 'Fira Code', label: 'Fira Code', category: 'Monospace' },
+    { value: 'JetBrains Mono', label: 'JetBrains Mono', category: 'Monospace' },
+    { value: 'Consolas', label: 'Consolas', category: 'Monospace' },
+    // Display
+    { value: 'Bebas Neue', label: 'Bebas Neue', category: 'Display' },
+    { value: 'Anton', label: 'Anton', category: 'Display' },
+    { value: 'Impact', label: 'Impact', category: 'Display' },
 ];
 
 // Preset color palettes for quick selection
@@ -105,6 +146,19 @@ export function BrandKitManager({ onSelect, selectedId, mode = 'manage' }: Brand
         },
         is_default: false,
     });
+
+    // Dynamically merge extracted fonts into the dropdown options
+    const fontOptions = useMemo(() => {
+        const knownValues = new Set(AVAILABLE_FONTS.map(f => f.value));
+        const extras: typeof AVAILABLE_FONTS = [];
+        for (const fontName of [formData.fonts.heading, formData.fonts.body]) {
+            if (fontName && !knownValues.has(fontName)) {
+                extras.push({ value: fontName, label: `${fontName} ✦`, category: 'Extracted' });
+                knownValues.add(fontName);
+            }
+        }
+        return [...extras, ...AVAILABLE_FONTS];
+    }, [formData.fonts.heading, formData.fonts.body]);
 
     // Fetch brand kits on mount
     useEffect(() => {
@@ -522,7 +576,7 @@ export function BrandKitManager({ onSelect, selectedId, mode = 'manage' }: Brand
                                         <SelectValue />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {AVAILABLE_FONTS.map((font) => (
+                                        {fontOptions.map((font) => (
                                             <SelectItem key={font.value} value={font.value}>
                                                 <span style={{ fontFamily: font.value }}>{font.label}</span>
                                             </SelectItem>
@@ -543,7 +597,7 @@ export function BrandKitManager({ onSelect, selectedId, mode = 'manage' }: Brand
                                         <SelectValue />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {AVAILABLE_FONTS.map((font) => (
+                                        {fontOptions.map((font) => (
                                             <SelectItem key={font.value} value={font.value}>
                                                 <span style={{ fontFamily: font.value }}>{font.label}</span>
                                             </SelectItem>

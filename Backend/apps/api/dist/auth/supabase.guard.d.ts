@@ -1,4 +1,5 @@
 import { CanActivate, ExecutionContext } from '@nestjs/common';
+import { PrismaService } from '../prisma.service.js';
 /**
  * Guard qui vérifie le JWT Supabase (auth côté Supabase).
  * - Attend un header Authorization: Bearer <token>
@@ -7,7 +8,8 @@ import { CanActivate, ExecutionContext } from '@nestjs/common';
  * - En dev, si SUPABASE_JWT_DISABLED="true", autorise toutes requêtes (à éviter en staging/prod)
  */
 export declare class SupabaseGuard implements CanActivate {
+    private readonly prisma;
     private readonly jwtSecret;
-    constructor();
+    constructor(prisma: PrismaService);
     canActivate(context: ExecutionContext): Promise<boolean>;
 }

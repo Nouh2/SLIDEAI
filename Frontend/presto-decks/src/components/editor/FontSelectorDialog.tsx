@@ -48,24 +48,57 @@ export function FontSelectorDialog({
     children,
 }: FontSelectorDialogProps) {
     const [open, setOpen] = useState(false);
-    const [headingFont, setHeadingFont] = useState(currentFontConfig?.heading || 'inter');
-    const [bodyFont, setBodyFont] = useState(currentFontConfig?.body || 'inter');
 
     const { toast } = useToast();
     const { t } = useTranslation();
 
+    /**
+     * Resolve a font name or ID to the matching AVAILABLE_FONTS entry ID.
+     * The currentFontConfig may contain either font IDs ('inter') or
+     * font display names ('Playfair Display', 'Open Sans') depending on
+     * whether the value comes from this dialog or from a brand kit / backend.
+     */
+    const resolveFontId = (value: string | undefined, fallback: string = 'inter'): string => {
+        if (!value) return fallback;
+        // Direct ID match
+        const byId = AVAILABLE_FONTS.find(f => f.id === value);
+        if (byId) return byId.id;
+        // Match by display name (case-insensitive)
+        const byName = AVAILABLE_FONTS.find(f => f.name.toLowerCase() === value.toLowerCase());
+        if (byName) return byName.id;
+        // Match by family string containing the font name
+        const byFamily = AVAILABLE_FONTS.find(f => f.family.toLowerCase().includes(value.toLowerCase()));
+        if (byFamily) return byFamily.id;
+        // Font not in the list — add it dynamically so it appears in the grid
+        const dynamicId = value.toLowerCase().replace(/\s+/g, '-');
+        if (!AVAILABLE_FONTS.find(f => f.id === dynamicId)) {
+            AVAILABLE_FONTS.push({
+                id: dynamicId,
+                name: value,
+                family: `'${value}', sans-serif`,
+                category: 'sans-serif',
+            });
+        }
+        return dynamicId;
+    };
+
+    const [headingFont, setHeadingFont] = useState(() => resolveFontId(currentFontConfig?.heading));
+    const [bodyFont, setBodyFont] = useState(() => resolveFontId(currentFontConfig?.body));
+
     // Reset when dialog opens
     useEffect(() => {
         if (open) {
-            setHeadingFont(currentFontConfig?.heading || 'inter');
-            setBodyFont(currentFontConfig?.body || 'inter');
+            setHeadingFont(resolveFontId(currentFontConfig?.heading));
+            setBodyFont(resolveFontId(currentFontConfig?.body));
         }
     }, [open, currentFontConfig]);
 
     const handleApply = () => {
+        const headingEntry = AVAILABLE_FONTS.find(f => f.id === headingFont);
+        const bodyEntry = AVAILABLE_FONTS.find(f => f.id === bodyFont);
         onApply({
-            heading: headingFont,
-            body: bodyFont,
+            heading: headingEntry?.name || headingFont,
+            body: bodyEntry?.name || bodyFont,
         });
 
         toast({

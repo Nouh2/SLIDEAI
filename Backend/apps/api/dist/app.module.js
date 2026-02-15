@@ -20,6 +20,10 @@ import { UploadController } from './upload/upload.controller.js'; // ✅ ajoute 
 import { BrandController } from './brand/brand.controller.js';
 import { SubscriptionModule } from './subscription/subscription.module.js';
 import { PresentationModule } from './presentation/presentation.module.js';
+import { LibraryModule } from './library/library.module.js';
+import { CommentsModule } from './comments/comments.module.js';
+import { OrgModule } from './org/org.module.js';
+import { AiModule } from './ai/ai.module.js';
 let AppModule = class AppModule {
     configure(consumer) {
         consumer.apply(AuditMiddleware).forRoutes('*');
@@ -36,6 +40,10 @@ AppModule = __decorate([
             ExportModule,
             SubscriptionModule,
             PresentationModule,
+            LibraryModule,
+            CommentsModule,
+            OrgModule,
+            AiModule,
         ],
         controllers: [
             HealthController,

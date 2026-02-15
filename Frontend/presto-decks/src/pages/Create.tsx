@@ -61,7 +61,7 @@ export default function Create() {
 
         // For PDF/DOCX files, try to parse structure for Smart Report feature
         const fname = file.name.toLowerCase();
-        if (fname.endsWith('.pdf') || fname.endsWith('.docx')) {
+        if (fname.endsWith('.pdf') || fname.endsWith('.docx') || fname.endsWith('.pptx')) {
             try {
                 setIsParsing(true);
                 const { data: { session } } = await supabase.auth.getSession();
@@ -544,7 +544,7 @@ export default function Create() {
                                                             ref={fileInputRef}
                                                             className="hidden"
                                                             onChange={handleFileSelect}
-                                                            accept=".pdf,.doc,.docx,.txt,.md"
+                                                            accept=".pdf,.doc,.docx,.txt,.md,.pptx"
                                                         />
 
                                                         <div className={`

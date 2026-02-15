@@ -40,6 +40,13 @@ export interface SlideContent {
         role?: string;
     };
     columns?: Array<{ title?: string; header?: string; text?: string; body?: string }>;
+    swot?: {
+        strengths: string[];
+        weaknesses: string[];
+        opportunities: string[];
+        threats: string[];
+    };
+    nextSteps?: string[];
     notes?: string;
 }
 
@@ -56,6 +63,7 @@ export interface Slide {
         originalText?: string;
     };
     content: SlideContent;
+    notes?: string;
 }
 
 export interface Deck {
@@ -382,6 +390,63 @@ function normalizeQuote(content: any): SlideContent {
     return content;
 }
 
+/**
+ * Normalize SWOT layout data
+ * AI might send: swot object, or strengths/weaknesses/opportunities/threats directly
+ * Standard format: swot{ strengths[], weaknesses[], opportunities[], threats[] }
+ */
+function normalizeSWOT(content: any): SlideContent {
+    // If already in standard format
+    if (content.swot?.strengths) {
+        return content;
+    }
+
+    // AI sends quadrants directly
+    if (content.strengths || content.weaknesses || content.opportunities || content.threats) {
+        return {
+            ...content,
+            swot: {
+                strengths: content.strengths || [],
+                weaknesses: content.weaknesses || [],
+                opportunities: content.opportunities || [],
+                threats: content.threats || []
+            },
+            // Clean up non-standard keys
+            strengths: undefined,
+            weaknesses: undefined,
+            opportunities: undefined,
+            threats: undefined
+        };
+    }
+
+    return content;
+}
+
+/**
+ * Normalize EXECUTIVE SUMMARY layout data
+ * Uses stats + bullets + nextSteps
+ */
+function normalizeExecutiveSummary(content: any): SlideContent {
+    // Normalize stats if present
+    if (content.stats || content.kpis || content.metrics) {
+        content = normalizeStats(content);
+    }
+
+    // Normalize nextSteps / next_steps / actions
+    const nextStepsSource = content.nextSteps || content.next_steps || content.actions || content.recommendations || [];
+    if (nextStepsSource.length > 0 && !content.nextSteps) {
+        content = {
+            ...content,
+            nextSteps: nextStepsSource.map((s: any) => typeof s === 'string' ? s : s.title || s.text || s.label || ''),
+            next_steps: undefined,
+            actions: undefined,
+            recommendations: undefined
+        };
+    }
+
+    return content;
+}
+
 // ============================================
 // MASTER NORMALIZATION DISPATCHER
 // ============================================
@@ -395,6 +460,12 @@ function normalizeSlideContent(slide: Slide): Slide {
 
     // Apply normalization based on layout
     switch (true) {
+        case layout.includes('swot'):
+            content = normalizeSWOT(content);
+            break;
+        case layout.includes('executive') || layout.includes('exec-summary'):
+            content = normalizeExecutiveSummary(content);
+            break;
         case layout.includes('timeline') || layout.includes('roadmap'):
             content = normalizeTimeline(content);
             break;

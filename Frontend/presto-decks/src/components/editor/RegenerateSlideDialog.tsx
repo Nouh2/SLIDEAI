@@ -14,9 +14,17 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Loader2, Wand2, Image, FileText, BarChart3 } from "lucide-react";
+import { Loader2, Wand2, Image, FileText, BarChart3, MessageSquare, ArrowRight, Sparkles } from "lucide-react";
 import { api } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface RegenerateSlideDialogProps {
     presentationId: string;
@@ -37,14 +45,18 @@ export function RegenerateSlideDialog({
 }: RegenerateSlideDialogProps) {
     const [open, setOpen] = useState(false);
     const [customPrompt, setCustomPrompt] = useState("");
+    const [selectedTone, setSelectedTone] = useState<string>("");
+    const [activeTab, setActiveTab] = useState("modes");
     const [isRegenerating, setIsRegenerating] = useState(false);
     const [selectedMode, setSelectedMode] = useState<'visual' | 'detailed' | 'chart' | null>(null);
+    const [selectedCommand, setSelectedCommand] = useState<string | null>(null);
     const { toast } = useToast();
     const { t } = useTranslation();
 
-    const handleRegenerate = async (mode?: 'visual' | 'detailed' | 'chart') => {
+    const handleRegenerate = async (mode?: 'visual' | 'detailed' | 'chart', command?: string) => {
         setIsRegenerating(true);
-        setSelectedMode(mode || null);
+        if (mode) setSelectedMode(mode);
+        if (command) setSelectedCommand(command);
 
         try {
             // Call API to start regeneration
@@ -54,6 +66,8 @@ export function RegenerateSlideDialog({
                 {
                     prompt: customPrompt || undefined,
                     mode: mode,
+                    tone: selectedTone || undefined,
+                    command: command || undefined,
                 },
                 accessToken
             );
@@ -74,6 +88,7 @@ export function RegenerateSlideDialog({
                         setOpen(false);
                         setCustomPrompt("");
                         setSelectedMode(null);
+                        setSelectedCommand(null);
 
                         toast({
                             title: t('regenerate.success'),
@@ -85,6 +100,7 @@ export function RegenerateSlideDialog({
                         clearInterval(pollInterval);
                         setIsRegenerating(false);
                         setSelectedMode(null);
+                        setSelectedCommand(null);
                         toast({
                             title: t('common.error'),
                             description: status.error || t('regenerate.errorMsg'),
@@ -96,6 +112,7 @@ export function RegenerateSlideDialog({
                         clearInterval(pollInterval);
                         setIsRegenerating(false);
                         setSelectedMode(null);
+                        setSelectedCommand(null);
                         toast({
                             title: t('regenerate.timeout'),
                             description: t('regenerate.timeoutMsg'),
@@ -109,6 +126,7 @@ export function RegenerateSlideDialog({
         } catch (error: any) {
             setIsRegenerating(false);
             setSelectedMode(null);
+            setSelectedCommand(null);
             toast({
                 title: t('common.error'),
                 description: error.message || t('regenerate.genericError'),
@@ -121,6 +139,21 @@ export function RegenerateSlideDialog({
         { id: 'visual' as const, label: t('regenerate.visual'), icon: Image, description: t('regenerate.visualDesc') },
         { id: 'detailed' as const, label: t('regenerate.detailed'), icon: FileText, description: t('regenerate.detailedDesc') },
         { id: 'chart' as const, label: t('regenerate.chart'), icon: BarChart3, description: t('regenerate.chartDesc') },
+    ];
+
+    const contextualCommands = [
+        { id: 'shorten', label: 'Shorten', icon: Sparkles },
+        { id: 'expand', label: 'Expand', icon: FileText },
+        { id: 'formalize', label: 'Formalize', icon: MessageSquare },
+        { id: 'simplify', label: 'Simplify', icon: ArrowRight },
+    ];
+
+    const tones = [
+        { value: 'executive', label: 'Executive' },
+        { value: 'technical', label: 'Technical' },
+        { value: 'sales', label: 'Sales' },
+        { value: 'academic', label: 'Academic' },
+        { value: 'casual', label: 'Casual' },
     ];
 
     return (
@@ -139,35 +172,88 @@ export function RegenerateSlideDialog({
                     </DialogDescription>
                 </DialogHeader>
 
-                <div className="space-y-4 py-4">
-                    {/* Quick Mode Buttons */}
-                    <div className="space-y-2">
-                        <label className="text-sm font-medium text-muted-foreground">
-                            {t('regenerate.modes')}
-                        </label>
-                        <div className="grid grid-cols-3 gap-2">
-                            {quickModes.map((mode) => (
-                                <Button
-                                    key={mode.id}
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => handleRegenerate(mode.id)}
-                                    disabled={isRegenerating}
-                                    className="h-auto py-3 flex flex-col items-center gap-1"
-                                >
-                                    {isRegenerating && selectedMode === mode.id ? (
-                                        <Loader2 className="h-4 w-4 animate-spin" />
-                                    ) : (
-                                        <mode.icon className="h-4 w-4" />
-                                    )}
-                                    <span className="text-xs font-medium">{mode.label}</span>
-                                </Button>
-                            ))}
-                        </div>
-                    </div>
+                <div className="py-4">
+                    <Tabs defaultValue="modes" value={activeTab} onValueChange={setActiveTab} className="w-full">
+                        <TabsList className="grid w-full grid-cols-2 mb-4">
+                            <TabsTrigger value="modes">Layout Modes</TabsTrigger>
+                            <TabsTrigger value="refine">Refine Content</TabsTrigger>
+                        </TabsList>
+
+                        <TabsContent value="modes" className="space-y-4">
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium text-muted-foreground">
+                                    {t('regenerate.modes')}
+                                </label>
+                                <div className="grid grid-cols-3 gap-2">
+                                    {quickModes.map((mode) => (
+                                        <Button
+                                            key={mode.id}
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={() => handleRegenerate(mode.id)}
+                                            disabled={isRegenerating}
+                                            className="h-auto py-3 flex flex-col items-center gap-1"
+                                        >
+                                            {isRegenerating && selectedMode === mode.id ? (
+                                                <Loader2 className="h-4 w-4 animate-spin" />
+                                            ) : (
+                                                <mode.icon className="h-4 w-4" />
+                                            )}
+                                            <span className="text-xs font-medium">{mode.label}</span>
+                                        </Button>
+                                    ))}
+                                </div>
+                            </div>
+                        </TabsContent>
+
+                        <TabsContent value="refine" className="space-y-4">
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium text-muted-foreground">
+                                    Tone
+                                </label>
+                                <Select value={selectedTone} onValueChange={setSelectedTone} disabled={isRegenerating}>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select a tone" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {tones.map((tone) => (
+                                            <SelectItem key={tone.value} value={tone.value}>
+                                                {tone.label}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium text-muted-foreground">
+                                    Quick Commands
+                                </label>
+                                <div className="grid grid-cols-2 gap-2">
+                                    {contextualCommands.map((cmd) => (
+                                        <Button
+                                            key={cmd.id}
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={() => handleRegenerate(undefined, cmd.id)}
+                                            disabled={isRegenerating}
+                                            className="justify-start"
+                                        >
+                                            {isRegenerating && selectedCommand === cmd.id ? (
+                                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                            ) : (
+                                                <cmd.icon className="mr-2 h-4 w-4" />
+                                            )}
+                                            {cmd.label}
+                                        </Button>
+                                    ))}
+                                </div>
+                            </div>
+                        </TabsContent>
+                    </Tabs>
 
                     {/* Divider */}
-                    <div className="relative">
+                    <div className="relative my-4">
                         <div className="absolute inset-0 flex items-center">
                             <span className="w-full border-t" />
                         </div>
@@ -204,7 +290,7 @@ export function RegenerateSlideDialog({
                         onClick={() => handleRegenerate()}
                         disabled={isRegenerating}
                     >
-                        {isRegenerating && !selectedMode ? (
+                        {isRegenerating && !selectedMode && !selectedCommand ? (
                             <>
                                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                                 {t('regenerate.submitting')}

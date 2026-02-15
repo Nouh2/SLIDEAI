@@ -21,6 +21,17 @@ const exportSchema = z.object({
   }),
 });
 
+const translateSchema = z.object({
+  deck: z.object({
+    title: z.string(),
+    subtitle: z.string().optional(),
+    theme: z.string().optional(),
+    slides: z.array(z.any()),
+  }),
+  targetLanguage: z.string(),
+  duplicate: z.boolean().optional().default(false),
+});
+
 @Controller('/v1')
 @UseGuards(SupabaseGuard)
 export class ExportController {
@@ -44,6 +55,20 @@ export class ExportController {
     const traceId = ulid();
     await this.queues.addExport({ traceId, user: { sub: req.user.sub, org: req.user.org_id }, data });
     // Le worker produira une URL signée (Cloudflare R2) et pourra la logguer / insérer en DB.
+    return { traceId, status: 'accepted' as const };
+  }
+
+  @Post('/translate')
+  async translate(@Req() req: any, @Body() body: any) {
+    const { deck, targetLanguage, duplicate } = translateSchema.parse(body);
+    const traceId = ulid();
+    await this.queues.addTranslateDeck({
+      traceId,
+      user: { sub: req.user.sub, org: req.user.org_id },
+      deck,
+      targetLanguage,
+      duplicate,
+    });
     return { traceId, status: 'accepted' as const };
   }
 }

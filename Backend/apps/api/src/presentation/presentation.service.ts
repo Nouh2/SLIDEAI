@@ -16,32 +16,56 @@ export class PresentationService {
 
     /**
      * Get all presentations accessible to the user (owned + shared + viewOnly)
+     * Filtered by organization context
      */
-    async findAllForUser(userId: string) {
-        const [owned, shared, viewOnly] = await Promise.all([
-            this.prisma.presentation.findMany({
-                where: { user_id: userId },
-                orderBy: { createdAt: 'desc' },
-            }),
-            this.prisma.presentation.findMany({
-                where: { sharedWithUserIds: { has: userId } },
-                orderBy: { createdAt: 'desc' },
-            }),
-            this.prisma.presentation.findMany({
-                where: { viewOnlyUserIds: { has: userId } },
-                orderBy: { createdAt: 'desc' },
-            }),
-        ]);
+    async findAllForUser(userId: string, orgId: string | null) {
+        if (orgId) {
+            // Organization Context: Return all presentations belonging to the organization
+            // Assuming all org members can see all org presentations for now
+            // Or typically, we might still want 'owned' vs 'shared' within the org?
+            // For MVP Team Workspace, usually it's a shared drive.
+            // Let's return all org presentations as "owned" or just a flat list?
+            // The frontend expects { owned, shared, viewOnly }.
+            // We can put them in 'owned' or 'shared' depending on creator.
 
-        return { owned, shared, viewOnly };
+            const orgPresentations = await this.prisma.presentations.findMany({
+                where: { orgId: orgId },
+                orderBy: { created_at: 'desc' },
+                include: { Org: true } // Include org info if needed
+            });
+
+            // Split into owned (created by me) and shared (created by others in org)
+            const owned = orgPresentations.filter(p => p.user_id === userId);
+            const shared = orgPresentations.filter(p => p.user_id !== userId);
+
+            return { owned, shared, viewOnly: [] }; // ViewOnly might be relevant if shared explicitly? Keeping simple for now.
+        } else {
+            // Personal Context: Only presentations with NO orgId
+            const [owned, shared, viewOnly] = await Promise.all([
+                this.prisma.presentations.findMany({
+                    where: { user_id: userId, orgId: null },
+                    orderBy: { created_at: 'desc' },
+                }),
+                this.prisma.presentations.findMany({
+                    where: { shared_with_user_ids: { has: userId }, orgId: null },
+                    orderBy: { created_at: 'desc' },
+                }),
+                this.prisma.presentations.findMany({
+                    where: { view_only_user_ids: { has: userId }, orgId: null },
+                    orderBy: { created_at: 'desc' },
+                }),
+            ]);
+
+            return { owned, shared, viewOnly };
+        }
     }
 
     /**
      * Get a single presentation if user has access
      * Returns showWatermark: true if the OWNER is on a Free plan (no 'no_watermark' feature)
      */
-    async findOne(id: string, userId: string) {
-        const presentation = await this.prisma.presentation.findUnique({
+    async findOne(id: string, userId: string, orgId: string | null = null) {
+        const presentation = await this.prisma.presentations.findUnique({
             where: { id },
         });
 
@@ -49,16 +73,33 @@ export class PresentationService {
             throw new NotFoundException('Présentation introuvable');
         }
 
-        // Check access: owner, shared (edit), or view-only
-        const isOwner = presentation.user_id === userId;
-        const hasEditAccess = presentation.sharedWithUserIds.includes(userId);
-        const hasViewAccess = presentation.viewOnlyUserIds.includes(userId);
+        // Validate Organization Context
+        if (orgId) {
+            if (presentation.orgId !== orgId) {
+                // If I'm in Org A, I shouldn't see Personal or Org B presentations
+                throw new NotFoundException('Présentation introuvable dans cette organisation');
+            }
+            // In Org Context, access is granted if you are in the org (validated by guard).
+            // We might want to check specific perms later, but for now, org membership is enough.
+        } else {
+            if (presentation.orgId) {
+                // If I'm in Personal mode, I shouldn't see Org presentations
+                throw new NotFoundException('Présentation introuvable (Ceci est une présentation d\'équipe)');
+            }
+            // Personal Context Access Check
+            const isOwner = presentation.user_id === userId;
+            const hasEditAccess = presentation.shared_with_user_ids.includes(userId);
+            const hasViewAccess = presentation.view_only_user_ids.includes(userId);
 
-        if (!isOwner && !hasEditAccess && !hasViewAccess) {
-            throw new ForbiddenException('Accès refusé à cette présentation');
+            if (!isOwner && !hasEditAccess && !hasViewAccess) {
+                throw new ForbiddenException('Accès refusé à cette présentation');
+            }
         }
 
         // Check if owner has 'no_watermark' feature (starter, pro, business)
+        // Note: For Org, we should check Org subscription? Or Owner's?
+        // Usually Org has its own subscription. For now, check owner's (who created it) or maybe the user calling?
+        // Let's stick to owner for simplicity for now.
         const ownerHasNoWatermark = await this.subscriptionService.hasFeature(presentation.user_id, 'no_watermark');
 
         return {
@@ -70,15 +111,16 @@ export class PresentationService {
     /**
      * Update a presentation if user has access
      */
-    async update(id: string, userId: string, data: { slides?: any; title?: string }) {
+    async update(id: string, userId: string, data: { slides?: any; title?: string; status?: string }, orgId: string | null = null) {
         // First, verify access
-        await this.findOne(id, userId);
+        await this.findOne(id, userId, orgId);
 
-        return this.prisma.presentation.update({
+        return this.prisma.presentations.update({
             where: { id },
             data: {
                 ...(data.slides !== undefined && { slides: data.slides }),
                 ...(data.title !== undefined && { title: data.title }),
+                ...(data.status !== undefined && { status: data.status }),
             },
         });
     }
@@ -89,7 +131,7 @@ export class PresentationService {
      * @param mode - 'edit' for collaborative access, 'view' for read-only access
      */
     async generateShareLink(id: string, userId: string, userEmail?: string, mode: 'edit' | 'view' = 'edit') {
-        const presentation = await this.prisma.presentation.findUnique({
+        const presentation = await this.prisma.presentations.findUnique({
             where: { id },
         });
 
@@ -112,22 +154,22 @@ export class PresentationService {
 
         // Generate the appropriate token based on mode
         if (mode === 'view') {
-            let token = presentation.viewOnlyToken;
+            let token = presentation.view_only_token;
             if (!token) {
                 token = randomBytes(16).toString('hex');
-                await this.prisma.presentation.update({
+                await this.prisma.presentations.update({
                     where: { id },
-                    data: { viewOnlyToken: token },
+                    data: { view_only_token: token },
                 });
             }
             return { token, mode: 'view' };
         } else {
-            let token = presentation.shareToken;
+            let token = presentation.share_token;
             if (!token) {
                 token = randomBytes(16).toString('hex');
-                await this.prisma.presentation.update({
+                await this.prisma.presentations.update({
                     where: { id },
-                    data: { shareToken: token },
+                    data: { share_token: token },
                 });
             }
             return { token, mode: 'edit' };
@@ -138,8 +180,8 @@ export class PresentationService {
      * Join a presentation via share token
      */
     async joinByToken(token: string, userId: string) {
-        const presentation = await this.prisma.presentation.findUnique({
-            where: { shareToken: token },
+        const presentation = await this.prisma.presentations.findUnique({
+            where: { share_token: token },
         });
 
         if (!presentation) {
@@ -152,16 +194,16 @@ export class PresentationService {
             return presentation;
         }
 
-        if (presentation.sharedWithUserIds.includes(userId)) {
+        if (presentation.shared_with_user_ids.includes(userId)) {
             // Already has access
             return presentation;
         }
 
         // Add user to shared list
-        const updatedPresentation = await this.prisma.presentation.update({
+        const updatedPresentation = await this.prisma.presentations.update({
             where: { id: presentation.id },
             data: {
-                sharedWithUserIds: {
+                shared_with_user_ids: {
                     push: userId,
                 },
             },
@@ -174,8 +216,8 @@ export class PresentationService {
      * Join a presentation via view-only token (read-only access)
      */
     async joinViewOnly(token: string, userId: string) {
-        const presentation = await this.prisma.presentation.findUnique({
-            where: { viewOnlyToken: token },
+        const presentation = await this.prisma.presentations.findUnique({
+            where: { view_only_token: token },
         });
 
         if (!presentation) {
@@ -188,15 +230,15 @@ export class PresentationService {
         }
 
         // Check if already has view-only access
-        if (presentation.viewOnlyUserIds.includes(userId)) {
+        if (presentation.view_only_user_ids.includes(userId)) {
             return presentation;
         }
 
         // Add user to view-only list
-        const updatedPresentation = await this.prisma.presentation.update({
+        const updatedPresentation = await this.prisma.presentations.update({
             where: { id: presentation.id },
             data: {
-                viewOnlyUserIds: {
+                view_only_user_ids: {
                     push: userId,
                 },
             },
@@ -213,10 +255,11 @@ export class PresentationService {
         presentationId: string,
         slideIndex: number,
         userId: string,
-        options: { prompt?: string; mode?: 'visual' | 'detailed' | 'chart' }
+        options: { prompt?: string; mode?: 'visual' | 'detailed' | 'chart'; tone?: string; command?: string },
+        orgId: string | null = null
     ) {
         // Verify access
-        const presentation = await this.findOne(presentationId, userId);
+        const presentation = await this.findOne(presentationId, userId, orgId);
 
         // Get the slides data
         const rawSlides = presentation.slides as any;
@@ -238,7 +281,7 @@ export class PresentationService {
         const newDeckData = { ...deckData, meta: newMeta };
 
         // Update DB with usage count
-        await this.prisma.presentation.update({
+        await this.prisma.presentations.update({
             where: { id: presentationId },
             data: { slides: newDeckData },
         });
@@ -262,6 +305,8 @@ export class PresentationService {
             slideIndex,
             prompt: options.prompt,
             mode: options.mode,
+            tone: options.tone,
+            command: options.command,
             context,
             user: { sub: userId },
         });
@@ -276,10 +321,11 @@ export class PresentationService {
     async addSlide(
         presentationId: string,
         userId: string,
-        prompt: string
+        prompt: string,
+        orgId: string | null = null
     ) {
         // Verify access
-        const presentation = await this.findOne(presentationId, userId);
+        const presentation = await this.findOne(presentationId, userId, orgId);
 
         // Get the slides data
         const rawSlides = presentation.slides as any;
@@ -297,7 +343,7 @@ export class PresentationService {
         const newDeckData = { ...deckData, meta: newMeta };
 
         // Update DB with usage count
-        await this.prisma.presentation.update({
+        await this.prisma.presentations.update({
             where: { id: presentationId },
             data: { slides: newDeckData },
         });
@@ -329,13 +375,17 @@ export class PresentationService {
     /**
      * Modify the color palette of a presentation with AI
      */
+    /**
+     * Modify the color palette of a presentation with AI
+     */
     async modifyColorPalette(
         presentationId: string,
         userId: string,
-        prompt: string
+        prompt: string,
+        orgId: string | null = null
     ) {
         // Verify access
-        const presentation = await this.findOne(presentationId, userId);
+        const presentation = await this.findOne(presentationId, userId, orgId);
 
         // Get current palette and theme
         const rawSlides = presentation.slides as any;

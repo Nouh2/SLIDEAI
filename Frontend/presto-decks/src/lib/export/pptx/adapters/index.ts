@@ -10,16 +10,18 @@ import { tableAdapter } from './tableAdapter';
 import { timelineAdapter } from './timelineAdapter';
 import { comparisonAdapter } from './comparisonAdapter';
 import { sectionAdapter } from './sectionAdapter';
+import { infographicAdapter } from './infographicAdapter';
 
 // Order matters: more specific adapters first, generic adapters last
 const adapters: LayoutAdapter[] = [
     coverAdapter,
     sectionAdapter,
     statsAdapter,
+    comparisonAdapter,
+    timelineAdapter,
+    infographicAdapter,
     chartAdapter,
     tableAdapter,
-    timelineAdapter,
-    comparisonAdapter,
     contentAdapter, // Default fallback
 ];
 

@@ -19,6 +19,7 @@ import { THEMES, normalizeTheme, type ThemeConfig } from './config/themes';
 import { DECK_ARCHITECT_PROMPT, buildUserPrompt } from './prompts/deck-architect';
 import { SLIDE_REGENERATOR_PROMPT, buildSlideRegeneratorPrompt } from './prompts/slide-regenerator';
 import { SLIDE_ADDER_PROMPT, buildSlideAdderPrompt } from './prompts/slide-adder';
+import { TRANSLATE_DECK_PROMPT, buildTranslateDeckPrompt } from './prompts/translate-deck';
 import { getUnsplashImage, fetchImagesForDeck } from './utils/unsplash';
 import { sanitizeDeck, type Deck, type Slide } from './utils/sanitize';
 import { renderSlide, defineThemeMasters } from './renderers';
@@ -266,6 +267,7 @@ const generateWorker = new Worker(
     const { traceId, data, user } = job.data as any;
     let { prompt, slideCount, theme, language, documentText, brandLogoUrl, templateOverlay, brandColors, brandFonts } = data ?? {};
     const userId = user?.sub || 'anonymous'; // Extract user ID from JWT
+    const orgId = user?.org; // Extract orgId from user context
 
     console.log(`\n========== GENERATE JOB: ${traceId} ==========`);
     console.log(`[Generate] User ID: ${userId}`);
@@ -569,6 +571,7 @@ const generateWorker = new Worker(
             .insert({
               id: presentationId, // Explicit UUID
               user_id: userId, // Use real user ID from JWT
+              orgId: orgId, // Save orgId
               title: deck.title || 'Untitled Presentation',
               slides: deck, // Now contains images
               theme: themeConfig.id,
@@ -719,13 +722,14 @@ const exportWorker = new Worker(
 const regenerateSlideWorker = new Worker(
   'regenerate-slide',
   async (job) => {
-    const { traceId, presentationId, slideIndex, prompt, mode, context, user } = job.data as any;
+    const { traceId, presentationId, slideIndex, prompt, mode, tone, command, context, user } = job.data as any;
     const userId = user?.sub || 'anonymous';
 
     console.log(`\n========== REGENERATE SLIDE JOB: ${traceId} ==========`);
     console.log(`[RegenerateSlide] User ID: ${userId}`);
     console.log(`[RegenerateSlide] Presentation: ${presentationId}, Slide Index: ${slideIndex}`);
-    console.log(`[RegenerateSlide] Mode: ${mode || 'default'}, Custom Prompt: "${prompt?.slice(0, 100) || 'none'}"`);
+    console.log(`[RegenerateSlide] Mode: ${mode || 'default'}, Tone: ${tone || 'default'}, Command: ${command || 'none'}`);
+    console.log(`[RegenerateSlide] Custom Prompt: "${prompt?.slice(0, 100) || 'none'}"`);
 
     await setJob(traceId, {
       status: 'processing',
@@ -737,7 +741,7 @@ const regenerateSlideWorker = new Worker(
 
     try {
       // Build the prompt for slide regeneration
-      const userMessage = buildSlideRegeneratorPrompt(context, slideIndex, prompt, mode);
+      const userMessage = buildSlideRegeneratorPrompt(context, slideIndex, prompt, mode, tone, command);
 
       // Create Gemini model with JSON response mode AND strict schema for single slide
       const geminiModel = genAI.getGenerativeModel({
@@ -1103,6 +1107,119 @@ const addSlideWorker = new Worker(
 );
 
 
+const translateDeckWorker = new Worker(
+  'translate-deck',
+  async (job) => {
+    const { traceId, deck, targetLanguage, user, duplicate } = job.data as any;
+    const userId = user?.sub || 'anonymous';
+
+    console.log(`\n========== TRANSLATE DECK JOB: ${traceId} ==========`);
+    console.log(`[TranslateDeck] User ID: ${userId}`);
+    console.log(`[TranslateDeck] Target Language: ${targetLanguage}`);
+
+    await setJob(traceId, {
+      status: 'processing',
+      type: 'translate-deck',
+      startedAt: Date.now(),
+      userId,
+    });
+
+    try {
+      const userMessage = buildTranslateDeckPrompt(deck, targetLanguage);
+
+      const geminiModel = genAI.getGenerativeModel({
+        model,
+        generationConfig: {
+          temperature: 0.3, // Lower temperature for "pure" translation
+          maxOutputTokens: 30000,
+          responseMimeType: 'application/json',
+        },
+      });
+
+      const fullPrompt = `${TRANSLATE_DECK_PROMPT}\n\n---\n\n${userMessage}`;
+      const response = await geminiModel.generateContent(fullPrompt);
+      const raw = response.response.text();
+
+      // Log token usage
+      const usageMetadata = response.response.usageMetadata;
+      const inputTokens = usageMetadata?.promptTokenCount || 0;
+      const outputTokens = usageMetadata?.candidatesTokenCount || 0;
+
+      console.log(`[TranslateDeck] 📊 Tokens: ${inputTokens} in / ${outputTokens} out`);
+
+      // Save token usage to database
+      await saveTokenUsage({
+        userId,
+        jobType: 'translate-deck',
+        traceId,
+        inputTokens,
+        outputTokens,
+      });
+
+      if (!raw) throw new Error('Empty AI response');
+
+      let translatedDeck: any;
+      try {
+        translatedDeck = JSON.parse(raw);
+      } catch (parseError) {
+        console.error('[TranslateDeck] JSON parse error:', parseError);
+        throw new Error('Invalid JSON from AI');
+      }
+
+      console.log('[TranslateDeck] ✅ Translation complete');
+
+      let newPresentationId: string | undefined;
+
+      if (duplicate && supabase) {
+        try {
+          newPresentationId = ulid();
+          const { error: insertError } = await supabase
+            .from('presentations')
+            .insert({
+              id: newPresentationId,
+              user_id: userId,
+              title: translatedDeck.title || `Translated Deck (${targetLanguage})`,
+              slides: translatedDeck.slides,
+              theme: translatedDeck.theme || 'light',
+              updated_at: new Date().toISOString(),
+              orgId: user.org || null,
+            });
+
+          if (insertError) {
+            console.error('[TranslateDeck] ❌ Failed to save duplicated deck:', insertError);
+            // We don't throw here to avoid failing the translation itself, but we log it.
+            // The frontend will check for newPresentationId.
+          } else {
+            console.log(`[TranslateDeck] ✅ Created new presentation: ${newPresentationId}`);
+          }
+        } catch (dbError: any) {
+          console.error('[TranslateDeck] ❌ Exception saving duplicated deck:', dbError.message);
+        }
+      }
+
+      await setJob(traceId, {
+        status: 'succeeded',
+        type: 'translate-deck',
+        deck: translatedDeck,
+        newPresentationId,
+        finishedAt: Date.now(),
+      });
+
+      return { traceId, deck: translatedDeck, newPresentationId };
+    } catch (err: any) {
+      console.error('[TranslateDeck] ❌ Error:', err.message);
+      await setJob(traceId, {
+        status: 'failed',
+        type: 'translate-deck',
+        error: err.message,
+        finishedAt: Date.now(),
+      });
+      throw err;
+    }
+  },
+  { connection }
+);
+
 // ============================================
 // STARTUP
 // ============================================
@@ -1171,3 +1288,119 @@ addSlideWorker.on('failed', (job, err) => {
 });
 
 console.log('[Worker] Waiting for jobs...');
+
+translateDeckWorker.on('ready', () => {
+  console.log('✅ [TranslateDeck Worker] READY - Connected and listening');
+});
+
+translateDeckWorker.on('completed', (job) => {
+  console.log(`✅ [TranslateDeck Worker] COMPLETED - Job ${job.id} finished successfully`);
+});
+
+translateDeckWorker.on('failed', (job, err) => {
+  console.error(`❌ [TranslateDeck Worker] FAILED - Job ${job?.id} failed:`, err.message);
+});
+// ============================================
+// WORKER: ANALYZE IMAGE
+// ============================================
+
+const analyzeImageWorker = new Worker(
+  'analyze-image',
+  async (job) => {
+    const { traceId, imageUrl, context, userId } = job.data as any;
+
+    console.log(`\n========== ANALYZE IMAGE JOB: ${traceId} ==========`);
+    console.log(`[AnalyzeImage] User ID: ${userId}`);
+    console.log(`[AnalyzeImage] Image URL: ${imageUrl}`);
+
+    await setJob(traceId, {
+      status: 'processing',
+      type: 'analyze-image',
+      startedAt: Date.now(),
+      userId,
+    });
+
+    try {
+      // 1. Fetch the image
+      console.log('[AnalyzeImage] Fetching image...');
+      const imageResp = await fetch(imageUrl);
+      if (!imageResp.ok) throw new Error(`Failed to fetch image: ${imageResp.statusText}`);
+      const arrayBuffer = await imageResp.arrayBuffer();
+      const buffer = Buffer.from(arrayBuffer);
+      const base64Image = buffer.toString('base64');
+      const mimeType = imageResp.headers.get('content-type') || 'image/png';
+
+      // 2. Prepare Gemini Vision request
+      const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' }); // Use flash for vision
+
+      const prompt = `
+        Analyze this chart image and extract the underlying data structure.
+        Return a valid JSON object with the following schema:
+        {
+          "chartType": "bar" | "line" | "pie" | "area" | "column" | "donut",
+          "title": "Chart Title",
+          "summary": "Brief summary of what the chart shows",
+          "data": {
+            "categories": ["Category 1", "Category 2", ...],
+            "series": [
+              { "name": "Series 1", "data": [10, 20, 30, ...] },
+              { "name": "Series 2", "data": [5, 15, 25, ...] }
+            ]
+          }
+        }
+        
+        If the image is not a chart, return null for data and a relevant summary.
+        ${context ? `Context: ${context}` : ''}
+      `;
+
+      console.log('[AnalyzeImage] Calling Gemini Vision...');
+      const result = await model.generateContent([
+        prompt,
+        {
+          inlineData: {
+            data: base64Image,
+            mimeType,
+          },
+        },
+      ]);
+
+      const response = await result.response;
+      let text = response.text();
+
+      // Clean up markdown code blocks if present
+      text = text.replace(/```json\n/g, '').replace(/```/g, '');
+
+      console.log('[AnalyzeImage] AI Response:', text.slice(0, 100) + '...');
+
+      let analysisResult;
+      try {
+        analysisResult = JSON.parse(text);
+      } catch (e) {
+        console.error('[AnalyzeImage] Failed to parse JSON:', e);
+        throw new Error('Invalid JSON response from AI');
+      }
+
+      console.log('[AnalyzeImage] ✅ Analysis complete');
+
+      await setJob(traceId, {
+        status: 'succeeded',
+        type: 'analyze-image',
+        result: analysisResult,
+        finishedAt: Date.now(),
+      });
+
+      return { traceId, result: analysisResult };
+
+    } catch (err: any) {
+      console.error('[AnalyzeImage] ❌ Error:', err.message);
+      await setJob(traceId, {
+        status: 'failed',
+        type: 'analyze-image',
+        error: err.message,
+        finishedAt: Date.now(),
+      });
+      throw err;
+    }
+  },
+  { connection }
+);

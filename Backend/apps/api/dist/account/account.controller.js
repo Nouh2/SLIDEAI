@@ -26,7 +26,7 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], AccountController.prototype, "me", null);
 AccountController = __decorate([
-    Controller('/account'),
+    Controller('/v1/account'),
     UseGuards(SupabaseGuard)
 ], AccountController);
 export { AccountController };

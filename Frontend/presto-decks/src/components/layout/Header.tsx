@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { LogoConcept as Logo } from "./LogoConcept";
 import { LanguageSwitcher } from "./LanguageSwitcher";
+import { WorkspaceSelector } from "./WorkspaceSelector";
 import { useAuth } from "@/contexts/AuthContext";
 import { LogOut, User as UserIcon, LayoutDashboard, Menu } from "lucide-react";
 import {
@@ -107,6 +108,7 @@ export const Header = () => {
 
         <div className="flex items-center space-x-3">
           <div className="hidden md:flex items-center space-x-3">
+            {user && <WorkspaceSelector />}
             <LanguageSwitcher />
 
             {loading ? (

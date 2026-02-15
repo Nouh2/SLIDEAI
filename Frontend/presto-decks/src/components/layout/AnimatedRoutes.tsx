@@ -26,7 +26,9 @@ const ResetPassword = lazy(() => import("@/pages/ResetPassword"));
 const Blog = lazy(() => import("@/pages/Blog"));
 const BlogPost = lazy(() => import("@/pages/BlogPost"));
 const ChartDemoPage = lazy(() => import("@/pages/ChartDemo"));
+
 const PDFToPowerPoint = lazy(() => import("@/pages/PDFToPowerPoint"));
+const OrgSettings = lazy(() => import("@/pages/OrgSettings"));
 
 const PageLoader = () => (
     <div className="h-[calc(100vh-4rem)] w-full flex items-center justify-center">
@@ -99,6 +101,11 @@ export const AnimatedRoutes = () => {
                     <Route path="/account" element={
                         <ProtectedRoute>
                             <PageTransition><Account /></PageTransition>
+                        </ProtectedRoute>
+                    } />
+                    <Route path="/org/:orgId/settings" element={
+                        <ProtectedRoute>
+                            <PageTransition><OrgSettings /></PageTransition>
                         </ProtectedRoute>
                     } />
 

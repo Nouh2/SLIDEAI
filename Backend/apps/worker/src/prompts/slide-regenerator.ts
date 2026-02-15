@@ -104,7 +104,9 @@ export function buildSlideRegeneratorPrompt(
     },
     slideIndex: number,
     userPrompt?: string,
-    mode?: 'visual' | 'detailed' | 'chart'
+    mode?: 'visual' | 'detailed' | 'chart',
+    tone?: string,
+    command?: string
 ): string {
     const { title, subtitle, theme, colorPalette, slides } = presentationContext;
 
@@ -120,6 +122,28 @@ export function buildSlideRegeneratorPrompt(
         modeInstruction = '**MODE: DETAILED** - Use a text-heavy layout (text-columns, bullets with long descriptions). Be verbose.';
     } else if (mode === 'chart') {
         modeInstruction = '**MODE: CHART** - Convert this into a data visualization (chart, table, stats). Invent realistic data.';
+    }
+
+    let toneInstruction = '';
+    if (tone) {
+        toneInstruction = `**TONE: ${tone.toUpperCase()}** - Adopt a ${tone} writing style and vocabulary.`;
+    }
+
+    let commandInstruction = '';
+    if (command) {
+        commandInstruction = `**COMMAND: ${command.toUpperCase()}** - Explicitly follow this instruction: "${command}".`;
+    }
+
+    let layoutInstruction = `Generate the replacement slide JSON now. Use a DIFFERENT layout than "${currentSlide.layout}" for variety (unless the COMMAND implies keeping it).`;
+
+    // If the user only wants to change tone or run a command (and didn't ask for a mode change), preserve the layout.
+    if ((tone || command) && !mode) {
+        layoutInstruction = `
+IMPORTANT: The user wants to refine the content (Tone/Command).
+You MUST PRESERVE the current layout type: "${currentSlide.layout}".
+Do NOT change the layout. Only modification of text/content is allowed.
+Generate the replacement slide JSON now using layout "${currentSlide.layout}".
+`;
     }
 
     return `
@@ -161,13 +185,15 @@ Content Summary: ${JSON.stringify(nextSlide.content || nextSlide.bullets || next
 ═══════════════════════════════════════════════════
 
 ${modeInstruction}
+${toneInstruction}
+${commandInstruction}
 
-${userPrompt ? `User Custom Prompt: "${userPrompt}"` : 'No specific instructions. Regenerate with a different layout and fresh content.'}
+${userPrompt ? `User Custom Prompt: "${userPrompt}"` : 'No specific prompt provided. Regenerate based on context and instructions above.'}
 
 ═══════════════════════════════════════════════════
 🎬 ACTION
 ═══════════════════════════════════════════════════
 
-Generate the replacement slide JSON now. Use a DIFFERENT layout than "${currentSlide.layout}" for variety.
+${layoutInstruction}
 `;
 }

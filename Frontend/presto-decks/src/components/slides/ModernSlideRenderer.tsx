@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
 import { cn } from "@/lib/utils";
 import { getTemplateById } from "@/data/slideTemplates";
+import { TemplateOverlay } from "./TemplateOverlay";
 
 interface SlideRendererProps {
     slide: any;
@@ -25,6 +26,7 @@ interface SlideRendererProps {
     selectedElementId?: string | null;
     showWatermark?: boolean;
     templateOverlay?: any; // Add templateOverlay prop
+    showPageNumber?: boolean;
 }
 
 // Helper wrapper for editable elements
@@ -1269,7 +1271,7 @@ const ChartVisuals = ({ chart, colors, height = 400 }: { chart: any, colors: any
 };
 
 // Chart Layout - Multiple variants
-type ChartVariation = 'default-container' | 'split-detail' | 'floating-card' | 'full-bleed-hero' | 'minimal-stat';
+type ChartVariation = 'default-container' | 'split-detail' | 'floating-card' | 'full-bleed-hero' | 'minimal-stat' | 'chart-showcase' | 'chart-analysis';
 
 const ChartLayout = ({ slide, colors, variation = 'default-container', onSelect, selectedId, showPageNumber }: { slide: any; colors: any, variation?: ChartVariation; onSelect?: any; selectedId?: string | null; showPageNumber?: boolean }) => {
     // Normalization logic
@@ -1297,6 +1299,165 @@ const ChartLayout = ({ slide, colors, variation = 'default-container', onSelect,
                 data: ds.data
             }))
         };
+    }
+
+    // --- VARIATION 5: CHART SHOWCASE (Consulting Exhibit) ---
+    if (variation === 'chart-showcase') {
+        // Force dark text for the white paper card regardless of theme
+        const cardColors = {
+            ...colors,
+            bg: '#ffffff',
+            text: '#111827', // gray-900
+        };
+
+        return (
+            <div className="relative w-full h-full overflow-hidden flex flex-col p-12" style={{ backgroundColor: colors.bg }}>
+                {/* Background soft ambiance */}
+                <div className="absolute inset-0 opacity-[0.03] pointer-events-none"
+                    style={{ backgroundColor: colors.primary }} />
+
+                <div className="relative z-10 flex flex-col h-full max-w-6xl mx-auto w-full">
+                    {/* Header */}
+                    <div className="mb-8 border-b border-black/5 pb-6">
+                        <EditableElement
+                            element={{ id: 'title', type: 'text', value: slide.title, path: 'title', label: 'Title' }}
+                            onSelect={onSelect}
+                            isSelected={selectedId === 'title'}
+                        >
+                            <h2 className="text-4xl font-bold tracking-tight" style={{ color: colors.text }}>
+                                {slide.title}
+                            </h2>
+                        </EditableElement>
+                    </div>
+
+                    {/* Chart Exhibit Container */}
+                    <div className="flex-1 relative flex flex-col bg-white rounded-xl shadow-[0_20px_50px_rgba(0,0,0,0.08)] border border-black/5 overflow-hidden">
+                        <div className="flex-1 flex items-center justify-center p-8 bg-gray-50/50">
+                            <ChartVisuals chart={chart} colors={cardColors} height={500} />
+                        </div>
+
+                        {/* Analysis / Key Insight Zone */}
+                        <div className="p-6 bg-white border-t border-black/5 flex justify-between items-end">
+                            <div className="flex-1">
+                                <span className="text-[10px] font-bold uppercase tracking-widest mb-2 block" style={{ color: colors.primary }}>
+                                    Key Insight
+                                </span>
+                                <EditableElement
+                                    element={{ id: 'subtitle', type: 'text', value: slide.subtitle || slide.content?.text, path: slide.subtitle ? 'subtitle' : 'content.text', label: 'Analysis' }}
+                                    onSelect={onSelect}
+                                    isSelected={selectedId === 'subtitle'}
+                                >
+                                    <p className="text-lg leading-relaxed font-medium" style={{ color: cardColors.text }}>
+                                        {slide.subtitle || slide.content?.text || "Analyze the significant trends observed in this data visualization."}
+                                    </p>
+                                </EditableElement>
+                            </div>
+
+                            {/* Source and Reference */}
+                            <div className="ml-12 text-right shrink-0">
+                                <EditableElement
+                                    element={{ id: 'source', type: 'text', value: slide.content?.source || "Source: Internal Data", path: 'content.source', label: 'Data Source' }}
+                                    onSelect={onSelect}
+                                    isSelected={selectedId === 'source'}
+                                >
+                                    <span className="text-[10px] opacity-40 uppercase tracking-tighter" style={{ color: cardColors.text }}>
+                                        {slide.content?.source || "Source: Excel / Data Export"}
+                                    </span>
+                                </EditableElement>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <SlideFooter title={slide.title} colors={colors} unsplashPhotographer={slide.unsplashPhotographer} showPageNumber={showPageNumber} />
+            </div>
+        );
+    }
+
+    // --- VARIATION 6: CHART ANALYSIS (60/40 Consulting Split) ---
+    if (variation === 'chart-analysis') {
+        // Enforce specific colors for the white chart container
+        const chartContainerColors = {
+            ...colors,
+            bg: '#ffffff',
+            text: '#111827', // gray-900
+        };
+
+        return (
+            <div className="relative w-full h-full overflow-hidden flex flex-col p-12" style={{ backgroundColor: colors.bg }}>
+                <div className="relative z-10 flex flex-col h-full w-full">
+                    {/* Header */}
+                    <div className="mb-10">
+                        <EditableElement
+                            element={{ id: 'title', type: 'text', value: slide.title, path: 'title', label: 'Title' }}
+                            onSelect={onSelect}
+                            isSelected={selectedId === 'title'}
+                        >
+                            <h2 className="text-4xl font-bold tracking-tight border-l-4 pl-6" style={{ color: colors.text, borderColor: colors.primary }}>
+                                {slide.title}
+                            </h2>
+                        </EditableElement>
+                    </div>
+
+                    <div className="flex-1 flex gap-12 min-h-0">
+                        {/* 60% Chart Side */}
+                        <div className="w-[60%] h-full flex flex-col">
+                            <div className="flex-1 bg-white rounded-xl shadow-lg border border-black/5 overflow-hidden p-6 flex items-center justify-center">
+                                <ChartVisuals chart={chart} colors={chartContainerColors} height={500} />
+                            </div>
+                            <div className="mt-4 text-left">
+                                <EditableElement
+                                    element={{ id: 'source', type: 'text', value: slide.content?.source || "Source: Internal Analysis", path: 'content.source', label: 'Data Source' }}
+                                    onSelect={onSelect}
+                                    isSelected={selectedId === 'source'}
+                                >
+                                    <span className="text-[10px] opacity-40 uppercase tracking-widest italic" style={{ color: colors.text }}>
+                                        {slide.content?.source || "Source: Internal Business Intelligence"}
+                                    </span>
+                                </EditableElement>
+                            </div>
+                        </div>
+
+                        {/* 40% Analysis Side */}
+                        <div className="w-[40%] flex flex-col">
+                            <div className="mb-6">
+                                <span className="inline-block px-3 py-1 bg-primary/10 text-[10px] font-bold uppercase tracking-[0.2em] rounded" style={{ color: colors.primary, backgroundColor: `${colors.primary}10` }}>
+                                    Executive Summary
+                                </span>
+                            </div>
+
+                            <div className="flex-1 space-y-8 overflow-y-auto pr-4 custom-scrollbar">
+                                <EditableElement
+                                    element={{ id: 'subtitle', type: 'text', value: slide.subtitle, path: 'subtitle', label: 'Key Finding' }}
+                                    onSelect={onSelect}
+                                    isSelected={selectedId === 'subtitle'}
+                                >
+                                    <h3 className="text-xl font-bold leading-tight" style={{ color: colors.primary }}>
+                                        {slide.subtitle || "Key Insight Overview"}
+                                    </h3>
+                                </EditableElement>
+
+                                <EditableElement
+                                    element={{ id: 'text', type: 'text', value: slide.content?.text || slide.text, path: slide.content?.text ? 'content.text' : 'text', label: 'Analysis Content' }}
+                                    onSelect={onSelect}
+                                    isSelected={selectedId === 'text'}
+                                >
+                                    <div className="text-lg opacity-80 leading-relaxed" style={{ color: colors.text }}>
+                                        {slide.content?.text || slide.text || (
+                                            <ul className="space-y-4 list-disc pl-5">
+                                                <li>Observation of primary growth trends across key segments.</li>
+                                                <li>Correlation between investment levels and performance outcomes.</li>
+                                                <li>Identified opportunities for optimization in the upcoming quarter.</li>
+                                            </ul>
+                                        )}
+                                    </div>
+                                </EditableElement>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <SlideFooter title={slide.title} colors={colors} unsplashPhotographer={slide.unsplashPhotographer} showPageNumber={showPageNumber} />
+            </div>
+        );
     }
 
     // Default fallback if no valid structure
@@ -3093,6 +3254,413 @@ const InfographicLayout = ({ slide, colors, variation = 'funnel', onSelect, sele
 };
 
 
+// SWOT Analysis Layout - Professional 2×2 matrix
+type SWOTVariation = 'classic-grid' | 'rounded-cards' | 'minimal-list';
+
+const SWOTLayout = ({ slide, colors, variation = 'classic-grid', onSelect, selectedId, showPageNumber }: { slide: any; colors: any; variation?: SWOTVariation; onSelect?: any; selectedId?: string | null; showPageNumber?: boolean }) => {
+    const swot = slide.content?.swot || slide.swot;
+    if (!swot) return null;
+
+    const quadrants = [
+        { key: 'strengths', title: 'Strengths', items: swot.strengths || [], color: '#27AE60', icon: '💪' },
+        { key: 'weaknesses', title: 'Weaknesses', items: swot.weaknesses || [], color: '#E74C3C', icon: '⚠️' },
+        { key: 'opportunities', title: 'Opportunities', items: swot.opportunities || [], color: '#3498DB', icon: '🚀' },
+        { key: 'threats', title: 'Threats', items: swot.threats || [], color: '#F39C12', icon: '🔥' },
+    ];
+
+    // --- VARIATION: ROUNDED CARDS ---
+    if (variation === 'rounded-cards') {
+        return (
+            <div className="relative w-full h-full overflow-hidden flex flex-col p-10" style={{ backgroundColor: colors.bg }}>
+                <AbstractShapes colors={colors} />
+
+                <div className="text-center mb-6 relative z-10">
+                    <EditableElement
+                        element={{ id: 'title', type: 'text', value: slide.title, path: 'title', label: 'Title' }}
+                        onSelect={onSelect}
+                        isSelected={selectedId === 'title'}
+                    >
+                        <h2 className="text-4xl font-bold" style={{ color: colors.text }}>{slide.title}</h2>
+                    </EditableElement>
+                </div>
+
+                <div className="grid grid-cols-2 gap-5 flex-1 relative z-10">
+                    {quadrants.map((q, idx) => (
+                        <div key={q.key} className="rounded-2xl p-5 flex flex-col shadow-lg"
+                            style={{ backgroundColor: `${q.color}10`, border: `2px solid ${q.color}30` }}>
+                            <div className="flex items-center gap-2 mb-3">
+                                <span className="text-lg">{q.icon}</span>
+                                <h3 className="text-sm font-bold uppercase tracking-wider" style={{ color: q.color }}>{q.title}</h3>
+                            </div>
+                            <div className="space-y-2 flex-1">
+                                {q.items.slice(0, 4).map((item: string, i: number) => (
+                                    <EditableElement
+                                        key={i}
+                                        element={{ id: `swot-${q.key}-${i}`, type: 'text', value: item, path: `content.swot.${q.key}[${i}]`, label: `${q.title} ${i + 1}` }}
+                                        onSelect={onSelect}
+                                        isSelected={selectedId === `swot-${q.key}-${i}`}
+                                    >
+                                        <div className="flex items-start gap-2">
+                                            <div className="w-1.5 h-1.5 rounded-full mt-1.5 flex-shrink-0" style={{ backgroundColor: q.color }} />
+                                            <span className="text-sm leading-snug" style={{ color: colors.text }}>{item}</span>
+                                        </div>
+                                    </EditableElement>
+                                ))}
+                            </div>
+                        </div>
+                    ))}
+                </div>
+
+                <SlideFooter title={slide.title} slideNumber={0} colors={colors} showPageNumber={showPageNumber} />
+            </div>
+        );
+    }
+
+    // --- VARIATION: MINIMAL LIST ---
+    if (variation === 'minimal-list') {
+        return (
+            <div className="relative w-full h-full overflow-hidden flex flex-col p-10" style={{ backgroundColor: colors.bg }}>
+                <AbstractShapes colors={colors} />
+
+                <div className="text-center mb-6 relative z-10">
+                    <EditableElement
+                        element={{ id: 'title', type: 'text', value: slide.title, path: 'title', label: 'Title' }}
+                        onSelect={onSelect}
+                        isSelected={selectedId === 'title'}
+                    >
+                        <h2 className="text-4xl font-bold" style={{ color: colors.text }}>{slide.title}</h2>
+                    </EditableElement>
+                </div>
+
+                <div className="grid grid-cols-4 gap-6 flex-1 relative z-10">
+                    {quadrants.map((q) => (
+                        <div key={q.key} className="flex flex-col">
+                            <div className="pb-2 mb-3" style={{ borderBottom: `3px solid ${q.color}` }}>
+                                <h3 className="text-xs font-bold uppercase tracking-widest" style={{ color: q.color }}>{q.title}</h3>
+                            </div>
+                            <div className="space-y-3 flex-1">
+                                {q.items.slice(0, 5).map((item: string, i: number) => (
+                                    <EditableElement
+                                        key={i}
+                                        element={{ id: `swot-${q.key}-${i}`, type: 'text', value: item, path: `content.swot.${q.key}[${i}]`, label: `${q.title} ${i + 1}` }}
+                                        onSelect={onSelect}
+                                        isSelected={selectedId === `swot-${q.key}-${i}`}
+                                    >
+                                        <span className="text-sm leading-relaxed block" style={{ color: `${colors.text}CC` }}>{item}</span>
+                                    </EditableElement>
+                                ))}
+                            </div>
+                        </div>
+                    ))}
+                </div>
+
+                <SlideFooter title={slide.title} slideNumber={0} colors={colors} showPageNumber={showPageNumber} />
+            </div>
+        );
+    }
+
+    // --- DEFAULT: CLASSIC GRID ---
+    return (
+        <div className="relative w-full h-full overflow-hidden flex flex-col p-10" style={{ backgroundColor: colors.bg }}>
+            <AbstractShapes colors={colors} />
+
+            <div className="text-center mb-6 relative z-10">
+                <EditableElement
+                    element={{ id: 'title', type: 'text', value: slide.title, path: 'title', label: 'Title' }}
+                    onSelect={onSelect}
+                    isSelected={selectedId === 'title'}
+                >
+                    <h2 className="text-4xl font-bold" style={{ color: colors.text }}>{slide.title}</h2>
+                </EditableElement>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4 flex-1 relative z-10">
+                {quadrants.map((q, idx) => (
+                    <div key={q.key} className="rounded-xl overflow-hidden flex flex-col"
+                        style={{ backgroundColor: `${q.color}08`, border: `1px solid ${q.color}25` }}>
+                        {/* Header bar */}
+                        <div className="px-4 py-2.5 flex items-center gap-2"
+                            style={{ backgroundColor: `${q.color}15` }}>
+                            <span className="text-sm">{q.icon}</span>
+                            <h3 className="text-xs font-bold uppercase tracking-wider" style={{ color: q.color }}>{q.title}</h3>
+                        </div>
+                        {/* Items */}
+                        <div className="px-4 py-3 space-y-2 flex-1">
+                            {q.items.slice(0, 4).map((item: string, i: number) => (
+                                <EditableElement
+                                    key={i}
+                                    element={{ id: `swot-${q.key}-${i}`, type: 'text', value: item, path: `content.swot.${q.key}[${i}]`, label: `${q.title} ${i + 1}` }}
+                                    onSelect={onSelect}
+                                    isSelected={selectedId === `swot-${q.key}-${i}`}
+                                >
+                                    <div className="flex items-start gap-2">
+                                        <span className="text-xs mt-0.5" style={{ color: q.color }}>●</span>
+                                        <span className="text-sm leading-snug" style={{ color: colors.text }}>{item}</span>
+                                    </div>
+                                </EditableElement>
+                            ))}
+                        </div>
+                    </div>
+                ))}
+            </div>
+
+            <SlideFooter title={slide.title} slideNumber={0} colors={colors} showPageNumber={showPageNumber} />
+        </div>
+    );
+};
+
+
+// Executive Summary Layout - KPIs + Key Findings + Next Steps
+type ExecSummaryVariation = 'dashboard' | 'split-columns' | 'compact';
+
+const ExecutiveSummaryLayout = ({ slide, colors, variation = 'dashboard', onSelect, selectedId, showPageNumber }: { slide: any; colors: any; variation?: ExecSummaryVariation; onSelect?: any; selectedId?: string | null; showPageNumber?: boolean }) => {
+    const stats = slide.content?.stats || [];
+    const bullets = slide.content?.bullets || [];
+    const nextSteps = slide.content?.nextSteps || slide.content?.next_steps || [];
+
+    // --- VARIATION: SPLIT COLUMNS ---
+    if (variation === 'split-columns') {
+        return (
+            <div className="relative w-full h-full overflow-hidden flex flex-col p-10" style={{ backgroundColor: colors.bg }}>
+                <AbstractShapes colors={colors} />
+
+                <div className="text-center mb-6 relative z-10">
+                    <EditableElement
+                        element={{ id: 'title', type: 'text', value: slide.title, path: 'title', label: 'Title' }}
+                        onSelect={onSelect}
+                        isSelected={selectedId === 'title'}
+                    >
+                        <h2 className="text-4xl font-bold" style={{ color: colors.text }}>{slide.title}</h2>
+                    </EditableElement>
+                </div>
+
+                <div className="flex gap-6 flex-1 relative z-10">
+                    {/* KPIs column */}
+                    <div className="w-1/3 flex flex-col gap-3">
+                        <h3 className="text-xs font-bold uppercase tracking-widest mb-1" style={{ color: colors.primary }}>Key Metrics</h3>
+                        {stats.slice(0, 4).map((stat: any, i: number) => (
+                            <EditableElement
+                                key={i}
+                                element={{ id: `stat-${i}`, type: 'text', value: stat.value, path: `content.stats[${i}].value`, label: `KPI ${i + 1}` }}
+                                onSelect={onSelect}
+                                isSelected={selectedId === `stat-${i}`}
+                            >
+                                <div className="rounded-xl p-4" style={{ backgroundColor: `${colors.primary}10`, border: `1px solid ${colors.primary}20` }}>
+                                    <div className="text-2xl font-bold" style={{ color: colors.primary }}>{stat.value}</div>
+                                    <div className="text-xs mt-1" style={{ color: `${colors.text}80` }}>{stat.label}</div>
+                                </div>
+                            </EditableElement>
+                        ))}
+                    </div>
+
+                    {/* Findings column */}
+                    <div className="w-1/3 flex flex-col">
+                        <h3 className="text-xs font-bold uppercase tracking-widest mb-3" style={{ color: colors.accent || colors.primary }}>Key Findings</h3>
+                        <div className="space-y-3">
+                            {bullets.slice(0, 5).map((bullet: string, i: number) => (
+                                <EditableElement
+                                    key={i}
+                                    element={{ id: `bullet-${i}`, type: 'text', value: bullet, path: `content.bullets[${i}]`, label: `Finding ${i + 1}` }}
+                                    onSelect={onSelect}
+                                    isSelected={selectedId === `bullet-${i}`}
+                                >
+                                    <div className="flex items-start gap-2">
+                                        <div className="w-1.5 h-1.5 rounded-full mt-1.5 flex-shrink-0" style={{ backgroundColor: colors.accent || colors.primary }} />
+                                        <span className="text-sm leading-relaxed" style={{ color: colors.text }}>{bullet}</span>
+                                    </div>
+                                </EditableElement>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* Next Steps column */}
+                    <div className="w-1/3 flex flex-col">
+                        <h3 className="text-xs font-bold uppercase tracking-widest mb-3" style={{ color: '#27AE60' }}>Next Steps</h3>
+                        <div className="space-y-3">
+                            {nextSteps.slice(0, 5).map((step: string, i: number) => (
+                                <EditableElement
+                                    key={i}
+                                    element={{ id: `nextstep-${i}`, type: 'text', value: step, path: `content.nextSteps[${i}]`, label: `Next Step ${i + 1}` }}
+                                    onSelect={onSelect}
+                                    isSelected={selectedId === `nextstep-${i}`}
+                                >
+                                    <div className="flex items-start gap-2">
+                                        <span className="text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center flex-shrink-0"
+                                            style={{ backgroundColor: '#27AE6020', color: '#27AE60' }}>{i + 1}</span>
+                                        <span className="text-sm leading-relaxed" style={{ color: colors.text }}>{step}</span>
+                                    </div>
+                                </EditableElement>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+
+                <SlideFooter title={slide.title} slideNumber={0} colors={colors} showPageNumber={showPageNumber} />
+            </div>
+        );
+    }
+
+    // --- VARIATION: COMPACT ---
+    if (variation === 'compact') {
+        return (
+            <div className="relative w-full h-full overflow-hidden flex flex-col p-10" style={{ backgroundColor: colors.bg }}>
+                <AbstractShapes colors={colors} />
+
+                <div className="mb-5 relative z-10">
+                    <EditableElement
+                        element={{ id: 'title', type: 'text', value: slide.title, path: 'title', label: 'Title' }}
+                        onSelect={onSelect}
+                        isSelected={selectedId === 'title'}
+                    >
+                        <h2 className="text-3xl font-bold" style={{ color: colors.text }}>{slide.title}</h2>
+                    </EditableElement>
+                </div>
+
+                {/* KPIs row */}
+                {stats.length > 0 && (
+                    <div className="flex gap-3 mb-5 relative z-10">
+                        {stats.slice(0, 4).map((stat: any, i: number) => (
+                            <div key={i} className="flex-1 text-center py-2 rounded-lg" style={{ backgroundColor: `${colors.primary}08` }}>
+                                <div className="text-lg font-bold" style={{ color: colors.primary }}>{stat.value}</div>
+                                <div className="text-[10px] uppercase tracking-wider" style={{ color: `${colors.text}70` }}>{stat.label}</div>
+                            </div>
+                        ))}
+                    </div>
+                )}
+
+                {/* Two-column layout */}
+                <div className="flex gap-6 flex-1 relative z-10">
+                    <div className="flex-1 space-y-2">
+                        {bullets.slice(0, 5).map((bullet: string, i: number) => (
+                            <EditableElement
+                                key={i}
+                                element={{ id: `bullet-${i}`, type: 'text', value: bullet, path: `content.bullets[${i}]`, label: `Finding ${i + 1}` }}
+                                onSelect={onSelect}
+                                isSelected={selectedId === `bullet-${i}`}
+                            >
+                                <div className="flex items-start gap-2">
+                                    <span className="text-xs mt-0.5" style={{ color: colors.primary }}>▸</span>
+                                    <span className="text-sm leading-snug" style={{ color: colors.text }}>{bullet}</span>
+                                </div>
+                            </EditableElement>
+                        ))}
+                    </div>
+                    <div className="flex-1 space-y-2">
+                        {nextSteps.slice(0, 5).map((step: string, i: number) => (
+                            <EditableElement
+                                key={i}
+                                element={{ id: `nextstep-${i}`, type: 'text', value: step, path: `content.nextSteps[${i}]`, label: `Next Step ${i + 1}` }}
+                                onSelect={onSelect}
+                                isSelected={selectedId === `nextstep-${i}`}
+                            >
+                                <div className="flex items-start gap-2">
+                                    <span className="text-xs font-bold mt-0.5" style={{ color: '#27AE60' }}>{i + 1}.</span>
+                                    <span className="text-sm leading-snug" style={{ color: colors.text }}>{step}</span>
+                                </div>
+                            </EditableElement>
+                        ))}
+                    </div>
+                </div>
+
+                <SlideFooter title={slide.title} slideNumber={0} colors={colors} showPageNumber={showPageNumber} />
+            </div>
+        );
+    }
+
+    // --- DEFAULT: DASHBOARD ---
+    return (
+        <div className="relative w-full h-full overflow-hidden flex flex-col p-10" style={{ backgroundColor: colors.bg }}>
+            <AbstractShapes colors={colors} />
+
+            <div className="text-center mb-5 relative z-10">
+                <EditableElement
+                    element={{ id: 'title', type: 'text', value: slide.title, path: 'title', label: 'Title' }}
+                    onSelect={onSelect}
+                    isSelected={selectedId === 'title'}
+                >
+                    <h2 className="text-4xl font-bold" style={{ color: colors.text }}>{slide.title}</h2>
+                </EditableElement>
+            </div>
+
+            {/* KPI cards row */}
+            {stats.length > 0 && (
+                <div className="flex gap-4 mb-6 relative z-10">
+                    {stats.slice(0, 4).map((stat: any, i: number) => (
+                        <EditableElement
+                            key={i}
+                            element={{ id: `stat-${i}`, type: 'text', value: stat.value, path: `content.stats[${i}].value`, label: `KPI ${i + 1}` }}
+                            onSelect={onSelect}
+                            isSelected={selectedId === `stat-${i}`}
+                        >
+                            <div className="flex-1 rounded-xl p-4 text-center backdrop-blur-sm"
+                                style={{
+                                    backgroundColor: `${colors.primary}08`,
+                                    border: `1px solid ${colors.primary}20`,
+                                }}>
+                                <div className="text-3xl font-bold mb-1" style={{ color: colors.primary }}>{stat.value}</div>
+                                <div className="text-xs uppercase tracking-wider" style={{ color: `${colors.text}80` }}>{stat.label}</div>
+                            </div>
+                        </EditableElement>
+                    ))}
+                </div>
+            )}
+
+            {/* Two-column: Findings + Next Steps */}
+            <div className="flex gap-6 flex-1 relative z-10">
+                {/* Key Findings */}
+                <div className="flex-1 rounded-xl p-5" style={{ backgroundColor: `${colors.primary}05`, border: `1px solid ${colors.primary}10` }}>
+                    <h3 className="text-xs font-bold uppercase tracking-widest mb-4 flex items-center gap-2"
+                        style={{ color: colors.accent || colors.primary }}>
+                        <span>📊</span> Key Findings
+                    </h3>
+                    <div className="space-y-3">
+                        {bullets.slice(0, 5).map((bullet: string, i: number) => (
+                            <EditableElement
+                                key={i}
+                                element={{ id: `bullet-${i}`, type: 'text', value: bullet, path: `content.bullets[${i}]`, label: `Finding ${i + 1}` }}
+                                onSelect={onSelect}
+                                isSelected={selectedId === `bullet-${i}`}
+                            >
+                                <div className="flex items-start gap-2.5">
+                                    <div className="w-1.5 h-1.5 rounded-full mt-1.5 flex-shrink-0" style={{ backgroundColor: colors.accent || colors.primary }} />
+                                    <span className="text-sm leading-relaxed" style={{ color: colors.text }}>{bullet}</span>
+                                </div>
+                            </EditableElement>
+                        ))}
+                    </div>
+                </div>
+
+                {/* Next Steps */}
+                <div className="flex-1 rounded-xl p-5" style={{ backgroundColor: '#27AE6005', border: '1px solid #27AE6010' }}>
+                    <h3 className="text-xs font-bold uppercase tracking-widest mb-4 flex items-center gap-2"
+                        style={{ color: '#27AE60' }}>
+                        <span>🎯</span> Next Steps
+                    </h3>
+                    <div className="space-y-3">
+                        {nextSteps.slice(0, 5).map((step: string, i: number) => (
+                            <EditableElement
+                                key={i}
+                                element={{ id: `nextstep-${i}`, type: 'text', value: step, path: `content.nextSteps[${i}]`, label: `Next Step ${i + 1}` }}
+                                onSelect={onSelect}
+                                isSelected={selectedId === `nextstep-${i}`}
+                            >
+                                <div className="flex items-start gap-2.5">
+                                    <span className="text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center flex-shrink-0 mt-0.5"
+                                        style={{ backgroundColor: '#27AE6015', color: '#27AE60' }}>{i + 1}</span>
+                                    <span className="text-sm leading-relaxed" style={{ color: colors.text }}>{step}</span>
+                                </div>
+                            </EditableElement>
+                        ))}
+                    </div>
+                </div>
+            </div>
+
+            <SlideFooter title={slide.title} slideNumber={0} colors={colors} showPageNumber={showPageNumber} />
+        </div>
+    );
+};
+
+
 // Quote layout - Testimonial or key quote with beautiful styling
 type QuoteVariation = 'centered-hero' | 'side-accent' | 'minimal-elegant';
 
@@ -3728,7 +4296,7 @@ const ThreeColumnTextLayout = ({ slide, colors, variation = 'classic', onSelect,
 
 // Image focus layout - Hero image with overlay
 // Image focus layout - Splash screens and gallery views
-type ImageFocusVariation = 'default' | 'text-mask' | 'split-curtain' | 'polaroid-pile';
+type ImageFocusVariation = 'default' | 'text-mask' | 'split-curtain' | 'polaroid-pile' | 'image-showcase' | 'chart-showcase' | 'chart-analysis';
 
 const ImageFocusLayout = ({ slide, colors, variation = 'default', onSelect, selectedId, showPageNumber }: { slide: any; colors: any, variation?: ImageFocusVariation; onSelect?: any; selectedId?: string | null; showPageNumber?: boolean }) => {
     // Basic shared logic
@@ -3793,7 +4361,7 @@ const ImageFocusLayout = ({ slide, colors, variation = 'default', onSelect, sele
                             backgroundImage: `url(${imageUrl || `https://source.unsplash.com/800x1200/?${encodeURIComponent(slide.title)}`})`,
                             transitionDuration: '20s'
                         }} />
-                    <div className="absolute inset-0 bg-black/10" />
+                    {!slide.isChartImage && <div className="absolute inset-0 bg-black/10" />}
                 </div>
 
                 {/* Text Side (Right) */}
@@ -3893,15 +4461,235 @@ const ImageFocusLayout = ({ slide, colors, variation = 'default', onSelect, sele
         );
     }
 
+
+    // --- VARIATION 5: CHART SHOWCASE (Consulting Exhibit) ---
+    if (variation === 'chart-showcase') {
+        const bgUrl = imageUrl || `https://source.unsplash.com/1600x900/?${encodeURIComponent(slide.title)}`;
+        return (
+            <div className="relative w-full h-full overflow-hidden flex flex-col p-12" style={{ backgroundColor: colors.bg }}>
+                {/* Background soft ambiance */}
+                <div className="absolute inset-0 opacity-[0.03] pointer-events-none"
+                    style={{ backgroundColor: colors.primary }} />
+
+                <div className="relative z-10 flex flex-col h-full max-w-6xl mx-auto w-full">
+                    {/* Header */}
+                    <div className="mb-8 border-b border-black/5 pb-6">
+                        <EditableElement
+                            element={{ id: 'title', type: 'text', value: slide.title, path: 'title', label: 'Title' }}
+                            onSelect={onSelect}
+                            isSelected={selectedId === 'title'}
+                        >
+                            <h2 className="text-4xl font-bold tracking-tight text-gray-900" style={{ color: colors.text }}>
+                                {slide.title}
+                            </h2>
+                        </EditableElement>
+                    </div>
+
+                    {/* Chart Exhibit Container */}
+                    <div className="flex-1 relative flex flex-col bg-white rounded-xl shadow-[0_20px_50px_rgba(0,0,0,0.08)] border border-black/5 overflow-hidden">
+                        <div className="flex-1 flex items-center justify-center p-8 bg-gray-50/50">
+                            <img
+                                src={imageUrl || bgUrl}
+                                alt={slide.title}
+                                className="max-w-full max-h-full object-contain drop-shadow-sm"
+                            />
+                        </div>
+
+                        {/* Analysis / Key Insight Zone */}
+                        <div className="p-6 bg-white border-t border-black/5 flex justify-between items-end">
+                            <div className="flex-1">
+                                <span className="text-[10px] font-bold uppercase tracking-widest text-primary mb-2 block" style={{ color: colors.primary }}>
+                                    Key Insight
+                                </span>
+                                <EditableElement
+                                    element={{ id: 'subtitle', type: 'text', value: slide.subtitle || slide.content?.text, path: slide.subtitle ? 'subtitle' : 'content.text', label: 'Analysis' }}
+                                    onSelect={onSelect}
+                                    isSelected={selectedId === 'subtitle'}
+                                >
+                                    <p className="text-lg text-gray-700 leading-relaxed font-medium">
+                                        {slide.subtitle || slide.content?.text || "Analyze the significant trends observed in this data visualization."}
+                                    </p>
+                                </EditableElement>
+                            </div>
+
+                            {/* Source and Reference */}
+                            <div className="ml-12 text-right shrink-0">
+                                <EditableElement
+                                    element={{ id: 'source', type: 'text', value: slide.content?.source || "Source: External Data", path: 'content.source', label: 'Data Source' }}
+                                    onSelect={onSelect}
+                                    isSelected={selectedId === 'source'}
+                                >
+                                    <span className="text-[10px] opacity-40 uppercase tracking-tighter" style={{ color: colors.text }}>
+                                        {slide.content?.source || "Source: Excel / Data Export"}
+                                    </span>
+                                </EditableElement>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <SlideFooter title={slide.title} colors={colors} unsplashPhotographer={slide.unsplashPhotographer} showPageNumber={showPageNumber} />
+            </div>
+        );
+    }
+
+    // --- VARIATION 6: CHART ANALYSIS (60/40 Consulting Split) ---
+    if (variation === 'chart-analysis') {
+        const bgUrl = imageUrl || `https://source.unsplash.com/1600x900/?${encodeURIComponent(slide.title)}`;
+        return (
+            <div className="relative w-full h-full overflow-hidden flex flex-col p-12" style={{ backgroundColor: colors.bg }}>
+                <div className="relative z-10 flex flex-col h-full w-full">
+                    {/* Header */}
+                    <div className="mb-10">
+                        <EditableElement
+                            element={{ id: 'title', type: 'text', value: slide.title, path: 'title', label: 'Title' }}
+                            onSelect={onSelect}
+                            isSelected={selectedId === 'title'}
+                        >
+                            <h2 className="text-4xl font-bold tracking-tight border-l-4 pl-6" style={{ color: colors.text, borderColor: colors.primary }}>
+                                {slide.title}
+                            </h2>
+                        </EditableElement>
+                    </div>
+
+                    <div className="flex-1 flex gap-12 min-h-0">
+                        {/* 60% Chart Side */}
+                        <div className="w-[60%] h-full flex flex-col">
+                            <div className="flex-1 bg-white rounded-xl shadow-lg border border-black/5 overflow-hidden p-6 flex items-center justify-center">
+                                <img
+                                    src={imageUrl || bgUrl}
+                                    alt={slide.title}
+                                    className="max-w-full max-h-full object-contain"
+                                />
+                            </div>
+                            <div className="mt-4 text-left">
+                                <EditableElement
+                                    element={{ id: 'source', type: 'text', value: slide.content?.source || "Source: Internal Analysis", path: 'content.source', label: 'Data Source' }}
+                                    onSelect={onSelect}
+                                    isSelected={selectedId === 'source'}
+                                >
+                                    <span className="text-[10px] opacity-40 uppercase tracking-widest italic" style={{ color: colors.text }}>
+                                        {slide.content?.source || "Source: Internal Business Intelligence"}
+                                    </span>
+                                </EditableElement>
+                            </div>
+                        </div>
+
+                        {/* 40% Analysis Side */}
+                        <div className="w-[40%] flex flex-col">
+                            <div className="mb-6">
+                                <span className="inline-block px-3 py-1 bg-primary/10 text-primary text-[10px] font-bold uppercase tracking-[0.2em] rounded" style={{ color: colors.primary, backgroundColor: `${colors.primary}10` }}>
+                                    Executive Summary
+                                </span>
+                            </div>
+
+                            <div className="flex-1 space-y-8 overflow-y-auto pr-4 custom-scrollbar">
+                                <EditableElement
+                                    element={{ id: 'subtitle', type: 'text', value: slide.subtitle, path: 'subtitle', label: 'Key Finding' }}
+                                    onSelect={onSelect}
+                                    isSelected={selectedId === 'subtitle'}
+                                >
+                                    <h3 className="text-xl font-bold leading-tight" style={{ color: colors.primary }}>
+                                        {slide.subtitle || "Key Insight Overview"}
+                                    </h3>
+                                </EditableElement>
+
+                                <EditableElement
+                                    element={{ id: 'text', type: 'text', value: slide.content?.text || slide.text, path: slide.content?.text ? 'content.text' : 'text', label: 'Analysis Content' }}
+                                    onSelect={onSelect}
+                                    isSelected={selectedId === 'text'}
+                                >
+                                    <div className="text-lg opacity-80 leading-relaxed" style={{ color: colors.text }}>
+                                        {slide.content?.text || slide.text || (
+                                            <ul className="space-y-4 list-disc pl-5">
+                                                <li>Observation of primary growth trends across key segments.</li>
+                                                <li>Correlation between investment levels and performance outcomes.</li>
+                                                <li>Identified opportunities for optimization in the upcoming quarter.</li>
+                                            </ul>
+                                        )}
+                                    </div>
+                                </EditableElement>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <SlideFooter title={slide.title} colors={colors} unsplashPhotographer={slide.unsplashPhotographer} showPageNumber={showPageNumber} />
+            </div>
+        );
+    }
+
+    // --- VARIATION 4: IMAGE SHOWCASE (Preserves Aspect Ratio) ---
+    if (variation === 'image-showcase') {
+        const bgUrl = imageUrl || `https://source.unsplash.com/1600x900/?${encodeURIComponent(slide.title)}`;
+        return (
+            <div className="relative w-full h-full overflow-hidden flex flex-col" style={{ backgroundColor: colors.bg }}>
+                {/* Background blurred splash */}
+                <div className="absolute inset-0 opacity-20 blur-3xl pointer-events-none"
+                    style={{
+                        backgroundImage: `url(${bgUrl})`,
+                        backgroundSize: 'cover',
+                        backgroundPosition: 'center',
+                    }} />
+
+                <div className="relative z-10 flex flex-col h-full p-12">
+                    {/* Header */}
+                    <div className="mb-8">
+                        <EditableElement
+                            element={{ id: 'title', type: 'text', value: slide.title, path: 'title', label: 'Title' }}
+                            onSelect={onSelect}
+                            isSelected={selectedId === 'title'}
+                        >
+                            <h2 className="text-5xl font-bold tracking-tight" style={{ color: colors.text }}>
+                                {slide.title}
+                            </h2>
+                        </EditableElement>
+                        {(slide.subtitle || slide.content?.text) && (
+                            <EditableElement
+                                element={{ id: 'subtitle', type: 'text', value: slide.subtitle || slide.content?.text, path: slide.subtitle ? 'subtitle' : 'content.text', label: 'Subtitle' }}
+                                onSelect={onSelect}
+                                isSelected={selectedId === 'subtitle'}
+                                className="mt-2"
+                            >
+                                <p className="text-xl opacity-60" style={{ color: colors.text }}>
+                                    {slide.subtitle || slide.content?.text}
+                                </p>
+                            </EditableElement>
+                        )}
+                    </div>
+
+                    {/* Image Container - The Hero */}
+                    <div className="flex-1 relative rounded-2xl overflow-hidden border bg-black/5 shadow-2xl"
+                        style={{ borderColor: `${colors.text}10` }}>
+                        <div className="absolute inset-0 flex items-center justify-center p-4">
+                            <img
+                                src={bgUrl}
+                                alt={slide.title}
+                                className="max-w-full max-h-full object-contain rounded shadow-lg"
+                            />
+                        </div>
+                    </div>
+                </div>
+                <SlideFooter title={slide.title} colors={colors} unsplashPhotographer={slide.unsplashPhotographer} showPageNumber={showPageNumber} />
+            </div>
+        );
+    }
+
     // --- DEFAULT: HERO SPLASH ---
     return (
         <div className="relative w-full h-full overflow-hidden">
             {/* Full-bleed background image */}
             {imageUrl ? (
-                <div
-                    className="absolute inset-0 bg-cover bg-center"
-                    style={{ backgroundImage: `url(${imageUrl})` }}
-                />
+                <>
+                    {/* Blurred background for ambiance */}
+                    <div
+                        className="absolute inset-0 bg-cover bg-center blur-xl scale-110 opacity-60"
+                        style={{ backgroundImage: `url(${imageUrl})` }}
+                    />
+                    {/* The actual image, contained to ensure full visibility (great for charts) */}
+                    <div
+                        className="absolute inset-0 bg-contain bg-center bg-no-repeat transition-transform duration-700 hover:scale-105"
+                        style={{ backgroundImage: `url(${imageUrl})` }}
+                    />
+                </>
             ) : (
                 <div
                     className="absolute inset-0"
@@ -3909,8 +4697,10 @@ const ImageFocusLayout = ({ slide, colors, variation = 'default', onSelect, sele
                 />
             )}
 
-            {/* Dark overlay */}
-            <div className="absolute inset-0 bg-black/50" />
+            {/* Dark overlay - Hidden for charts or if no text content (for full brightness) */}
+            {(!slide.isChartImage && (slide.title || slide.subtitle || slide.content?.subtitle)) && (
+                <div className="absolute inset-0 bg-black/50" />
+            )}
 
             {/* Content */}
             <div className="relative z-10 flex flex-col items-center justify-center h-full px-20 text-center text-white">
@@ -5716,7 +6506,7 @@ export const ModernSlideRenderer = ({
 
         const getChartVariation = (): ChartVariation => {
             // 0. Manual Override
-            if (slide.variation && ['default-container', 'split-detail', 'floating-card', 'full-bleed-hero', 'minimal-stat'].includes(slide.variation)) return slide.variation as ChartVariation;
+            if (slide.variation && ['default-container', 'split-detail', 'floating-card', 'full-bleed-hero', 'minimal-stat', 'chart-showcase', 'chart-analysis'].includes(slide.variation)) return slide.variation as ChartVariation;
 
             // 1. Theme-based preference
             const isTech = theme.includes('tech') || theme.includes('modern') || theme.includes('startup');
@@ -5733,7 +6523,7 @@ export const ModernSlideRenderer = ({
             const str = (slide.id || '') + (slide.title || '');
             let hash = 0;
             for (let i = 0; i < str.length; i++) hash = (hash << 5) - hash + str.charCodeAt(i);
-            const index = Math.abs(hash) % 5;
+            const index = Math.abs(hash) % 7; // Updated to 7 to account for new variants if we want them in rotation
 
             // Tech themes prefer cards/modern
             if (isTech && index % 2 === 0) return 'floating-card';
@@ -5741,13 +6531,9 @@ export const ModernSlideRenderer = ({
             // Dark themes prefer full bleed
             if (isDark && index % 2 === 0) return 'full-bleed-hero';
 
-            const variants: ChartVariation[] = ['default-container', 'split-detail', 'floating-card', 'full-bleed-hero', 'minimal-stat'];
+            const variants: ChartVariation[] = ['default-container', 'split-detail', 'floating-card', 'full-bleed-hero', 'minimal-stat', 'chart-showcase', 'chart-analysis'];
             return variants[index];
         };
-
-
-        // Debug logging
-        const contentKeys = Object.keys(slide.content || {}).filter(k => slide.content[k]);
 
 
         // Smart content detection: check actual data presence before layout matching
@@ -5799,6 +6585,18 @@ export const ModernSlideRenderer = ({
         const hasQuote = (slide.quote?.text || slide.content?.quote?.text);
         // AI format: columns array for text-columns layout
         const hasTextColumns = (slide.content?.columns?.length > 0 || slide.content?.['text-columns']?.length > 0);
+        // SWOT data: 4-quadrant analysis
+        const hasSWOT = (
+            slide.content?.swot?.strengths?.length > 0 ||
+            slide.content?.swot?.weaknesses?.length > 0 ||
+            slide.swot?.strengths?.length > 0 ||
+            slide.swot?.weaknesses?.length > 0
+        );
+        // Executive summary: KPIs + bullets + next steps
+        const hasExecutiveSummary = (
+            (slide.content?.stats?.length > 0 || slide.content?.statistics?.length > 0) &&
+            (slide.content?.nextSteps?.length > 0 || slide.content?.next_steps?.length > 0 || slide.content?.bullets?.length > 0)
+        );
 
         // Helper to pick a variation for text columns
         const getMultiColumnVariation = (): TextColumnVariation => {
@@ -6065,34 +6863,27 @@ export const ModernSlideRenderer = ({
 
         // Helper to pick a variation for image focus
         const getImageFocusVariation = (): ImageFocusVariation => {
-            if (slide.variation && ['default', 'text-mask', 'split-curtain', 'polaroid-pile'].includes(slide.variation)) return slide.variation as ImageFocusVariation;
+            // 0. Manual Override
+            if (slide.variation && ['default', 'text-mask', 'split-curtain', 'polaroid-pile', 'image-showcase'].includes(slide.variation)) {
+                return slide.variation as ImageFocusVariation;
+            }
 
             const salt = slide.id || slide.title || 'image';
             const slideIndex = slide.index || 0;
+            // 1. Content detection
+            const text = (slide.title + (slide.content?.text || '')).toLowerCase();
+            if (text.includes('mask') || text.includes('title')) return 'text-mask';
+            if (text.includes('curtain') || text.includes('reveal')) return 'split-curtain';
+            if (text.includes('pile') || text.includes('gallery')) return 'polaroid-pile';
+            if (text.includes('showcase') || text.includes('exhibit')) return 'image-showcase';
 
-            const hashString = (str: string) => {
-                let hash = 2166136261;
-                for (let i = 0; i < str.length; i++) {
-                    hash ^= str.charCodeAt(i);
-                    hash = Math.imul(hash, 16777619);
-                }
-                return hash >>> 0;
-            };
+            // 2. Fallback to deterministic hash
+            const str = (slide.id || '') + (slide.title || '');
+            let hash = 0;
+            for (let i = 0; i < str.length; i++) hash = (hash << 5) - hash + str.charCodeAt(i);
+            const baseHash = Math.abs(hash);
 
-            const baseHash = hashString(salt + slideIndex + 'image');
-
-            // 1. Content Keywords
-            const text = (slide.title + (slide.content?.description || '')).toLowerCase();
-            if (text.includes('mask') || text.includes('hidden') || text.includes('reveal') || text.includes('focus'))
-                return 'text-mask';
-            if (text.includes('split') || text.includes('half') || text.includes('side'))
-                return 'split-curtain';
-            if (text.includes('gallery') || text.includes('collection') || text.includes('photos') || text.includes('memories') || (slide.images && slide.images.length > 1))
-                return 'polaroid-pile';
-
-            // 2. Deterministic Fallback
-            const variations: ImageFocusVariation[] = ['default', 'text-mask', 'split-curtain', 'polaroid-pile'];
-
+            const variations: ImageFocusVariation[] = ['default', 'text-mask', 'split-curtain', 'polaroid-pile', 'image-showcase', 'chart-showcase', 'chart-analysis'];
             // Bias towards default/hero for single images, polaroid for multiple
             if (slide.images && slide.images.length > 1) return 'polaroid-pile';
 
@@ -6101,6 +6892,44 @@ export const ModernSlideRenderer = ({
 
 
 
+
+        // Helper to pick a variation for SWOT
+        const getSWOTVariation = (): SWOTVariation => {
+            if (slide.variation && ['classic-grid', 'rounded-cards', 'minimal-list'].includes(slide.variation)) return slide.variation as SWOTVariation;
+
+            const salt = slide.id || slide.title || 'swot';
+            const slideIndex = slide.index || 0;
+            const hashString = (str: string) => {
+                let hash = 2166136261;
+                for (let i = 0; i < str.length; i++) {
+                    hash ^= str.charCodeAt(i);
+                    hash = Math.imul(hash, 16777619);
+                }
+                return hash >>> 0;
+            };
+            const baseHash = hashString(salt + slideIndex + 'swot');
+            const variations: SWOTVariation[] = ['classic-grid', 'rounded-cards', 'minimal-list'];
+            return variations[baseHash % variations.length];
+        };
+
+        // Helper to pick a variation for executive summary
+        const getExecSummaryVariation = (): ExecSummaryVariation => {
+            if (slide.variation && ['dashboard', 'split-columns', 'compact'].includes(slide.variation)) return slide.variation as ExecSummaryVariation;
+
+            const salt = slide.id || slide.title || 'exec';
+            const slideIndex = slide.index || 0;
+            const hashString = (str: string) => {
+                let hash = 2166136261;
+                for (let i = 0; i < str.length; i++) {
+                    hash ^= str.charCodeAt(i);
+                    hash = Math.imul(hash, 16777619);
+                }
+                return hash >>> 0;
+            };
+            const baseHash = hashString(salt + slideIndex + 'exec');
+            const variations: ExecSummaryVariation[] = ['dashboard', 'split-columns', 'compact'];
+            return variations[baseHash % variations.length];
+        };
 
         // Helper to pick a variation for table
         const getTableVariation = (): TableVariation => {
@@ -6141,61 +6970,71 @@ export const ModernSlideRenderer = ({
 
         let LayoutComponent: React.ComponentType<any> = MasterContentLayout; // Default to MasterContentLayout
 
+        // PRIORITY 0: Specialized consulting layouts (exact data structure match)
+        if (hasSWOT) {
+            const swotVar = getSWOTVariation();
+            return <SWOTLayout showPageNumber={finalShowPageNumber} slide={slide} colors={colors} variation={swotVar} onSelect={onElementSelect} selectedId={selectedElementId} />;
+        }
+        if (hasExecutiveSummary && (normalizedType.includes('executive') || normalizedType.includes('exec') || normalizedType.includes('summary'))) {
+            const execVar = getExecSummaryVariation();
+            return <ExecutiveSummaryLayout showPageNumber={finalShowPageNumber} slide={slide} colors={colors} variation={execVar} onSelect={onElementSelect} selectedId={selectedElementId} />;
+        }
+
         // PRIORITY 1: Content-based detection (what data actually exists)
         if (hasChart) {
 
-            return <ChartLayout slide={slide} colors={colors} variation={getChartVariation()} onSelect={onElementSelect} selectedId={selectedElementId} />;
+            return <ChartLayout showPageNumber={finalShowPageNumber} slide={slide} colors={colors} variation={getChartVariation()} onSelect={onElementSelect} selectedId={selectedElementId} />;
         } else if (hasInfographic) {
 
-            return <InfographicLayout slide={slide} colors={colors} variation={getInfographicVariation()} onSelect={onElementSelect} selectedId={selectedElementId} />;
+            return <InfographicLayout showPageNumber={finalShowPageNumber} slide={slide} colors={colors} variation={getInfographicVariation()} onSelect={onElementSelect} selectedId={selectedElementId} />;
         } else if (hasTimeline) {
 
-            return <TimelineLayout slide={slide} colors={colors} variation={getTimelineVariation()} onSelect={onElementSelect} selectedId={selectedElementId} />;
+            return <TimelineLayout showPageNumber={finalShowPageNumber} slide={slide} colors={colors} variation={getTimelineVariation()} onSelect={onElementSelect} selectedId={selectedElementId} />;
         }
         if (hasTable) {
 
-            return <TableLayout slide={slide} colors={colors} variation={getTableVariation()} onSelect={onElementSelect} selectedId={selectedElementId} />;
+            return <TableLayout showPageNumber={finalShowPageNumber} slide={slide} colors={colors} variation={getTableVariation()} onSelect={onElementSelect} selectedId={selectedElementId} />;
         }
         if (hasComparison) {
 
-            return <ComparisonLayout slide={slide} colors={colors} variation={getComparisonVariation()} onSelect={onElementSelect} selectedId={selectedElementId} />;
+            return <ComparisonLayout showPageNumber={finalShowPageNumber} slide={slide} colors={colors} variation={getComparisonVariation()} onSelect={onElementSelect} selectedId={selectedElementId} />;
         }
         if (hasStats) {
 
-            return <StatsLayout slide={slide} colors={colors} variation={getStatsVariation()} onSelect={onElementSelect} selectedId={selectedElementId} />;
+            return <StatsLayout showPageNumber={finalShowPageNumber} slide={slide} colors={colors} variation={getStatsVariation()} onSelect={onElementSelect} selectedId={selectedElementId} />;
         }
         if (hasTextColumns) {
 
-            return <ThreeColumnTextLayout slide={slide} colors={colors} variation={getMultiColumnVariation()} onSelect={onElementSelect} selectedId={selectedElementId} />;
+            return <ThreeColumnTextLayout showPageNumber={finalShowPageNumber} slide={slide} colors={colors} variation={getMultiColumnVariation()} onSelect={onElementSelect} selectedId={selectedElementId} />;
         }
         if (hasItems && (normalizedType.includes('bento') || normalizedType.includes('grid'))) {
 
-            return <BentoGridLayout slide={slide} colors={colors} variation={getBentoVariation()} onSelect={onElementSelect} selectedId={selectedElementId} />;
+            return <BentoGridLayout showPageNumber={finalShowPageNumber} slide={slide} colors={colors} variation={getBentoVariation()} onSelect={onElementSelect} selectedId={selectedElementId} />;
         }
         const itemsArray = slide.content?.items || [];
         if (hasItems && itemsArray.length >= 3) {
             // Fallback to Bento if has items but not explicitly requested, 30% chance or if type is 'features'
             if (normalizedType.includes('feature') || Math.random() > 0.7) {
 
-                return <BentoGridLayout slide={slide} colors={colors} variation={getBentoVariation()} onSelect={onElementSelect} selectedId={selectedElementId} />;
+                return <BentoGridLayout showPageNumber={finalShowPageNumber} slide={slide} colors={colors} variation={getBentoVariation()} onSelect={onElementSelect} selectedId={selectedElementId} />;
             }
         }
         if (hasQuote) {
 
-            return <ThreeColumnTextLayout slide={slide} colors={colors} variation={getMultiColumnVariation()} onSelect={onElementSelect} selectedId={selectedElementId} />;
+            return <ThreeColumnTextLayout showPageNumber={finalShowPageNumber} slide={slide} colors={colors} variation={getMultiColumnVariation()} onSelect={onElementSelect} selectedId={selectedElementId} />;
         }
 
         // PRIORITY 2: Layout type string matching (fallback)
         if (normalizedType.includes('showcase') || normalizedType.includes('product')) {
 
-            return <ProductShowcaseLayout slide={slide} colors={colors} variation={getShowcaseVariation()} onSelect={onElementSelect} selectedId={selectedElementId} />;
+            return <ProductShowcaseLayout showPageNumber={finalShowPageNumber} slide={slide} colors={colors} variation={getShowcaseVariation()} onSelect={onElementSelect} selectedId={selectedElementId} />;
         }
 
         // Smart Injection: If theme is 'tech' or 'product' and has items, use Showcase occasionally
         if ((theme.includes('tech') || theme.includes('product')) && hasItems && itemsArray.length >= 3) {
             if (Math.random() > 0.6) {
 
-                return <ProductShowcaseLayout slide={slide} colors={colors} variation={getShowcaseVariation()} onSelect={onElementSelect} selectedId={selectedElementId} />;
+                return <ProductShowcaseLayout showPageNumber={finalShowPageNumber} slide={slide} colors={colors} variation={getShowcaseVariation()} onSelect={onElementSelect} selectedId={selectedElementId} />;
             }
         }
 
@@ -6249,7 +7088,7 @@ export const ModernSlideRenderer = ({
             }
 
 
-            return <MasterContentLayout slide={slide} colors={colors} variation={picked} onSelect={onElementSelect} selectedId={selectedElementId} />;
+            return <MasterContentLayout showPageNumber={finalShowPageNumber} slide={slide} colors={colors} variation={picked} onSelect={onElementSelect} selectedId={selectedElementId} />;
         }
 
         // Cover / Hero layouts
@@ -6361,7 +7200,17 @@ export const ModernSlideRenderer = ({
         // Infographic
         if (normalizedType.includes('infographic') || normalizedType.includes('funnel') || normalizedType.includes('pyramid')) {
 
-            return <InfographicLayout slide={slide} colors={colors} variation={getInfographicVariation()} onSelect={onElementSelect} selectedId={selectedElementId} />;
+            return <InfographicLayout showPageNumber={finalShowPageNumber} slide={slide} colors={colors} variation={getInfographicVariation()} onSelect={onElementSelect} selectedId={selectedElementId} />;
+        }
+
+        // SWOT Analysis by type
+        if (normalizedType.includes('swot')) {
+            return <SWOTLayout showPageNumber={finalShowPageNumber} slide={slide} colors={colors} variation={getSWOTVariation()} onSelect={onElementSelect} selectedId={selectedElementId} />;
+        }
+
+        // Executive Summary by type
+        if (normalizedType.includes('executive') || normalizedType.includes('exec-summary') || normalizedType.includes('executive-summary')) {
+            return <ExecutiveSummaryLayout showPageNumber={finalShowPageNumber} slide={slide} colors={colors} variation={getExecSummaryVariation()} onSelect={onElementSelect} selectedId={selectedElementId} />;
         }
 
         // Quote - Use dedicated QuoteLayout
@@ -6400,7 +7249,7 @@ export const ModernSlideRenderer = ({
         // Columns layout (legacy support) - Strict exclusion of text-columns
         if (normalizedType.includes('column') && !normalizedType.includes('text')) {
 
-            return <ComparisonLayout slide={slide} colors={colors} variation={getComparisonVariation()} onSelect={onElementSelect} selectedId={selectedElementId} />;
+            return <ComparisonLayout showPageNumber={finalShowPageNumber} slide={slide} colors={colors} variation={getComparisonVariation()} onSelect={onElementSelect} selectedId={selectedElementId} />;
         }
 
         // Bento fallback for items
@@ -6415,45 +7264,53 @@ export const ModernSlideRenderer = ({
     };
 
     return (
-        <div
-            className={cn("w-full h-full relative overflow-hidden", className)}
-            style={{
-                backgroundColor: colors.bg,
-                color: colors.text,
-                fontFamily: fontConfig?.body ? getFontFamily(fontConfig.body) : 'inherit',
-                '--slide-bg': colors.bg,
-                '--slide-text': colors.text,
-                '--slide-primary': colors.primary,
-                '--slide-accent': colors.accent || colors.primary,
-                '--slide-heading-font': fontConfig?.heading ? getFontFamily(fontConfig.heading) : 'inherit',
-                '--slide-body-font': fontConfig?.body ? getFontFamily(fontConfig.body) : 'inherit',
-            } as React.CSSProperties}
+        <TemplateOverlay
+            config={templateOverlay}
+            logoUrl={templateOverlay?.logo?.url}
+            slideNumber={slide.index + 1}
+            totalSlides={slide.totalSlides}
+            isFirst={normalizedType.includes('cover')}
         >
-            {renderLayout()}
+            <div
+                className={cn("w-full h-full relative overflow-hidden slide-container", className)}
+                style={{
+                    backgroundColor: colors.bg,
+                    color: colors.text,
+                    fontFamily: fontConfig?.body ? getFontFamily(fontConfig.body) : 'inherit',
+                    '--slide-bg': colors.bg,
+                    '--slide-text': colors.text,
+                    '--slide-primary': colors.primary,
+                    '--slide-accent': colors.accent || colors.primary,
+                    '--slide-heading-font': fontConfig?.heading ? getFontFamily(fontConfig.heading) : 'inherit',
+                    '--slide-body-font': fontConfig?.body ? getFontFamily(fontConfig.body) : 'inherit',
+                } as React.CSSProperties}
+            >
+                {renderLayout()}
 
-            {/* Custom Floating Elements Layer */}
-            {slide.elements && slide.elements.map((el: any) => (
-                <FloatingElement
-                    key={el.id}
-                    element={el}
-                    colors={colors}
-                    onSelect={onElementSelect}
-                    isSelected={selectedElementId === el.id}
-                />
-            ))}
+                {/* Custom Floating Elements Layer */}
+                {slide.elements && slide.elements.map((el: any) => (
+                    <FloatingElement
+                        key={el.id}
+                        element={el}
+                        colors={colors}
+                        onSelect={onElementSelect}
+                        isSelected={selectedElementId === el.id}
+                    />
+                ))}
 
-            {/* Watermark for Free Users */}
-            {showWatermark && (
-                <div className="absolute bottom-3 right-4 z-50 pointer-events-none select-none opacity-60">
-                    <span
-                        className="text-xs font-medium tracking-wide px-2 py-1 rounded bg-black/10 backdrop-blur-sm"
-                        style={{ color: colors.text }}
-                    >
-                        Generated with SlideAI
-                    </span>
-                </div>
-            )}
-        </div>
+                {/* Watermark for Free Users */}
+                {showWatermark && (
+                    <div className="absolute bottom-3 right-4 z-50 pointer-events-none select-none opacity-60">
+                        <span
+                            className="text-xs font-medium tracking-wide px-2 py-1 rounded bg-black/10 backdrop-blur-sm"
+                            style={{ color: colors.text }}
+                        >
+                            Generated with SlideAI
+                        </span>
+                    </div>
+                )}
+            </div>
+        </TemplateOverlay>
     );
 };
 

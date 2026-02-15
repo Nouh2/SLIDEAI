@@ -54,7 +54,7 @@ async function bootstrap() {
     const multipart = (await import('@fastify/multipart')).default;
     await app.register(multipart, {
         limits: {
-            fileSize: 10 * 1024 * 1024, // 10MB max
+            fileSize: 50 * 1024 * 1024, // 50MB max
         },
     });
     // Serve static files from exports folder (dev mode)

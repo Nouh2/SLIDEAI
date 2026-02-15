@@ -80,7 +80,7 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], ProjectsController.prototype, "remove", null);
 ProjectsController = __decorate([
-    Controller('/projects'),
+    Controller('/v1/projects'),
     UseGuards(SupabaseGuard),
     __metadata("design:paramtypes", [ProjectsService])
 ], ProjectsController);

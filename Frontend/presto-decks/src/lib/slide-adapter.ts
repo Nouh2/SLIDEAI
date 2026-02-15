@@ -3,7 +3,8 @@ import { SlideData } from './api';
 export type SlideLayoutType =
     | 'bullets' | 'bento' | 'columns' | 'quote'
     | 'chart-bar' | 'chart-pie' | 'stats-grid' | 'data-table'
-    | 'section-center' | 'section-split' | 'section-number';
+    | 'section-center' | 'section-split' | 'section-number'
+    | 'funnel' | 'process' | 'pyramid' | 'cycle-flow' | 'hub-spoke';
 
 /**
  * Adapts a slide's content to a target layout structure.
@@ -155,6 +156,31 @@ export function adaptToLayout(slide: SlideData, targetType: SlideLayoutType): Sl
             // To force specific look, we'd need to pass a 'variation' prop override to the renderer
             // or modify the title to influence the hash (hacky).
             // Better: The renderer should accept a 'forcedVariation' prop.
+            break;
+
+        // INFOGRAPHIC FAMILY
+        case 'funnel':
+        case 'process':
+        case 'pyramid':
+        case 'cycle-flow':
+        case 'hub-spoke':
+            newSlide.type = 'infographic';
+            // We need to construct 'steps' from whatever content we have
+            const steps = getItems(slide);
+
+            // Map to standard step format expected by InfographicLayout
+            newSlide.content = {
+                ...newSlide.content,
+                type: targetType, // Sets internal type for the layout component
+                steps: steps.map(s => ({
+                    label: s.title || s.content || '',
+                    description: s.description || '',
+                    value: ''
+                }))
+            };
+
+            // Set variation prop to help the renderer select the right component immediately
+            newSlide.variation = targetType;
             break;
     }
 

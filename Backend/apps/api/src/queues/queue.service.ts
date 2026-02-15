@@ -116,4 +116,35 @@ export class QueueService {
       throw error;
     }
   }
+
+  // === TRANSLATE DECK ===
+  readonly translateDeckQueue = new Queue('translate-deck', { connection });
+  readonly translateDeckEvents = new QueueEvents('translate-deck', { connection });
+
+  async addTranslateDeck(payload: any, opts: JobsOptions = {}) {
+    console.log('[QueueService] Adding job to translate-deck queue...');
+    try {
+      const job = await this.translateDeckQueue.add('translate-deck', payload, { attempts: 3, removeOnComplete: 1000, ...opts });
+      console.log('[QueueService] Translate deck job added:', job.id);
+      return job;
+    } catch (error: any) {
+      console.error('[QueueService] Error adding translate-deck job:', error.message);
+      throw error;
+    }
+  }
+  // === ANALYZE IMAGE ===
+  readonly analyzeImageQueue = new Queue('analyze-image', { connection });
+  readonly analyzeImageEvents = new QueueEvents('analyze-image', { connection });
+
+  async addAnalyzeImage(payload: any, opts: JobsOptions = {}) {
+    console.log('[QueueService] Adding job to analyze-image queue...');
+    try {
+      const job = await this.analyzeImageQueue.add('analyze-image', payload, { attempts: 3, removeOnComplete: 1000, ...opts });
+      console.log('[QueueService] Analyze image job added:', job.id);
+      return job;
+    } catch (error: any) {
+      console.error('[QueueService] Error adding analyze-image job:', error.message);
+      throw error;
+    }
+  }
 }

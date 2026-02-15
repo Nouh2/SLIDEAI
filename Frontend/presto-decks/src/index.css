@@ -5,6 +5,22 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Brand Kit Font Application — apply heading font to slide headings */
+.slide-container h1,
+.slide-container h2,
+.slide-container h3,
+.slide-container h4,
+.slide-container h5,
+.slide-container h6 {
+  font-family: var(--slide-heading-font, inherit);
+}
+
+.slide-container p,
+.slide-container li,
+.slide-container span {
+  font-family: var(--slide-body-font, inherit);
+}
+
 /* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
 All colors MUST be HSL.
 */

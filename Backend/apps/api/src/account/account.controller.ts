@@ -2,7 +2,7 @@
 import { Controller, Get, Req, UseGuards } from '@nestjs/common';
 import { SupabaseGuard } from '../auth/supabase.guard.js';
 
-@Controller('/account')
+@Controller('/v1/account')
 @UseGuards(SupabaseGuard)
 export class AccountController {
   @Get('/me')

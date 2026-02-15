@@ -92,11 +92,13 @@ export class SubscriptionService {
 
             subscription = await this.prisma.subscription.create({
                 data: {
+                    id: crypto.randomUUID(),
                     userId,
                     plan: 'free',
                     status: 'active',
                     creditsRemaining: PLAN_LIMITS.free.creditsPerMonth,
                     creditsResetAt: resetAt,
+                    updatedAt: new Date(),
                 },
             });
         }
@@ -297,14 +299,17 @@ export class SubscriptionService {
                         plan: plan,
                         status: 'active',
                         creditsRemaining: PLAN_LIMITS[plan]?.creditsPerMonth || 0,
+                        updatedAt: new Date(),
                     },
                     create: {
+                        id: crypto.randomUUID(),
                         userId,
                         stripeCustomerId,
                         stripeSubscriptionId,
                         plan: plan,
                         status: 'active',
                         creditsRemaining: PLAN_LIMITS[plan]?.creditsPerMonth || 0,
+                        updatedAt: new Date(),
                     },
                 });
                 break;
@@ -370,7 +375,7 @@ export class SubscriptionService {
         // However, let's look at schema. Presentation model exists. Project model exists.
         // Dashboard shows Presentations. So I should count Presentations.
         // Let's count Presentations as "Projects" for the user facing term
-        const presentationCount = await this.prisma.presentation.count({
+        const presentationCount = await this.prisma.presentations.count({
             where: { user_id: userId },
         });
 

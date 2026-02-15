@@ -5,7 +5,7 @@ import { adaptToLayout, SlideLayoutType } from '@/lib/slide-adapter';
 import { ModernSlideRenderer } from '@/components/slides/ModernSlideRenderer';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
-import { LayoutGrid, List, Columns, Maximize, BarChart, PieChart, Table, Hash } from 'lucide-react';
+import { LayoutGrid, List, Columns, Maximize, BarChart, PieChart, Table, Hash, Grid2x2, FileText, Target } from 'lucide-react';
 
 interface LayoutSwitcherProps {
     currentSlide: SlideData;
@@ -39,6 +39,8 @@ export function LayoutSwitcher({ currentSlide, theme, colors, onUpdateSlide, onI
         if (type.includes('chart') || (type.includes('graph') && !type.includes('infographic'))) return 'chart';
         if (type.includes('start') || type.includes('cover') || type.includes('hero')) return 'cover';
         if (type.includes('section') || type.includes('divider')) return 'section';
+        if (type === 'swot' || type.includes('swot')) return 'swot';
+        if (type.includes('executive') || type.includes('exec-summary')) return 'executive-summary';
 
         // Priority 2: Semantic Types
         if (type.includes('stat') || type.includes('metric') || type.includes('kpi')) return 'stats';
@@ -135,18 +137,28 @@ export function LayoutSwitcher({ currentSlide, theme, colors, onUpdateSlide, onI
                 ];
             case 'infographic':
                 return [
-                    { id: 'funnel', label: 'Funnel', icon: List },
-                    { id: 'process', label: 'Process', icon: Columns },
-                    { id: 'pyramid', label: 'Pyramid', icon: Maximize },
-                    { id: 'cycle-flow', label: 'Cycle', icon: LayoutGrid },
-                    { id: 'hub-spoke', label: 'Hub & Spoke', icon: Hash },
+                    { id: 'funnel', label: 'Funnel', icon: List, isAdapter: true },
+                    { id: 'process', label: 'Process', icon: Columns, isAdapter: true },
+                    { id: 'pyramid', label: 'Pyramid', icon: Maximize, isAdapter: true },
+                    { id: 'cycle-flow', label: 'Cycle', icon: LayoutGrid, isAdapter: true },
+                    { id: 'hub-spoke', label: 'Hub & Spoke', icon: Hash, isAdapter: true },
                 ];
             case 'image':
                 return [
                     { id: 'default', label: 'Standard', icon: Maximize },
+                    { id: 'image-showcase', label: 'Showcase', icon: Maximize },
+                    { id: 'chart-showcase', label: 'Chart Showcase', icon: BarChart },
+                    { id: 'chart-analysis', label: 'Chart Analysis', icon: Columns },
                     { id: 'text-mask', label: 'Text Mask', icon: Hash },
                     { id: 'split-curtain', label: 'Curtain', icon: Columns },
                     { id: 'polaroid-pile', label: 'Polaroids', icon: LayoutGrid },
+                ];
+            case 'chart':
+                return [
+                    { id: 'default', label: 'Standard', icon: BarChart },
+                    { id: 'chart-showcase', label: 'Showcase Exhibit', icon: Maximize },
+                    { id: 'chart-analysis', label: 'Analysis (60/40)', icon: Columns },
+                    { id: 'split-curtain', label: 'Curtain Split', icon: Columns },
                 ];
 
             case 'showcase':
@@ -155,6 +167,18 @@ export function LayoutSwitcher({ currentSlide, theme, colors, onUpdateSlide, onI
                     { id: 'split', label: 'Split', icon: Columns },
                     { id: 'floating', label: 'Floating', icon: LayoutGrid },
                     { id: 'minimal', label: 'Minimal', icon: List },
+                ];
+            case 'swot':
+                return [
+                    { id: 'classic-grid', label: 'Classic Grid', icon: Grid2x2 },
+                    { id: 'rounded-cards', label: 'Rounded', icon: LayoutGrid },
+                    { id: 'minimal-list', label: 'Minimal List', icon: List },
+                ];
+            case 'executive-summary':
+                return [
+                    { id: 'dashboard', label: 'Dashboard', icon: BarChart },
+                    { id: 'split-columns', label: 'Split', icon: Columns },
+                    { id: 'compact', label: 'Compact', icon: FileText },
                 ];
             default:
                 // Fallback for generic content -> Offer Adapter conversions if native variations unsupported

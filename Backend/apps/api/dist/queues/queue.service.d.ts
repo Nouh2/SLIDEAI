@@ -16,4 +16,10 @@ export declare class QueueService {
     readonly addSlideQueue: Queue<any, any, string, any, any, string>;
     readonly addSlideEvents: QueueEvents;
     addAddSlide(payload: any, opts?: JobsOptions): Promise<import("bullmq").Job<any, any, string>>;
+    readonly translateDeckQueue: Queue<any, any, string, any, any, string>;
+    readonly translateDeckEvents: QueueEvents;
+    addTranslateDeck(payload: any, opts?: JobsOptions): Promise<import("bullmq").Job<any, any, string>>;
+    readonly analyzeImageQueue: Queue<any, any, string, any, any, string>;
+    readonly analyzeImageEvents: QueueEvents;
+    addAnalyzeImage(payload: any, opts?: JobsOptions): Promise<import("bullmq").Job<any, any, string>>;
 }

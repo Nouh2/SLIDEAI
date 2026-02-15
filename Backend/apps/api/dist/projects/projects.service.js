@@ -25,6 +25,7 @@ let ProjectsService = class ProjectsService {
     create(user, dto) {
         return this.prisma.project.create({
             data: {
+                id: crypto.randomUUID(),
                 title: dto.title,
                 description: dto.description ?? '',
                 ownerId: user.sub,

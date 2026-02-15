@@ -5,10 +5,10 @@ import { ProjectsService } from './projects.service.js';
 import { ZodValidationPipe } from '../common/zod-pipe.js';
 import { createProjectSchema, updateProjectSchema } from './dto.js';
 
-@Controller('/projects')
+@Controller('/v1/projects')
 @UseGuards(SupabaseGuard)
 export class ProjectsController {
-  constructor(private service: ProjectsService) {}
+  constructor(private service: ProjectsService) { }
 
   @Get()
   list(@Req() req: any) {

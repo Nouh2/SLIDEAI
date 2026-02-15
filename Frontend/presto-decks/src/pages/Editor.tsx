@@ -1,8 +1,28 @@
 import { useState, useEffect, useRef } from "react";
-import { useParams, useSearchParams, Link } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams, Link } from "react-router-dom";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+  DragStartEvent,
+  DragOverlay,
+  defaultDropAnimationSideEffects
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+  rectSortingStrategy
+} from '@dnd-kit/sortable';
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { ModernSlideRenderer } from "@/components/slides/ModernSlideRenderer";
 import { examples } from "@/data/examples";
 import { api } from "@/lib/api";
@@ -34,7 +54,11 @@ import {
   PanelRightOpen,
   PanelLeftOpen,
   Image as ImageIcon,
-  Square
+  Square,
+  NotebookPen,
+  Bookmark,
+  MessageSquare,
+  TableProperties
 } from "lucide-react";
 import {
   Sheet,
@@ -43,23 +67,34 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Reorder, AnimatePresence } from "framer-motion";
 import { PresentationBuilderLoader } from "@/components/layout/PresentationBuilderLoader";
 
 import { AddElementMenu } from "@/components/editor/AddElementMenu";
 import { PropertiesPanel, SelectedElement } from "@/components/editor/PropertiesPanel";
+import { CommentsSidebar } from "@/components/editor/CommentsSidebar";
 import { ShareDialog } from "@/components/editor/ShareDialog";
 import { RegenerateSlideDialog } from "@/components/editor/RegenerateSlideDialog";
 import { AddSlideDialog } from "@/components/editor/AddSlideDialog";
 import { LayoutSwitcher } from "@/components/editor/LayoutSwitcher";
-import { ColorPaletteDialog } from "@/components/editor/ColorPaletteDialog";
-import { ExportDialog } from "@/components/editor/ExportDialog";
+import { LibrarySidebar } from "@/components/editor/LibrarySidebar";
+import { StoryboardView } from "@/components/editor/StoryboardView";
 import { BugReportDialog } from "@/components/editor/BugReportDialog";
 import { FontSelectorDialog, FontConfig, AVAILABLE_FONTS } from "@/components/editor/FontSelectorDialog";
 import { ImageReplacementModal } from "@/components/editor/ImageReplacementModal";
 import { SourceCitation } from "@/components/editor/SourceCitation";
+import { ColorPaletteDialog } from "@/components/editor/ColorPaletteDialog";
+import { ExportDialog } from "@/components/editor/ExportDialog";
 import { TemplateOverlay } from "@/components/slides/TemplateOverlay";
-
+import { ToastAction } from "@/components/ui/toast";
+import { parseClipboardData, createSlideFromTable } from "@/lib/smartPaste";
 
 // Helper to adapt API deck format to frontend format
 const adaptDeck = (deck: any) => {
@@ -122,14 +157,18 @@ const adaptDeck = (deck: any) => {
 
       notes: s.notes || "",
       sourceRef: s.sourceRef, // Pass through RAG citation
+      isAppendix: s.isAppendix, // Persist appendix status
+      isChartImage: s.isChartImage, // Persist chart status to avoid overlays
     })),
     theme: deck.theme || rootData.theme || "startup-pitch",
     themeConfig: deck.themeConfig || rootData.themeConfig,
     colorScheme: deck.colorPalette || deck.colorScheme || rootData.colorPalette || rootData.colorScheme,
     fontConfig: deck.fontConfig || rootData.fontConfig,
     // Custom Templates data
+    // Custom Templates data
     brandLogoUrl: deck.brandLogoUrl || rootData.brandLogoUrl,
     templateOverlay: deck.templateOverlay || rootData.templateOverlay,
+    status: deck.status || rootData.status || "draft",
   };
 };
 
@@ -166,6 +205,74 @@ export default function Editor() {
   const [showWatermark, setShowWatermark] = useState(false);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
   const [isImageModalOpen, setIsImageModalOpen] = useState(false);
+  const [showSpeakerNotes, setShowSpeakerNotes] = useState(false);
+  const [isLibraryOpen, setIsLibraryOpen] = useState(false);
+  const [isCommentsOpen, setIsCommentsOpen] = useState(false);
+  const [currentUserEmail, setCurrentUserEmail] = useState<string | null>(null);
+
+  // D&D Sensors
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 5,
+      },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (!over) return;
+
+    // Handle reordering within Storyboard (if managed here)
+    if (active.id !== over.id && !active.data.current?.type) {
+      const oldIndex = currentProject.slides.findIndex((s: any) => s.id === active.id);
+      const newIndex = currentProject.slides.findIndex((s: any) => s.id === over.id);
+
+      if (oldIndex !== -1 && newIndex !== -1) {
+        handleReorderSlides(arrayMove(currentProject.slides, oldIndex, newIndex));
+      }
+      return;
+    }
+
+    // Handle library slide drop
+    if (active.data.current?.type === 'library-slide') {
+      const slideContent = active.data.current.slide;
+      const overId = over.id.toString();
+
+      let insertIndex = currentProject.slides.length;
+
+      if (overId.startsWith('slide-')) {
+        // Find index of the slide we dropped over
+        const slideId = overId.replace('slide-', '');
+        const targetIndex = currentProject.slides.findIndex((s: any) => s.id === slideId);
+        if (targetIndex !== -1) {
+          insertIndex = targetIndex;
+        }
+      }
+
+      const newSlideWithId = {
+        ...slideContent,
+        id: `slide-lib-${Date.now()}`
+      };
+
+      const newSlides = [...currentProject.slides];
+      newSlides.splice(insertIndex, 0, newSlideWithId);
+
+      const updatedProject = { ...currentProject, slides: newSlides };
+      setCurrentProject(updatedProject);
+      triggerAutoSave(updatedProject);
+      setSelectedSlide(insertIndex);
+
+      toast({
+        title: "Slide Added",
+        description: `Library slide inserted at position ${insertIndex + 1}.`,
+      });
+    }
+  };
 
   // Mobile sheet states
   const [isSlidesSheetOpen, setIsSlidesSheetOpen] = useState(false);
@@ -173,15 +280,29 @@ export default function Editor() {
   const [activeMobileTab, setActiveMobileTab] = useState<'slides' | 'properties' | 'add'>('slides');
   const [isMobileSlideshowOpen, setIsMobileSlideshowOpen] = useState(false);
 
+  // View Mode State
+  const [viewMode, setViewMode] = useState<'editor' | 'storyboard'>('editor');
+
+
   // Auto-save debounce ref
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const pendingSaveRef = useRef<any>(null);
+  const projectRef = useRef<any>(null); // Ref to access latest project state in event listeners
+
+  // Sync projectRef with currentProject
+  useEffect(() => {
+    projectRef.current = currentProject;
+  }, [currentProject]);
+
 
   // Get access token on mount
   useEffect(() => {
     const getToken = async () => {
       const { data: { session } } = await supabase.auth.getSession();
-      if (session) setAccessToken(session.access_token);
+      if (session) {
+        setAccessToken(session.access_token);
+        setCurrentUserEmail(session.user.email || null);
+      }
     };
     getToken();
   }, []);
@@ -216,6 +337,175 @@ export default function Editor() {
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [currentProject, selectedSlide, selectedElement]);
+
+
+  // Smart Data Paste Handler
+  useEffect(() => {
+    const handlePaste = async (e: ClipboardEvent) => {
+      // Ignore if pasting into input/textarea or content editable elements
+      // console.log("Paste target:", e.target);
+      if (
+        e.target instanceof HTMLInputElement ||
+        e.target instanceof HTMLTextAreaElement ||
+        (e.target as HTMLElement).isContentEditable
+      ) {
+        // console.log("Paste ignored because target is input/editable");
+        return;
+      }
+
+      const clipboardData = e.clipboardData;
+      if (!clipboardData) return;
+
+      console.log("Paste detected. Types:", clipboardData.types);
+      const items = clipboardData.items;
+      for (let i = 0; i < items.length; i++) {
+        console.log(`Item ${i}: type=${items[i].type}, kind=${items[i].kind}`);
+      }
+
+      let pastedText = clipboardData.getData("text");
+      let pastedHtml = clipboardData.getData("text/html");
+      let pastedImage: string | null = null;
+
+      // Check for images
+      const imageItem = Array.from(items).find(item => item.type.includes("image"));
+
+      if (imageItem) {
+        console.log("Image item found:", imageItem.type);
+        const blob = imageItem.getAsFile();
+        if (blob) {
+          pastedImage = await new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.onload = (event) => resolve(event.target?.result as string);
+            reader.readAsDataURL(blob);
+          });
+        }
+      } else if (pastedHtml) {
+        // Fallback: Try to extract image from HTML (e.g., Excel charts sometimes pasted as HTML with img tag)
+        try {
+          const doc = new DOMParser().parseFromString(pastedHtml, 'text/html');
+          const img = doc.querySelector('img');
+          if (img && img.src && (img.src.startsWith('data:') || img.src.startsWith('http'))) {
+            console.log("Extracted image from HTML src");
+            pastedImage = img.src;
+          }
+        } catch (e) {
+          console.error("Failed to extract image from HTML", e);
+        }
+      }
+
+      // Parse tabular data if present
+      const tableData = parseClipboardData(pastedText, pastedHtml);
+
+      if (tableData || pastedImage) {
+        const isNumeric = tableData?.isNumeric;
+
+        toast({
+          title: "Import Options Detected",
+          description: `What would you like to create from the pasted ${tableData && pastedImage ? 'data and image' : tableData ? 'data' : 'image'}?`,
+          action: (
+            <div className="flex flex-wrap gap-2">
+              {isNumeric ? (
+                <>
+                  <ToastAction
+                    altText="Create Chart"
+                    className="bg-primary text-primary-foreground hover:bg-primary/90"
+                    onClick={() => {
+                      const current = projectRef.current;
+                      if (!current) return;
+                      const newSlide = createSlideFromTable(tableData, 'chart');
+                      const newSlides = [...current.slides, newSlide];
+                      const updatedProject = { ...current, slides: newSlides };
+                      setCurrentProject(updatedProject);
+                      triggerAutoSave(updatedProject);
+                      setSelectedSlide(newSlides.length - 1);
+                    }}
+                  >
+                    <Sparkles className="mr-2 h-4 w-4" />
+                    Create Chart
+                  </ToastAction>
+                  <ToastAction
+                    altText="Create Table"
+                    onClick={() => {
+                      const current = projectRef.current;
+                      if (!current) return;
+                      const newSlide = createSlideFromTable(tableData, 'table');
+                      const newSlides = [...current.slides, newSlide];
+                      const updatedProject = { ...current, slides: newSlides };
+                      setCurrentProject(updatedProject);
+                      triggerAutoSave(updatedProject);
+                      setSelectedSlide(newSlides.length - 1);
+                    }}
+                  >
+                    Table
+                  </ToastAction>
+                </>
+              ) : (
+                <ToastAction
+                  altText="Create Table"
+                  onClick={() => {
+                    const current = projectRef.current;
+                    if (!current) return;
+                    const newSlide = createSlideFromTable(tableData, 'table');
+                    const newSlides = [...current.slides, newSlide];
+                    const updatedProject = { ...current, slides: newSlides };
+                    setCurrentProject(updatedProject);
+                    triggerAutoSave(updatedProject);
+                    setSelectedSlide(newSlides.length - 1);
+                  }}
+                >
+                  Table
+                </ToastAction>
+              )}
+              {pastedImage && (
+                <>
+                  <ToastAction
+                    altText="Create Image"
+                    onClick={() => {
+                      const current = projectRef.current;
+                      if (!current) return;
+                      const newSlide = {
+                        id: `slide-image-${Date.now()}`,
+                        type: 'image',
+                        title: '', // Keep empty to avoid overlay
+                        layout: 'image-focus',
+                        variation: 'chart-showcase',
+                        backgroundImage: pastedImage,
+                        isChartImage: true, // Mark as chart to disable dark overlay in renderer
+                        content: {
+                          title: '',
+                          image: pastedImage
+                        }
+                      };
+                      const newSlides = [...current.slides, newSlide];
+                      const updatedProject = { ...current, slides: newSlides };
+                      setCurrentProject(updatedProject);
+                      triggerAutoSave(updatedProject);
+                      setSelectedSlide(newSlides.length - 1);
+                    }}
+                  >
+                    Image
+                  </ToastAction>
+
+
+                </>
+              )}
+            </div>
+
+          ),
+        });
+      } else {
+        // Fallback debug toast
+        console.log("No handled data found in paste.");
+        toast({
+          title: "Unknown Paste Format",
+          description: `We detected: ${Array.from(clipboardData.types || []).join(', ')}. Please report this to support.`,
+        });
+      }
+    };
+
+    window.addEventListener("paste", handlePaste);
+    return () => window.removeEventListener("paste", handlePaste);
+  }, [toast, t]);
 
   // Handle Fullscreen events
   useEffect(() => {
@@ -549,6 +839,9 @@ export default function Editor() {
 
 
 
+
+
+
   const handleAddElement = (type: 'text' | 'image' | 'shape') => {
     if (!currentProject) return;
 
@@ -608,7 +901,7 @@ export default function Editor() {
         subtitle: projectToSave.subtitle
       };
 
-      await api.savePresentation(projectToSave.id, { slides: deckData }, accessToken);
+      await api.savePresentation(projectToSave.id, { slides: deckData, status: projectToSave.status }, accessToken);
       setSaveStatus('saved');
       // Auto-hide "saved" status after 2 seconds
       setTimeout(() => setSaveStatus('idle'), 2000);
@@ -652,6 +945,21 @@ export default function Editor() {
     } else {
       toast({ title: t('common.error'), description: t('editorPage.saveErrorMsg'), variant: "destructive" });
     }
+  };
+
+
+
+  const handleNotesChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    if (!currentProject) return;
+    const newNotes = e.target.value;
+    const newSlides = [...currentProject.slides];
+    newSlides[selectedSlide] = {
+      ...newSlides[selectedSlide],
+      notes: newNotes
+    };
+    const newProject = { ...currentProject, slides: newSlides };
+    setCurrentProject(newProject);
+    triggerAutoSave(newProject);
   };
 
   const handleDeleteSlide = (index: number, e: React.MouseEvent) => {
@@ -716,6 +1024,28 @@ export default function Editor() {
     }
   };
 
+  const handleUpdateSlide = (index: number, updates: any) => {
+    if (!currentProject) return;
+
+    const newSlides = [...currentProject.slides];
+    newSlides[index] = { ...newSlides[index], ...updates };
+
+    const updatedProject = {
+      ...currentProject,
+      slides: newSlides
+    };
+    setCurrentProject(updatedProject);
+    triggerAutoSave(updatedProject);
+  };
+
+  const handleStatusChange = (newStatus: string) => {
+    if (!currentProject) return;
+    const updatedProject = { ...currentProject, status: newStatus };
+    setCurrentProject(updatedProject);
+    // Trigger save immediately for status change
+    performSave(updatedProject);
+  };
+
   // Loading Screen
   if (isLoading || !currentProject) {
     if (error) {
@@ -745,585 +1075,822 @@ export default function Editor() {
   }
 
   return (
-    <div
-      ref={editorContainerRef}
-      className="h-screen flex flex-col overflow-hidden font-sans bg-background text-foreground selection:bg-accent selection:text-foreground"
+    <DndContext
+      sensors={sensors}
+      collisionDetection={closestCenter}
+      onDragEnd={handleDragEnd}
     >
-      {/* 1. Header (Hidden in Fullscreen) */}
-      {!isFullscreen && (
-        <div className="h-16 flex items-center justify-between px-4 md:px-6 border-b border-border bg-background/90 backdrop-blur-md z-50 shadow-sm shrink-0">
-          <div className="flex items-center space-x-6">
-            <Link to="/" className="group flex items-center justify-center w-10 h-10 rounded-xl hover:bg-muted transition-all">
-              <Home className="h-5 w-5 text-muted-foreground group-hover:text-foreground transition-colors" />
-            </Link>
-
-            <div className="h-6 w-px bg-[#E6E6E0]"></div>
-
-            <div className="flex flex-col justify-center">
-              <Input
-                defaultValue={currentProject.title}
-                readOnly
-                className="h-6 text-sm font-semibold border-0 bg-transparent p-0 focus-visible:ring-0 w-32 md:w-64 text-foreground hover:text-primary transition-colors cursor-default"
-              />
-              <span className="text-[10px] font-medium text-muted-foreground flex items-center gap-2 mt-0.5">
-                {saveStatus === 'saving' && (
-                  <>
-                    <Loader2 className="w-2.5 h-2.5 animate-spin text-primary" />
-                    <span>{t('editorPage.saveStatus.saving')}</span>
-                  </>
-                )}
-                {saveStatus === 'saved' && (
-                  <>
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#10B981]"></span>
-                    <span>{t('editorPage.saveStatus.saved')}</span>
-                  </>
-                )}
-                {saveStatus === 'error' && (
-                  <>
-                    <span className="w-1.5 h-1.5 rounded-full bg-destructive"></span>
-                    <span>{t('editorPage.saveStatus.error')}</span>
-                  </>
-                )}
-                {saveStatus === 'idle' && (
-                  <>
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#10B981]"></span>
-                    <span>{t('editorPage.saveStatus.ready')}</span>
-                  </>
-                )}
-              </span>
-            </div>
-          </div>
-
-          <div className="flex items-center space-x-4">
-            {/* Removed Search, Undo/Redo, AI Assistant */}
-
-            <Button
-              onClick={toggleFullscreen}
-              className="hidden md:flex h-10 px-5 rounded-xl bg-primary hover:bg-primary/90 text-white shadow-lg shadow-primary/20 font-medium transition-all duration-300 hover:scale-105 hover:-translate-y-0.5"
-            >
-              <Play className="h-4 w-4 mr-2 fill-current" />
-              {t('editorPage.actions.slideshow')}
-            </Button>
-
-
-            <div className="flex items-center gap-2">
-              <Button variant="ghost" onClick={handleSave} title={t('editorPage.actions.save')}>
-                <Save className="w-4 h-4" />
-              </Button>
-              {currentProject && (
-                <BugReportDialog
-                  presentationId={currentProject.id}
-                  presentationTitle={currentProject.title}
-                  currentSlide={currentProject.slides[selectedSlide]}
-                  slideIndex={selectedSlide}
-                  allSlides={currentProject.slides}
-                  theme={currentProject.theme}
-                  colorPalette={currentProject.colorScheme}
-                />
-              )}
-              {currentProject && accessToken && (
-                <ShareDialog
-                  presentationId={currentProject.id}
-                  accessToken={accessToken}
-                />
-              )}
-              {currentProject && accessToken && (
-                <ColorPaletteDialog
-                  presentationId={currentProject.id}
-                  accessToken={accessToken}
-                  currentPalette={currentProject.colorScheme}
-                  onSuccess={(newPalette) => {
-                    // Update the local colorScheme and trigger auto-save
-                    const updatedProject = { ...currentProject, colorScheme: newPalette };
-                    setCurrentProject(updatedProject);
-                    triggerAutoSave(updatedProject);
-                  }}
-                >
-                  <Button variant="ghost" title={t('editorPage.actions.editPalette')}>
-                    <Palette className="w-4 h-4" />
-                  </Button>
-                </ColorPaletteDialog>
-              )}
-              {currentProject && (
-                <FontSelectorDialog
-                  currentFontConfig={currentProject.fontConfig}
-                  onApply={(newFontConfig) => {
-                    const updatedProject = { ...currentProject, fontConfig: newFontConfig };
-                    setCurrentProject(updatedProject);
-                    triggerAutoSave(updatedProject);
-                  }}
-                >
-                  <Button variant="ghost" title={t('fontSelector.title')}>
-                    <Type className="w-4 h-4" />
-                  </Button>
-                </FontSelectorDialog>
-              )}
-              <div className="hidden md:block">
-                <AddElementMenu onAdd={handleAddElement} />
-              </div>
-              <Button
-                variant="outline"
-                onClick={() => setIsExportDialogOpen(true)}
-                className="h-10 w-10 md:w-auto px-0 md:px-5 rounded-xl border-2 hover:border-primary hover:text-primary hover:bg-primary/5 transition-all duration-300 hover:scale-105 hover:-translate-y-0.5"
-              >
-                <Download className="w-4 h-4 md:mr-2" />
-                <span className="hidden md:inline">{t('editorPage.actions.export')}</span>
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      <div className="flex-1 flex overflow-hidden">
-
-        {/* 2. Vertical Timeline (Left Sidebar) - Now displays all slides */}
+      <div
+        ref={editorContainerRef}
+        className="h-screen flex flex-col overflow-hidden font-sans bg-background text-foreground selection:bg-accent selection:text-foreground"
+      >
+        {/* 1. Header (Hidden in Fullscreen) */}
         {!isFullscreen && (
-          <div className="hidden md:flex w-64 flex-col border-r border-border bg-surface/50 backdrop-blur-sm z-30">
-            <div className="p-4 border-b border-border flex items-center justify-between bg-surface/80">
-              <span className="text-xs font-bold tracking-widest uppercase text-muted-foreground">{t('editorPage.sidebar.slides')}</span>
-              <span className="text-[10px] bg-muted px-1.5 py-0.5 rounded text-muted-foreground">{currentProject.slides.length}</span>
+          <div className="h-16 flex items-center justify-between px-4 md:px-6 border-b border-border bg-background/90 backdrop-blur-md z-50 shadow-sm shrink-0">
+            <div className="flex items-center space-x-6">
+              <Link to="/" className="group flex items-center justify-center w-10 h-10 rounded-xl hover:bg-muted transition-all">
+                <Home className="h-5 w-5 text-muted-foreground group-hover:text-foreground transition-colors" />
+              </Link>
+
+              <div className="h-6 w-px bg-[#E6E6E0]"></div>
+
+              <div className="flex flex-col justify-center">
+                <Input
+                  defaultValue={currentProject.title}
+                  readOnly
+                  className="h-6 text-sm font-semibold border-0 bg-transparent p-0 focus-visible:ring-0 w-32 md:w-64 text-foreground hover:text-primary transition-colors cursor-default"
+                />
+                <span className="text-[10px] font-medium text-muted-foreground flex items-center gap-2 mt-0.5">
+                  {saveStatus === 'saving' && (
+                    <>
+                      <Loader2 className="w-2.5 h-2.5 animate-spin text-primary" />
+                      <span>{t('editorPage.saveStatus.saving')}</span>
+                    </>
+                  )}
+                  {saveStatus === 'saved' && (
+                    <>
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#10B981]"></span>
+                      <span>{t('editorPage.saveStatus.saved')}</span>
+                    </>
+                  )}
+                  {saveStatus === 'error' && (
+                    <>
+                      <span className="w-1.5 h-1.5 rounded-full bg-destructive"></span>
+                      <span>{t('editorPage.saveStatus.error')}</span>
+                    </>
+                  )}
+                  {saveStatus === 'idle' && (
+                    <>
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#10B981]"></span>
+                      <span>{t('editorPage.saveStatus.ready')}</span>
+                    </>
+                  )}
+                </span>
+              </div>
+
+
+              {/* Status Selector */}
+              <div className="hidden lg:block ml-4">
+                <Select
+                  value={currentProject?.status || "draft"}
+                  onValueChange={handleStatusChange}
+                >
+                  <SelectTrigger className="h-7 w-[110px] text-xs font-medium border-border/50 bg-muted/50">
+                    <SelectValue placeholder="Status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="draft">
+                      <div className="flex items-center gap-2">
+                        <span className="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
+                        Draft
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="review">
+                      <div className="flex items-center gap-2">
+                        <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                        In Review
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="approved">
+                      <div className="flex items-center gap-2">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                        Approved
+                      </div>
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
 
-            <div className="flex-1 overflow-y-auto overflow-x-hidden p-4 space-y-4 custom-scrollbar">
-              <Reorder.Group
-                axis="y"
-                values={currentProject.slides}
-                onReorder={handleReorderSlides}
-                className="space-y-4"
+            <div className="flex items-center space-x-4">
+              {/* Removed Search, Undo/Redo, AI Assistant */}
+
+              <Button
+                onClick={toggleFullscreen}
+                className="hidden md:flex h-10 px-5 rounded-xl bg-primary hover:bg-primary/90 text-white shadow-lg shadow-primary/20 font-medium transition-all duration-300 hover:scale-105 hover:-translate-y-0.5"
               >
-                {currentProject.slides.map((slide: any, idx: number) => (
-                  <Reorder.Item
-                    key={slide.id}
-                    value={slide}
-                    className="relative"
-                  >
-                    <div
-                      onClick={() => { setSelectedSlide(idx); setSelectedElement(null); }}
-                      className={`group relative cursor-pointer outline-none touch-none`}
-                    >
-                      {/* Slide Number Indicator */}
-                      <div className="absolute -left-2 top-1/2 -translate-y-1/2 w-1 h-8 bg-primary rounded-r-full transition-all duration-300 origin-left scale-x-0 group-hover:scale-x-100 mb-1" style={{ opacity: selectedSlide === idx ? 1 : undefined, transform: selectedSlide === idx ? 'scaleX(1)' : undefined }}></div>
+                <Play className="h-4 w-4 mr-2 fill-current" />
+                {t('editorPage.actions.slideshow')}
+              </Button>
 
-                      <div className={`relative aspect-video w-full rounded-lg overflow-hidden border transition-all duration-200 ${selectedSlide === idx
-                        ? "border-primary ring-2 ring-primary/10 shadow-lg scale-[1.02]"
-                        : "border-border hover:border-primary/50 hover:shadow-md"
-                        }`}>
-                        <div className="w-full h-full bg-surface relative pointer-events-none">
-                          {/* Scaled preview of the slide */}
-                          <div className="absolute top-0 left-0 w-[1920px] h-[1080px] origin-top-left" style={{ transform: `scale(${220 / 1920})` /* Approx scale for sidebar width */ }}>
-                            <ModernSlideRenderer
-                              slide={slide}
-                              theme={currentProject.theme}
-                              colorPalette={currentProject.colorScheme}
-                              className="w-full h-full"
-                            />
-                          </div>
-                        </div>
+              <div className="h-6 w-px bg-[#E6E6E0]"></div>
 
-                        {/* Drag Handle Overlay */}
-                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors flex justify-end gap-1 p-2 opacity-0 group-hover:opacity-100">
-                          {/* Regenerate Button */}
-                          {accessToken && (
-                            <RegenerateSlideDialog
-                              presentationId={currentProject.id}
-                              slideIndex={idx}
-                              slideTitle={slide.title}
-                              accessToken={accessToken}
-                              onSuccess={(newSlide) => {
-                                // Replace the slide at this index
-                                const newSlides = [...currentProject.slides];
-                                newSlides[idx] = {
-                                  ...newSlide,
-                                  id: newSlide.id || `slide-${idx}-${Date.now()}`,
-                                  bullets: newSlide.bullets || newSlide.content?.bullets || [],
-                                  chart: newSlide.chart || newSlide.content?.chart,
-                                  table: newSlide.table || newSlide.content?.table,
-                                  timeline: newSlide.timeline || newSlide.content?.timeline,
-                                  infographic: newSlide.infographic || newSlide.content?.infographic,
-                                  comparison: newSlide.comparison || newSlide.content?.comparison,
-                                  stats: newSlide.stats || newSlide.content?.stats,
-                                  items: newSlide.items || newSlide.content?.items,
-                                  content: newSlide.content,
-                                };
-                                const updatedProject = { ...currentProject, slides: newSlides };
-                                setCurrentProject(updatedProject);
-                                triggerAutoSave(updatedProject);
-                              }}
-                            >
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-6 w-6 rounded shadow-sm opacity-0 group-hover:opacity-100 transition-opacity z-10 bg-white text-black hover:bg-gray-100"
-                                onClick={(e) => e.stopPropagation()}
-                                title={t('editorPage.actions.regenerateSlide')}
-                              >
-                                <Wand2 className="h-3 w-3" />
-                              </Button>
-                            </RegenerateSlideDialog>
-                          )}
-                          <Button
-                            variant="destructive"
-                            size="icon"
-                            className="h-6 w-6 rounded shadow-sm opacity-0 group-hover:opacity-100 transition-opacity z-10"
-                            onClick={(e) => handleDeleteSlide(idx, e)}
-                            title={t('editorPage.actions.deleteSlide')}
-                          >
-                            <Trash2 className="h-3 w-3" />
-                          </Button>
-                        </div>
-
-                        {/* Drag Indicator */}
-                        <div className="absolute left-2 top-2 p-1 bg-background/50 backdrop-blur rounded opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing">
-                          <GripVertical className="h-3 w-3 text-foreground/50" />
-                        </div>
-                      </div>
-
-                      <div className="mt-1.5 flex items-center justify-between px-1">
-                        <span className={`text-[10px] font-medium transition-colors ${selectedSlide === idx ? "text-primary" : "text-muted-foreground"}`}>
-                          {idx + 1}. {slide.title || t('editorPage.slide.untitled')}
-                        </span>
-                        {/* Evidence Linking: Source Citation Badge */}
-                        {slide.sourceRef && (
-                          <SourceCitation sourceRef={slide.sourceRef} />
-                        )}
-                      </div>
-                    </div>
-                  </Reorder.Item>
-                ))}
-              </Reorder.Group>
-
-
-
-              {/* Add Slide Ghost Card */}
-              {!isFullscreen && accessToken && currentProject?.id && (
-                <AddSlideDialog
-                  presentationId={currentProject.id}
-                  accessToken={accessToken}
-                  onSuccess={(newSlide) => {
-                    const newSlides = [...currentProject.slides, {
-                      ...newSlide,
-                      id: newSlide.id || `slide-${currentProject.slides.length}-${Date.now()}`,
-                      bullets: newSlide.bullets || newSlide.content?.bullets || [],
-                      chart: newSlide.chart || newSlide.content?.chart,
-                      table: newSlide.table || newSlide.content?.table,
-                      timeline: newSlide.timeline || newSlide.content?.timeline,
-                      infographic: newSlide.infographic || newSlide.content?.infographic,
-                      comparison: newSlide.comparison || newSlide.content?.comparison,
-                      stats: newSlide.stats || newSlide.content?.stats,
-                      items: newSlide.items || newSlide.content?.items,
-                      content: newSlide.content,
-                    }];
-                    const updatedProject = { ...currentProject, slides: newSlides };
-                    setCurrentProject(updatedProject);
-                    triggerAutoSave(updatedProject);
-                    // Select the new slide
-                    setSelectedSlide(newSlides.length - 1);
-                  }}
+              {/* View Mode Toggle */}
+              <div className="flex bg-muted p-1 rounded-lg">
+                <Button
+                  variant={viewMode === 'editor' ? 'default' : 'ghost'}
+                  size="sm"
+                  className="h-8 w-8 p-0"
+                  onClick={() => setViewMode('editor')}
+                  title="Editor View"
                 >
-                  <div className="group relative aspect-[16/9] rounded-lg border-2 border-dashed border-muted-foreground/20 hover:border-primary/50 bg-muted/5 hover:bg-muted/10 transition-all cursor-pointer flex flex-col items-center justify-center gap-2 mt-4 ml-2 mr-2">
-                    <div className="h-8 w-8 rounded-full bg-muted group-hover:bg-primary/10 flex items-center justify-center transition-colors">
-                      <Plus className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
-                    </div>
-                    <span className="text-xs font-medium text-muted-foreground group-hover:text-primary transition-colors">{t('editorPage.actions.addSlide')}</span>
-                  </div>
-                </AddSlideDialog>
-              )}
+                  <Layout className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant={viewMode === 'storyboard' ? 'default' : 'ghost'}
+                  size="sm"
+                  className="h-8 w-8 p-0"
+                  onClick={() => setViewMode('storyboard')}
+                  title="Storyboard View"
+                >
+                  <Square className="h-4 w-4" />
+                </Button>
+              </div>
 
-              <div className="h-10"></div> {/* Spacer */}
+              <div className="h-6 w-px bg-[#E6E6E0]"></div>
+
+              <Button
+                variant={isLibraryOpen ? "secondary" : "ghost"}
+                size="sm"
+                className="h-9 px-3 gap-2 rounded-lg"
+                onClick={() => setIsLibraryOpen(!isLibraryOpen)}
+                title="My Slide Library"
+              >
+                <Bookmark className={`h-4 w-4 ${isLibraryOpen ? "fill-primary text-primary" : ""}`} />
+                <span className="hidden lg:inline text-xs font-semibold">Library</span>
+              </Button>
+
+              <div className="h-6 w-px bg-[#E6E6E0]"></div>
+
+
+              <div className="flex items-center gap-2">
+                <Button variant="ghost" onClick={handleSave} title={t('editorPage.actions.save')}>
+                  <Save className="w-4 h-4" />
+                </Button>
+                {currentProject && (
+                  <BugReportDialog
+                    presentationId={currentProject.id}
+                    presentationTitle={currentProject.title}
+                    currentSlide={currentProject.slides[selectedSlide]}
+                    slideIndex={selectedSlide}
+                    allSlides={currentProject.slides}
+                    theme={currentProject.theme}
+                    colorPalette={currentProject.colorScheme}
+                  />
+                )}
+                {currentProject && accessToken && (
+                  <ShareDialog
+                    presentationId={currentProject.id}
+                    accessToken={accessToken}
+                  />
+                )}
+                {currentProject && accessToken && (
+                  <ColorPaletteDialog
+                    presentationId={currentProject.id}
+                    accessToken={accessToken}
+                    currentPalette={currentProject.colorScheme}
+                    onSuccess={(newPalette) => {
+                      // Update the local colorScheme and trigger auto-save
+                      const updatedProject = { ...currentProject, colorScheme: newPalette };
+                      setCurrentProject(updatedProject);
+                      triggerAutoSave(updatedProject);
+                    }}
+                  >
+                    <Button variant="ghost" title={t('editorPage.actions.editPalette')}>
+                      <Palette className="w-4 h-4" />
+                    </Button>
+                  </ColorPaletteDialog>
+                )}
+                {currentProject && (
+                  <FontSelectorDialog
+                    currentFontConfig={currentProject.fontConfig}
+                    onApply={(newFontConfig) => {
+                      const updatedProject = { ...currentProject, fontConfig: newFontConfig };
+                      setCurrentProject(updatedProject);
+                      triggerAutoSave(updatedProject);
+                    }}
+                  >
+                    <Button variant="ghost" title={t('fontSelector.title')}>
+                      <Type className="w-4 h-4" />
+                    </Button>
+                  </FontSelectorDialog>
+                )}
+                <div className="hidden md:block">
+                  <AddElementMenu onAdd={handleAddElement} />
+                </div>
+
+                <div className="h-6 w-px bg-[#E6E6E0]"></div>
+
+                <Button
+                  variant={isCommentsOpen ? "secondary" : "ghost"}
+                  size="sm"
+                  onClick={() => setIsCommentsOpen(!isCommentsOpen)}
+                  title="Comments"
+                  className="hidden md:flex"
+                >
+                  <MessageSquare className={`h-4 w-4 ${isCommentsOpen ? "fill-primary text-primary" : ""}`} />
+                </Button>
+
+                <div className="h-6 w-px bg-[#E6E6E0]"></div>
+
+                {currentProject && accessToken && (
+                  <AddSlideDialog
+                    presentationId={currentProject.id}
+                    accessToken={accessToken}
+                    defaultTab="import"
+                    onSuccess={(newSlide) => {
+                      const newSlides = [...currentProject.slides, {
+                        ...newSlide,
+                        id: newSlide.id || `slide-${currentProject.slides.length}-${Date.now()}`,
+                        bullets: newSlide.bullets || newSlide.content?.bullets || [],
+                        chart: newSlide.chart || newSlide.content?.chart,
+                        table: newSlide.table || newSlide.content?.table,
+                        timeline: newSlide.timeline || newSlide.content?.timeline,
+                        infographic: newSlide.infographic || newSlide.content?.infographic,
+                        comparison: newSlide.comparison || newSlide.content?.comparison,
+                        stats: newSlide.stats || newSlide.content?.stats,
+                        items: newSlide.items || newSlide.content?.items,
+                        content: newSlide.content,
+                      }];
+                      const updatedProject = { ...currentProject, slides: newSlides };
+                      setCurrentProject(updatedProject);
+                      triggerAutoSave(updatedProject);
+                      setSelectedSlide(newSlides.length - 1);
+                    }}
+                  >
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-9 px-3 gap-2 rounded-lg text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 dark:text-emerald-400 dark:hover:bg-emerald-950/30"
+                      title="Smart Data Paste (Excel/CSV)"
+                    >
+                      <TableProperties className="h-4 w-4" />
+                      <span className="hidden lg:inline text-xs font-semibold">Import</span>
+                    </Button>
+                  </AddSlideDialog>
+                )}
+
+                <Button
+                  variant="outline"
+                  onClick={() => setIsExportDialogOpen(true)}
+                  className="h-10 w-10 md:w-auto px-0 md:px-5 rounded-xl border-2 hover:border-primary hover:text-primary hover:bg-primary/5 transition-all duration-300 hover:scale-105 hover:-translate-y-0.5"
+                >
+                  <Download className="w-4 h-4 md:mr-2" />
+                  <span className="hidden md:inline">{t('editorPage.actions.export')}</span>
+                </Button>
+              </div>
             </div>
           </div>
         )}
 
-        {/* 3. Main Canvas Area */}
-        <div
-          ref={slideContainerRef}
-          className={`flex-1 relative overflow-hidden flex items-center justify-center ${isFullscreen ? 'bg-black' : 'bg-background/50 p-8'}`}
-        >
-          {/* Background Effects (only when not fullscreen) */}
-          {!isFullscreen && (
-            <div className="absolute inset-0 pointer-events-none">
-              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-primary/5 rounded-full blur-[80px]"></div>
-              <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.02]"></div>
-            </div>
-          )}
+        <div className="flex-1 flex overflow-hidden">
 
-          {/* Render Slide - Wrapper ensures the scaled slide doesn't overflow */}
-          <div
-            style={{
-              width: `${1920 * slideScale}px`,
-              height: `${1080 * slideScale}px`,
-            }}
-          >
-            <div
-              className={`relative shadow-2xl ${isFullscreen ? '' : 'rounded-xl ring-1 ring-black/5'}`}
-              style={{
-                width: '1920px',
-                height: '1080px',
-                transform: `scale(${slideScale})`,
-                transformOrigin: 'top left',
+          {/* Storyboard View */}
+          {viewMode === 'storyboard' ? (
+            <StoryboardView
+              slides={currentProject.slides}
+              theme={currentProject.theme}
+              colorPalette={currentProject.colorScheme}
+              fontConfig={currentProject.fontConfig}
+              accessToken={accessToken}
+              onReorder={handleReorderSlides}
+              onSelectSlide={(index) => {
+                setSelectedSlide(index);
+                setViewMode('editor');
               }}
-            >
-              <TemplateOverlay
-                config={currentProject.templateOverlay}
-                logoUrl={currentProject.brandLogoUrl}
-                slideNumber={selectedSlide + 1}
-                totalSlides={currentProject.slides.length}
-                isFirst={selectedSlide === 0}
-              >
-                <ModernSlideRenderer
-                  slide={currentProject.slides[selectedSlide]}
-                  theme={currentProject.theme}
-                  colorPalette={currentProject.colorScheme}
-                  fontConfig={currentProject.fontConfig}
-                  className="w-full h-full"
-                  onElementSelect={isFullscreen ? undefined : handleElementSelect}
-                  selectedElementId={!isFullscreen && selectedElement ? selectedElement.id.split('-').slice(1).join('-') : null}
-                  showWatermark={showWatermark}
-                  // Pass template overlay config for page number control
-                  templateOverlay={currentProject.templateOverlay}
-                />
-              </TemplateOverlay>
-            </div>
-          </div>
-
-          {/* Navigation Controls (Floating) */}
-          {!isFullscreen && (
+              onDeleteSlide={handleDeleteSlide}
+              onUpdateSlide={handleUpdateSlide}
+            />
+          ) : (
+            // Editor Link: Wrap existing editor content in fragment
             <>
-              <div className="absolute left-8 top-1/2 -translate-y-1/2">
-                <Button
-                  onClick={() => selectedSlide > 0 && setSelectedSlide(selectedSlide - 1)}
-                  disabled={selectedSlide === 0}
-                  variant="ghost"
-                  size="icon"
-                  className="h-12 w-12 rounded-full bg-background/80 backdrop-blur shadow-lg hover:bg-primary hover:text-white transition-all disabled:opacity-0"
+
+
+              {/* 2. Vertical Timeline (Left Sidebar) - Now displays all slides */}
+              {!isFullscreen && (
+                <div className="hidden md:flex w-64 flex-col border-r border-border bg-surface/50 backdrop-blur-sm z-30">
+                  <div className="p-4 border-b border-border flex items-center justify-between bg-surface/80">
+                    <span className="text-xs font-bold tracking-widest uppercase text-muted-foreground">{t('editorPage.sidebar.slides')}</span>
+                    <span className="text-[10px] bg-muted px-1.5 py-0.5 rounded text-muted-foreground">{currentProject.slides.length}</span>
+                  </div>
+
+                  <div className="flex-1 overflow-y-auto overflow-x-hidden p-4 space-y-4 custom-scrollbar">
+                    <Reorder.Group
+                      axis="y"
+                      values={currentProject.slides}
+                      onReorder={handleReorderSlides}
+                      className="space-y-4"
+                    >
+                      {currentProject.slides.map((slide: any, idx: number) => (
+                        <Reorder.Item
+                          key={slide.id}
+                          value={slide}
+                          className="relative"
+                        >
+                          <div
+                            onClick={() => { setSelectedSlide(idx); setSelectedElement(null); }}
+                            className={`group relative cursor-pointer outline-none touch-none`}
+                          >
+                            {/* Slide Number Indicator */}
+                            <div className="absolute -left-2 top-1/2 -translate-y-1/2 w-1 h-8 bg-primary rounded-r-full transition-all duration-300 origin-left scale-x-0 group-hover:scale-x-100 mb-1" style={{ opacity: selectedSlide === idx ? 1 : undefined, transform: selectedSlide === idx ? 'scaleX(1)' : undefined }}></div>
+
+                            <div className={`relative aspect-video w-full rounded-lg overflow-hidden border transition-all duration-200 ${selectedSlide === idx
+                              ? "border-primary ring-2 ring-primary/10 shadow-lg scale-[1.02]"
+                              : "border-border hover:border-primary/50 hover:shadow-md"
+                              }`}>
+                              <div className="w-full h-full bg-surface relative pointer-events-none">
+                                {/* Scaled preview of the slide */}
+                                <div className="absolute top-0 left-0 w-[1920px] h-[1080px] origin-top-left" style={{ transform: `scale(${220 / 1920})` /* Approx scale for sidebar width */ }}>
+                                  <ModernSlideRenderer
+                                    slide={slide}
+                                    theme={currentProject.theme}
+                                    colorPalette={currentProject.colorScheme}
+                                    className="w-full h-full"
+                                  />
+                                </div>
+                              </div>
+
+                              {/* Drag Handle Overlay */}
+                              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors flex justify-end gap-1 p-2 opacity-0 group-hover:opacity-100">
+                                {/* Regenerate Button */}
+                                {accessToken && (
+                                  <RegenerateSlideDialog
+                                    presentationId={currentProject.id}
+                                    slideIndex={idx}
+                                    slideTitle={slide.title}
+                                    accessToken={accessToken}
+                                    onSuccess={(newSlide) => {
+                                      // Replace the slide at this index
+                                      const newSlides = [...currentProject.slides];
+                                      newSlides[idx] = {
+                                        ...newSlide,
+                                        id: newSlide.id || `slide-${idx}-${Date.now()}`,
+                                        bullets: newSlide.bullets || newSlide.content?.bullets || [],
+                                        chart: newSlide.chart || newSlide.content?.chart,
+                                        table: newSlide.table || newSlide.content?.table,
+                                        timeline: newSlide.timeline || newSlide.content?.timeline,
+                                        infographic: newSlide.infographic || newSlide.content?.infographic,
+                                        comparison: newSlide.comparison || newSlide.content?.comparison,
+                                        stats: newSlide.stats || newSlide.content?.stats,
+                                        items: newSlide.items || newSlide.content?.items,
+                                        content: newSlide.content,
+                                      };
+                                      const updatedProject = { ...currentProject, slides: newSlides };
+                                      setCurrentProject(updatedProject);
+                                      triggerAutoSave(updatedProject);
+                                    }}
+                                  >
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      className="h-6 w-6 rounded shadow-sm opacity-0 group-hover:opacity-100 transition-opacity z-10 bg-white text-black hover:bg-gray-100"
+                                      onClick={(e) => e.stopPropagation()}
+                                      title={t('editorPage.actions.regenerateSlide')}
+                                    >
+                                      <Wand2 className="h-3 w-3" />
+                                    </Button>
+                                  </RegenerateSlideDialog>
+                                )}
+                                <Button
+                                  variant="destructive"
+                                  size="icon"
+                                  className="h-6 w-6 rounded shadow-sm opacity-0 group-hover:opacity-100 transition-opacity z-10"
+                                  onClick={(e) => handleDeleteSlide(idx, e)}
+                                  title={t('editorPage.actions.deleteSlide')}
+                                >
+                                  <Trash2 className="h-3 w-3" />
+                                </Button>
+                              </div>
+
+                              {/* Drag Indicator */}
+                              <div className="absolute left-2 top-2 p-1 bg-background/50 backdrop-blur rounded opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing">
+                                <GripVertical className="h-3 w-3 text-foreground/50" />
+                              </div>
+                            </div>
+
+                            <div className="mt-1.5 flex items-center justify-between px-1">
+                              <span className={`text-[10px] font-medium transition-colors ${selectedSlide === idx ? "text-primary" : "text-muted-foreground"}`}>
+                                {idx + 1}. {slide.title || t('editorPage.slide.untitled')}
+                              </span>
+                              {/* Evidence Linking: Source Citation Badge */}
+                              {slide.sourceRef && (
+                                <SourceCitation sourceRef={slide.sourceRef} />
+                              )}
+                            </div>
+                          </div>
+                        </Reorder.Item>
+                      ))}
+                    </Reorder.Group>
+
+
+
+                    {/* Add Slide Ghost Card */}
+                    {!isFullscreen && accessToken && currentProject?.id && (
+                      <AddSlideDialog
+                        presentationId={currentProject.id}
+                        accessToken={accessToken}
+                        onSuccess={(newSlide) => {
+                          const newSlides = [...currentProject.slides, {
+                            ...newSlide,
+                            id: newSlide.id || `slide-${currentProject.slides.length}-${Date.now()}`,
+                            bullets: newSlide.bullets || newSlide.content?.bullets || [],
+                            chart: newSlide.chart || newSlide.content?.chart,
+                            table: newSlide.table || newSlide.content?.table,
+                            timeline: newSlide.timeline || newSlide.content?.timeline,
+                            infographic: newSlide.infographic || newSlide.content?.infographic,
+                            comparison: newSlide.comparison || newSlide.content?.comparison,
+                            stats: newSlide.stats || newSlide.content?.stats,
+                            items: newSlide.items || newSlide.content?.items,
+                            content: newSlide.content,
+                          }];
+                          const updatedProject = { ...currentProject, slides: newSlides };
+                          setCurrentProject(updatedProject);
+                          triggerAutoSave(updatedProject);
+                          // Select the new slide
+                          setSelectedSlide(newSlides.length - 1);
+                        }}
+                      >
+                        <div className="group relative aspect-[16/9] rounded-lg border-2 border-dashed border-muted-foreground/20 hover:border-primary/50 bg-muted/5 hover:bg-muted/10 transition-all cursor-pointer flex flex-col items-center justify-center gap-2 mt-4 ml-2 mr-2">
+                          <div className="h-8 w-8 rounded-full bg-muted group-hover:bg-primary/10 flex items-center justify-center transition-colors">
+                            <Plus className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
+                          </div>
+                          <span className="text-xs font-medium text-muted-foreground group-hover:text-primary transition-colors">{t('editorPage.actions.addSlide')}</span>
+                        </div>
+                      </AddSlideDialog>
+                    )}
+
+                    <div className="h-10"></div> {/* Spacer */}
+                  </div>
+                </div>
+              )}
+
+              {/* 3. Main Canvas Area Wrapper */}
+              <div className="flex-1 flex flex-col relative overflow-hidden bg-muted/30">
+                <div
+                  ref={slideContainerRef}
+                  className={`flex-1 relative overflow-hidden flex items-center justify-center ${isFullscreen ? 'bg-black' : 'bg-background/50 p-8'}`}
                 >
-                  <ChevronLeft className="h-6 w-6" />
-                </Button>
+                  {/* Background Effects (only when not fullscreen) */}
+                  {!isFullscreen && (
+                    <div className="absolute inset-0 pointer-events-none">
+                      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-primary/5 rounded-full blur-[80px]"></div>
+                      <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.02]"></div>
+                    </div>
+                  )}
+
+                  {/* Render Slide - Wrapper ensures the scaled slide doesn't overflow */}
+                  <div
+                    style={{
+                      width: `${1920 * slideScale}px`,
+                      height: `${1080 * slideScale}px`,
+                    }}
+                  >
+                    <div
+                      className={`relative shadow-2xl ${isFullscreen ? '' : 'rounded-xl ring-1 ring-black/5'}`}
+                      style={{
+                        width: '1920px',
+                        height: '1080px',
+                        transform: `scale(${slideScale})`,
+                        transformOrigin: 'top left',
+                      }}
+                    >
+                      <TemplateOverlay
+                        config={currentProject.templateOverlay}
+                        logoUrl={currentProject.brandLogoUrl}
+                        slideNumber={selectedSlide + 1}
+                        totalSlides={currentProject.slides.length}
+                        isFirst={selectedSlide === 0}
+                      >
+                        <ModernSlideRenderer
+                          slide={currentProject.slides[selectedSlide]}
+                          theme={currentProject.theme}
+                          colorPalette={currentProject.colorScheme}
+                          fontConfig={currentProject.fontConfig}
+                          className="w-full h-full"
+                          onElementSelect={isFullscreen ? undefined : handleElementSelect}
+                          selectedElementId={!isFullscreen && selectedElement ? selectedElement.id.split('-').slice(1).join('-') : null}
+                          showWatermark={showWatermark}
+                          // Pass template overlay config for page number control
+                          templateOverlay={currentProject.templateOverlay}
+                        />
+                      </TemplateOverlay>
+                    </div>
+                  </div>
+
+                  {/* Navigation Controls (Floating) */}
+                  {!isFullscreen && (
+                    <>
+                      <div className="absolute left-8 top-1/2 -translate-y-1/2">
+                        <Button
+                          onClick={() => selectedSlide > 0 && setSelectedSlide(selectedSlide - 1)}
+                          disabled={selectedSlide === 0}
+                          variant="ghost"
+                          size="icon"
+                          className="h-12 w-12 rounded-full bg-background/80 backdrop-blur shadow-lg hover:bg-primary hover:text-white transition-all disabled:opacity-0"
+                        >
+                          <ChevronLeft className="h-6 w-6" />
+                        </Button>
+                      </div>
+
+                      <div className="absolute right-8 top-1/2 -translate-y-1/2">
+                        <Button
+                          onClick={() => selectedSlide < currentProject.slides.length - 1 && setSelectedSlide(selectedSlide + 1)}
+                          disabled={selectedSlide === currentProject.slides.length - 1}
+                          variant="ghost"
+                          size="icon"
+                          className="h-12 w-12 rounded-full bg-background/80 backdrop-blur shadow-lg hover:bg-primary hover:text-white transition-all disabled:opacity-0"
+                        >
+                          <ChevronRight className="h-6 w-6" />
+                        </Button>
+                      </div>
+
+                      {/* Bottom Info Pill */}
+                      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 px-2 py-1.5 rounded-full bg-background/80 backdrop-blur-md shadow-sm border border-border flex items-center gap-1 z-50">
+                        <span className="px-2 text-xs font-medium text-muted-foreground mr-1 border-r border-border pr-3">
+                          {t('editorPage.navigation.counter', { current: selectedSlide + 1, total: currentProject.slides.length })}
+                        </span>
+
+                        <Button
+                          variant={showSpeakerNotes ? "secondary" : "ghost"}
+                          size="sm"
+                          className="h-7 px-2 text-[10px] font-medium gap-1.5 rounded-full"
+                          onClick={() => setShowSpeakerNotes(!showSpeakerNotes)}
+                        >
+                          <NotebookPen className="w-3.5 h-3.5" />
+                          Notes
+                        </Button>
+                      </div>
+                    </>
+                  )}
+                </div>
+
+                {/* Speaker Notes Panel */}
+                {!isFullscreen && showSpeakerNotes && (
+                  <div className="h-48 border-t border-border bg-background p-4 z-20 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] flex flex-col gap-2 animate-in slide-in-from-bottom-5 duration-200">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
+                        <NotebookPen className="w-3 h-3" />
+                        Speaker Notes
+                      </span>
+                      <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => setShowSpeakerNotes(false)}>
+                        <Minimize2 className="w-3 h-3" />
+                      </Button>
+                    </div>
+                    <Textarea
+                      value={currentProject.slides[selectedSlide].notes || ''}
+                      onChange={handleNotesChange}
+                      placeholder="Add speaker notes here..."
+                      className="flex-1 resize-none bg-muted/30 border-muted focus-visible:ring-primary/20 font-sans text-sm leading-relaxed"
+                    />
+                  </div>
+                )}
               </div>
 
-              <div className="absolute right-8 top-1/2 -translate-y-1/2">
-                <Button
-                  onClick={() => selectedSlide < currentProject.slides.length - 1 && setSelectedSlide(selectedSlide + 1)}
-                  disabled={selectedSlide === currentProject.slides.length - 1}
-                  variant="ghost"
-                  size="icon"
-                  className="h-12 w-12 rounded-full bg-background/80 backdrop-blur shadow-lg hover:bg-primary hover:text-white transition-all disabled:opacity-0"
-                >
-                  <ChevronRight className="h-6 w-6" />
-                </Button>
-              </div>
+              {/* 4. Right Sidebar: Layout Switcher or Properties */}
+              {!isFullscreen && (
+                <div className="hidden md:flex w-[280px] border-l border-border bg-surface/50 backdrop-blur-sm z-30 flex-col shrink-0">
+                  {selectedElement ? (
+                    <PropertiesPanel
+                      element={selectedElement}
+                      onUpdate={handleElementUpdate}
+                      onTableAction={handleTableAction}
+                      onImageReplace={() => setIsImageModalOpen(true)}
+                      onClose={() => setSelectedElement(null)}
+                    />
+                  ) : (
+                    <LayoutSwitcher
+                      currentSlide={currentProject.slides[selectedSlide]}
+                      theme={currentProject.theme}
+                      colors={currentProject.colorScheme}
+                      onUpdateSlide={(newSlideData) => {
+                        const newSlides = [...currentProject.slides];
+                        // Merge new layout data but keep key IDs if needed, though partial update is usually handled by adapter
+                        newSlides[selectedSlide] = {
+                          ...newSlides[selectedSlide],
+                          ...newSlideData
+                        };
+                        setCurrentProject({ ...currentProject, slides: newSlides });
+                      }}
+                      onImageReplace={() => setIsImageModalOpen(true)}
+                    />
+                  )}
+                </div>
+              )}
 
-              {/* Bottom Info Pill */}
-              <div className="absolute bottom-6 left-1/2 -translate-x-1/2 px-4 py-2 rounded-full bg-background/80 backdrop-blur-md text-xs font-medium shadow-sm border border-border flex items-center gap-3 text-muted-foreground cursor-default">
-                <span>{t('editorPage.navigation.counter', { current: selectedSlide + 1, total: currentProject.slides.length })}</span>
-              </div>
+              {/* Comments Sidebar */}
+              {isCommentsOpen && currentProject && accessToken && (
+                <div className="w-[300px] border-l border-border bg-background z-30 shrink-0">
+                  <CommentsSidebar
+                    presentationId={currentProject.id}
+                    slideId={currentProject.slides[selectedSlide].id}
+                    accessToken={accessToken}
+                    onClose={() => setIsCommentsOpen(false)}
+                    currentUserEmail={currentUserEmail || undefined}
+                  />
+                </div>
+              )}
+
+              {/* 5. Slide Library Sidebar */}
+              <AnimatePresence>
+                {isLibraryOpen && (
+                  <LibrarySidebar
+                    accessToken={accessToken || ""}
+                    theme={currentProject.theme}
+                    colorPalette={currentProject.colorScheme}
+                    fontConfig={currentProject.fontConfig}
+                    onClose={() => setIsLibraryOpen(false)}
+                    onInsertSlide={(slide) => {
+                      const newSlides = [...currentProject.slides];
+                      const insertIndex = selectedSlide + 1;
+                      const newSlideWithId = {
+                        ...slide,
+                        id: `slide-lib-${Date.now()}`
+                      };
+                      newSlides.splice(insertIndex, 0, newSlideWithId);
+
+                      const updatedProject = { ...currentProject, slides: newSlides };
+                      setCurrentProject(updatedProject);
+                      triggerAutoSave(updatedProject);
+                      setSelectedSlide(insertIndex);
+
+                      toast({
+                        title: "Slide Added",
+                        description: "Slide from library inserted into your deck.",
+                      });
+                    }}
+                  />
+                )}
+              </AnimatePresence>
             </>
           )}
         </div>
 
-        {/* 4. Right Sidebar: Layout Switcher or Properties */}
-        {!isFullscreen && (
-          <div className="hidden md:flex w-[280px] border-l border-border bg-surface/50 backdrop-blur-sm z-30 flex-col shrink-0">
-            {selectedElement ? (
-              <PropertiesPanel
-                element={selectedElement}
-                onUpdate={handleElementUpdate}
-                onTableAction={handleTableAction}
-                onImageReplace={() => setIsImageModalOpen(true)}
-                onClose={() => setSelectedElement(null)}
-              />
-            ) : (
-              <LayoutSwitcher
-                currentSlide={currentProject.slides[selectedSlide]}
-                theme={currentProject.theme}
-                colors={currentProject.colorScheme}
-                onUpdateSlide={(newSlideData) => {
-                  const newSlides = [...currentProject.slides];
-                  // Merge new layout data but keep key IDs if needed, though partial update is usually handled by adapter
-                  newSlides[selectedSlide] = {
-                    ...newSlides[selectedSlide],
-                    ...newSlideData
-                  };
-                  setCurrentProject({ ...currentProject, slides: newSlides });
-                }}
-                onImageReplace={() => setIsImageModalOpen(true)}
-              />
-            )}
-          </div>
-        )}
-
-      </div>
-
-      {/* Mobile Toolbar */}
-      {!isFullscreen && (
-        <div className="md:hidden h-16 bg-surface border-t border-border flex items-center justify-around px-4 z-50 shrink-0">
-          <Sheet open={isSlidesSheetOpen} onOpenChange={setIsSlidesSheetOpen}>
-            <SheetTrigger asChild>
-              <Button variant="ghost" size="icon" className="flex flex-col gap-1 h-auto py-2">
-                <Layers className="h-5 w-5" />
-                <span className="text-[10px] font-medium">Slides</span>
-              </Button>
-            </SheetTrigger>
-            <SheetContent side="left" className="w-[80vw] p-0 flex flex-col">
-              <SheetHeader className="p-4 border-b">
-                <SheetTitle>{t('editorPage.sidebar.slides')}</SheetTitle>
-              </SheetHeader>
-              <div className="flex-1 overflow-y-auto p-4 custom-scrollbar">
-                {/* Reusing the slide list logic for mobile */}
-                <div className="space-y-4">
-                  {currentProject.slides.map((slide: any, idx: number) => (
-                    <div
-                      key={slide.id}
-                      onClick={() => {
-                        setSelectedSlide(idx);
-                        setSelectedElement(null);
-                        setIsSlidesSheetOpen(false);
-                      }}
-                      className={`relative cursor-pointer rounded-lg border transition-all ${selectedSlide === idx
-                        ? "border-primary ring-2 ring-primary/10 bg-primary/5"
-                        : "border-border bg-surface"
-                        }`}
-                    >
-                      <div className="p-2 flex items-center gap-3">
-                        <div className="h-6 w-6 rounded-full bg-background flex items-center justify-center text-xs font-bold border border-border">
-                          {idx + 1}
+        {/* Mobile Toolbar */}
+        {
+          !isFullscreen && (
+            <div className="md:hidden h-16 bg-surface border-t border-border flex items-center justify-around px-4 z-50 shrink-0">
+              <Sheet open={isSlidesSheetOpen} onOpenChange={setIsSlidesSheetOpen}>
+                <SheetTrigger asChild>
+                  <Button variant="ghost" size="icon" className="flex flex-col gap-1 h-auto py-2">
+                    <Layers className="h-5 w-5" />
+                    <span className="text-[10px] font-medium">Slides</span>
+                  </Button>
+                </SheetTrigger>
+                <SheetContent side="left" className="w-[80vw] p-0 flex flex-col">
+                  <SheetHeader className="p-4 border-b">
+                    <SheetTitle>{t('editorPage.sidebar.slides')}</SheetTitle>
+                  </SheetHeader>
+                  <div className="flex-1 overflow-y-auto p-4 custom-scrollbar">
+                    {/* Reusing the slide list logic for mobile */}
+                    <div className="space-y-4">
+                      {currentProject.slides.map((slide: any, idx: number) => (
+                        <div
+                          key={slide.id}
+                          onClick={() => {
+                            setSelectedSlide(idx);
+                            setSelectedElement(null);
+                            setIsSlidesSheetOpen(false);
+                          }}
+                          className={`relative cursor-pointer rounded-lg border transition-all ${selectedSlide === idx
+                            ? "border-primary ring-2 ring-primary/10 bg-primary/5"
+                            : "border-border bg-surface"
+                            }`}
+                        >
+                          <div className="p-2 flex items-center gap-3">
+                            <div className="h-6 w-6 rounded-full bg-background flex items-center justify-center text-xs font-bold border border-border">
+                              {idx + 1}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium truncate">
+                                {slide.title || t('editorPage.slide.untitled')}
+                              </p>
+                            </div>
+                          </div>
                         </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium truncate">
-                            {slide.title || t('editorPage.slide.untitled')}
-                          </p>
-                        </div>
-                      </div>
+                      ))}
+
                     </div>
-                  ))}
+                  </div>
+                </SheetContent>
+              </Sheet>
 
+              {/* Mobile Slideshow Trigger */}
+              <Button variant="ghost" size="icon" className="flex flex-col gap-1 h-auto py-2" onClick={() => setIsMobileSlideshowOpen(true)}>
+                <Play className="h-5 w-5" />
+                <span className="text-[10px] font-medium">Play</span>
+              </Button>
+
+            </div>
+          )
+        }
+
+        {/* Mobile Slideshow Overlay */}
+        {
+          isMobileSlideshowOpen && (
+            <div className="fixed inset-0 z-[100] bg-black flex items-center justify-center overflow-hidden">
+              {/* Close Button */}
+              <Button
+                variant="ghost"
+                size="icon"
+                className="absolute top-4 right-4 z-50 text-white/50 hover:text-white hover:bg-white/10"
+                onClick={() => setIsMobileSlideshowOpen(false)}
+              >
+                <Minimize2 className="h-6 w-6" />
+              </Button>
+
+              {/* Navigation Controls (Overlay) */}
+              <div className="absolute inset-0 z-40 flex flex-col justify-between pointer-events-none">
+                {/* Use full screen tap zones or buttons? Buttons for clarity */}
+                <div className="flex-1 flex w-full">
+                  <div
+                    className="w-1/4 h-full pointer-events-auto flex items-center justify-start pl-4"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (selectedSlide > 0) setSelectedSlide(prev => prev - 1);
+                    }}
+                  >
+                    {selectedSlide > 0 && <ChevronLeft className="text-white/30 h-8 w-8" />}
+                  </div>
+                  <div className="flex-1"></div>
+                  <div
+                    className="w-1/4 h-full pointer-events-auto flex items-center justify-end pr-4"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (selectedSlide < currentProject.slides.length - 1) setSelectedSlide(prev => prev + 1);
+                    }}
+                  >
+                    {selectedSlide < currentProject.slides.length - 1 && <ChevronRight className="text-white/30 h-8 w-8" />}
+                  </div>
                 </div>
               </div>
-            </SheetContent>
-          </Sheet>
 
-          {/* Mobile Slideshow Trigger */}
-          <Button variant="ghost" size="icon" className="flex flex-col gap-1 h-auto py-2" onClick={() => setIsMobileSlideshowOpen(true)}>
-            <Play className="h-5 w-5" />
-            <span className="text-[10px] font-medium">Play</span>
-          </Button>
-
-        </div>
-      )}
-
-      {/* Mobile Slideshow Overlay */}
-      {isMobileSlideshowOpen && (
-        <div className="fixed inset-0 z-[100] bg-black flex items-center justify-center overflow-hidden">
-          {/* Close Button */}
-          <Button
-            variant="ghost"
-            size="icon"
-            className="absolute top-4 right-4 z-50 text-white/50 hover:text-white hover:bg-white/10"
-            onClick={() => setIsMobileSlideshowOpen(false)}
-          >
-            <Minimize2 className="h-6 w-6" />
-          </Button>
-
-          {/* Navigation Controls (Overlay) */}
-          <div className="absolute inset-0 z-40 flex flex-col justify-between pointer-events-none">
-            {/* Use full screen tap zones or buttons? Buttons for clarity */}
-            <div className="flex-1 flex w-full">
+              {/* Slide Container - Rotated 90deg if portrait */}
+              {/* We use a container that is forced to 1920x1080 aspect ratio but scaled/rotated to fit screen */}
               <div
-                className="w-1/4 h-full pointer-events-auto flex items-center justify-start pl-4"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  if (selectedSlide > 0) setSelectedSlide(prev => prev - 1);
+                className="relative transform transition-transform duration-300 origin-center"
+                style={{
+                  width: '100vw',
+                  height: '100vh',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
                 }}
               >
-                {selectedSlide > 0 && <ChevronLeft className="text-white/30 h-8 w-8" />}
-              </div>
-              <div className="flex-1"></div>
-              <div
-                className="w-1/4 h-full pointer-events-auto flex items-center justify-end pr-4"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  if (selectedSlide < currentProject.slides.length - 1) setSelectedSlide(prev => prev + 1);
-                }}
-              >
-                {selectedSlide < currentProject.slides.length - 1 && <ChevronRight className="text-white/30 h-8 w-8" />}
+                <div
+                  style={{
+                    width: '1920px',
+                    height: '1080px',
+                    transform: window.innerWidth < window.innerHeight
+                      ? `rotate(90deg) scale(${window.innerWidth / 1080})` // Rotate and fit width to height (since now width is the long side)
+                      : `scale(${Math.min(window.innerWidth / 1920, window.innerHeight / 1080)})`, // Standard landscape fit
+                    transformOrigin: 'center center'
+                  }}
+                >
+                  <ModernSlideRenderer
+                    slide={currentProject.slides[selectedSlide]}
+                    theme={currentProject.theme}
+                    colorPalette={currentProject.colorScheme}
+                    className="w-full h-full"
+                  />
+                </div>
               </div>
             </div>
-          </div>
+          )
+        }
 
-          {/* Slide Container - Rotated 90deg if portrait */}
-          {/* We use a container that is forced to 1920x1080 aspect ratio but scaled/rotated to fit screen */}
-          <div
-            className="relative transform transition-transform duration-300 origin-center"
-            style={{
-              width: '100vw',
-              height: '100vh',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center'
-            }}
-          >
-            <div
-              style={{
-                width: '1920px',
-                height: '1080px',
-                transform: window.innerWidth < window.innerHeight
-                  ? `rotate(90deg) scale(${window.innerWidth / 1080})` // Rotate and fit width to height (since now width is the long side)
-                  : `scale(${Math.min(window.innerWidth / 1920, window.innerHeight / 1080)})`, // Standard landscape fit
-                transformOrigin: 'center center'
-              }}
-            >
-              <ModernSlideRenderer
-                slide={currentProject.slides[selectedSlide]}
-                theme={currentProject.theme}
-                colorPalette={currentProject.colorScheme}
-                className="w-full h-full"
-              />
-            </div>
-          </div>
-        </div>
-      )}
+        {/* Export Dialog */}
+        <ExportDialog
+          open={isExportDialogOpen}
+          onOpenChange={setIsExportDialogOpen}
+          presentation={currentProject}
+          accessToken={accessToken}
+        />
 
-      {/* Export Dialog */}
-      <ExportDialog
-        open={isExportDialogOpen}
-        onOpenChange={setIsExportDialogOpen}
-        presentation={currentProject}
-      />
+        {/* Image Replacement Modal */}
+        <ImageReplacementModal
+          open={isImageModalOpen}
+          onOpenChange={setIsImageModalOpen}
+          currentImage={selectedElement?.type === 'image' ? selectedElement.value : currentProject.slides[selectedSlide]?.backgroundImage}
+          onImageSelect={(imageUrl, attribution) => {
+            if (!currentProject) return;
 
-      {/* Image Replacement Modal */}
-      <ImageReplacementModal
-        open={isImageModalOpen}
-        onOpenChange={setIsImageModalOpen}
-        currentImage={selectedElement?.type === 'image' ? selectedElement.value : currentProject.slides[selectedSlide]?.backgroundImage}
-        onImageSelect={(imageUrl, attribution) => {
-          if (!currentProject) return;
+            // If an image element is selected, update that element
+            if (selectedElement?.type === 'image' && selectedElement.path) {
+              handleElementUpdate(selectedElement.path + '.value', imageUrl);
+              handleElementUpdate(selectedElement.path + '.content', imageUrl);
+            } else {
+              // Otherwise update the slide's background image
+              const newProject = { ...currentProject };
+              const newSlides = [...newProject.slides];
+              newSlides[selectedSlide] = {
+                ...newSlides[selectedSlide],
+                backgroundImage: imageUrl,
+                unsplashPhotographer: attribution || undefined
+              };
+              newProject.slides = newSlides;
+              setCurrentProject(newProject);
+              triggerAutoSave(newProject);
+            }
 
-          // If an image element is selected, update that element
-          if (selectedElement?.type === 'image' && selectedElement.path) {
-            handleElementUpdate(selectedElement.path + '.value', imageUrl);
-            handleElementUpdate(selectedElement.path + '.content', imageUrl);
-          } else {
-            // Otherwise update the slide's background image
-            const newProject = { ...currentProject };
-            const newSlides = [...newProject.slides];
-            newSlides[selectedSlide] = {
-              ...newSlides[selectedSlide],
-              backgroundImage: imageUrl,
-              unsplashPhotographer: attribution || undefined
-            };
-            newProject.slides = newSlides;
-            setCurrentProject(newProject);
-            triggerAutoSave(newProject);
-          }
-
-          toast({
-            title: "Image mise à jour",
-            description: attribution ? `Photo par ${attribution.name}` : "Votre image a été appliquée"
-          });
-          setIsImageModalOpen(false);
-        }}
-      />
-    </div >
+            toast({
+              title: "Image mise à jour",
+              description: attribution ? `Photo par ${attribution.name}` : "Votre image a été appliquée"
+            });
+            setIsImageModalOpen(false);
+          }}
+        />
+      </div>
+    </DndContext >
   );
 }
 

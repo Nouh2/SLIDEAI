@@ -1,0 +1,222 @@
+{
+  "title": "SlideAI : L'Excellence Documentaire Augmentée",
+  "colorPalette": {
+    "primary": "#000000",
+    "secondary": "#FFFFFF",
+    "accent": "#FF3E00",
+    "bg": "#F4F4F4",
+    "text": "#1A1A1A"
+  },
+  "slides": [
+    {
+      "layout": "cover",
+      "title": "SlideAI : Redéfinir le Standard des Livrables B2B",
+      "imageSearchQuery": "modern minimalist skyscraper architecture office",
+      "content": {
+        "subtitle": "La plateforme d'intelligence artificielle conçue exclusivement pour les consultants, auditeurs et experts en marketing exigeants."
+      }
+    },
+    {
+      "layout": "bullets",
+      "title": "Le Défi : Le Coût Caché de la Mise en Forme",
+      "imageSearchQuery": "frustrated businessman at desk with laptop",
+      "content": {
+        "bullets": [
+          "Un consultant senior passe en moyenne 12 à 15 heures par semaine sur la mise en forme de présentations, au détriment de l'analyse stratégique à haute valeur ajoutée.",
+          "Le manque de cohérence visuelle entre les différents départements nuit à l'image de marque et à la crédibilité des recommandations auprès des clients C-Level.",
+          "Les délais de livraison de plus en plus courts imposent une pression constante, augmentant le risque d'erreurs factuelles et de coquilles typographiques dans les documents finaux."
+        ]
+      }
+    },
+    {
+      "layout": "image-focus",
+      "title": "SlideAI : Votre Architecte de Contenu Intelligent",
+      "imageSearchQuery": "futuristic digital workspace artificial intelligence",
+      "content": {
+        "text": "SlideAI n'est pas un simple outil de design, c'est un moteur de structuration de pensée. Il transforme vos données brutes et vos concepts en livrables professionnels prêts à être facturés, respectant scrupuleusement votre identité de marque."
+      }
+    },
+    {
+      "layout": "bento",
+      "title": "Une Suite d'Outils Dédiée à la Performance",
+      "imageSearchQuery": "organized software dashboard interface",
+      "content": {
+        "items": [
+          {
+            "title": "Génération de Structure",
+            "description": "Créez instantanément un arc narratif cohérent à partir d'un simple brief ou d'un document de recherche, garantissant une progression logique de vos arguments."
+          },
+          {
+            "title": "Respect des Chartes",
+            "description": "Appliquez automatiquement vos polices, couleurs et logos d'entreprise sur l'ensemble du deck pour une uniformité parfaite sans intervention manuelle."
+          },
+          {
+            "title": "Visualisation de Données",
+            "description": "Transformez des tableaux Excel complexes en graphiques percutants et lisibles, optimisés pour la prise de décision rapide."
+          },
+          {
+            "title": "Export Multi-Format",
+            "description": "Exportez vos travaux en format PowerPoint éditable, PDF haute définition ou lien interactif pour une flexibilité maximale lors de vos présentations."
+          }
+        ]
+      }
+    },
+    {
+      "layout": "stats",
+      "title": "Des Résultats Quantifiables pour Votre Cabinet",
+      "imageSearchQuery": "business growth success data",
+      "content": {
+        "stats": [
+          {
+            "value": "-70%",
+            "label": "Temps passé sur la mise en page"
+          },
+          {
+            "value": "+45%",
+            "label": "Taux de conversion des propositions"
+          },
+          {
+            "value": "100%",
+            "label": "Conformité à l'image de marque"
+          }
+        ]
+      }
+    },
+    {
+      "layout": "infographic",
+      "title": "Un Workflow Optimisé en Trois Étapes",
+      "imageSearchQuery": "simple process flow diagram",
+      "content": {
+        "infographic": {
+          "type": "process",
+          "steps": [
+            {
+              "label": "Ingestion",
+              "value": "Importez vos notes, audits ou données brutes dans l'interface sécurisée."
+            },
+            {
+              "label": "Génération",
+              "value": "L'IA structure le contenu et applique le design le plus adapté au message."
+            },
+            {
+              "label": "Affinement",
+              "value": "Ajustez les détails et exportez votre livrable final en quelques clics."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "layout": "comparison",
+      "title": "L'Avantage Compétitif SlideAI",
+      "imageSearchQuery": "efficiency comparison concept",
+      "content": {
+        "comparison": {
+          "left": {
+            "title": "Méthode Traditionnelle",
+            "items": [
+              "Processus manuel chronophage",
+              "Incohérences graphiques fréquentes",
+              "Difficulté à maintenir les standards",
+              "Coût humain élevé par slide"
+            ]
+          },
+          "right": {
+            "title": "Avec SlideAI",
+            "items": [
+              "Automatisation intelligente et rapide",
+              "Design professionnel et uniforme",
+              "Bibliothèque de templates illimitée",
+              "Focus total sur le conseil stratégique"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "layout": "chart",
+      "title": "Évolution de la Productivité Mensuelle",
+      "imageSearchQuery": "financial bar chart positive trend",
+      "content": {
+        "chart": {
+          "type": "bar",
+          "categories": [
+            "Mois 1",
+            "Mois 2",
+            "Mois 3",
+            "Mois 4",
+            "Mois 5",
+            "Mois 6"
+          ],
+          "series": [
+            {
+              "name": "Livrables produits",
+              "data": [
+                12,
+                15,
+                28,
+                35,
+                42,
+                55
+              ]
+            }
+          ],
+          "title": "Nombre de présentations finalisées par consultant"
+        }
+      }
+    },
+    {
+      "layout": "table",
+      "title": "Une Offre Évolutive pour Votre Croissance",
+      "imageSearchQuery": "professional pricing table",
+      "content": {
+        "table": {
+          "columns": [
+            "Fonctionnalités",
+            "Starter",
+            "Business",
+            "Enterprise"
+          ],
+          "rows": [
+            [
+              "Utilisateurs",
+              "1",
+              "Jusqu'à 10",
+              "Illimité"
+            ],
+            [
+              "Templates Marque",
+              "Standard",
+              "Personnalisés",
+              "Sur-mesure"
+            ],
+            [
+              "Support",
+              "Email",
+              "Prioritaire",
+              "Dédié 24/7"
+            ],
+            [
+              "Sécurité Données",
+              "Standard",
+              "Avancée",
+              "Audit & SOC2"
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "layout": "quote",
+      "title": "Prêt à Transformer Votre Cabinet ?",
+      "imageSearchQuery": "confident business leader portrait",
+      "content": {
+        "quote": {
+          "text": "SlideAI a radicalement changé notre manière de délivrer nos audits. Nous ne vendons plus seulement des idées, nous vendons une expérience visuelle qui renforce notre autorité.",
+          "author": "Jean-Marc Dupont",
+          "role": "Directeur Associé, Global Consulting Group"
+        }
+      }
+    }
+  ]
+}

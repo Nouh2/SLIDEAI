@@ -1,6 +1,7 @@
 // apps/api/src/auth/supabase.guard.ts
 import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/common';
 import jwt from 'jsonwebtoken';
+import { PrismaService } from '../prisma.service.js';
 
 /**
  * Guard qui vérifie le JWT Supabase (auth côté Supabase).
@@ -13,7 +14,7 @@ import jwt from 'jsonwebtoken';
 export class SupabaseGuard implements CanActivate {
   private readonly jwtSecret: string;
 
-  constructor() {
+  constructor(private readonly prisma: PrismaService) {
     // Le JWT secret de Supabase se trouve dans : Project Settings > API > JWT Settings > JWT Secret
     this.jwtSecret = process.env.SUPABASE_JWT_SECRET || '';
     if (!this.jwtSecret && process.env.NODE_ENV !== 'development') {
@@ -26,7 +27,7 @@ export class SupabaseGuard implements CanActivate {
 
     // Mode développement uniquement : bypass l'auth si explicitement désactivé
     if (process.env.SUPABASE_JWT_DISABLED === 'true' && process.env.NODE_ENV === 'development') {
-      req.user = { sub: 'dev-user', email: 'dev@example.com', role: 'user' };
+      req.user = { sub: 'dev-user', email: 'dev@example.com', role: 'user', org_id: null };
       return true;
     }
 
@@ -47,15 +48,38 @@ export class SupabaseGuard implements CanActivate {
         throw new Error('Token missing sub claim');
       }
 
+      const userId = decoded.sub;
+      let orgId = null;
+
+      // Check for x-org-id header for context switching
+      const orgIdHeader = req.headers['x-org-id'];
+      if (orgIdHeader) {
+        // Validate that the user is a member of this organization
+        const membership = await this.prisma.membership.findFirst({
+          where: {
+            userId: userId,
+            orgId: orgIdHeader as string,
+          },
+        });
+
+        if (!membership) {
+          throw new UnauthorizedException('User is not a member of the specified organization');
+        }
+        orgId = orgIdHeader;
+      }
+
       req.user = {
-        sub: decoded.sub,
+        sub: userId,
         email: decoded.email,
         role: decoded.role ?? 'user',
-        org_id: decoded.user_metadata?.org_id ?? null,
+        org_id: orgId, // Use the header org_id if validated, otherwise null (personal)
       };
 
       return true;
     } catch (err: any) {
+      if (err instanceof UnauthorizedException) {
+        throw err;
+      }
       // Log l'erreur pour debug (sans exposer de détails au client)
       console.error('[SupabaseGuard] Token verification failed:', err.message);
       throw new UnauthorizedException('Invalid or expired token');

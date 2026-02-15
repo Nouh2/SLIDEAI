@@ -2,12 +2,14 @@ import { FastifyRequest } from 'fastify';
 import { QueueService } from '../queues/queue.service.js';
 import { SubscriptionService } from '../subscription/subscription.service.js';
 import { DocumentParserService } from './document-parser.service.js';
+import { PPTXParserService } from './pptx-parser.service.js';
 export declare class GenerateController {
     private queues;
     private subscriptionService;
     private documentParser;
+    private pptxParser;
     private redis;
-    constructor(queues: QueueService, subscriptionService: SubscriptionService, documentParser: DocumentParserService);
+    constructor(queues: QueueService, subscriptionService: SubscriptionService, documentParser: DocumentParserService, pptxParser: PPTXParserService);
     /**
      * Generate presentation from prompt + optional document upload
      * Accepts both JSON and multipart/form-data

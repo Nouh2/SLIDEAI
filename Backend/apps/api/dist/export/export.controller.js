@@ -31,6 +31,16 @@ const exportSchema = z.object({
         slides: z.array(z.any()),
     }),
 });
+const translateSchema = z.object({
+    deck: z.object({
+        title: z.string(),
+        subtitle: z.string().optional(),
+        theme: z.string().optional(),
+        slides: z.array(z.any()),
+    }),
+    targetLanguage: z.string(),
+    duplicate: z.boolean().optional().default(false),
+});
 let ExportController = class ExportController {
     queues;
     subscriptionService;
@@ -52,6 +62,18 @@ let ExportController = class ExportController {
         // Le worker produira une URL signée (Cloudflare R2) et pourra la logguer / insérer en DB.
         return { traceId, status: 'accepted' };
     }
+    async translate(req, body) {
+        const { deck, targetLanguage, duplicate } = translateSchema.parse(body);
+        const traceId = ulid();
+        await this.queues.addTranslateDeck({
+            traceId,
+            user: { sub: req.user.sub, org: req.user.org_id },
+            deck,
+            targetLanguage,
+            duplicate,
+        });
+        return { traceId, status: 'accepted' };
+    }
 };
 __decorate([
     Post('/export'),
@@ -61,6 +83,14 @@ __decorate([
     __metadata("design:paramtypes", [Object, Object]),
     __metadata("design:returntype", Promise)
 ], ExportController.prototype, "export", null);
+__decorate([
+    Post('/translate'),
+    __param(0, Req()),
+    __param(1, Body()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, Object]),
+    __metadata("design:returntype", Promise)
+], ExportController.prototype, "translate", null);
 ExportController = __decorate([
     Controller('/v1'),
     UseGuards(SupabaseGuard),

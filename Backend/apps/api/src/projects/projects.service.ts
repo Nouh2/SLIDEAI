@@ -5,7 +5,7 @@ import { CreateProjectDto, UpdateProjectDto } from './dto.js';
 
 @Injectable()
 export class ProjectsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService) { }
 
   list(user: any) {
     return this.prisma.project.findMany({
@@ -18,6 +18,7 @@ export class ProjectsService {
   create(user: any, dto: CreateProjectDto) {
     return this.prisma.project.create({
       data: {
+        id: crypto.randomUUID(),
         title: dto.title,
         description: dto.description ?? '',
         ownerId: user.sub,

@@ -54,9 +54,15 @@ export const exportToPPTX = async (
         throw new Error('No slides to export');
     }
 
+    const mainSlides = presentation.slides.filter((s: any) => !s.isAppendix) || [];
+    const appendixSlides = presentation.slides.filter((s: any) => s.isAppendix) || [];
+    const processedSlides = appendixSlides.length > 0
+        ? [...mainSlides, { isSeparator: true, id: 'appendix-separator', title: 'Appendix', type: 'section-divider', layout: 'section-divider' }, ...appendixSlides]
+        : mainSlides;
+
     onProgress?.({
         current: 0,
-        total: presentation.slides.length,
+        total: processedSlides.length,
         status: 'preparing',
         message: 'Initialisation du PowerPoint...',
     });
@@ -82,14 +88,14 @@ export const exportToPPTX = async (
     const colors = presentation.colorScheme || DEFAULT_COLORS;
 
     // Process each slide
-    for (let i = 0; i < presentation.slides.length; i++) {
-        const slideData = presentation.slides[i];
+    for (let i = 0; i < processedSlides.length; i++) {
+        const slideData = processedSlides[i];
 
         onProgress?.({
             current: i,
-            total: presentation.slides.length,
+            total: processedSlides.length,
             status: 'rendering',
-            message: `Création de la slide ${i + 1}/${presentation.slides.length}...`,
+            message: `Création de la slide ${i + 1}/${processedSlides.length}...`,
         });
 
         // Create new slide
@@ -193,8 +199,8 @@ export const exportToPPTX = async (
     }
 
     onProgress?.({
-        current: presentation.slides.length,
-        total: presentation.slides.length,
+        current: processedSlides.length,
+        total: processedSlides.length,
         status: 'generating',
         message: 'Génération du fichier PowerPoint...',
     });
@@ -208,8 +214,8 @@ export const exportToPPTX = async (
     await pptx.writeFile({ fileName: `${sanitizedTitle}.pptx` });
 
     onProgress?.({
-        current: presentation.slides.length,
-        total: presentation.slides.length,
+        current: processedSlides.length,
+        total: processedSlides.length,
         status: 'complete',
         message: 'Export terminé !',
     });

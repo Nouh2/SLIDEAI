@@ -8,4 +8,8 @@ export declare class ExportController {
         traceId: string;
         status: "accepted";
     }>;
+    translate(req: any, body: any): Promise<{
+        traceId: string;
+        status: "accepted";
+    }>;
 }

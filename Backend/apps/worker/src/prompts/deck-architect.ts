@@ -109,6 +109,8 @@ Every slide MUST include an \`imageSearchQuery\`:
 | comparison | 2-column split (e.g. Pros/Cons, Before/After) | **Two distinct groups/lists**. |
 | timeline | Chronological steps with dates | **Dates/Times + Events**. Do NOT use for generic lists. |
 | infographic | Funnel, pyramid, or process flow | **Sequential or hierarchical steps**. |
+| swot | SWOT Analysis 2×2 matrix | **Strengths, Weaknesses, Opportunities, Threats** (each 2-4 bullet points). Use for strategic analysis. |
+| executive-summary | KPIs + key findings + next steps | **Stats** (2-4 KPIs) + **Bullets** (findings) + **nextSteps** (actions). The "one-pager" overview. |
 | bento | Grid of features/cards (modern style) | **3+ distinct component items**. Good for "Key Features". Each item MUST have a long description (2-3 sentences). |
 | image-focus | Full background image with overlay text | **Strong visual concept**. Use for "Vision", "Mission", "Impact". |
 
@@ -140,6 +142,14 @@ Every slide MUST include an \`imageSearchQuery\`:
 - ❌ **NEVER** use a chart layout if you don't have concrete, realistic numbers to plot.
 - ❌ **NEVER** use a table if you only have one row.
 - ❌ **NEVER** use stats for a list of text headings. Only for numbers.
+
+6. **SWOT / Strategic Analysis?**
+   - ALWAYS use the swot layout. It renders as a clean 2×2 matrix.
+   - Each quadrant (strengths, weaknesses, opportunities, threats) should have 2-4 concise bullet points.
+
+7. **Executive Summary / Overview?**
+   - Use executive-summary for high-level "one-pager" slides.
+   - Include 2-4 KPIs in stats, key findings in bullets, and action items in nextSteps.
 
 ═══════════════════════════════════════════════════
 5. JSON OUTPUT FORMAT (STRICT)

@@ -57,15 +57,19 @@ export interface GenerateResponse {
 
 export interface JobStatusResponse {
   status: "processing" | "succeeded" | "failed";
-  type: "generate" | "export" | "regenerate-slide" | "modify-color-palette";
+  type: "generate" | "export" | "regenerate-slide" | "modify-color-palette" | "translate-deck" | "analyze-image";
   deck?: DeckData;
   url?: string;
   error?: string;
+  // For analyze-image jobs
+  result?: any;
   // For regenerate-slide jobs
   newSlide?: any;
   slideIndex?: number;
   // For modify-color-palette jobs
   newPalette?: any;
+  // For translate-deck jobs with duplication
+  newPresentationId?: string;
 }
 
 // ========== SMART REPORT PARSING TYPES ==========
@@ -171,6 +175,13 @@ const buildHeaders = (accessToken?: string, contentType?: string): HeadersInit =
   const headers: HeadersInit = {};
   if (contentType) headers['Content-Type'] = contentType;
   if (accessToken) headers['Authorization'] = `Bearer ${accessToken}`;
+
+  // Inject Organization ID if selected
+  const orgId = typeof localStorage !== 'undefined' ? localStorage.getItem('slideai-org-id') : null;
+  if (orgId && orgId !== 'personal') {
+    headers['x-org-id'] = orgId;
+  }
+
   return headers;
 };
 
@@ -516,7 +527,7 @@ export const api = {
    * Save/update a presentation
    * PUT /v1/presentations/:id
    */
-  async savePresentation(id: string, data: { slides?: any; title?: string }, accessToken: string): Promise<any> {
+  async savePresentation(id: string, data: { slides?: any; title?: string; status?: string }, accessToken: string): Promise<any> {
     const response = await fetch(`${API_BASE_URL}/presentations/${id}`, {
       method: 'PUT',
       headers: buildHeaders(accessToken, 'application/json'),
@@ -609,7 +620,7 @@ export const api = {
   async regenerateSlide(
     presentationId: string,
     slideIndex: number,
-    options: { prompt?: string; mode?: 'visual' | 'detailed' | 'chart' },
+    options: { prompt?: string; mode?: 'visual' | 'detailed' | 'chart'; tone?: string; command?: string },
     accessToken: string
   ): Promise<{ traceId: string }> {
     const response = await fetch(
@@ -674,5 +685,200 @@ export const api = {
       throw new Error(err.message || 'Présentation introuvable ou lien expiré');
     }
     return response.json();
+  },
+
+  // === SLIDE LIBRARY ===
+  async saveSlideToLibrary(name: string, content: any, accessToken: string, category?: string, type?: string): Promise<any> {
+    const response = await fetch(`${API_BASE_URL}/library/slides`, {
+      method: 'POST',
+      headers: buildHeaders(accessToken, 'application/json'),
+      body: JSON.stringify({ name, content, category, type }),
+    });
+    if (!response.ok) throw new Error('Échec de la sauvegarde dans la bibliothèque');
+    return response.json();
+  },
+
+  async getLibrarySlides(accessToken: string): Promise<any[]> {
+    const response = await fetch(`${API_BASE_URL}/library/slides`, {
+      method: 'GET',
+      headers: buildHeaders(accessToken),
+    });
+    if (!response.ok) throw new Error('Échec de la récupération de la bibliothèque');
+    return response.json();
+  },
+
+  async deleteLibrarySlide(id: string, accessToken: string): Promise<any> {
+    const response = await fetch(`${API_BASE_URL}/library/slides/${id}`, {
+      method: 'DELETE',
+      headers: buildHeaders(accessToken),
+    });
+    if (!response.ok) throw new Error('Échec de la suppression de la bibliothèque');
+    return response.json();
+  },
+
+  /**
+   * 🌍 Translate an entire deck via AI
+   * POST /v1/translate
+   */
+  async translateDeck(deck: any, targetLanguage: string, accessToken: string, duplicate: boolean = false): Promise<GenerateResponse> {
+    const response = await fetch(`${API_BASE_URL}/translate`, {
+      method: "POST",
+      headers: buildHeaders(accessToken, 'application/json'),
+      body: JSON.stringify({ deck, targetLanguage, duplicate }),
+    });
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({
+        message: "Une erreur est survenue lors de la traduction",
+      }));
+      throw new Error(error.message || "Erreur API");
+    }
+
+    return response.json();
+  },
+
+  /**
+   * 🧠 Analyze an image using AI (e.g., for Smart Paste)
+   * POST /v1/ai/analyze-image
+   */
+  async analyzeImage(imageUrl: string, context?: string, accessToken?: string): Promise<{ traceId: string }> {
+    const response = await fetch(`${API_BASE_URL}/ai/analyze-image`, {
+      method: 'POST',
+      headers: buildHeaders(accessToken, 'application/json'),
+      body: JSON.stringify({ imageUrl, context }),
+    });
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ message: 'Erreur lors de l\'analyse' }));
+      throw new Error(error.message || 'Impossible d\'analyser l\'image');
+    }
+
+    return response.json();
+  },
+
+  // ============================================
+  // COMMENT SYSTEM API
+  // ============================================
+
+  /**
+   * Add a comment to a slide
+   * POST /v1/comments
+   */
+  async createComment(presentationId: string, slideId: string, content: string, accessToken: string): Promise<any> {
+    const response = await fetch(`${API_BASE_URL}/comments`, {
+      method: 'POST',
+      headers: buildHeaders(accessToken, 'application/json'),
+      body: JSON.stringify({ presentationId, slideId, content }),
+    });
+    if (!response.ok) throw new Error('Impossible d\'ajouter le commentaire');
+    return response.json();
+  },
+
+  /**
+   * Get all comments for a presentation
+   * GET /v1/comments/:presentationId
+   */
+  async getComments(presentationId: string, accessToken: string): Promise<any[]> {
+    const response = await fetch(`${API_BASE_URL}/comments/${presentationId}`, {
+      headers: buildHeaders(accessToken),
+    });
+    if (!response.ok) throw new Error('Impossible de charger les commentaires');
+    return response.json();
+  },
+
+  /**
+   * Resolve/Unresolve a comment
+   * PATCH /v1/comments/:id
+   */
+  async resolveComment(id: string, resolved: boolean, accessToken: string): Promise<any> {
+    const response = await fetch(`${API_BASE_URL}/comments/${id}`, {
+      method: 'PATCH',
+      headers: buildHeaders(accessToken, 'application/json'),
+      body: JSON.stringify({ resolved }),
+    });
+    if (!response.ok) throw new Error('Impossible de mettre à jour le commentaire');
+    return response.json();
+  },
+
+  /**
+   * Delete a comment
+   * DELETE /v1/comments/:id
+   */
+  async deleteComment(id: string, accessToken: string): Promise<void> {
+    const response = await fetch(`${API_BASE_URL}/comments/${id}`, {
+      method: 'DELETE',
+      headers: buildHeaders(accessToken),
+    });
+    if (!response.ok) throw new Error('Impossible de supprimer le commentaire');
+  },
+
+  // ============================================
+  // ORGANIZATION API
+  // ============================================
+
+  /**
+   * Create a new organization
+   * POST /v1/orgs
+   */
+  async createOrg(name: string, accessToken: string): Promise<any> {
+    const response = await fetch(`${API_BASE_URL}/orgs`, {
+      method: 'POST',
+      headers: buildHeaders(accessToken, 'application/json'),
+      body: JSON.stringify({ name }),
+    });
+    if (!response.ok) throw new Error('Impossible de créer l\'organisation');
+    return response.json();
+  },
+
+  /**
+   * Get all organizations for the current user
+   * GET /v1/orgs
+   */
+  async getUserOrgs(accessToken: string): Promise<any[]> {
+    const response = await fetch(`${API_BASE_URL}/orgs`, {
+      method: 'GET',
+      headers: buildHeaders(accessToken),
+    });
+    if (!response.ok) throw new Error('Impossible de charger les organisations');
+    return response.json();
+  },
+
+  /**
+   * Get members of an organization
+   * GET /v1/orgs/:id/members
+   */
+  async getOrgMembers(orgId: string, accessToken: string): Promise<any[]> {
+    const response = await fetch(`${API_BASE_URL}/orgs/${orgId}/members`, {
+      method: 'GET',
+      headers: buildHeaders(accessToken),
+    });
+    if (!response.ok) throw new Error('Impossible de charger les membres');
+    return response.json();
+  },
+
+  /**
+   * Add a member to an organization
+   * POST /v1/orgs/:id/members
+   */
+  async addMember(orgId: string, email: string, role: 'admin' | 'member', accessToken: string): Promise<any> {
+    const response = await fetch(`${API_BASE_URL}/orgs/${orgId}/members`, {
+      method: 'POST',
+      headers: buildHeaders(accessToken, 'application/json'),
+      body: JSON.stringify({ email, role }),
+    });
+    if (!response.ok) throw new Error('Impossible d\'ajouter le membre');
+    return response.json();
+  },
+
+  /**
+   * Remove a member from an organization
+   * DELETE /v1/orgs/:id/members/:userId
+   */
+  async removeMember(orgId: string, userId: string, accessToken: string): Promise<void> {
+    const response = await fetch(`${API_BASE_URL}/orgs/${orgId}/members/${userId}`, {
+      method: 'DELETE',
+      headers: buildHeaders(accessToken),
+    });
+    if (!response.ok) throw new Error('Impossible de retirer le membre');
   },
 };

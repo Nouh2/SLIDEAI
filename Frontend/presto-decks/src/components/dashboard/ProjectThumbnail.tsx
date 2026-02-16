@@ -70,6 +70,8 @@ export function ProjectThumbnail({ presentation, className }: ProjectThumbnailPr
                     slide={firstSlide}
                     theme={theme}
                     colorPalette={colorPalette}
+                    titleFontScale={typeof theme === 'object' ? theme.titleFontScale : undefined}
+                    textFontScale={typeof theme === 'object' ? theme.textFontScale : undefined}
                     className="w-full h-full pointer-events-none" // Disable interaction in preview
                 />
             </div>

@@ -6,9 +6,11 @@ interface ScalableSlidePreviewProps {
     theme: string;
     colorPalette?: any;
     className?: string;
+    titleFontScale?: number;
+    textFontScale?: number;
 }
 
-export function ScalableSlidePreview({ slide, theme, colorPalette, className = "" }: ScalableSlidePreviewProps) {
+export function ScalableSlidePreview({ slide, theme, colorPalette, className = "", titleFontScale, textFontScale }: ScalableSlidePreviewProps) {
     const containerRef = useRef<HTMLDivElement>(null);
     const [scale, setScale] = useState(0.2);
 
@@ -56,6 +58,8 @@ export function ScalableSlidePreview({ slide, theme, colorPalette, className = "
                         slide={slide}
                         theme={theme}
                         colorPalette={colorPalette}
+                        titleFontScale={titleFontScale}
+                        textFontScale={textFontScale}
                         className="w-full h-full"
                     />
                 </div>

@@ -5,17 +5,21 @@ import { adaptToLayout, SlideLayoutType } from '@/lib/slide-adapter';
 import { ModernSlideRenderer } from '@/components/slides/ModernSlideRenderer';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
-import { LayoutGrid, List, Columns, Maximize, BarChart, PieChart, Table, Hash, Grid2x2, FileText, Target } from 'lucide-react';
+// import { Slider } from '@/components/ui/slider'; // Keeping getting rid of if not used
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { LayoutGrid, List, Columns, Maximize, BarChart, PieChart, Table, Hash, Grid2x2, FileText, Target, Type } from 'lucide-react';
 
 interface LayoutSwitcherProps {
     currentSlide: SlideData;
-    theme: string;
+    theme: any;
     colors: any;
     onUpdateSlide: (newSlide: SlideData) => void;
+    onUpdateTheme: (path: string, value: any) => void;
     onImageReplace?: () => void;
 }
 
-export function LayoutSwitcher({ currentSlide, theme, colors, onUpdateSlide, onImageReplace }: LayoutSwitcherProps) {
+export function LayoutSwitcher({ currentSlide, theme, colors, onUpdateSlide, onUpdateTheme, onImageReplace }: LayoutSwitcherProps) {
     const [originalSlide, setOriginalSlide] = React.useState<SlideData | null>(null);
     const { t } = useTranslation();
 
@@ -284,10 +288,59 @@ export function LayoutSwitcher({ currentSlide, theme, colors, onUpdateSlide, onI
                 </div>
             </ScrollArea>
 
-            {/* Background Settings Footer */}
-            <div className="p-4 border-t border-border mt-auto bg-surface/30">
+            {/* Typography & Background Settings Footer */}
+            <div className="p-4 border-t border-border mt-auto bg-surface/30 space-y-6">
                 <div className="space-y-3">
-                    <h3 className="font-semibold text-xs uppercase tracking-wider opacity-70 mb-2">Background</h3>
+                    <div className="flex items-center justify-between mb-1">
+                        <h3 className="font-semibold text-xs uppercase tracking-wider opacity-70 flex items-center gap-2">
+                            <Type className="w-3 h-3" /> {t('editor.typography')}
+                        </h3>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        {/* Title Scale Selector */}
+                        <div className="flex-1 space-y-1">
+                            <span className="text-[9px] uppercase tracking-wider opacity-60 font-semibold pl-1">Title</span>
+                            <Select
+                                value={String(theme?.titleFontScale || theme?.fontScale || 1)}
+                                onValueChange={(val) => onUpdateTheme('titleFontScale', parseFloat(val))}
+                            >
+                                <SelectTrigger className="h-7 text-xs bg-background/50 border-input/50">
+                                    <SelectValue placeholder="100%" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {[0.5, 0.75, 0.9, 1, 1.1, 1.25, 1.5, 1.75, 2, 2.5].map((scale) => (
+                                        <SelectItem key={scale} value={String(scale)} className="text-xs">
+                                            {Math.round(scale * 100)}%
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+
+                        {/* Body Scale Selector */}
+                        <div className="flex-1 space-y-1">
+                            <span className="text-[9px] uppercase tracking-wider opacity-60 font-semibold pl-1">Body</span>
+                            <Select
+                                value={String(theme?.textFontScale || theme?.fontScale || 1)}
+                                onValueChange={(val) => onUpdateTheme('textFontScale', parseFloat(val))}
+                            >
+                                <SelectTrigger className="h-7 text-xs bg-background/50 border-input/50">
+                                    <SelectValue placeholder="100%" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {[0.5, 0.75, 0.9, 1, 1.1, 1.25, 1.5, 1.75, 2, 2.5].map((scale) => (
+                                        <SelectItem key={scale} value={String(scale)} className="text-xs">
+                                            {Math.round(scale * 100)}%
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="space-y-3">
+                    <h3 className="font-semibold text-xs uppercase tracking-wider opacity-70 mb-2">{t('editor.background')}</h3>
                     <div className="flex flex-col gap-2">
                         {currentSlide.backgroundImage && (
                             <div className="relative aspect-video rounded-md overflow-hidden bg-muted border border-border/50 h-16 w-full">

@@ -77,7 +77,7 @@ import {
 import { Reorder, AnimatePresence } from "framer-motion";
 import { PresentationBuilderLoader } from "@/components/layout/PresentationBuilderLoader";
 
-import { AddElementMenu } from "@/components/editor/AddElementMenu";
+
 import { PropertiesPanel, SelectedElement } from "@/components/editor/PropertiesPanel";
 import { CommentsSidebar } from "@/components/editor/CommentsSidebar";
 import { ShareDialog } from "@/components/editor/ShareDialog";
@@ -760,6 +760,21 @@ export default function Editor() {
     triggerAutoSave(newProject);
   };
 
+  const handleThemeUpdate = (path: string, value: any) => {
+    if (!currentProject) return;
+
+    const newProject = {
+      ...currentProject,
+      theme: {
+        ...(currentProject.theme || {}),
+        [path]: value
+      }
+    };
+
+    setCurrentProject(newProject);
+    triggerAutoSave(newProject);
+  };
+
   const handleTableAction = (action: 'add-row' | 'delete-row', cellPath: string) => {
     if (!currentProject) return;
 
@@ -842,49 +857,6 @@ export default function Editor() {
 
 
 
-  const handleAddElement = (type: 'text' | 'image' | 'shape') => {
-    if (!currentProject) return;
-
-    const newProject = { ...currentProject };
-    const newSlides = [...newProject.slides];
-    const slide = { ...newSlides[selectedSlide] };
-
-    // Ensure elements array exists
-    const elements = slide.elements ? [...slide.elements] : [];
-
-    const newId = `el-${Date.now()}`;
-    const newElement = {
-      id: newId,
-      type: type,
-      x: 35,
-      y: 35,
-      width: type === 'text' ? 30 : 25,
-      height: type === 'text' ? 10 : 25,
-      rotation: 0,
-      opacity: 1,
-      content: type === 'text' ? t('editorPage.element.newText') : 'https://source.unsplash.com/random/400x300',
-      value: type === 'text' ? t('editorPage.element.newText') : 'https://source.unsplash.com/random/400x300',
-      path: `elements[${elements.length}]`,
-      label: type === 'text' ? t('editorPage.element.textLabel') : t('editorPage.element.imageLabel'),
-      style: {
-        fontSize: '1.5rem',
-        textAlign: 'left', // Default align
-        color: currentProject.colorScheme?.text || '#000000',
-        fontWeight: 'normal'
-      }
-    };
-
-    elements.push(newElement);
-    slide.elements = elements;
-
-    newSlides[selectedSlide] = slide;
-    newProject.slides = newSlides;
-    setCurrentProject(newProject);
-
-    // Select the new element immediately
-    // Note: handleElementSelect expects raw element, it adds prefix
-    handleElementSelect(newElement);
-  };
 
   // Core save function (shared by manual and auto-save)
   const performSave = async (projectToSave: any) => {
@@ -1086,10 +1058,10 @@ export default function Editor() {
       >
         {/* 1. Header (Hidden in Fullscreen) */}
         {!isFullscreen && (
-          <div className="h-16 flex items-center justify-between px-4 md:px-6 border-b border-border bg-background/90 backdrop-blur-md z-50 shadow-sm shrink-0">
-            <div className="flex items-center space-x-6">
-              <Link to="/" className="group flex items-center justify-center w-10 h-10 rounded-xl hover:bg-muted transition-all">
-                <Home className="h-5 w-5 text-muted-foreground group-hover:text-foreground transition-colors" />
+          <div className="h-14 flex items-center justify-between px-4 md:px-6 border-b border-border bg-background/90 backdrop-blur-md z-50 shadow-sm shrink-0">
+            <div className="flex items-center gap-4">
+              <Link to="/" className="group flex items-center justify-center w-9 h-9 rounded-lg hover:bg-muted transition-all">
+                <Home className="h-4.5 w-4.5 text-muted-foreground group-hover:text-foreground transition-colors" />
               </Link>
 
               <div className="h-6 w-px bg-[#E6E6E0]"></div>
@@ -1162,15 +1134,15 @@ export default function Editor() {
               </div>
             </div>
 
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center gap-3">
               {/* Removed Search, Undo/Redo, AI Assistant */}
 
               <Button
                 onClick={toggleFullscreen}
-                className="hidden md:flex h-10 px-5 rounded-xl bg-primary hover:bg-primary/90 text-white shadow-lg shadow-primary/20 font-medium transition-all duration-300 hover:scale-105 hover:-translate-y-0.5"
+                className="hidden md:flex h-9 px-5 rounded-lg bg-primary hover:bg-primary/90 text-white shadow-lg shadow-primary/20 font-medium transition-all duration-300 hover:scale-105 hover:-translate-y-0.5"
               >
-                <Play className="h-4 w-4 mr-2 fill-current" />
-                {t('editorPage.actions.slideshow')}
+                <Play className="h-4 w-4 mr-1.5 fill-current" />
+                <span className="text-sm">{t('editorPage.actions.slideshow')}</span>
               </Button>
 
               <div className="h-6 w-px bg-[#E6E6E0]"></div>
@@ -1213,8 +1185,8 @@ export default function Editor() {
               <div className="h-6 w-px bg-[#E6E6E0]"></div>
 
 
-              <div className="flex items-center gap-2">
-                <Button variant="ghost" onClick={handleSave} title={t('editorPage.actions.save')}>
+              <div className="flex items-center gap-1.5">
+                <Button variant="ghost" size="sm" className="h-9 w-9 p-0" onClick={handleSave} title={t('editorPage.actions.save')}>
                   <Save className="w-4 h-4" />
                 </Button>
                 {currentProject && (
@@ -1246,7 +1218,7 @@ export default function Editor() {
                       triggerAutoSave(updatedProject);
                     }}
                   >
-                    <Button variant="ghost" title={t('editorPage.actions.editPalette')}>
+                    <Button variant="ghost" size="sm" className="h-9 w-9 p-0" title={t('editorPage.actions.editPalette')}>
                       <Palette className="w-4 h-4" />
                     </Button>
                   </ColorPaletteDialog>
@@ -1260,23 +1232,20 @@ export default function Editor() {
                       triggerAutoSave(updatedProject);
                     }}
                   >
-                    <Button variant="ghost" title={t('fontSelector.title')}>
+                    <Button variant="ghost" size="sm" className="h-9 w-9 p-0" title={t('fontSelector.title')}>
                       <Type className="w-4 h-4" />
                     </Button>
                   </FontSelectorDialog>
                 )}
-                <div className="hidden md:block">
-                  <AddElementMenu onAdd={handleAddElement} />
-                </div>
 
                 <div className="h-6 w-px bg-[#E6E6E0]"></div>
 
                 <Button
                   variant={isCommentsOpen ? "secondary" : "ghost"}
                   size="sm"
+                  className="h-9 w-9 p-0 flex"
                   onClick={() => setIsCommentsOpen(!isCommentsOpen)}
                   title="Comments"
-                  className="hidden md:flex"
                 >
                   <MessageSquare className={`h-4 w-4 ${isCommentsOpen ? "fill-primary text-primary" : ""}`} />
                 </Button>
@@ -1321,12 +1290,12 @@ export default function Editor() {
                 )}
 
                 <Button
-                  variant="outline"
+                  variant="ghost"
                   onClick={() => setIsExportDialogOpen(true)}
-                  className="h-10 w-10 md:w-auto px-0 md:px-5 rounded-xl border-2 hover:border-primary hover:text-primary hover:bg-primary/5 transition-all duration-300 hover:scale-105 hover:-translate-y-0.5"
+                  className="h-9 w-9 md:w-auto px-0 md:px-4 rounded-lg hover:text-primary hover:bg-primary/5 transition-all duration-300 hover:scale-105 hover:-translate-y-0.5"
                 >
                   <Download className="w-4 h-4 md:mr-2" />
-                  <span className="hidden md:inline">{t('editorPage.actions.export')}</span>
+                  <span className="hidden md:inline font-semibold">{t('editorPage.actions.export')}</span>
                 </Button>
               </div>
             </div>
@@ -1395,6 +1364,8 @@ export default function Editor() {
                                     slide={slide}
                                     theme={currentProject.theme}
                                     colorPalette={currentProject.colorScheme}
+                                    titleFontScale={currentProject.theme?.titleFontScale}
+                                    textFontScale={currentProject.theme?.textFontScale}
                                     className="w-full h-full"
                                   />
                                 </div>
@@ -1556,6 +1527,8 @@ export default function Editor() {
                           theme={currentProject.theme}
                           colorPalette={currentProject.colorScheme}
                           fontConfig={currentProject.fontConfig}
+                          titleFontScale={currentProject.theme?.titleFontScale}
+                          textFontScale={currentProject.theme?.textFontScale}
                           className="w-full h-full"
                           onElementSelect={isFullscreen ? undefined : handleElementSelect}
                           selectedElementId={!isFullscreen && selectedElement ? selectedElement.id.split('-').slice(1).join('-') : null}
@@ -1660,7 +1633,9 @@ export default function Editor() {
                           ...newSlideData
                         };
                         setCurrentProject({ ...currentProject, slides: newSlides });
+                        triggerAutoSave({ ...currentProject, slides: newSlides });
                       }}
+                      onUpdateTheme={handleThemeUpdate}
                       onImageReplace={() => setIsImageModalOpen(true)}
                     />
                   )}
@@ -1840,6 +1815,8 @@ export default function Editor() {
                     slide={currentProject.slides[selectedSlide]}
                     theme={currentProject.theme}
                     colorPalette={currentProject.colorScheme}
+                    titleFontScale={currentProject.theme?.titleFontScale}
+                    textFontScale={currentProject.theme?.textFontScale}
                     className="w-full h-full"
                   />
                 </div>

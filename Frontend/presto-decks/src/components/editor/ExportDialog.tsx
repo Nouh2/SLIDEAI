@@ -475,6 +475,8 @@ export function ExportDialog({ open, onOpenChange, presentation, accessToken }: 
                                             } : slide}
                                             theme={activeDeck.theme}
                                             colorPalette={activeDeck.colorScheme}
+                                            titleFontScale={activeDeck.theme?.titleFontScale}
+                                            textFontScale={activeDeck.theme?.textFontScale}
                                             className="w-[1920px] h-[1080px] min-w-[1920px] min-h-[1080px]"
                                         />
                                     </TemplateOverlay>

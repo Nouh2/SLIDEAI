@@ -3,7 +3,8 @@ import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { X, Type, List, Image as ImageIcon, Plus, Table, Trash2, RefreshCw } from "lucide-react";
+import { X, Type, List, Image as ImageIcon, Plus, Table, Trash2, RefreshCw, Minus } from "lucide-react";
+import { Slider } from "@/components/ui/slider";
 
 export interface SelectedElement {
     id: string; // Unique ID composed of slideIndex + path
@@ -63,6 +64,52 @@ export function PropertiesPanel({ element, onUpdate, onTableAction, onImageRepla
                                 className="min-h-[200px] bg-background/50 resize-none focus-visible:ring-primary"
                                 placeholder={t('editor.enterText')}
                             />
+                        </div>
+
+                        {/* Font Size Scaling */}
+                        <div className="space-y-3 p-4 border border-border/50 rounded-xl bg-muted/20">
+                            <div className="flex items-center justify-between">
+                                <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
+                                    <Type className="w-3 h-3" /> {t('editor.fontSize')}
+                                </Label>
+                                <span className="text-[10px] font-mono opacity-50">{(element as any).style?.fontSize || 100}%</span>
+                            </div>
+                            <div className="flex items-center gap-3">
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-6 w-6 rounded-md hover:bg-primary/10"
+                                    onClick={() => {
+                                        const currentScale = (element as any).style?.fontSize || 100;
+                                        onUpdate(`${element.path}.style.fontSize`, Math.max(20, currentScale - 5));
+                                    }}
+                                >
+                                    <Minus className="w-3 h-3" />
+                                </Button>
+                                <Slider
+                                    value={[(element as any).style?.fontSize || 100]}
+                                    min={20}
+                                    max={300}
+                                    step={5}
+                                    onValueChange={([val]) => onUpdate(`${element.path}.style.fontSize`, val)}
+                                    className="flex-1"
+                                />
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-6 w-6 rounded-md hover:bg-primary/10"
+                                    onClick={() => {
+                                        const currentScale = (element as any).style?.fontSize || 100;
+                                        onUpdate(`${element.path}.style.fontSize`, Math.min(300, currentScale + 5));
+                                    }}
+                                >
+                                    <Plus className="w-3 h-3" />
+                                </Button>
+                            </div>
+                            <div className="flex justify-between text-[10px] opacity-40">
+                                <span>{t('editor.smaller')}</span>
+                                <span>{t('editor.larger')}</span>
+                            </div>
                         </div>
 
                         {onTableAction && element.path.includes('rows') && element.path.includes('[') && (

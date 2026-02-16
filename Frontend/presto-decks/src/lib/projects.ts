@@ -3,7 +3,10 @@ export interface Project {
     title: string;
     prompt: string;
     slides: any[];
-    theme: any;
+    theme: {
+        fontScale?: number;
+        [key: string]: any;
+    };
     createdAt: string;
     usage: number;
     thumbnail?: string;

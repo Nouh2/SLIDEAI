@@ -390,6 +390,8 @@ export default function ViewPage() {
                                     slide={currentSlide}
                                     theme={project.theme}
                                     colorPalette={project.colorScheme}
+                                    titleFontScale={project.theme?.titleFontScale}
+                                    textFontScale={project.theme?.textFontScale}
                                     className="w-full h-full"
                                     showWatermark={showWatermark}
                                 />

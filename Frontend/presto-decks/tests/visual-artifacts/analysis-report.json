@@ -1,0 +1,1883 @@
+{
+  "entries": [
+    {
+      "file": "slide-001.png",
+      "width": 1920,
+      "height": 1080,
+      "diffPixels": 92157,
+      "totalPixels": 2073600,
+      "diffRatio": 0.044442997685185184,
+      "bbox": {
+        "x": 49,
+        "y": 292,
+        "w": 1822,
+        "h": 769
+      },
+      "rowsTouched": 404,
+      "colsTouched": 766,
+      "spreadRowsRatio": 0.37407407407407406,
+      "spreadColsRatio": 0.39895833333333336,
+      "findings": [
+        "main content block (chart/table/cards)"
+      ]
+    },
+    {
+      "file": "slide-002.png",
+      "width": 1920,
+      "height": 1080,
+      "diffPixels": 102680,
+      "totalPixels": 2073600,
+      "diffRatio": 0.04951774691358025,
+      "bbox": {
+        "x": 49,
+        "y": 121,
+        "w": 1822,
+        "h": 940
+      },
+      "rowsTouched": 591,
+      "colsTouched": 1365,
+      "spreadRowsRatio": 0.5472222222222223,
+      "spreadColsRatio": 0.7109375,
+      "findings": [
+        "main content block (chart/table/cards)",
+        "column alignment/layout split"
+      ]
+    },
+    {
+      "file": "slide-003.png",
+      "width": 1920,
+      "height": 1080,
+      "diffPixels": 102766,
+      "totalPixels": 2073600,
+      "diffRatio": 0.04955922067901235,
+      "bbox": {
+        "x": 49,
+        "y": 121,
+        "w": 1822,
+        "h": 940
+      },
+      "rowsTouched": 594,
+      "colsTouched": 1365,
+      "spreadRowsRatio": 0.55,
+      "spreadColsRatio": 0.7109375,
+      "findings": [
+        "main content block (chart/table/cards)",
+        "column alignment/layout split"
+      ]
+    },
+    {
+      "file": "slide-004.png",
+      "width": 1920,
+      "height": 1080,
+      "diffPixels": 118656,
+      "totalPixels": 2073600,
+      "diffRatio": 0.05722222222222222,
+      "bbox": {
+        "x": 0,
+        "y": 0,
+        "w": 1920,
+        "h": 1080
+      },
+      "rowsTouched": 370,
+      "colsTouched": 1591,
+      "spreadRowsRatio": 0.3425925925925926,
+      "spreadColsRatio": 0.8286458333333333,
+      "findings": [
+        "footer/page-number overlay",
+        "main content block (chart/table/cards)"
+      ]
+    },
+    {
+      "file": "slide-005.png",
+      "width": 1920,
+      "height": 1080,
+      "diffPixels": 52594,
+      "totalPixels": 2073600,
+      "diffRatio": 0.025363618827160494,
+      "bbox": {
+        "x": 49,
+        "y": 2,
+        "w": 1864,
+        "h": 1059
+      },
+      "rowsTouched": 258,
+      "colsTouched": 952,
+      "spreadRowsRatio": 0.2388888888888889,
+      "spreadColsRatio": 0.49583333333333335,
+      "findings": [
+        "main content block (chart/table/cards)",
+        "column alignment/layout split"
+      ]
+    },
+    {
+      "file": "slide-006.png",
+      "width": 1920,
+      "height": 1080,
+      "diffPixels": 71336,
+      "totalPixels": 2073600,
+      "diffRatio": 0.034402006172839505,
+      "bbox": {
+        "x": 49,
+        "y": 253,
+        "w": 1822,
+        "h": 808
+      },
+      "rowsTouched": 299,
+      "colsTouched": 991,
+      "spreadRowsRatio": 0.27685185185185185,
+      "spreadColsRatio": 0.5161458333333333,
+      "findings": [
+        "main content block (chart/table/cards)"
+      ]
+    },
+    {
+      "file": "slide-007.png",
+      "width": 1920,
+      "height": 1080,
+      "diffPixels": 71336,
+      "totalPixels": 2073600,
+      "diffRatio": 0.034402006172839505,
+      "bbox": {
+        "x": 49,
+        "y": 253,
+        "w": 1822,
+        "h": 808
+      },
+      "rowsTouched": 299,
+      "colsTouched": 991,
+      "spreadRowsRatio": 0.27685185185185185,
+      "spreadColsRatio": 0.5161458333333333,
+      "findings": [
+        "main content block (chart/table/cards)"
+      ]
+    },
+    {
+      "file": "slide-008.png",
+      "width": 1920,
+      "height": 1080,
+      "diffPixels": 32703,
+      "totalPixels": 2073600,
+      "diffRatio": 0.015771122685185185,
+      "bbox": {
+        "x": 49,
+        "y": 411,
+        "w": 1822,
+        "h": 650
+      },
+      "rowsTouched": 234,
+      "colsTouched": 603,
+      "spreadRowsRatio": 0.21666666666666667,
+      "spreadColsRatio": 0.3140625,
+      "findings": [
+        "footer/page-number overlay",
+        "main content block (chart/table/cards)",
+        "column alignment/layout split"
+      ]
+    },
+    {
+      "file": "slide-009.png",
+      "width": 1920,
+      "height": 1080,
+      "diffPixels": 31999,
+      "totalPixels": 2073600,
+      "diffRatio": 0.015431616512345678,
+      "bbox": {
+        "x": 49,
+        "y": 158,
+        "w": 1822,
+        "h": 904
+      },
+      "rowsTouched": 293,
+      "colsTouched": 515,
+      "spreadRowsRatio": 0.2712962962962963,
+      "spreadColsRatio": 0.2682291666666667,
+      "findings": [
+        "footer/page-number overlay",
+        "main content block (chart/table/cards)"
+      ]
+    },
+    {
+      "file": "slide-01.png",
+      "width": 1920,
+      "height": 1080,
+      "diffPixels": 91001,
+      "totalPixels": 2073600,
+      "diffRatio": 0.04388551311728395,
+      "bbox": {
+        "x": 49,
+        "y": 292,
+        "w": 1822,
+        "h": 769
+      },
+      "rowsTouched": 404,
+      "colsTouched": 766,
+      "spreadRowsRatio": 0.37407407407407406,
+      "spreadColsRatio": 0.39895833333333336,
+      "findings": [
+        "main content block (chart/table/cards)"
+      ]
+    },
+    {
+      "file": "slide-010.png",
+      "width": 1920,
+      "height": 1080,
+      "diffPixels": 45876,
+      "totalPixels": 2073600,
+      "diffRatio": 0.022123842592592594,
+      "bbox": {
+        "x": 49,
+        "y": 400,
+        "w": 1822,
+        "h": 662
+      },
+      "rowsTouched": 192,
+      "colsTouched": 1247,
+      "spreadRowsRatio": 0.17777777777777778,
+      "spreadColsRatio": 0.6494791666666667,
+      "findings": [
+        "main content block (chart/table/cards)",
+        "column alignment/layout split"
+      ]
+    },
+    {
+      "file": "slide-011.png",
+      "width": 1920,
+      "height": 1080,
+      "diffPixels": 96208,
+      "totalPixels": 2073600,
+      "diffRatio": 0.04639660493827161,
+      "bbox": {
+        "x": 49,
+        "y": 145,
+        "w": 1822,
+        "h": 917
+      },
+      "rowsTouched": 459,
+      "colsTouched": 1095,
+      "spreadRowsRatio": 0.425,
+      "spreadColsRatio": 0.5703125,
+      "findings": [
+        "header/title typography",
+        "main content block (chart/table/cards)",
+        "column alignment/layout split"
+      ]
+    },
+    {
+      "file": "slide-012.png",
+      "width": 1920,
+      "height": 1080,
+      "diffPixels": 39108,
+      "totalPixels": 2073600,
+      "diffRatio": 0.018859953703703705,
+      "bbox": {
+        "x": 20,
+        "y": 59,
+        "w": 1851,
+        "h": 1003
+      },
+      "rowsTouched": 251,
+      "colsTouched": 923,
+      "spreadRowsRatio": 0.2324074074074074,
+      "spreadColsRatio": 0.48072916666666665,
+      "findings": [
+        "main content block (chart/table/cards)",
+        "column alignment/layout split"
+      ]
+    },
+    {
+      "file": "slide-013.png",
+      "width": 1920,
+      "height": 1080,
+      "diffPixels": 57590,
+      "totalPixels": 2073600,
+      "diffRatio": 0.027772955246913582,
+      "bbox": {
+        "x": 49,
+        "y": 73,
+        "w": 1822,
+        "h": 990
+      },
+      "rowsTouched": 242,
+      "colsTouched": 1327,
+      "spreadRowsRatio": 0.22407407407407406,
+      "spreadColsRatio": 0.6911458333333333,
+      "findings": [
+        "header/title typography",
+        "main content block (chart/table/cards)"
+      ]
+    },
+    {
+      "file": "slide-014.png",
+      "width": 1920,
+      "height": 1080,
+      "diffPixels": 55796,
+      "totalPixels": 2073600,
+      "diffRatio": 0.026907793209876543,
+      "bbox": {
+        "x": 49,
+        "y": 55,
+        "w": 1822,
+        "h": 1008
+      },
+      "rowsTouched": 271,
+      "colsTouched": 1376,
+      "spreadRowsRatio": 0.25092592592592594,
+      "spreadColsRatio": 0.7166666666666667,
+      "findings": [
+        "header/title typography",
+        "main content block (chart/table/cards)"
+      ]
+    },
+    {
+      "file": "slide-015.png",
+      "width": 1920,
+      "height": 1080,
+      "diffPixels": 138561,
+      "totalPixels": 2073600,
+      "diffRatio": 0.06682146990740741,
+      "bbox": {
+        "x": 49,
+        "y": 75,
+        "w": 1822,
+        "h": 988
+      },
+      "rowsTouched": 385,
+      "colsTouched": 1820,
+      "spreadRowsRatio": 0.35648148148148145,
+      "spreadColsRatio": 0.9479166666666666,
+      "findings": [
+        "header/title typography",
+        "main content block (chart/table/cards)"
+      ]
+    },
+    {
+      "file": "slide-016.png",
+      "width": 1920,
+      "height": 1080,
+      "diffPixels": 77307,
+      "totalPixels": 2073600,
+      "diffRatio": 0.03728153935185185,
+      "bbox": {
+        "x": 81,
+        "y": 353,
+        "w": 1790,
+        "h": 709
+      },
+      "rowsTouched": 327,
+      "colsTouched": 1536,
+      "spreadRowsRatio": 0.30277777777777776,
+      "spreadColsRatio": 0.8,
+      "findings": [
+        "main content block (chart/table/cards)",
+        "column alignment/layout split"
+      ]
+    },
+    {
+      "file": "slide-017.png",
+      "width": 1920,
+      "height": 1080,
+      "diffPixels": 47942,
+      "totalPixels": 2073600,
+      "diffRatio": 0.023120177469135802,
+      "bbox": {
+        "x": 49,
+        "y": 87,
+        "w": 1822,
+        "h": 976
+      },
+      "rowsTouched": 274,
+      "colsTouched": 1414,
+      "spreadRowsRatio": 0.2537037037037037,
+      "spreadColsRatio": 0.7364583333333333,
+      "findings": [
+        "header/title typography",
+        "main content block (chart/table/cards)"
+      ]
+    },
+    {
+      "file": "slide-018.png",
+      "width": 1920,
+      "height": 1080,
+      "diffPixels": 56522,
+      "totalPixels": 2073600,
+      "diffRatio": 0.027257908950617284,
+      "bbox": {
+        "x": 49,
+        "y": 48,
+        "w": 1823,
+        "h": 1015
+      },
+      "rowsTouched": 403,
+      "colsTouched": 1399,
+      "spreadRowsRatio": 0.3731481481481482,
+      "spreadColsRatio": 0.7286458333333333,
+      "findings": [
+        "main content block (chart/table/cards)",
+        "column alignment/layout split"
+      ]
+    },
+    {
+      "file": "slide-019.png",
+      "width": 1920,
+      "height": 1080,
+      "diffPixels": 102421,
+      "totalPixels": 2073600,
+      "diffRatio": 0.04939284336419753,
+      "bbox": {
+        "x": 49,
+        "y": 74,
+        "w": 1822,
+        "h": 987
+      },
+      "rowsTouched": 385,
+      "colsTouched": 1778,
+      "spreadRowsRatio": 0.35648148148148145,
+      "spreadColsRatio": 0.9260416666666667,
+      "findings": [
+        "header/title typography"
+      ]
+    },
+    {
+      "file": "slide-02.png",
+      "width": 1920,
+      "height": 1080,
+      "diffPixels": 570342,
+      "totalPixels": 2073600,
+      "diffRatio": 0.2750491898148148,
+      "bbox": {
+        "x": 0,
+        "y": 0,
+        "w": 1871,
+        "h": 1080
+      },
+      "rowsTouched": 1052,
+      "colsTouched": 1787,
+      "spreadRowsRatio": 0.9740740740740741,
+      "spreadColsRatio": 0.9307291666666667,
+      "findings": [
+        "main content block (chart/table/cards)",
+        "global background/gradient/color tone"
+      ]
+    },
+    {
+      "file": "slide-020.png",
+      "width": 1920,
+      "height": 1080,
+      "diffPixels": 51677,
+      "totalPixels": 2073600,
+      "diffRatio": 0.02492139274691358,
+      "bbox": {
+        "x": 49,
+        "y": 53,
+        "w": 1822,
+        "h": 1008
+      },
+      "rowsTouched": 287,
+      "colsTouched": 922,
+      "spreadRowsRatio": 0.2657407407407407,
+      "spreadColsRatio": 0.48020833333333335,
+      "findings": [
+        "header/title typography"
+      ]
+    },
+    {
+      "file": "slide-021.png",
+      "width": 1920,
+      "height": 1080,
+      "diffPixels": 62652,
+      "totalPixels": 2073600,
+      "diffRatio": 0.03021412037037037,
+      "bbox": {
+        "x": 377,
+        "y": 377,
+        "w": 1323,
+        "h": 353
+      },
+      "rowsTouched": 317,
+      "colsTouched": 867,
+      "spreadRowsRatio": 0.2935185185185185,
+      "spreadColsRatio": 0.4515625,
+      "findings": [
+        "main content block (chart/table/cards)",
+        "column alignment/layout split"
+      ]
+    },
+    {
+      "file": "slide-022.png",
+      "width": 1920,
+      "height": 1080,
+      "diffPixels": 65800,
+      "totalPixels": 2073600,
+      "diffRatio": 0.031732253086419755,
+      "bbox": {
+        "x": 49,
+        "y": 71,
+        "w": 1822,
+        "h": 990
+      },
+      "rowsTouched": 292,
+      "colsTouched": 1210,
+      "spreadRowsRatio": 0.27037037037037037,
+      "spreadColsRatio": 0.6302083333333334,
+      "findings": [
+        "header/title typography",
+        "column alignment/layout split"
+      ]
+    },
+    {
+      "file": "slide-023.png",
+      "width": 1920,
+      "height": 1080,
+      "diffPixels": 65375,
+      "totalPixels": 2073600,
+      "diffRatio": 0.03152729552469136,
+      "bbox": {
+        "x": 49,
+        "y": 293,
+        "w": 1822,
+        "h": 768
+      },
+      "rowsTouched": 294,
+      "colsTouched": 858,
+      "spreadRowsRatio": 0.2722222222222222,
+      "spreadColsRatio": 0.446875,
+      "findings": [
+        "main content block (chart/table/cards)"
+      ]
+    },
+    {
+      "file": "slide-024.png",
+      "width": 1920,
+      "height": 1080,
+      "diffPixels": 42623,
+      "totalPixels": 2073600,
+      "diffRatio": 0.020555073302469137,
+      "bbox": {
+        "x": 67,
+        "y": 243,
+        "w": 1585,
+        "h": 609
+      },
+      "rowsTouched": 579,
+      "colsTouched": 1044,
+      "spreadRowsRatio": 0.5361111111111111,
+      "spreadColsRatio": 0.54375,
+      "findings": [
+        "main content block (chart/table/cards)",
+        "column alignment/layout split"
+      ]
+    },
+    {
+      "file": "slide-025.png",
+      "width": 1920,
+      "height": 1080,
+      "diffPixels": 44384,
+      "totalPixels": 2073600,
+      "diffRatio": 0.02140432098765432,
+      "bbox": {
+        "x": 49,
+        "y": 52,
+        "w": 1822,
+        "h": 1010
+      },
+      "rowsTouched": 680,
+      "colsTouched": 1075,
+      "spreadRowsRatio": 0.6296296296296297,
+      "spreadColsRatio": 0.5598958333333334,
+      "findings": [
+        "header/title typography",
+        "footer/page-number overlay"
+      ]
+    },
+    {
+      "file": "slide-026.png",
+      "width": 1920,
+      "height": 1080,
+      "diffPixels": 59275,
+      "totalPixels": 2073600,
+      "diffRatio": 0.028585551697530864,
+      "bbox": {
+        "x": 49,
+        "y": 52,
+        "w": 1822,
+        "h": 1010
+      },
+      "rowsTouched": 709,
+      "colsTouched": 1525,
+      "spreadRowsRatio": 0.6564814814814814,
+      "spreadColsRatio": 0.7942708333333334,
+      "findings": [
+        "header/title typography",
+        "footer/page-number overlay"
+      ]
+    },
+    {
+      "file": "slide-027.png",
+      "width": 1920,
+      "height": 1080,
+      "diffPixels": 42623,
+      "totalPixels": 2073600,
+      "diffRatio": 0.020555073302469137,
+      "bbox": {
+        "x": 67,
+        "y": 243,
+        "w": 1585,
+        "h": 609
+      },
+      "rowsTouched": 579,
+      "colsTouched": 1044,
+      "spreadRowsRatio": 0.5361111111111111,
+      "spreadColsRatio": 0.54375,
+      "findings": [
+        "main content block (chart/table/cards)",
+        "column alignment/layout split"
+      ]
+    },
+    {
+      "file": "slide-028.png",
+      "width": 1920,
+      "height": 1080,
+      "diffPixels": 41617,
+      "totalPixels": 2073600,
+      "diffRatio": 0.020069926697530865,
+      "bbox": {
+        "x": 49,
+        "y": 360,
+        "w": 1822,
+        "h": 703
+      },
+      "rowsTouched": 235,
+      "colsTouched": 838,
+      "spreadRowsRatio": 0.2175925925925926,
+      "spreadColsRatio": 0.43645833333333334,
+      "findings": [
+        "footer/page-number overlay",
+        "main content block (chart/table/cards)"
+      ]
+    },
+    {
+      "file": "slide-029.png",
+      "width": 1920,
+      "height": 1080,
+      "diffPixels": 27442,
+      "totalPixels": 2073600,
+      "diffRatio": 0.013233989197530865,
+      "bbox": {
+        "x": 49,
+        "y": 70,
+        "w": 1822,
+        "h": 993
+      },
+      "rowsTouched": 197,
+      "colsTouched": 920,
+      "spreadRowsRatio": 0.1824074074074074,
+      "spreadColsRatio": 0.4791666666666667,
+      "findings": [
+        "header/title typography",
+        "footer/page-number overlay",
+        "column alignment/layout split"
+      ]
+    },
+    {
+      "file": "slide-03.png",
+      "width": 1920,
+      "height": 1080,
+      "diffPixels": 784052,
+      "totalPixels": 2073600,
+      "diffRatio": 0.37811149691358026,
+      "bbox": {
+        "x": 0,
+        "y": 90,
+        "w": 1920,
+        "h": 990
+      },
+      "rowsTouched": 990,
+      "colsTouched": 1920,
+      "spreadRowsRatio": 0.9166666666666666,
+      "spreadColsRatio": 1,
+      "findings": [
+        "footer/page-number overlay",
+        "main content block (chart/table/cards)",
+        "column alignment/layout split",
+        "global background/gradient/color tone"
+      ]
+    },
+    {
+      "file": "slide-030.png",
+      "width": 1920,
+      "height": 1080,
+      "diffPixels": 61826,
+      "totalPixels": 2073600,
+      "diffRatio": 0.029815779320987654,
+      "bbox": {
+        "x": 49,
+        "y": 71,
+        "w": 1822,
+        "h": 992
+      },
+      "rowsTouched": 404,
+      "colsTouched": 1819,
+      "spreadRowsRatio": 0.37407407407407406,
+      "spreadColsRatio": 0.9473958333333333,
+      "findings": [
+        "header/title typography"
+      ]
+    },
+    {
+      "file": "slide-031.png",
+      "width": 1920,
+      "height": 1080,
+      "diffPixels": 67698,
+      "totalPixels": 2073600,
+      "diffRatio": 0.03264756944444445,
+      "bbox": {
+        "x": 49,
+        "y": 283,
+        "w": 1822,
+        "h": 780
+      },
+      "rowsTouched": 538,
+      "colsTouched": 1018,
+      "spreadRowsRatio": 0.4981481481481482,
+      "spreadColsRatio": 0.5302083333333333,
+      "findings": [
+        "main content block (chart/table/cards)"
+      ]
+    },
+    {
+      "file": "slide-032.png",
+      "width": 1920,
+      "height": 1080,
+      "diffPixels": 59160,
+      "totalPixels": 2073600,
+      "diffRatio": 0.028530092592592593,
+      "bbox": {
+        "x": 49,
+        "y": 53,
+        "w": 1822,
+        "h": 1009
+      },
+      "rowsTouched": 433,
+      "colsTouched": 1812,
+      "spreadRowsRatio": 0.4009259259259259,
+      "spreadColsRatio": 0.94375,
+      "findings": [
+        "header/title typography",
+        "footer/page-number overlay",
+        "column alignment/layout split"
+      ]
+    },
+    {
+      "file": "slide-033.png",
+      "width": 1920,
+      "height": 1080,
+      "diffPixels": 25963,
+      "totalPixels": 2073600,
+      "diffRatio": 0.012520736882716049,
+      "bbox": {
+        "x": 48,
+        "y": 48,
+        "w": 1823,
+        "h": 1014
+      },
+      "rowsTouched": 1014,
+      "colsTouched": 793,
+      "spreadRowsRatio": 0.9388888888888889,
+      "spreadColsRatio": 0.41302083333333334,
+      "findings": [
+        "footer/page-number overlay",
+        "main content block (chart/table/cards)"
+      ]
+    },
+    {
+      "file": "slide-034.png",
+      "width": 1920,
+      "height": 1080,
+      "diffPixels": 22991,
+      "totalPixels": 2073600,
+      "diffRatio": 0.011087480709876543,
+      "bbox": {
+        "x": 49,
+        "y": 142,
+        "w": 1822,
+        "h": 920
+      },
+      "rowsTouched": 721,
+      "colsTouched": 821,
+      "spreadRowsRatio": 0.6675925925925926,
+      "spreadColsRatio": 0.4276041666666667,
+      "findings": [
+        "footer/page-number overlay",
+        "main content block (chart/table/cards)"
+      ]
+    },
+    {
+      "file": "slide-035.png",
+      "width": 1920,
+      "height": 1080,
+      "diffPixels": 59160,
+      "totalPixels": 2073600,
+      "diffRatio": 0.028530092592592593,
+      "bbox": {
+        "x": 49,
+        "y": 53,
+        "w": 1822,
+        "h": 1009
+      },
+      "rowsTouched": 433,
+      "colsTouched": 1812,
+      "spreadRowsRatio": 0.4009259259259259,
+      "spreadColsRatio": 0.94375,
+      "findings": [
+        "header/title typography",
+        "footer/page-number overlay",
+        "column alignment/layout split"
+      ]
+    },
+    {
+      "file": "slide-036.png",
+      "width": 1920,
+      "height": 1080,
+      "diffPixels": 40922,
+      "totalPixels": 2073600,
+      "diffRatio": 0.019734760802469137,
+      "bbox": {
+        "x": 48,
+        "y": 70,
+        "w": 1823,
+        "h": 992
+      },
+      "rowsTouched": 354,
+      "colsTouched": 851,
+      "spreadRowsRatio": 0.3277777777777778,
+      "spreadColsRatio": 0.4432291666666667,
+      "findings": [
+        "header/title typography"
+      ]
+    },
+    {
+      "file": "slide-037.png",
+      "width": 1920,
+      "height": 1080,
+      "diffPixels": 83414,
+      "totalPixels": 2073600,
+      "diffRatio": 0.040226658950617285,
+      "bbox": {
+        "x": 49,
+        "y": 58,
+        "w": 1822,
+        "h": 1004
+      },
+      "rowsTouched": 495,
+      "colsTouched": 1119,
+      "spreadRowsRatio": 0.4583333333333333,
+      "spreadColsRatio": 0.5828125,
+      "findings": [
+        "header/title typography",
+        "column alignment/layout split"
+      ]
+    },
+    {
+      "file": "slide-038.png",
+      "width": 1920,
+      "height": 1080,
+      "diffPixels": 34579,
+      "totalPixels": 2073600,
+      "diffRatio": 0.016675829475308643,
+      "bbox": {
+        "x": 49,
+        "y": 390,
+        "w": 1822,
+        "h": 672
+      },
+      "rowsTouched": 205,
+      "colsTouched": 788,
+      "spreadRowsRatio": 0.18981481481481483,
+      "spreadColsRatio": 0.41041666666666665,
+      "findings": [
+        "footer/page-number overlay",
+        "main content block (chart/table/cards)"
+      ]
+    },
+    {
+      "file": "slide-039.png",
+      "width": 1920,
+      "height": 1080,
+      "diffPixels": 44661,
+      "totalPixels": 2073600,
+      "diffRatio": 0.021537905092592593,
+      "bbox": {
+        "x": 49,
+        "y": 69,
+        "w": 1822,
+        "h": 993
+      },
+      "rowsTouched": 305,
+      "colsTouched": 858,
+      "spreadRowsRatio": 0.2824074074074074,
+      "spreadColsRatio": 0.446875,
+      "findings": [
+        "header/title typography",
+        "column alignment/layout split"
+      ]
+    },
+    {
+      "file": "slide-04.png",
+      "width": 1920,
+      "height": 1080,
+      "diffPixels": 118423,
+      "totalPixels": 2073600,
+      "diffRatio": 0.05710985725308642,
+      "bbox": {
+        "x": 0,
+        "y": 0,
+        "w": 1920,
+        "h": 1080
+      },
+      "rowsTouched": 370,
+      "colsTouched": 1590,
+      "spreadRowsRatio": 0.3425925925925926,
+      "spreadColsRatio": 0.828125,
+      "findings": [
+        "footer/page-number overlay",
+        "main content block (chart/table/cards)"
+      ]
+    },
+    {
+      "file": "slide-040.png",
+      "width": 1920,
+      "height": 1080,
+      "diffPixels": 86613,
+      "totalPixels": 2073600,
+      "diffRatio": 0.04176938657407407,
+      "bbox": {
+        "x": 49,
+        "y": 70,
+        "w": 1822,
+        "h": 992
+      },
+      "rowsTouched": 369,
+      "colsTouched": 1496,
+      "spreadRowsRatio": 0.3416666666666667,
+      "spreadColsRatio": 0.7791666666666667,
+      "findings": [
+        "header/title typography",
+        "main content block (chart/table/cards)"
+      ]
+    },
+    {
+      "file": "slide-041.png",
+      "width": 1920,
+      "height": 1080,
+      "diffPixels": 68465,
+      "totalPixels": 2073600,
+      "diffRatio": 0.03301745756172839,
+      "bbox": {
+        "x": 49,
+        "y": 53,
+        "w": 1822,
+        "h": 1009
+      },
+      "rowsTouched": 462,
+      "colsTouched": 1700,
+      "spreadRowsRatio": 0.42777777777777776,
+      "spreadColsRatio": 0.8854166666666666,
+      "findings": [
+        "header/title typography",
+        "main content block (chart/table/cards)"
+      ]
+    },
+    {
+      "file": "slide-042.png",
+      "width": 1920,
+      "height": 1080,
+      "diffPixels": 54469,
+      "totalPixels": 2073600,
+      "diffRatio": 0.026267843364197532,
+      "bbox": {
+        "x": 49,
+        "y": 68,
+        "w": 1822,
+        "h": 994
+      },
+      "rowsTouched": 931,
+      "colsTouched": 1203,
+      "spreadRowsRatio": 0.862037037037037,
+      "spreadColsRatio": 0.6265625,
+      "findings": [
+        "header/title typography",
+        "main content block (chart/table/cards)",
+        "column alignment/layout split"
+      ]
+    },
+    {
+      "file": "slide-043.png",
+      "width": 1920,
+      "height": 1080,
+      "diffPixels": 66013,
+      "totalPixels": 2073600,
+      "diffRatio": 0.03183497299382716,
+      "bbox": {
+        "x": 224,
+        "y": 370,
+        "w": 1347,
+        "h": 360
+      },
+      "rowsTouched": 310,
+      "colsTouched": 829,
+      "spreadRowsRatio": 0.28703703703703703,
+      "spreadColsRatio": 0.4317708333333333,
+      "findings": [
+        "main content block (chart/table/cards)",
+        "column alignment/layout split"
+      ]
+    },
+    {
+      "file": "slide-044.png",
+      "width": 1920,
+      "height": 1080,
+      "diffPixels": 78755,
+      "totalPixels": 2073600,
+      "diffRatio": 0.03797984182098765,
+      "bbox": {
+        "x": 49,
+        "y": 54,
+        "w": 1822,
+        "h": 1008
+      },
+      "rowsTouched": 344,
+      "colsTouched": 1063,
+      "spreadRowsRatio": 0.31851851851851853,
+      "spreadColsRatio": 0.5536458333333333,
+      "findings": [
+        "header/title typography",
+        "main content block (chart/table/cards)"
+      ]
+    },
+    {
+      "file": "slide-045.png",
+      "width": 1920,
+      "height": 1080,
+      "diffPixels": 52347,
+      "totalPixels": 2073600,
+      "diffRatio": 0.025244502314814815,
+      "bbox": {
+        "x": 0,
+        "y": 0,
+        "w": 1881,
+        "h": 1062
+      },
+      "rowsTouched": 682,
+      "colsTouched": 1284,
+      "spreadRowsRatio": 0.6314814814814815,
+      "spreadColsRatio": 0.66875,
+      "findings": [
+        "header/title typography"
+      ]
+    },
+    {
+      "file": "slide-046.png",
+      "width": 1920,
+      "height": 1080,
+      "diffPixels": 63369,
+      "totalPixels": 2073600,
+      "diffRatio": 0.030559895833333333,
+      "bbox": {
+        "x": 49,
+        "y": 418,
+        "w": 1822,
+        "h": 644
+      },
+      "rowsTouched": 429,
+      "colsTouched": 1236,
+      "spreadRowsRatio": 0.3972222222222222,
+      "spreadColsRatio": 0.64375,
+      "findings": [
+        "footer/page-number overlay",
+        "main content block (chart/table/cards)",
+        "column alignment/layout split"
+      ]
+    },
+    {
+      "file": "slide-047.png",
+      "width": 1920,
+      "height": 1080,
+      "diffPixels": 41657,
+      "totalPixels": 2073600,
+      "diffRatio": 0.020089216820987653,
+      "bbox": {
+        "x": 49,
+        "y": 142,
+        "w": 1822,
+        "h": 920
+      },
+      "rowsTouched": 725,
+      "colsTouched": 1006,
+      "spreadRowsRatio": 0.6712962962962963,
+      "spreadColsRatio": 0.5239583333333333,
+      "findings": [
+        "footer/page-number overlay",
+        "main content block (chart/table/cards)"
+      ]
+    },
+    {
+      "file": "slide-048.png",
+      "width": 1920,
+      "height": 1080,
+      "diffPixels": 52348,
+      "totalPixels": 2073600,
+      "diffRatio": 0.025244984567901235,
+      "bbox": {
+        "x": 0,
+        "y": 0,
+        "w": 1881,
+        "h": 1062
+      },
+      "rowsTouched": 681,
+      "colsTouched": 1284,
+      "spreadRowsRatio": 0.6305555555555555,
+      "spreadColsRatio": 0.66875,
+      "findings": [
+        "header/title typography"
+      ]
+    },
+    {
+      "file": "slide-049.png",
+      "width": 1920,
+      "height": 1080,
+      "diffPixels": 52892,
+      "totalPixels": 2073600,
+      "diffRatio": 0.02550733024691358,
+      "bbox": {
+        "x": 624,
+        "y": 440,
+        "w": 1247,
+        "h": 622
+      },
+      "rowsTouched": 217,
+      "colsTouched": 715,
+      "spreadRowsRatio": 0.20092592592592592,
+      "spreadColsRatio": 0.3723958333333333,
+      "findings": [
+        "main content block (chart/table/cards)"
+      ]
+    },
+    {
+      "file": "slide-05.png",
+      "width": 1920,
+      "height": 1080,
+      "diffPixels": 52143,
+      "totalPixels": 2073600,
+      "diffRatio": 0.025146122685185186,
+      "bbox": {
+        "x": 49,
+        "y": 73,
+        "w": 1864,
+        "h": 988
+      },
+      "rowsTouched": 254,
+      "colsTouched": 946,
+      "spreadRowsRatio": 0.2351851851851852,
+      "spreadColsRatio": 0.49270833333333336,
+      "findings": [
+        "main content block (chart/table/cards)",
+        "column alignment/layout split"
+      ]
+    },
+    {
+      "file": "slide-050.png",
+      "width": 1920,
+      "height": 1080,
+      "diffPixels": 53287,
+      "totalPixels": 2073600,
+      "diffRatio": 0.025697820216049383,
+      "bbox": {
+        "x": 49,
+        "y": 128,
+        "w": 1822,
+        "h": 933
+      },
+      "rowsTouched": 280,
+      "colsTouched": 816,
+      "spreadRowsRatio": 0.25925925925925924,
+      "spreadColsRatio": 0.425,
+      "findings": [
+        "main content block (chart/table/cards)",
+        "column alignment/layout split"
+      ]
+    },
+    {
+      "file": "slide-051.png",
+      "width": 1920,
+      "height": 1080,
+      "diffPixels": 53287,
+      "totalPixels": 2073600,
+      "diffRatio": 0.025697820216049383,
+      "bbox": {
+        "x": 49,
+        "y": 128,
+        "w": 1822,
+        "h": 933
+      },
+      "rowsTouched": 280,
+      "colsTouched": 816,
+      "spreadRowsRatio": 0.25925925925925924,
+      "spreadColsRatio": 0.425,
+      "findings": [
+        "main content block (chart/table/cards)",
+        "column alignment/layout split"
+      ]
+    },
+    {
+      "file": "slide-052.png",
+      "width": 1920,
+      "height": 1080,
+      "diffPixels": 53287,
+      "totalPixels": 2073600,
+      "diffRatio": 0.025697820216049383,
+      "bbox": {
+        "x": 49,
+        "y": 128,
+        "w": 1822,
+        "h": 933
+      },
+      "rowsTouched": 280,
+      "colsTouched": 816,
+      "spreadRowsRatio": 0.25925925925925924,
+      "spreadColsRatio": 0.425,
+      "findings": [
+        "main content block (chart/table/cards)",
+        "column alignment/layout split"
+      ]
+    },
+    {
+      "file": "slide-053.png",
+      "width": 1920,
+      "height": 1080,
+      "diffPixels": 26966,
+      "totalPixels": 2073600,
+      "diffRatio": 0.013004436728395062,
+      "bbox": {
+        "x": 49,
+        "y": 293,
+        "w": 1822,
+        "h": 768
+      },
+      "rowsTouched": 255,
+      "colsTouched": 795,
+      "spreadRowsRatio": 0.2361111111111111,
+      "spreadColsRatio": 0.4140625,
+      "findings": [
+        "footer/page-number overlay",
+        "main content block (chart/table/cards)"
+      ]
+    },
+    {
+      "file": "slide-054.png",
+      "width": 1920,
+      "height": 1080,
+      "diffPixels": 26965,
+      "totalPixels": 2073600,
+      "diffRatio": 0.013003954475308641,
+      "bbox": {
+        "x": 49,
+        "y": 293,
+        "w": 1822,
+        "h": 768
+      },
+      "rowsTouched": 252,
+      "colsTouched": 795,
+      "spreadRowsRatio": 0.23333333333333334,
+      "spreadColsRatio": 0.4140625,
+      "findings": [
+        "footer/page-number overlay",
+        "main content block (chart/table/cards)"
+      ]
+    },
+    {
+      "file": "slide-055.png",
+      "width": 1920,
+      "height": 1080,
+      "diffPixels": 42657,
+      "totalPixels": 2073600,
+      "diffRatio": 0.020571469907407408,
+      "bbox": {
+        "x": 49,
+        "y": 52,
+        "w": 1822,
+        "h": 1009
+      },
+      "rowsTouched": 438,
+      "colsTouched": 1123,
+      "spreadRowsRatio": 0.40555555555555556,
+      "spreadColsRatio": 0.5848958333333333,
+      "findings": [
+        "header/title typography",
+        "footer/page-number overlay"
+      ]
+    },
+    {
+      "file": "slide-056.png",
+      "width": 1920,
+      "height": 1080,
+      "diffPixels": 56844,
+      "totalPixels": 2073600,
+      "diffRatio": 0.027413194444444445,
+      "bbox": {
+        "x": 49,
+        "y": 52,
+        "w": 1822,
+        "h": 1009
+      },
+      "rowsTouched": 452,
+      "colsTouched": 1579,
+      "spreadRowsRatio": 0.4185185185185185,
+      "spreadColsRatio": 0.8223958333333333,
+      "findings": [
+        "header/title typography",
+        "footer/page-number overlay"
+      ]
+    },
+    {
+      "file": "slide-057.png",
+      "width": 1920,
+      "height": 1080,
+      "diffPixels": 27090,
+      "totalPixels": 2073600,
+      "diffRatio": 0.013064236111111112,
+      "bbox": {
+        "x": 49,
+        "y": 293,
+        "w": 1822,
+        "h": 768
+      },
+      "rowsTouched": 281,
+      "colsTouched": 820,
+      "spreadRowsRatio": 0.2601851851851852,
+      "spreadColsRatio": 0.4270833333333333,
+      "findings": [
+        "footer/page-number overlay",
+        "main content block (chart/table/cards)"
+      ]
+    },
+    {
+      "file": "slide-058.png",
+      "width": 1920,
+      "height": 1080,
+      "diffPixels": 42647,
+      "totalPixels": 2073600,
+      "diffRatio": 0.02056664737654321,
+      "bbox": {
+        "x": 49,
+        "y": 52,
+        "w": 1822,
+        "h": 1009
+      },
+      "rowsTouched": 437,
+      "colsTouched": 1125,
+      "spreadRowsRatio": 0.4046296296296296,
+      "spreadColsRatio": 0.5859375,
+      "findings": [
+        "header/title typography",
+        "footer/page-number overlay"
+      ]
+    },
+    {
+      "file": "slide-059.png",
+      "width": 1920,
+      "height": 1080,
+      "diffPixels": 27089,
+      "totalPixels": 2073600,
+      "diffRatio": 0.013063753858024692,
+      "bbox": {
+        "x": 49,
+        "y": 293,
+        "w": 1822,
+        "h": 768
+      },
+      "rowsTouched": 287,
+      "colsTouched": 838,
+      "spreadRowsRatio": 0.2657407407407407,
+      "spreadColsRatio": 0.43645833333333334,
+      "findings": [
+        "footer/page-number overlay",
+        "main content block (chart/table/cards)"
+      ]
+    },
+    {
+      "file": "slide-06.png",
+      "width": 1920,
+      "height": 1080,
+      "diffPixels": 429700,
+      "totalPixels": 2073600,
+      "diffRatio": 0.2072241512345679,
+      "bbox": {
+        "x": 0,
+        "y": 0,
+        "w": 1920,
+        "h": 1080
+      },
+      "rowsTouched": 1075,
+      "colsTouched": 1920,
+      "spreadRowsRatio": 0.9953703703703703,
+      "spreadColsRatio": 1,
+      "findings": [
+        "header/title typography",
+        "main content block (chart/table/cards)",
+        "column alignment/layout split",
+        "global background/gradient/color tone"
+      ]
+    },
+    {
+      "file": "slide-060.png",
+      "width": 1920,
+      "height": 1080,
+      "diffPixels": 39309,
+      "totalPixels": 2073600,
+      "diffRatio": 0.018956886574074076,
+      "bbox": {
+        "x": 49,
+        "y": 44,
+        "w": 1822,
+        "h": 1019
+      },
+      "rowsTouched": 237,
+      "colsTouched": 833,
+      "spreadRowsRatio": 0.21944444444444444,
+      "spreadColsRatio": 0.43385416666666665,
+      "findings": [
+        "header/title typography",
+        "footer/page-number overlay"
+      ]
+    },
+    {
+      "file": "slide-061.png",
+      "width": 1920,
+      "height": 1080,
+      "diffPixels": 40492,
+      "totalPixels": 2073600,
+      "diffRatio": 0.01952739197530864,
+      "bbox": {
+        "x": 47,
+        "y": 44,
+        "w": 1824,
+        "h": 1019
+      },
+      "rowsTouched": 256,
+      "colsTouched": 851,
+      "spreadRowsRatio": 0.23703703703703705,
+      "spreadColsRatio": 0.4432291666666667,
+      "findings": [
+        "header/title typography",
+        "footer/page-number overlay"
+      ]
+    },
+    {
+      "file": "slide-062.png",
+      "width": 1920,
+      "height": 1080,
+      "diffPixels": 37241,
+      "totalPixels": 2073600,
+      "diffRatio": 0.017959587191358026,
+      "bbox": {
+        "x": 40,
+        "y": 44,
+        "w": 1831,
+        "h": 1019
+      },
+      "rowsTouched": 177,
+      "colsTouched": 997,
+      "spreadRowsRatio": 0.1638888888888889,
+      "spreadColsRatio": 0.5192708333333333,
+      "findings": [
+        "header/title typography",
+        "footer/page-number overlay"
+      ]
+    },
+    {
+      "file": "slide-063.png",
+      "width": 1920,
+      "height": 1080,
+      "diffPixels": 29912,
+      "totalPixels": 2073600,
+      "diffRatio": 0.014425154320987654,
+      "bbox": {
+        "x": 49,
+        "y": 44,
+        "w": 1822,
+        "h": 1017
+      },
+      "rowsTouched": 200,
+      "colsTouched": 617,
+      "spreadRowsRatio": 0.18518518518518517,
+      "spreadColsRatio": 0.32135416666666666,
+      "findings": [
+        "header/title typography",
+        "footer/page-number overlay"
+      ]
+    },
+    {
+      "file": "slide-064.png",
+      "width": 1920,
+      "height": 1080,
+      "diffPixels": 31720,
+      "totalPixels": 2073600,
+      "diffRatio": 0.015297067901234567,
+      "bbox": {
+        "x": 49,
+        "y": 44,
+        "w": 1822,
+        "h": 1017
+      },
+      "rowsTouched": 218,
+      "colsTouched": 648,
+      "spreadRowsRatio": 0.20185185185185187,
+      "spreadColsRatio": 0.3375,
+      "findings": [
+        "header/title typography",
+        "footer/page-number overlay"
+      ]
+    },
+    {
+      "file": "slide-065.png",
+      "width": 1920,
+      "height": 1080,
+      "diffPixels": 50364,
+      "totalPixels": 2073600,
+      "diffRatio": 0.024288194444444446,
+      "bbox": {
+        "x": 40,
+        "y": 44,
+        "w": 1831,
+        "h": 1019
+      },
+      "rowsTouched": 153,
+      "colsTouched": 1231,
+      "spreadRowsRatio": 0.14166666666666666,
+      "spreadColsRatio": 0.6411458333333333,
+      "findings": [
+        "header/title typography",
+        "footer/page-number overlay"
+      ]
+    },
+    {
+      "file": "slide-066.png",
+      "width": 1920,
+      "height": 1080,
+      "diffPixels": 50364,
+      "totalPixels": 2073600,
+      "diffRatio": 0.024288194444444446,
+      "bbox": {
+        "x": 40,
+        "y": 44,
+        "w": 1831,
+        "h": 1019
+      },
+      "rowsTouched": 153,
+      "colsTouched": 1231,
+      "spreadRowsRatio": 0.14166666666666666,
+      "spreadColsRatio": 0.6411458333333333,
+      "findings": [
+        "header/title typography",
+        "footer/page-number overlay"
+      ]
+    },
+    {
+      "file": "slide-067.png",
+      "width": 1920,
+      "height": 1080,
+      "diffPixels": 4334,
+      "totalPixels": 2073600,
+      "diffRatio": 0.00209008487654321,
+      "bbox": {
+        "x": 0,
+        "y": 0,
+        "w": 1920,
+        "h": 1080
+      },
+      "rowsTouched": 44,
+      "colsTouched": 218,
+      "spreadRowsRatio": 0.040740740740740744,
+      "spreadColsRatio": 0.11354166666666667,
+      "findings": [
+        "main content block (chart/table/cards)"
+      ]
+    },
+    {
+      "file": "slide-068.png",
+      "width": 1920,
+      "height": 1080,
+      "diffPixels": 50068,
+      "totalPixels": 2073600,
+      "diffRatio": 0.024145447530864197,
+      "bbox": {
+        "x": 40,
+        "y": 44,
+        "w": 1831,
+        "h": 1019
+      },
+      "rowsTouched": 210,
+      "colsTouched": 1119,
+      "spreadRowsRatio": 0.19444444444444445,
+      "spreadColsRatio": 0.5828125,
+      "findings": [
+        "header/title typography"
+      ]
+    },
+    {
+      "file": "slide-069.png",
+      "width": 1920,
+      "height": 1080,
+      "diffPixels": 41230,
+      "totalPixels": 2073600,
+      "diffRatio": 0.01988329475308642,
+      "bbox": {
+        "x": 42,
+        "y": 43,
+        "w": 1829,
+        "h": 1020
+      },
+      "rowsTouched": 169,
+      "colsTouched": 1078,
+      "spreadRowsRatio": 0.15648148148148147,
+      "spreadColsRatio": 0.5614583333333333,
+      "findings": [
+        "header/title typography",
+        "footer/page-number overlay",
+        "column alignment/layout split"
+      ]
+    },
+    {
+      "file": "slide-07.png",
+      "width": 1920,
+      "height": 1080,
+      "diffPixels": 429700,
+      "totalPixels": 2073600,
+      "diffRatio": 0.2072241512345679,
+      "bbox": {
+        "x": 0,
+        "y": 0,
+        "w": 1920,
+        "h": 1080
+      },
+      "rowsTouched": 1075,
+      "colsTouched": 1920,
+      "spreadRowsRatio": 0.9953703703703703,
+      "spreadColsRatio": 1,
+      "findings": [
+        "header/title typography",
+        "main content block (chart/table/cards)",
+        "column alignment/layout split",
+        "global background/gradient/color tone"
+      ]
+    },
+    {
+      "file": "slide-070.png",
+      "width": 1920,
+      "height": 1080,
+      "diffPixels": 87764,
+      "totalPixels": 2073600,
+      "diffRatio": 0.04232445987654321,
+      "bbox": {
+        "x": 49,
+        "y": 69,
+        "w": 1822,
+        "h": 994
+      },
+      "rowsTouched": 703,
+      "colsTouched": 1358,
+      "spreadRowsRatio": 0.6509259259259259,
+      "spreadColsRatio": 0.7072916666666667,
+      "findings": [
+        "header/title typography",
+        "main content block (chart/table/cards)"
+      ]
+    },
+    {
+      "file": "slide-071.png",
+      "width": 1920,
+      "height": 1080,
+      "diffPixels": 67809,
+      "totalPixels": 2073600,
+      "diffRatio": 0.03270109953703704,
+      "bbox": {
+        "x": 49,
+        "y": 69,
+        "w": 1822,
+        "h": 994
+      },
+      "rowsTouched": 505,
+      "colsTouched": 1574,
+      "spreadRowsRatio": 0.4675925925925926,
+      "spreadColsRatio": 0.8197916666666667,
+      "findings": [
+        "header/title typography",
+        "main content block (chart/table/cards)"
+      ]
+    },
+    {
+      "file": "slide-072.png",
+      "width": 1920,
+      "height": 1080,
+      "diffPixels": 71817,
+      "totalPixels": 2073600,
+      "diffRatio": 0.03463396990740741,
+      "bbox": {
+        "x": 49,
+        "y": 69,
+        "w": 1822,
+        "h": 994
+      },
+      "rowsTouched": 598,
+      "colsTouched": 1311,
+      "spreadRowsRatio": 0.5537037037037037,
+      "spreadColsRatio": 0.6828125,
+      "findings": [
+        "header/title typography",
+        "main content block (chart/table/cards)"
+      ]
+    },
+    {
+      "file": "slide-073.png",
+      "width": 1920,
+      "height": 1080,
+      "diffPixels": 58948,
+      "totalPixels": 2073600,
+      "diffRatio": 0.028427854938271605,
+      "bbox": {
+        "x": 49,
+        "y": 69,
+        "w": 1822,
+        "h": 994
+      },
+      "rowsTouched": 682,
+      "colsTouched": 1163,
+      "spreadRowsRatio": 0.6314814814814815,
+      "spreadColsRatio": 0.6057291666666667,
+      "findings": [
+        "header/title typography"
+      ]
+    },
+    {
+      "file": "slide-074.png",
+      "width": 1920,
+      "height": 1080,
+      "diffPixels": 66881,
+      "totalPixels": 2073600,
+      "diffRatio": 0.03225356867283951,
+      "bbox": {
+        "x": 49,
+        "y": 69,
+        "w": 1822,
+        "h": 994
+      },
+      "rowsTouched": 709,
+      "colsTouched": 1190,
+      "spreadRowsRatio": 0.6564814814814814,
+      "spreadColsRatio": 0.6197916666666666,
+      "findings": [
+        "header/title typography",
+        "footer/page-number overlay"
+      ]
+    },
+    {
+      "file": "slide-08.png",
+      "width": 1920,
+      "height": 1080,
+      "diffPixels": 32542,
+      "totalPixels": 2073600,
+      "diffRatio": 0.015693479938271606,
+      "bbox": {
+        "x": 49,
+        "y": 411,
+        "w": 1822,
+        "h": 650
+      },
+      "rowsTouched": 234,
+      "colsTouched": 603,
+      "spreadRowsRatio": 0.21666666666666667,
+      "spreadColsRatio": 0.3140625,
+      "findings": [
+        "footer/page-number overlay",
+        "main content block (chart/table/cards)",
+        "column alignment/layout split"
+      ]
+    },
+    {
+      "file": "slide-09.png",
+      "width": 1920,
+      "height": 1080,
+      "diffPixels": 31359,
+      "totalPixels": 2073600,
+      "diffRatio": 0.015122974537037037,
+      "bbox": {
+        "x": 49,
+        "y": 158,
+        "w": 1822,
+        "h": 904
+      },
+      "rowsTouched": 293,
+      "colsTouched": 515,
+      "spreadRowsRatio": 0.2712962962962963,
+      "spreadColsRatio": 0.2682291666666667,
+      "findings": [
+        "footer/page-number overlay",
+        "main content block (chart/table/cards)"
+      ]
+    },
+    {
+      "file": "slide-10.png",
+      "width": 1920,
+      "height": 1080,
+      "diffPixels": 45860,
+      "totalPixels": 2073600,
+      "diffRatio": 0.022116126543209876,
+      "bbox": {
+        "x": 49,
+        "y": 400,
+        "w": 1822,
+        "h": 662
+      },
+      "rowsTouched": 192,
+      "colsTouched": 1247,
+      "spreadRowsRatio": 0.17777777777777778,
+      "spreadColsRatio": 0.6494791666666667,
+      "findings": [
+        "main content block (chart/table/cards)",
+        "column alignment/layout split"
+      ]
+    }
+  ],
+  "backlog": [
+    {
+      "priority": "P0",
+      "topic": "main content block (chart/table/cards)",
+      "impactedSlides": 49,
+      "action": "Audit chart/table/card layout tokens and spacing in normalized export contract."
+    },
+    {
+      "priority": "P1",
+      "topic": "header/title typography",
+      "impactedSlides": 40,
+      "action": "Align font rendering/scaling for heading blocks between preview and capture."
+    },
+    {
+      "priority": "P1",
+      "topic": "column alignment/layout split",
+      "impactedSlides": 30,
+      "action": "Normalize split ratios and x-axis anchoring for left/right columns."
+    },
+    {
+      "priority": "P2",
+      "topic": "footer/page-number overlay",
+      "impactedSlides": 26,
+      "action": "Unify footer baseline and page number placement in overlay and export layer."
+    },
+    {
+      "priority": "P2",
+      "topic": "global background/gradient/color tone",
+      "impactedSlides": 4,
+      "action": "Stabilize global background gradients and color blending prior to capture."
+    }
+  ]
+}

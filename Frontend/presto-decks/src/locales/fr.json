@@ -202,12 +202,30 @@
     "themes": {
       "startup": "Startup",
       "corporate": "Entreprise",
-      "creative": "Créatif"
+      "creative": "Créatif",
+      "corporate-report": "Rapport d'entreprise",
+      "product-launch": "Lancement de produit",
+      "startup-pitch": "Pitch de startup",
+      "consulting": "Conseil Premium",
+      "minimal-elegant": "Minimal Élégant",
+      "creative-portfolio": "Portfolio Créatif",
+      "educational": "Cours Éducatif",
+      "marketing-campaign": "Campagne Marketing",
+      "tech-modern": "Tech Moderne",
+      "health-medical": "Santé & Médical",
+      "sustainability": "Développement Durable"
     },
     "statuses": {
+      "pending": "En attente",
+      "queued": "Mis en file d'attente",
       "processing": "En cours",
       "succeeded": "Terminé",
-      "failed": "Erreur"
+      "failed": "Erreur",
+      "ready": "Prêt",
+      "draft": "Brouillon",
+      "review": "En révision",
+      "approved": "Approuvé",
+      "accepted": "Accepté"
     }
   },
   "create": {
@@ -521,7 +539,12 @@
     "workingOnIt": "Nous y travaillons ! 🚀",
     "complete": "Export terminé !",
     "downloaded": "Le fichier a été téléchargé",
-    "progressSlide": "Slide {{current}} / {{total}}"
+    "progressSlide": "Slide {{current}} / {{total}}",
+    "beta": "Bêta",
+    "pixelPerfect": "Pixel Perfect",
+    "editable": "Éditable",
+    "pptxDescription": "Export PowerPoint haute fidélité (images).",
+    "pptxDescriptionEditable": "Export PowerPoint en objets éditables (beta)."
   },
   "addSlide": {
     "title": "Ajouter une slide magique",

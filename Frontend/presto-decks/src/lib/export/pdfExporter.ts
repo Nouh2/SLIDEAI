@@ -54,6 +54,16 @@ export const captureSlide = async (slide: HTMLElement, scale: number = 2.0): Pro
         scrollX: 0,
         scrollY: 0,
         onclone: (clonedDoc) => {
+            const styleTag = clonedDoc.createElement('style');
+            styleTag.setAttribute('data-export-stabilizer', 'true');
+            styleTag.textContent = `
+                *, *::before, *::after {
+                    animation: none !important;
+                    transition: none !important;
+                }
+            `;
+            clonedDoc.head.appendChild(styleTag);
+
             // Ensure fonts are available in cloned document
             const clonedSlide = clonedDoc.querySelector(`[data-slide-index="${slide.getAttribute('data-slide-index')}"]`);
             if (clonedSlide) {
@@ -61,11 +71,14 @@ export const captureSlide = async (slide: HTMLElement, scale: number = 2.0): Pro
                 const style = (clonedSlide as HTMLElement).style as any;
                 style.fontSmooth = 'always';
                 style.webkitFontSmoothing = 'antialiased';
+                style.textRendering = 'geometricPrecision';
             }
         }
     });
 
-    return canvas.toDataURL('image/jpeg', 0.90);
+    // Use PNG to avoid lossy compression artifacts that impact visual fidelity
+    // (especially on small typography and subtle gradients).
+    return canvas.toDataURL('image/png');
 };
 
 /**
@@ -122,7 +135,7 @@ export const exportToPDF = async (
 
                 pdf.addImage(
                     imageData,
-                    'JPEG',
+                    'PNG',
                     0, 0,
                     SLIDE_WIDTH, SLIDE_HEIGHT,
                     undefined,

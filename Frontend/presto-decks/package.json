@@ -4,12 +4,15 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "npm run generate:sitemap && vite build",
-    "build:dev": "vite build --mode development",
+    "dev": "vite --config vite.config.mjs",
+    "build": "npm run generate:sitemap && vite build --config vite.config.mjs",
+    "build:dev": "vite build --config vite.config.mjs --mode development",
     "generate:sitemap": "node scripts/generate-sitemap.js",
+    "test:visual": "node scripts/visual-regression.mjs",
+    "test:visual:stress": "node scripts/visual-regression-stress.mjs",
+    "test:visual:report": "node scripts/visual-regression-report.mjs",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview --config vite.config.mjs"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
@@ -88,6 +91,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.32.0",
+    "@playwright/test": "^1.54.2",
     "@tailwindcss/typography": "^0.5.16",
     "@types/node": "^22.19.7",
     "@types/react": "^18.3.23",
@@ -99,6 +103,9 @@
     "eslint-plugin-react-refresh": "^0.4.20",
     "globals": "^15.15.0",
     "lovable-tagger": "^1.1.10",
+    "pixelmatch": "^7.1.0",
+    "playwright": "^1.58.2",
+    "pngjs": "^7.0.0",
     "postcss": "^8.5.6",
     "tailwindcss": "^3.4.17",
     "typescript": "^5.8.3",

@@ -26,6 +26,7 @@ const ResetPassword = lazy(() => import("@/pages/ResetPassword"));
 const Blog = lazy(() => import("@/pages/Blog"));
 const BlogPost = lazy(() => import("@/pages/BlogPost"));
 const ChartDemoPage = lazy(() => import("@/pages/ChartDemo"));
+const VisualRegressionPage = lazy(() => import("@/pages/VisualRegression"));
 
 const PDFToPowerPoint = lazy(() => import("@/pages/PDFToPowerPoint"));
 const OrgSettings = lazy(() => import("@/pages/OrgSettings"));
@@ -57,6 +58,7 @@ export const AnimatedRoutes = () => {
                     <Route path="/blog" element={<PageTransition><Blog /></PageTransition>} />
                     <Route path="/blog/:slug" element={<PageTransition><BlogPost /></PageTransition>} />
                     <Route path="/charts-demo" element={<PageTransition><ChartDemoPage /></PageTransition>} />
+                    <Route path="/qa/visual-regression" element={<PageTransition><VisualRegressionPage /></PageTransition>} />
                     <Route path="/pdf-to-powerpoint" element={<PageTransition><PDFToPowerPoint /></PageTransition>} />
 
 

@@ -184,12 +184,30 @@
     "themes": {
       "startup": "Startup",
       "corporate": "Corporate",
-      "creative": "Creative"
+      "creative": "Creative",
+      "corporate-report": "Corporate Report",
+      "product-launch": "Product Launch",
+      "startup-pitch": "Startup Pitch",
+      "consulting": "Consulting Premium",
+      "minimal-elegant": "Minimal Elegant",
+      "creative-portfolio": "Creative Portfolio",
+      "educational": "Educational Course",
+      "marketing-campaign": "Marketing Campaign",
+      "tech-modern": "Tech Modern",
+      "health-medical": "Health & Medical",
+      "sustainability": "Sustainability"
     },
     "statuses": {
+      "pending": "Pending",
+      "queued": "Queued",
       "processing": "Processing",
       "succeeded": "Completed",
-      "failed": "Error"
+      "failed": "Error",
+      "ready": "Ready",
+      "draft": "Draft",
+      "review": "Review",
+      "approved": "Approved",
+      "accepted": "Accepted"
     }
   },
   "create": {
@@ -502,7 +520,12 @@
     "workingOnIt": "We're working on it! 🚀",
     "complete": "Export complete!",
     "downloaded": "The file has been downloaded",
-    "progressSlide": "Slide {{current}} / {{total}}"
+    "progressSlide": "Slide {{current}} / {{total}}",
+    "beta": "Beta",
+    "pixelPerfect": "Pixel Perfect",
+    "editable": "Editable",
+    "pptxDescription": "High fidelity PowerPoint export (images).",
+    "pptxDescriptionEditable": "PowerPoint export as editable objects (beta)."
   },
   "addSlide": {
     "title": "Add a magic slide",

@@ -14,7 +14,7 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { FileText, FileSpreadsheet, Loader2, CheckCircle, AlertCircle, Globe, Copy } from 'lucide-react';
-import { exportToPDF } from '@/lib/export';
+import { exportToPDF, normalizeExportDeck } from '@/lib/export';
 import { exportToPPTX, exportToPPTXWithImages } from '@/lib/export/pptx';
 import {
     Select,
@@ -50,6 +50,7 @@ export function ExportDialog({ open, onOpenChange, presentation, accessToken }: 
     const [exportProgress, setExportProgress] = useState<ExportProgress | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [targetLanguage, setTargetLanguage] = useState<string>("original");
+    const [pptxMode, setPptxMode] = useState<'pixel-perfect' | 'editable'>('pixel-perfect');
     const [previewDeck, setPreviewDeck] = useState<any>(null);
     const hiddenSlidesRef = useRef<HTMLDivElement>(null);
     const { t } = useTranslation();
@@ -80,6 +81,7 @@ export function ExportDialog({ open, onOpenChange, presentation, accessToken }: 
         if (!open) {
             setPreviewDeck(null);
             setTargetLanguage("original");
+            setPptxMode('pixel-perfect');
             setError(null);
         }
     }, [open]);
@@ -96,7 +98,7 @@ export function ExportDialog({ open, onOpenChange, presentation, accessToken }: 
         });
 
         try {
-            let exportDeck = { ...presentation };
+            let exportDeckRaw = { ...presentation };
 
             // Handle translation if a target language is selected
             if (targetLanguage !== "original" && accessToken) {
@@ -110,8 +112,8 @@ export function ExportDialog({ open, onOpenChange, presentation, accessToken }: 
                 const { traceId } = await api.translateDeck(presentation, targetLanguage, accessToken);
                 const status = await pollTranslationStatus(traceId);
                 const translatedDeck = status.deck;
-                exportDeck = { ...presentation, ...translatedDeck };
-                setPreviewDeck(exportDeck);
+                exportDeckRaw = { ...presentation, ...translatedDeck };
+                setPreviewDeck(exportDeckRaw);
 
                 // Small delay to ensure React has updated the DOM with translated content
                 await new Promise(resolve => setTimeout(resolve, 500));
@@ -126,6 +128,8 @@ export function ExportDialog({ open, onOpenChange, presentation, accessToken }: 
             if (slideElements.length === 0) {
                 throw new Error(t('export.noSlides'));
             }
+
+            const exportDeck = normalizeExportDeck(exportDeckRaw);
 
             await exportToPDF(
                 Array.from(slideElements) as HTMLElement[],
@@ -160,7 +164,7 @@ export function ExportDialog({ open, onOpenChange, presentation, accessToken }: 
         });
 
         try {
-            let exportDeck = { ...presentation };
+            let exportDeckRaw = { ...presentation };
 
             // Handle translation if a target language is selected
             if (targetLanguage !== "original" && accessToken) {
@@ -174,29 +178,33 @@ export function ExportDialog({ open, onOpenChange, presentation, accessToken }: 
                 const { traceId } = await api.translateDeck(presentation, targetLanguage, accessToken);
                 const status = await pollTranslationStatus(traceId);
                 const translatedDeck = status.deck;
-                exportDeck = { ...presentation, ...translatedDeck };
-                setPreviewDeck(exportDeck);
+                exportDeckRaw = { ...presentation, ...translatedDeck };
+                setPreviewDeck(exportDeckRaw);
 
                 // Small delay to ensure React has updated the DOM with translated content
                 await new Promise(resolve => setTimeout(resolve, 500));
             }
 
-            // Get all rendered slide elements from the hidden container
-            await new Promise(resolve => setTimeout(resolve, 500));
+            const exportDeck = normalizeExportDeck(exportDeckRaw);
 
-            const slideElements = hiddenSlidesRef.current.querySelectorAll('[data-slide-export]');
+            if (pptxMode === 'editable') {
+                await exportToPPTX(exportDeck, setExportProgress);
+            } else {
+                // Get all rendered slide elements from the hidden container
+                await new Promise(resolve => setTimeout(resolve, 500));
 
-            if (slideElements.length === 0) {
-                throw new Error(t('export.noSlides'));
+                const slideElements = hiddenSlidesRef.current.querySelectorAll('[data-slide-export]');
+
+                if (slideElements.length === 0) {
+                    throw new Error(t('export.noSlides'));
+                }
+
+                await exportToPPTXWithImages(
+                    Array.from(slideElements) as HTMLElement[],
+                    exportDeck.title,
+                    setExportProgress
+                );
             }
-
-            // Use the High Fidelity image exporter
-            // Note: Make sure to import this!
-            await exportToPPTXWithImages(
-                Array.from(slideElements) as HTMLElement[],
-                exportDeck.title,
-                setExportProgress
-            );
 
             // Analytics.trackEvent(ANALYTICS_EVENTS.PRESENTATION.CATEGORY, ANALYTICS_EVENTS.PRESENTATION.EXPORT, 'PPTX');
 
@@ -211,7 +219,7 @@ export function ExportDialog({ open, onOpenChange, presentation, accessToken }: 
             setError(err.message || t('export.pptxError'));
             setExportProgress(null);
         }
-    }, [presentation, onOpenChange, targetLanguage, accessToken]);
+    }, [presentation, onOpenChange, targetLanguage, accessToken, pptxMode, t]);
 
     const handleTranslateAndDuplicate = useCallback(async () => {
         if (!presentation || !accessToken || targetLanguage === 'original') return;
@@ -302,6 +310,33 @@ export function ExportDialog({ open, onOpenChange, presentation, accessToken }: 
                         <p className="text-[10px] text-muted-foreground italic">
                             {t('export.translationDisclaimer', { defaultValue: '* Translation is handled by AI and may require manual review.' })}
                         </p>
+
+                        <div className="space-y-2 pt-2">
+                            <Label htmlFor="pptx-mode-select" className="text-sm font-medium">
+                                {t('export.pptxMode', { defaultValue: 'PowerPoint Mode' })}
+                            </Label>
+                            <Select
+                                value={pptxMode}
+                                onValueChange={(value) => setPptxMode(value as 'pixel-perfect' | 'editable')}
+                            >
+                                <SelectTrigger id="pptx-mode-select">
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="pixel-perfect">
+                                        {t('export.pptxModePixelPerfect', { defaultValue: 'Pixel Perfect (Recommended)' })}
+                                    </SelectItem>
+                                    <SelectItem value="editable">
+                                        {t('export.pptxModeEditable', { defaultValue: 'Editable Objects (Beta)' })}
+                                    </SelectItem>
+                                </SelectContent>
+                            </Select>
+                            <p className="text-[10px] text-muted-foreground">
+                                {pptxMode === 'pixel-perfect'
+                                    ? t('export.pptxModePixelPerfectDesc', { defaultValue: 'Visual fidelity max. Slides are exported as images in PowerPoint.' })
+                                    : t('export.pptxModeEditableDesc', { defaultValue: 'Editable PowerPoint objects, with partial fidelity depending on layout/variants.' })}
+                            </p>
+                        </div>
                     </div>
                 )
                 }
@@ -319,24 +354,32 @@ export function ExportDialog({ open, onOpenChange, presentation, accessToken }: 
                                 <div className="w-14 h-14 rounded-xl bg-red-500/10 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                                     <FileText className="w-7 h-7 text-red-500" />
                                 </div>
-                                <h3 className="font-bold text-foreground mb-1">PDF <span className="text-xs font-normal text-blue-500 bg-blue-500/10 px-2 py-0.5 rounded-full ml-1">Bêta</span></h3>
+                                <h3 className="flex items-center gap-1 font-bold text-foreground mb-1">
+                                    PDF <span className="text-[10px] font-normal text-blue-500 bg-blue-500/10 px-2 py-0.5 rounded-full whitespace-nowrap">{t('export.beta')}</span>
+                                </h3>
                                 <p className="text-xs text-muted-foreground text-center">
-                                    Export fonctionnel mais quelques imperfections mineures possibles.
+                                    {t('export.pdfDesc', { defaultValue: 'Export functional but some minor imperfections possible.' })}
                                 </p>
                             </button>
 
                             {/* PPTX Option */}
                             <button
                                 onClick={handlePPTXExport}
-                                disabled={true}
-                                className="group relative flex flex-col items-center p-6 rounded-2xl border-2 border-border bg-surface/50 opacity-50 cursor-not-allowed text-left"
+                                disabled={isExporting}
+                                className="group relative flex flex-col items-center p-6 rounded-2xl border-2 border-border bg-surface/50 hover:border-primary hover:bg-primary/5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 text-left"
                             >
-                                <div className="w-14 h-14 rounded-xl bg-orange-500/10 flex items-center justify-center mb-4">
+                                <div className="w-14 h-14 rounded-xl bg-orange-500/10 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                                     <FileSpreadsheet className="w-7 h-7 text-orange-500" />
                                 </div>
-                                <h3 className="font-bold text-foreground mb-1">PowerPoint <span className="text-xs font-normal text-gray-500 bg-gray-500/10 px-2 py-0.5 rounded-full ml-1">Bientôt</span></h3>
+                                <h3 className="flex items-center gap-1 font-bold text-foreground mb-1">
+                                    PowerPoint <span className="text-[10px] font-normal text-emerald-600 bg-emerald-500/10 px-2 py-0.5 rounded-full whitespace-nowrap">
+                                        {pptxMode === 'pixel-perfect' ? t('export.pixelPerfect') : t('export.editable')}
+                                    </span>
+                                </h3>
                                 <p className="text-xs text-muted-foreground text-center">
-                                    {t('export.pptxDescription', { defaultValue: 'Export PowerPoint haute fidélité (images).' })}
+                                    {pptxMode === 'pixel-perfect'
+                                        ? t('export.pptxDescription')
+                                        : t('export.pptxDescriptionEditable')}
                                 </p>
                             </button>
 
@@ -428,30 +471,17 @@ export function ExportDialog({ open, onOpenChange, presentation, accessToken }: 
                     }}
                 >
                     {(() => {
-                        // Use a local state or ref for the deck to render based on translation
-                        // For the hidden slides, we need to decide if we use 'presentation' or a 'translatedDeck'
-                        // Since PDF export is triggered after translation, we can just rely on presentation if we update it
-                        // BUT, to avoid state race conditions, we can trigger a re-render of hidden slides 
-                        // by passing the target deck here.
-
-                        // For now, let's assume we want to render whatever is in the 'presentation' prop
-                        // unless we've just translated it. 
-                        // Actually, the hidden renderer should probably just use the 'presentation' but we can
-                        // simulate the switch by having the translated data available.
-
-                        // Let's use a simpler approach: the hidden slides will always use 'presentation'
-                        // and we will update 'presentation' (or a copy of it) for rendering.
-                        // Actually, in this component, 'presentation' is a prop. 
-                        // If we want to render translated slides without changing the parent state,
-                        // we use the local 'previewDeck' state if available.
+                        // Render from the same deck shape used by the editor to minimize visual drift.
                         const activeDeck = previewDeck || presentation;
 
-                        const currentSlides = activeDeck?.slides || [];
+                        const currentSlides = Array.isArray(activeDeck?.slides) ? activeDeck.slides : [];
                         const mainSlides = currentSlides.filter((s: any) => !s.isAppendix) || [];
                         const appendixSlides = currentSlides.filter((s: any) => s.isAppendix) || [];
                         const processedSlides = appendixSlides.length > 0
                             ? [...mainSlides, { isSeparator: true, id: 'appendix-separator', title: 'Appendix', type: 'section-divider', layout: 'section-divider' }, ...appendixSlides]
                             : mainSlides;
+                        const titleFontScale = Number(activeDeck?.themeConfig?.titleFontScale ?? activeDeck?.theme?.titleFontScale ?? 1);
+                        const textFontScale = Number(activeDeck?.themeConfig?.textFontScale ?? activeDeck?.theme?.textFontScale ?? 1);
 
                         return processedSlides.map((slide: any, index: number) => (
                             <div
@@ -470,8 +500,8 @@ export function ExportDialog({ open, onOpenChange, presentation, accessToken }: 
                             >
                                 <div style={{ width: 1920, height: 1080, overflow: 'hidden' }}>
                                     <TemplateOverlay
-                                        config={activeDeck.templateOverlay}
-                                        logoUrl={activeDeck.brandLogoUrl}
+                                        config={activeDeck?.templateOverlay}
+                                        logoUrl={activeDeck?.brandLogoUrl}
                                         slideNumber={index + 1}
                                         totalSlides={processedSlides.length}
                                         isFirst={index === 0}
@@ -482,11 +512,12 @@ export function ExportDialog({ open, onOpenChange, presentation, accessToken }: 
                                                 title: slide.title,
                                                 content: { title: slide.title }
                                             } : slide}
-                                            theme={activeDeck.theme}
-                                            colorPalette={activeDeck.colorScheme}
-                                            titleFontScale={activeDeck.theme?.titleFontScale}
-                                            textFontScale={activeDeck.theme?.textFontScale}
-                                            className="w-[1920px] h-[1080px] min-w-[1920px] min-h-[1080px]"
+                                            theme={activeDeck?.theme}
+                                            colorPalette={activeDeck?.colorScheme}
+                                            fontConfig={activeDeck?.fontConfig}
+                                            titleFontScale={titleFontScale}
+                                            textFontScale={textFontScale}
+                                            className="w-full h-full"
                                         />
                                     </TemplateOverlay>
                                 </div>

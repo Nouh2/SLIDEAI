@@ -248,6 +248,11 @@ export const exportToPPTXWithImages = async (
     pptx.title = title || 'Presentation';
     pptx.layout = 'LAYOUT_16x9'; // Standard 16:9
 
+    // Ensure web fonts are loaded before captures for consistent text rendering.
+    if (typeof document !== 'undefined' && 'fonts' in document) {
+        await (document as any).fonts.ready;
+    }
+
     // Explicitly set 1920x1080 layout logic? 
     // pptxgenjs default 16x9 is 10x5.625 inches. 
     // We want to map our 1920x1080 pixels to fit.
@@ -267,8 +272,8 @@ export const exportToPPTXWithImages = async (
         const pptxSlide = pptx.addSlide();
 
         try {
-            // Capture high quality image (scale 2.0 or even 3.0 for PPTX)
-            const imageData = await captureSlide(slide, 2.5);
+            // Capture in high quality to preserve readability once inside PowerPoint.
+            const imageData = await captureSlide(slide, 2.8);
 
             pptxSlide.addImage({
                 data: imageData,

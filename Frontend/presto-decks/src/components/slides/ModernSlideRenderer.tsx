@@ -4914,7 +4914,7 @@ const ImageFocusLayout = ({ slide, colors, variation = 'default', onSelect, sele
                             onSelect={onSelect}
                             isSelected={selectedId === 'title'}
                         >
-                            <h2 className="text-7xl font-bold tracking-tight" style={{ color: colors.text, fontSize: `calc(var(--slide-font-scale, 1) * ${fontScale} * 4.5rem)` }}>
+                            <h2 className="text-7xl font-bold tracking-tight" style={{ color: colors.text, fontSize: `calc(var(--slide-font-scale, 1) * ${titleFontScale} * 4.5rem)` }}>
                                 {slide.title}
                             </h2>
                         </EditableElement>
@@ -4925,7 +4925,7 @@ const ImageFocusLayout = ({ slide, colors, variation = 'default', onSelect, sele
                                 isSelected={selectedId === 'subtitle'}
                                 className="mt-2"
                             >
-                                <p className="text-3xl opacity-60" style={{ color: colors.text, fontSize: `calc(var(--slide-font-scale, 1) * ${fontScale} * 1.875rem)` }}>
+                                <p className="text-3xl opacity-60" style={{ color: colors.text, fontSize: `calc(var(--slide-font-scale, 1) * ${textFontScale} * 1.875rem)` }}>
                                     {slide.subtitle || slide.content?.text}
                                 </p>
                             </EditableElement>
@@ -5007,7 +5007,7 @@ const ImageFocusLayout = ({ slide, colors, variation = 'default', onSelect, sele
                     isSelected={selectedId === 'text'}
                 >
                     {(slide.content?.text || slide.text) && (
-                        <p className="text-3xl md:text-4xl max-w-3xl leading-relaxed opacity-90 font-serif italic" style={{ fontSize: `calc(var(--slide-font-scale, 1) * ${fontScale} * 2.25rem)` }}>
+                        <p className="text-3xl md:text-4xl max-w-3xl leading-relaxed opacity-90 font-serif italic" style={{ fontSize: `calc(var(--slide-font-scale, 1) * ${textFontScale} * 2.25rem)` }}>
                             "{slide.content?.text || slide.text}"
                         </p>
                     )}

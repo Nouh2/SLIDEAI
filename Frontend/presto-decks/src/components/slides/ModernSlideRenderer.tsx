@@ -5924,8 +5924,12 @@ type MasterVariation = 'classic' | 'split-card' | 'hero-block' | 'minimal-offset
 
 const MasterContentLayout = ({ slide, colors, variation = 'classic', onSelect, selectedId, showPageNumber, titleFontScale = 1, textFontScale = 1 }: { slide: any; colors: any; variation?: MasterVariation; onSelect?: any; selectedId?: string | null; showPageNumber?: boolean; titleFontScale?: number; textFontScale?: number }) => {
     // Determine content
-    const bullets = slide.bullets || slide.content?.bullets || [];
-    const text = slide.text || slide.content?.text || slide.content?.description;
+    // Determine content
+    const rawBullets = slide.bullets || slide.content?.bullets || [];
+    const bullets = Array.isArray(rawBullets) ? rawBullets.map((b: any) => typeof b === 'string' ? b : (b?.value || b?.text || '')) : [];
+
+    const rawText = slide.text || slide.content?.text || slide.content?.description;
+    const text = typeof rawText === 'string' ? rawText : (rawText?.value || rawText?.text || '');
     const hasImage = !!(slide.backgroundImage || slide.imageSearchQuery);
     const imageSrc = slide.backgroundImage || (slide.imageSearchQuery ? `https://source.unsplash.com/1600x900/?${encodeURIComponent(slide.imageSearchQuery)}` : null);
 
@@ -6164,7 +6168,11 @@ const MasterContentLayout = ({ slide, colors, variation = 'classic', onSelect, s
 };
 
 const ContentBulletsLayout = ({ slide, colors, onSelect, selectedId, showPageNumber, titleFontScale = 1, textFontScale = 1 }: { slide: any; colors: any; onSelect?: any; selectedId?: string | null; showPageNumber?: boolean; titleFontScale?: number; textFontScale?: number }) => {
-    const bullets = slide.bullets || slide.content?.bullets || [];
+    const rawBullets = slide.bullets || slide.content?.bullets || [];
+    const bullets = Array.isArray(rawBullets) ? rawBullets.map((b: any) => typeof b === 'string' ? b : (b?.value || b?.text || '')) : [];
+
+    const rawText = slide.content?.text;
+    const text = typeof rawText === 'string' ? rawText : (rawText?.value || rawText?.text || '');
     return (
         <div className="relative w-full h-full overflow-hidden p-16 flex flex-col justify-center" style={{ backgroundColor: colors.bg }}>
             <AbstractShapes colors={colors} />
@@ -6178,14 +6186,14 @@ const ContentBulletsLayout = ({ slide, colors, onSelect, selectedId, showPageNum
                     <h2 className="text-7xl font-bold" style={{ color: colors.text, fontSize: `calc(var(--slide-font-scale, 1) * ${titleFontScale} * 4.5rem)` }}>{slide.title}</h2>
                 </EditableElement>
 
-                {slide.content?.text && (
+                {text && (
                     <EditableElement
-                        element={{ id: 'text', type: 'text', value: slide.content.text, path: 'content.text', label: 'Body Text' }}
+                        element={{ id: 'text', type: 'text', value: text, path: 'content.text', label: 'Body Text' }}
                         onSelect={onSelect}
                         isSelected={selectedId === 'text'}
                         className="mb-8"
                     >
-                        <p className="text-3xl opacity-90 leading-relaxed" style={{ color: colors.text, fontSize: `calc(var(--slide-font-scale, 1) * ${textFontScale} * 1.875rem)` }}>{slide.content.text}</p>
+                        <p className="text-3xl opacity-90 leading-relaxed" style={{ color: colors.text, fontSize: `calc(var(--slide-font-scale, 1) * ${textFontScale} * 1.875rem)` }}>{text}</p>
                     </EditableElement>
                 )}
 
@@ -6215,9 +6223,15 @@ const ContentBulletsLayout = ({ slide, colors, onSelect, selectedId, showPageNum
 type CoverVariation = 'centered-minimal' | 'full-split' | 'diagonal-hero' | 'typographic-giant' | 'boxed-modern' | 'gradient-mesh' | 'dark-tech' | 'offset-gallery' | 'floating-glass' | 'cinematic';
 
 const MasterCoverLayout = ({ slide, colors, variation = 'centered-minimal', onSelect, selectedId, showPageNumber, titleFontScale = 1, textFontScale = 1, fontScale = 1 }: { slide: any; colors: any; variation?: CoverVariation; onSelect?: any; selectedId?: string | null; showPageNumber?: boolean; titleFontScale?: number; textFontScale?: number; fontScale?: number }) => {
-    const subtitle = slide.subtitle || slide.content?.subtitle || slide.title?.split(':')[1] || "";
-    const mainTitle = slide.title?.split(':')[0] || slide.title || "Untitled Presentation";
-    const bullets = slide.bullets || slide.content?.bullets || [];
+    const rawTitle = slide.title || "Untitled Presentation";
+    const titleStr = typeof rawTitle === 'string' ? rawTitle : (rawTitle?.value || rawTitle?.text || String(rawTitle || ""));
+    const mainTitle = titleStr.split(':')[0] || titleStr;
+
+    const rawSubtitle = slide.subtitle || slide.content?.subtitle || (titleStr.includes(':') ? titleStr.split(':')[1] : "") || "";
+    const subtitle = typeof rawSubtitle === 'string' ? rawSubtitle : (rawSubtitle?.value || rawSubtitle?.text || String(rawSubtitle || ""));
+
+    const rawBullets = slide.bullets || slide.content?.bullets || [];
+    const bullets = Array.isArray(rawBullets) ? rawBullets.map((b: any) => typeof b === 'string' ? b : (b?.value || b?.text || '')) : [];
     const imageSrc = slide.backgroundImage || (slide.imageSearchQuery ? `https://source.unsplash.com/1600x900/?${encodeURIComponent(slide.imageSearchQuery)}` : null);
 
     // 1. CENTERED MINIMAL (Clean, safe)

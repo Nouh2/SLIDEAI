@@ -10,12 +10,6 @@ const SLIDE_WIDTH = 1920;
 const SLIDE_HEIGHT = 1080;
 
 // Export settings
-const EXPORT_SETTINGS = {
-    scale: 1.5,
-    imageQuality: 0.85,
-    captureDelay: 100,
-};
-
 /**
  * Waits for all images in an element to load
  */
@@ -31,79 +25,47 @@ const waitForImages = async (element: HTMLElement): Promise<void> => {
     await Promise.all(promises);
 };
 
-/**
- * Captures a single slide element
- */
-const captureSlide = async (slideElement: HTMLElement): Promise<string> => {
-    // Wait for images
-    await waitForImages(slideElement);
 
-    // Small delay for CSS
-    await new Promise(resolve => setTimeout(resolve, EXPORT_SETTINGS.captureDelay));
+
+/**
+ * Captures a single slide element as a base64 image
+ */
+export const captureSlide = async (slide: HTMLElement, scale: number = 2.0): Promise<string> => {
+    // Wait for images
+    await waitForImages(slide);
+
+    // Small delay for CSS to settle
+    await new Promise(resolve => setTimeout(resolve, 200));
 
     // Capture with html2canvas
-    const canvas = await html2canvas(slideElement, {
+    const canvas = await html2canvas(slide, {
         width: SLIDE_WIDTH,
         height: SLIDE_HEIGHT,
-        scale: EXPORT_SETTINGS.scale,
+        scale: scale,
         useCORS: true,
         allowTaint: true,
         backgroundColor: '#ffffff',
         logging: false,
-        imageTimeout: 15000,
+        imageTimeout: 30000,
         windowWidth: SLIDE_WIDTH,
         windowHeight: SLIDE_HEIGHT,
         x: 0,
         y: 0,
         scrollX: 0,
         scrollY: 0,
+        onclone: (clonedDoc) => {
+            // Ensure fonts are available in cloned document
+            const clonedSlide = clonedDoc.querySelector(`[data-slide-index="${slide.getAttribute('data-slide-index')}"]`);
+            if (clonedSlide) {
+                // Cast to any to access non-standard properties
+                const style = (clonedSlide as HTMLElement).style as any;
+                style.fontSmooth = 'always';
+                style.webkitFontSmoothing = 'antialiased';
+            }
+        }
     });
 
-    return canvas.toDataURL('image/jpeg', EXPORT_SETTINGS.imageQuality);
-};
-
-/**
- * Captures all slides sequentially
- */
-const captureAllSlides = async (
-    slideElements: HTMLElement[],
-    onProgress?: ExportProgressCallback
-): Promise<string[]> => {
-    const results: string[] = [];
-
-    for (let i = 0; i < slideElements.length; i++) {
-        onProgress?.({
-            current: i,
-            total: slideElements.length,
-            status: 'rendering',
-            message: `Capture de la slide ${i + 1}/${slideElements.length}...`
-        });
-
-        try {
-            const imageData = await captureSlide(slideElements[i]);
-            results.push(imageData);
-        } catch (error) {
-            console.error(`Error capturing slide ${i + 1}:`, error);
-            // Create fallback
-            const canvas = document.createElement('canvas');
-            canvas.width = SLIDE_WIDTH;
-            canvas.height = SLIDE_HEIGHT;
-            const ctx = canvas.getContext('2d');
-            if (ctx) {
-                ctx.fillStyle = '#ffffff';
-                ctx.fillRect(0, 0, SLIDE_WIDTH, SLIDE_HEIGHT);
-                ctx.fillStyle = '#333';
-                ctx.font = '48px Arial';
-                ctx.textAlign = 'center';
-                ctx.fillText(`Slide ${i + 1}`, SLIDE_WIDTH / 2, SLIDE_HEIGHT / 2);
-            }
-            results.push(canvas.toDataURL('image/jpeg', 0.8));
-        }
-
-        await new Promise(resolve => setTimeout(resolve, 30));
-    }
-
-    return results;
+    return canvas.toDataURL('image/jpeg', 0.90);
 };
 
 /**
@@ -126,16 +88,7 @@ export const exportToPDF = async (
     });
 
     try {
-        const imageDataArray = await captureAllSlides(slideElements, onProgress);
-
-        onProgress?.({
-            current: slideElements.length,
-            total: slideElements.length,
-            status: 'generating',
-            message: 'Génération du PDF...'
-        });
-
-        // Create PDF
+        // Create PDF immediately
         const pdf = new jsPDF({
             orientation: 'landscape',
             unit: 'px',
@@ -144,19 +97,61 @@ export const exportToPDF = async (
             compress: true,
         });
 
-        for (let i = 0; i < imageDataArray.length; i++) {
-            if (i > 0) {
-                pdf.addPage([SLIDE_WIDTH, SLIDE_HEIGHT], 'landscape');
+        // Use higher scale for better quality (2.0 = 2x resolution)
+        const scale = 2.0;
+
+        // Ensure fonts are loaded before starting
+        await document.fonts.ready;
+
+        for (let i = 0; i < slideElements.length; i++) {
+            const slide = slideElements[i];
+
+            onProgress?.({
+                current: i,
+                total: slideElements.length,
+                status: 'rendering',
+                message: `Export de la slide ${i + 1}/${slideElements.length}...`
+            });
+
+            try {
+                const imageData = await captureSlide(slide, scale);
+
+                if (i > 0) {
+                    pdf.addPage([SLIDE_WIDTH, SLIDE_HEIGHT], 'landscape');
+                }
+
+                pdf.addImage(
+                    imageData,
+                    'JPEG',
+                    0, 0,
+                    SLIDE_WIDTH, SLIDE_HEIGHT,
+                    undefined,
+                    'FAST'
+                );
+
+            } catch (error) {
+                console.error(`Error capturing slide ${i + 1}:`, error);
+
+                // Add fallback error slide
+                if (i > 0) pdf.addPage([SLIDE_WIDTH, SLIDE_HEIGHT], 'landscape');
+
+                pdf.setFillColor(255, 255, 255);
+                pdf.rect(0, 0, SLIDE_WIDTH, SLIDE_HEIGHT, 'F');
+                pdf.setTextColor(255, 0, 0);
+                pdf.setFontSize(24);
+                pdf.text(`Erreur lors de l'export de la slide ${i + 1}`, 50, 50);
             }
-            pdf.addImage(
-                imageDataArray[i],
-                'JPEG',
-                0, 0,
-                SLIDE_WIDTH, SLIDE_HEIGHT,
-                undefined,
-                'MEDIUM'
-            );
+
+            // Small delay between slides to prevent UI freeze
+            await new Promise(resolve => setTimeout(resolve, 100));
         }
+
+        onProgress?.({
+            current: slideElements.length,
+            total: slideElements.length,
+            status: 'generating',
+            message: 'Finalisation du PDF...'
+        });
 
         const sanitizedTitle = title.replace(/[^a-zA-Z0-9-_\s]/g, '').trim() || 'presentation';
         pdf.save(`${sanitizedTitle}.pdf`);

@@ -15,7 +15,7 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { FileText, FileSpreadsheet, Loader2, CheckCircle, AlertCircle, Globe, Copy } from 'lucide-react';
 import { exportToPDF } from '@/lib/export';
-import { exportToPPTX } from '@/lib/export/pptx';
+import { exportToPPTX, exportToPPTXWithImages } from '@/lib/export/pptx';
 import {
     Select,
     SelectContent,
@@ -149,7 +149,7 @@ export function ExportDialog({ open, onOpenChange, presentation, accessToken }: 
     }, [presentation, onOpenChange]);
 
     const handlePPTXExport = useCallback(async () => {
-        if (!presentation) return;
+        if (!presentation || !hiddenSlidesRef.current) return;
 
         setError(null);
         setExportProgress({
@@ -160,13 +160,7 @@ export function ExportDialog({ open, onOpenChange, presentation, accessToken }: 
         });
 
         try {
-            let exportDeck = {
-                id: presentation.id || 'export',
-                title: presentation.title,
-                slides: presentation.slides,
-                theme: presentation.theme,
-                colorScheme: presentation.colorScheme,
-            };
+            let exportDeck = { ...presentation };
 
             // Handle translation if a target language is selected
             if (targetLanguage !== "original" && accessToken) {
@@ -180,16 +174,31 @@ export function ExportDialog({ open, onOpenChange, presentation, accessToken }: 
                 const { traceId } = await api.translateDeck(presentation, targetLanguage, accessToken);
                 const status = await pollTranslationStatus(traceId);
                 const translatedDeck = status.deck;
+                exportDeck = { ...presentation, ...translatedDeck };
+                setPreviewDeck(exportDeck);
 
-                // Update exportDeck with translated content
-                exportDeck = {
-                    ...exportDeck,
-                    title: translatedDeck.title || exportDeck.title,
-                    slides: translatedDeck.slides || exportDeck.slides
-                };
+                // Small delay to ensure React has updated the DOM with translated content
+                await new Promise(resolve => setTimeout(resolve, 500));
             }
 
-            await exportToPPTX(exportDeck, setExportProgress);
+            // Get all rendered slide elements from the hidden container
+            await new Promise(resolve => setTimeout(resolve, 500));
+
+            const slideElements = hiddenSlidesRef.current.querySelectorAll('[data-slide-export]');
+
+            if (slideElements.length === 0) {
+                throw new Error(t('export.noSlides'));
+            }
+
+            // Use the High Fidelity image exporter
+            // Note: Make sure to import this!
+            await exportToPPTXWithImages(
+                Array.from(slideElements) as HTMLElement[],
+                exportDeck.title,
+                setExportProgress
+            );
+
+            // Analytics.trackEvent(ANALYTICS_EVENTS.PRESENTATION.CATEGORY, ANALYTICS_EVENTS.PRESENTATION.EXPORT, 'PPTX');
 
             // Keep success state visible briefly
             setTimeout(() => {
@@ -320,18 +329,15 @@ export function ExportDialog({ open, onOpenChange, presentation, accessToken }: 
                             <button
                                 onClick={handlePPTXExport}
                                 disabled={true}
-                                className="group relative flex flex-col items-center p-6 rounded-2xl border-2 border-border bg-surface/30 opacity-60 cursor-not-allowed"
+                                className="group relative flex flex-col items-center p-6 rounded-2xl border-2 border-border bg-surface/50 opacity-50 cursor-not-allowed text-left"
                             >
-                                <div className="w-14 h-14 rounded-xl bg-orange-500/10 flex items-center justify-center mb-4 grayscale">
+                                <div className="w-14 h-14 rounded-xl bg-orange-500/10 flex items-center justify-center mb-4">
                                     <FileSpreadsheet className="w-7 h-7 text-orange-500" />
                                 </div>
-                                <h3 className="font-bold text-foreground mb-1">PowerPoint</h3>
+                                <h3 className="font-bold text-foreground mb-1">PowerPoint <span className="text-xs font-normal text-gray-500 bg-gray-500/10 px-2 py-0.5 rounded-full ml-1">Bientôt</span></h3>
                                 <p className="text-xs text-muted-foreground text-center">
-                                    {t('export.pptxDescription', { defaultValue: 'Export PowerPoint haute fidélité avec support multi-langues.' })}
+                                    {t('export.pptxDescription', { defaultValue: 'Export PowerPoint haute fidélité (images).' })}
                                 </p>
-                                <span className="absolute top-3 right-3 text-[10px] font-bold uppercase tracking-wider text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
-                                    Bientôt
-                                </span>
                             </button>
 
                             {/* Google Slides Option */}

@@ -66,7 +66,7 @@ export function PropertiesPanel({ element, onUpdate, onTableAction, onImageRepla
                             />
                         </div>
 
-                        {/* Font Size Scaling */}
+                        {/* Font Size Scaling - Temporarily hidden per user request
                         <div className="space-y-3 p-4 border border-border/50 rounded-xl bg-muted/20">
                             <div className="flex items-center justify-between">
                                 <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
@@ -111,6 +111,7 @@ export function PropertiesPanel({ element, onUpdate, onTableAction, onImageRepla
                                 <span>{t('editor.larger')}</span>
                             </div>
                         </div>
+                        */}
 
                         {onTableAction && element.path.includes('rows') && element.path.includes('[') && (
                             <div className="p-4 border border-border/50 rounded-xl bg-muted/20 space-y-3">

@@ -220,3 +220,87 @@ export const exportToPPTX = async (
         message: 'Export terminé !',
     });
 };
+
+/**
+ * Exports presentation slides to PowerPoint as images (High Fidelity / Pixel Perfect)
+ */
+export const exportToPPTXWithImages = async (
+    slideElements: HTMLElement[],
+    title: string,
+    onProgress?: ExportProgressCallback
+): Promise<void> => {
+    // Dynamic import to avoid circular dependencies if any, although here unneeded
+    const { captureSlide } = await import('../pdfExporter');
+
+    if (slideElements.length === 0) {
+        throw new Error('No slides to export');
+    }
+
+    onProgress?.({
+        current: 0,
+        total: slideElements.length,
+        status: 'preparing',
+        message: 'Préparation du PowerPoint Haute Fidélité...',
+    });
+
+    const pptx = new pptxgen();
+    pptx.author = 'SlideAI';
+    pptx.title = title || 'Presentation';
+    pptx.layout = 'LAYOUT_16x9'; // Standard 16:9
+
+    // Explicitly set 1920x1080 layout logic? 
+    // pptxgenjs default 16x9 is 10x5.625 inches. 
+    // We want to map our 1920x1080 pixels to fit.
+    // Best is to let pptx handle it, or we define custom layout if needed.
+    // But adding image with x:0, y:0, w:'100%', h:'100%' should work.
+
+    for (let i = 0; i < slideElements.length; i++) {
+        const slide = slideElements[i];
+
+        onProgress?.({
+            current: i,
+            total: slideElements.length,
+            status: 'rendering',
+            message: `Capture de la slide ${i + 1}/${slideElements.length}...`,
+        });
+
+        const pptxSlide = pptx.addSlide();
+
+        try {
+            // Capture high quality image (scale 2.0 or even 3.0 for PPTX)
+            const imageData = await captureSlide(slide, 2.5);
+
+            pptxSlide.addImage({
+                data: imageData,
+                x: 0,
+                y: 0,
+                w: '100%',
+                h: '100%',
+            });
+
+        } catch (error) {
+            console.error(`Error capturing slide ${i + 1} for PPTX:`, error);
+            pptxSlide.addText(`Erreur: Impossible de capturer la slide ${i + 1}`, { x: 1, y: 1, color: 'FF0000' });
+        }
+
+        // Small delay
+        await new Promise(resolve => setTimeout(resolve, 100));
+    }
+
+    onProgress?.({
+        current: slideElements.length,
+        total: slideElements.length,
+        status: 'generating',
+        message: 'Génération du fichier PowerPoint...',
+    });
+
+    const sanitizedTitle = title.replace(/[^a-zA-Z0-9-_\s]/g, '').trim() || 'presentation';
+    await pptx.writeFile({ fileName: `${sanitizedTitle}.pptx` });
+
+    onProgress?.({
+        current: slideElements.length,
+        total: slideElements.length,
+        status: 'complete',
+        message: 'Export terminé !',
+    });
+};

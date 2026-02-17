@@ -106,7 +106,7 @@ export function BugReportDialog({
                 setSelectedType(null);
                 setUserDescription("");
             } else {
-                throw new Error("Échec de l'envoi");
+                throw new Error(t('bugReport.errors.sendFailure'));
             }
         } catch (error) {
             toast({

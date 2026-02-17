@@ -76,8 +76,8 @@ export default function Create() {
                     setParsedDocument(result);
                     setParseToken(result.parseToken || null);
                     toast({
-                        title: "Structure détectée",
-                        description: `${result.document.sections.length} chapitres trouvés. Vous pouvez sélectionner lesquels inclure.`,
+                        title: t('create.structureDetected'),
+                        description: t('create.chaptersFound', { count: result.document.sections.length }),
                     });
                 } else {
                     // No structure or single section - proceed normally
@@ -154,7 +154,7 @@ export default function Create() {
             const template = selectedTemplate ? getTemplateById(selectedTemplate) : null;
 
             // INJECTED PROMPT: Original Vision + The Strict Plan
-            const prompt = (vision.trim() || `Générer une présentation à partir du document "${parsedDocument?.document?.title}"`)
+            const prompt = (vision.trim() || t('create.generateFromDoc', { title: parsedDocument?.document?.title }))
                 + selection.structurePrompt;
 
             const data = await api.generateFromSections(
@@ -179,7 +179,7 @@ export default function Create() {
 
             projectService.add({
                 id: traceId,
-                title: parsedDocument?.document?.title || "Présentation",
+                title: parsedDocument?.document?.title || t('create.defaultTitle'),
                 prompt,
                 slides: new Array(selection.totalSlides).fill({}), // USE SMART PLAN COUNT
                 theme: template ? { id: template.id, name: template.name } : "modern",
@@ -195,11 +195,11 @@ export default function Create() {
             navigate(`/editor/${traceId}`);
             Analytics.trackEvent(ANALYTICS_EVENTS.PRESENTATION.CATEGORY, ANALYTICS_EVENTS.PRESENTATION.GENERATE_COMPLETE);
         } catch (e: any) {
-            const errorMessage = e?.message ?? "Impossible de lancer la génération";
+            const errorMessage = e?.message ?? t('create.errorGenerating');
             if (errorMessage.includes("limite") || errorMessage.includes("crédit") || e?.status === 403) {
                 setShowOutOfCreditsModal(true);
             } else {
-                toast({ title: "Erreur", description: errorMessage, variant: "destructive" });
+                toast({ title: t('create.error'), description: errorMessage, variant: "destructive" });
             }
         } finally {
             setIsGenerating(false);
@@ -262,7 +262,7 @@ export default function Create() {
             // Save project to local storage for Dashboard visibility
             projectService.add({
                 id: traceId,
-                title: vision.split('\n')[0].substring(0, 40) || "Présentation",
+                title: vision.split('\n')[0].substring(0, 40) || t('create.defaultTitle'),
                 prompt: finalPrompt,
                 slides: new Array(slides[0]).fill({}), // Placeholder count
                 theme: template ? { id: template.id, name: template.name } : "modern",
@@ -284,7 +284,7 @@ export default function Create() {
                 setShowOutOfCreditsModal(true);
             } else {
                 toast({
-                    title: "Erreur",
+                    title: t('create.error'),
                     description: errorMessage,
                     variant: "destructive",
                 });
@@ -341,13 +341,13 @@ export default function Create() {
                                 className="gap-2"
                             >
                                 <ChevronLeft className="h-4 w-4" />
-                                Retour
+                                {t('common.back')}
                             </Button>
 
                             <div className="text-center space-y-2">
-                                <h2 className="text-2xl font-bold">Configurer la génération</h2>
+                                <h2 className="text-2xl font-bold">{t('create.configureGeneration')}</h2>
                                 <p className="text-muted-foreground">
-                                    Sélectionnez les chapitres à inclure et le type de visuel pour chaque section
+                                    {t('create.selectChapters')}
                                 </p>
                             </div>
 
@@ -493,7 +493,7 @@ export default function Create() {
                                                                         className="text-xs h-7 px-2"
                                                                     >
                                                                         <FileText className="w-3 h-3 mr-1" />
-                                                                        {parsedDocument.document.sections.length} chapitres
+                                                                        {t('create.chapters', { count: parsedDocument.document.sections.length })}
                                                                     </Button>
                                                                 )}
                                                                 {isParsing && (
@@ -610,7 +610,7 @@ export default function Create() {
                                                     {/* Brand Kit Selector */}
                                                     <div className="space-y-3 px-1">
                                                         <div className="flex justify-between items-center">
-                                                            <label className="text-xs font-medium text-muted-foreground">Charte graphique</label>
+                                                            <label className="text-xs font-medium text-muted-foreground">{t('create.brandKit')}</label>
                                                         </div>
                                                         <BrandKitSelector
                                                             selectedKit={selectedBrandKit}

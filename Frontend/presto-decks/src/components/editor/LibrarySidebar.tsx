@@ -68,7 +68,7 @@ export const LibrarySidebar: React.FC<LibrarySidebarProps> = ({
             console.error("Failed to fetch library slides:", error);
             toast({
                 title: t("common.error"),
-                description: "Failed to load your slide library.",
+                description: t("library.fetchError"),
                 variant: "destructive",
             });
         } finally {
@@ -84,20 +84,20 @@ export const LibrarySidebar: React.FC<LibrarySidebarProps> = ({
 
     const handleDelete = async (id: string, e: React.MouseEvent) => {
         e.stopPropagation();
-        if (!confirm("Are you sure you want to delete this slide from your library?")) return;
+        if (!confirm(t("library.deleteConfirm"))) return;
 
         setIsDeleting(id);
         try {
             await api.deleteLibrarySlide(id, accessToken);
             setSlides(slides.filter((s) => s.id !== id));
             toast({
-                title: "Deleted",
-                description: "Slide removed from library.",
+                title: t("library.deletedTitle"),
+                description: t("library.deletedDesc"),
             });
         } catch (error) {
             toast({
                 title: t("common.error"),
-                description: "Failed to delete slide.",
+                description: t("library.deleteError"),
                 variant: "destructive",
             });
         } finally {
@@ -126,7 +126,7 @@ export const LibrarySidebar: React.FC<LibrarySidebarProps> = ({
                             <Bookmark className="w-4 h-4 text-primary" />
                         </div>
                         <h2 className="text-sm font-bold tracking-tight uppercase text-foreground">
-                            My Slide Library
+                            {t("library.title")}
                         </h2>
                     </div>
                     <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full" onClick={onClose}>
@@ -137,7 +137,7 @@ export const LibrarySidebar: React.FC<LibrarySidebarProps> = ({
                 <div className="relative group">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
                     <Input
-                        placeholder="Search your library..."
+                        placeholder={t("library.searchPlaceholder")}
                         className="pl-9 bg-muted/40 border-muted focus-visible:ring-primary/20 rounded-xl"
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
@@ -193,7 +193,7 @@ export const LibrarySidebar: React.FC<LibrarySidebarProps> = ({
                                     setSelectedType(null);
                                 }}
                             >
-                                Clear all filters
+                                {t("library.clearFilters")}
                             </Button>
                         )}
                     </div>
@@ -206,7 +206,7 @@ export const LibrarySidebar: React.FC<LibrarySidebarProps> = ({
                     {isLoading ? (
                         <div className="flex flex-col items-center justify-center py-20 gap-3">
                             <Loader2 className="w-8 h-8 animate-spin text-primary/40" />
-                            <p className="text-xs text-muted-foreground animate-pulse">Loading your assets...</p>
+                            <p className="text-xs text-muted-foreground animate-pulse">{t("library.loading")}</p>
                         </div>
                     ) : filteredSlides.length === 0 ? (
                         <div className="flex flex-col items-center justify-center py-20 text-center gap-4 px-4 border-2 border-dashed border-muted rounded-2xl">
@@ -214,9 +214,9 @@ export const LibrarySidebar: React.FC<LibrarySidebarProps> = ({
                                 <Bookmark className="w-6 h-6 text-muted-foreground" />
                             </div>
                             <div className="space-y-1">
-                                <p className="text-sm font-semibold text-foreground">No slides found</p>
+                                <p className="text-sm font-semibold text-foreground">{t("library.noSlides")}</p>
                                 <p className="text-xs text-muted-foreground">
-                                    {searchQuery ? "Try a different search term" : "Save slides from the Storyboard to see them here."}
+                                    {searchQuery ? t("library.noResults") : t("library.empty")}
                                 </p>
                             </div>
                         </div>
@@ -245,7 +245,7 @@ export const LibrarySidebar: React.FC<LibrarySidebarProps> = ({
             {!isLoading && slides.length > 0 && (
                 <div className="p-3 bg-muted/30 border-t border-border mt-auto">
                     <p className="text-[9px] text-center text-muted-foreground font-medium uppercase tracking-wider">
-                        Tip: Drag slides into the storyboard
+                        {t("library.tip")}
                     </p>
                 </div>
             )}
@@ -272,6 +272,7 @@ const DraggableLibraryItem: React.FC<DraggableLibraryItemProps> = ({
     onDelete,
     isDeleting
 }) => {
+    const { t } = useTranslation();
     const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
         id: `library-${savedSlide.id}`,
         data: {
@@ -320,7 +321,7 @@ const DraggableLibraryItem: React.FC<DraggableLibraryItemProps> = ({
                 <div className="absolute inset-0 bg-primary/10 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-[1px]">
                     <Button variant="secondary" size="sm" className="rounded-full shadow-lg border border-primary/20 scale-90 group-hover:scale-100 transition-transform">
                         <PlusCircle className="mr-2 h-3.5 w-3.5" />
-                        Insert Slide
+                        {t("library.insertSlide")}
                     </Button>
                 </div>
 
@@ -375,7 +376,7 @@ const DraggableLibraryItem: React.FC<DraggableLibraryItemProps> = ({
                             </Button>
                         </TooltipTrigger>
                         <TooltipContent side="left">
-                            <p className="text-[10px]">Remove from library</p>
+                            <p className="text-[10px]">{t("library.removeTooltip")}</p>
                         </TooltipContent>
                     </Tooltip>
                 </TooltipProvider>

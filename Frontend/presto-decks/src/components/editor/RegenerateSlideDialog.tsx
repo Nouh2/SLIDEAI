@@ -142,18 +142,18 @@ export function RegenerateSlideDialog({
     ];
 
     const contextualCommands = [
-        { id: 'shorten', label: 'Shorten', icon: Sparkles },
-        { id: 'expand', label: 'Expand', icon: FileText },
-        { id: 'formalize', label: 'Formalize', icon: MessageSquare },
-        { id: 'simplify', label: 'Simplify', icon: ArrowRight },
+        { id: 'shorten', label: t('regenerate.commands.shorten'), icon: Sparkles },
+        { id: 'expand', label: t('regenerate.commands.expand'), icon: FileText },
+        { id: 'formalize', label: t('regenerate.commands.formalize'), icon: MessageSquare },
+        { id: 'simplify', label: t('regenerate.commands.simplify'), icon: ArrowRight },
     ];
 
     const tones = [
-        { value: 'executive', label: 'Executive' },
-        { value: 'technical', label: 'Technical' },
-        { value: 'sales', label: 'Sales' },
-        { value: 'academic', label: 'Academic' },
-        { value: 'casual', label: 'Casual' },
+        { value: 'executive', label: t('regenerate.tones.executive') },
+        { value: 'technical', label: t('regenerate.tones.technical') },
+        { value: 'sales', label: t('regenerate.tones.sales') },
+        { value: 'academic', label: t('regenerate.tones.academic') },
+        { value: 'casual', label: t('regenerate.tones.casual') },
     ];
 
     return (
@@ -175,8 +175,8 @@ export function RegenerateSlideDialog({
                 <div className="py-4">
                     <Tabs defaultValue="modes" value={activeTab} onValueChange={setActiveTab} className="w-full">
                         <TabsList className="grid w-full grid-cols-2 mb-4">
-                            <TabsTrigger value="modes">Layout Modes</TabsTrigger>
-                            <TabsTrigger value="refine">Refine Content</TabsTrigger>
+                            <TabsTrigger value="modes">{t('regenerate.tabs.modes')}</TabsTrigger>
+                            <TabsTrigger value="refine">{t('regenerate.tabs.refine')}</TabsTrigger>
                         </TabsList>
 
                         <TabsContent value="modes" className="space-y-4">
@@ -209,11 +209,11 @@ export function RegenerateSlideDialog({
                         <TabsContent value="refine" className="space-y-4">
                             <div className="space-y-2">
                                 <label className="text-sm font-medium text-muted-foreground">
-                                    Tone
+                                    {t('regenerate.tones.label')}
                                 </label>
                                 <Select value={selectedTone} onValueChange={setSelectedTone} disabled={isRegenerating}>
                                     <SelectTrigger>
-                                        <SelectValue placeholder="Select a tone" />
+                                        <SelectValue placeholder={t('regenerate.tones.placeholder')} />
                                     </SelectTrigger>
                                     <SelectContent>
                                         {tones.map((tone) => (
@@ -227,7 +227,7 @@ export function RegenerateSlideDialog({
 
                             <div className="space-y-2">
                                 <label className="text-sm font-medium text-muted-foreground">
-                                    Quick Commands
+                                    {t('regenerate.commands.label')}
                                 </label>
                                 <div className="grid grid-cols-2 gap-2">
                                     {contextualCommands.map((cmd) => (

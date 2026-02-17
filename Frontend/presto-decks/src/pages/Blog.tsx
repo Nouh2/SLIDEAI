@@ -74,7 +74,7 @@ export default function Blog() {
                                     <div className="flex items-center text-xs text-muted-foreground gap-4">
                                         <div className="flex items-center gap-1">
                                             <Calendar className="w-3 h-3" />
-                                            {new Date(post.date).toLocaleDateString('fr-FR', { dateStyle: 'long' })}
+                                            {new Date(post.date).toLocaleDateString(i18n.language, { dateStyle: 'long' })}
                                         </div>
                                         <div className="flex items-center gap-1">
                                             <User className="w-3 h-3" />

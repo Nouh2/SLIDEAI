@@ -111,14 +111,24 @@ export class PresentationService {
     /**
      * Update a presentation if user has access
      */
-    async update(id: string, userId: string, data: { slides?: any; title?: string; status?: string }, orgId: string | null = null) {
+    async update(id: string, userId: string, data: { slides?: any; title?: string; status?: string; fontConfig?: any }, orgId: string | null = null) {
         // First, verify access
         await this.findOne(id, userId, orgId);
+
+        let slidesPayload = data.slides;
+        if (slidesPayload && data.fontConfig) {
+            // Ensure fontConfig is saved within the slides JSON object
+            if (Array.isArray(slidesPayload)) {
+                slidesPayload = { slides: slidesPayload, fontConfig: data.fontConfig };
+            } else if (typeof slidesPayload === 'object') {
+                slidesPayload = { ...slidesPayload, fontConfig: data.fontConfig };
+            }
+        }
 
         return this.prisma.presentations.update({
             where: { id },
             data: {
-                ...(data.slides !== undefined && { slides: data.slides }),
+                ...(slidesPayload !== undefined && { slides: slidesPayload }),
                 ...(data.title !== undefined && { title: data.title }),
                 ...(data.status !== undefined && { status: data.status }),
             },

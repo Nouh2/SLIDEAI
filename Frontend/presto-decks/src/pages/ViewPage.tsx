@@ -310,8 +310,8 @@ export default function ViewPage() {
             className="h-screen flex flex-col overflow-hidden font-sans bg-background text-foreground"
         >
             <SEO
-                title={project?.title || "Présentation SlideAI"}
-                description={project?.subtitle || "Regardez cette présentation créée avec SlideAI."}
+                title={project?.title || t('seo.view.title')}
+                description={project?.subtitle || t('seo.view.description')}
                 url={`/view/${token}`}
                 // Use the first slide's background or a default OG image if available
                 image={project?.slides?.[0]?.backgroundImage || "/og-image.png"}

@@ -38,64 +38,8 @@ export default function AuthPage() {
 
   // Dynamic localization based on current language
   const getLocalization = () => {
-    if (i18n.language === 'en') {
-      return {
-        variables: {
-          sign_in: {
-            email_label: 'Email',
-            password_label: 'Password',
-            button_label: 'Sign in',
-            loading_button_label: 'Signing in...',
-            email_input_placeholder: 'you@example.com',
-            password_input_placeholder: 'Your password',
-            link_text: 'Already have an account? Sign in',
-          },
-          sign_up: {
-            email_label: 'Email',
-            password_label: 'Password',
-            button_label: 'Create account',
-            loading_button_label: 'Creating...',
-            email_input_placeholder: 'you@example.com',
-            password_input_placeholder: 'Choose a password',
-            link_text: "Don't have an account? Sign up",
-          },
-          forgotten_password: {
-            email_label: 'Email',
-            button_label: 'Send reset link',
-            loading_button_label: 'Sending...',
-            link_text: 'Forgot password?',
-          },
-        },
-      };
-    }
-    // French by default
     return {
-      variables: {
-        sign_in: {
-          email_label: 'Email',
-          password_label: 'Mot de passe',
-          button_label: 'Se connecter',
-          loading_button_label: 'Connexion...',
-          email_input_placeholder: 'vous@exemple.com',
-          password_input_placeholder: 'Votre mot de passe',
-          link_text: 'Vous avez déjà un compte ? Connectez-vous',
-        },
-        sign_up: {
-          email_label: 'Email',
-          password_label: 'Mot de passe',
-          button_label: 'Créer mon compte',
-          loading_button_label: 'Création...',
-          email_input_placeholder: 'vous@exemple.com',
-          password_input_placeholder: 'Choisissez un mot de passe',
-          link_text: 'Pas encore de compte ? Inscrivez-vous',
-        },
-        forgotten_password: {
-          email_label: 'Email',
-          button_label: 'Envoyer le lien de réinitialisation',
-          loading_button_label: 'Envoi...',
-          link_text: 'Mot de passe oublié ?',
-        },
-      },
+      variables: t('auth.ui', { returnObjects: true }) as any
     };
   };
 

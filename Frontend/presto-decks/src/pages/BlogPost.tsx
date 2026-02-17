@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useParams, Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { BlogPost, getPostBySlug } from "@/lib/blog";
@@ -8,6 +9,7 @@ import { ArrowLeft, User, Calendar, Sparkles } from "lucide-react";
 import { SEO } from "@/components/common/SEO";
 
 export default function BlogPostPage() {
+    const { t, i18n } = useTranslation();
     const { slug } = useParams<{ slug: string }>();
     const [post, setPost] = useState<BlogPost | null>(null);
     const [loading, setLoading] = useState(true);
@@ -34,9 +36,9 @@ export default function BlogPostPage() {
     if (!post) {
         return (
             <div className="min-h-screen pt-32 px-4 text-center">
-                <h1 className="text-2xl font-bold mb-4">Article non trouvé</h1>
+                <h1 className="text-2xl font-bold mb-4">{t('blog.notFound')}</h1>
                 <Link to="/blog">
-                    <Button variant="outline">Retour au blog</Button>
+                    <Button variant="outline">{t('blog.backToBlog')}</Button>
                 </Link>
             </div>
         );
@@ -85,7 +87,7 @@ export default function BlogPostPage() {
             <div className="max-w-3xl mx-auto">
                 <Link to="/blog" className="inline-flex items-center text-sm text-muted-foreground hover:text-primary transition-colors mb-8">
                     <ArrowLeft className="w-4 h-4 mr-2" />
-                    Retour aux articles
+                    {t('blog.backToArticles')}
                 </Link>
 
                 {post.coverImage && (
@@ -101,7 +103,7 @@ export default function BlogPostPage() {
                     <div className="flex flex-wrap items-center justify-center md:justify-start gap-4 text-sm text-muted-foreground">
                         <div className="flex items-center gap-1.5">
                             <Calendar className="w-4 h-4" />
-                            {new Date(post.date).toLocaleDateString('fr-FR', { dateStyle: 'long' })}
+                            {new Date(post.date).toLocaleDateString(i18n.language, { dateStyle: 'long' })}
                         </div>
                         <div className="flex items-center gap-1.5">
                             <User className="w-4 h-4" />
@@ -116,14 +118,14 @@ export default function BlogPostPage() {
 
                 {/* Call to Action */}
                 <div className="mt-16 p-8 rounded-2xl bg-gradient-to-br from-primary/10 to-purple-500/10 border border-primary/20 text-center">
-                    <h3 className="text-2xl font-bold mb-4">Envie de créer des slides comme un pro ?</h3>
+                    <h3 className="text-2xl font-bold mb-4">{t('blog.cta.title')}</h3>
                     <p className="text-muted-foreground mb-6 max-w-md mx-auto">
-                        Utilisez notre IA pour générer votre prochaine présentation en quelques secondes. Essayez gratuitement.
+                        {t('blog.cta.description')}
                     </p>
                     <Link to="/create">
                         <Button size="lg" className="bg-gradient-primary">
                             <Sparkles className="w-4 h-4 mr-2" />
-                            Générer une présentation
+                            {t('blog.cta.button')}
                         </Button>
                     </Link>
                 </div>

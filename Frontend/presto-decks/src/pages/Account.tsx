@@ -15,7 +15,7 @@ import { Input } from "@/components/ui/input";
 import { useTranslation } from "react-i18next";
 
 export default function Account() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [user, setUser] = useState<SupabaseUser | null>(null);
@@ -216,7 +216,7 @@ export default function Account() {
                     </div>
                     <div>
                       <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{t('account.provider')}</p>
-                      <p className="font-medium capitalize">{user?.app_metadata?.provider || 'Email'}</p>
+                      <p className="font-medium capitalize">{user?.app_metadata?.provider || t('account.emailMethod', { defaultValue: 'Email' })}</p>
                     </div>
                   </div>
 
@@ -386,7 +386,7 @@ export default function Account() {
                       <div>
                         <h4 className="font-semibold text-foreground">{pres.title || t('common.untitled')}</h4>
                         <p className="text-xs text-muted-foreground">
-                          {new Date(pres.created_at).toLocaleDateString(undefined, { day: 'numeric', month: 'long', year: 'numeric' })}
+                          {new Date(pres.created_at).toLocaleDateString(i18n.language === 'fr' ? 'fr-FR' : 'en-US', { day: 'numeric', month: 'long', year: 'numeric' })}
                         </p>
                       </div>
                     </div>

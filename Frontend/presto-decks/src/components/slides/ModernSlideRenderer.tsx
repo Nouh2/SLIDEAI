@@ -6747,14 +6747,14 @@ export const ModernSlideRenderer = ({
     className,
     colorPalette,
     fontConfig,
-    fontScale = 1,
+    fontScale = 0.9,
     onElementSelect,
     selectedElementId,
     showWatermark,
     showPageNumber, // This is coming from props as override
     templateOverlay, // Destructure added prop
-    titleFontScale = 1,
-    textFontScale = 1
+    titleFontScale = 0.9,
+    textFontScale = 0.9
 }: SlideRendererProps) => {
     // Ensure theme is always a string to prevent .includes() errors
     const theme = typeof rawTheme === 'string' ? rawTheme : 'modern';

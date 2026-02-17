@@ -7,15 +7,17 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { calculateNarrativeSegments, DynamicSegment } from '@/lib/narrative-utils';
+import { useTranslation, Trans } from 'react-i18next';
 
 interface NarrativeFlowSidebarProps {
     slides: any[];
-    onOptimizeFlow: () => void;
+    onOptimizeClick: () => void;
     onSelectSlide: (index: number) => void;
 }
 
-export const NarrativeFlowSidebar: React.FC<NarrativeFlowSidebarProps> = ({ slides, onOptimizeFlow, onSelectSlide }) => {
-    const segments = React.useMemo(() => calculateNarrativeSegments(slides), [slides]);
+export const NarrativeFlowSidebar: React.FC<NarrativeFlowSidebarProps> = ({ slides, onOptimizeClick, onSelectSlide }) => {
+    const { t } = useTranslation();
+    const segments = React.useMemo(() => calculateNarrativeSegments(slides, t), [slides, t]);
     const [expandedSegments, setExpandedSegments] = React.useState<Record<string, boolean>>(() => {
         const initial: Record<string, boolean> = {};
         segments.forEach(s => {
@@ -46,19 +48,24 @@ export const NarrativeFlowSidebar: React.FC<NarrativeFlowSidebarProps> = ({ slid
 
     return (
         <div className="w-64 h-full border-r border-border bg-surface flex flex-col shrink-0">
-            <div className="p-4 border-b border-border flex items-center justify-between">
-                <div className="flex flex-col">
-                    <h3 className="font-bold text-xs uppercase tracking-tight text-muted-foreground">Narrative Flow</h3>
-                    <p className="text-[10px] text-muted-foreground">Dynamic structure analysis</p>
+            <div className="p-4 border-b border-border flex flex-col">
+                <div className="flex flex-col mb-4">
+                    <h3 className="text-sm font-semibold text-foreground">
+                        {t('narrative.title')}
+                    </h3>
+                    <p className="text-xs text-muted-foreground">
+                        {t('narrative.subtitle')}
+                    </p>
                 </div>
+
                 <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8 text-purple-600 hover:text-purple-700 hover:bg-purple-50"
-                    onClick={onOptimizeFlow}
-                    title="Optimize Flow with AI"
+                    variant="outline"
+                    size="sm"
+                    className="w-full mb-6 border-dashed border-primary/30 hover:border-primary/60 bg-primary/5 hover:bg-primary/10 transition-all group"
+                    onClick={onOptimizeClick}
                 >
-                    <Wand2 className="w-4 h-4" />
+                    <Wand2 className="w-3.5 h-3.5 mr-2 text-primary group-hover:rotate-12 transition-transform" />
+                    <span className="text-xs font-medium">{t('narrative.optimizeFlow')}</span>
                 </Button>
             </div>
 
@@ -116,7 +123,7 @@ export const NarrativeFlowSidebar: React.FC<NarrativeFlowSidebarProps> = ({ slid
                                         className="text-[9px] text-muted-foreground italic pl-3 hover:text-primary cursor-pointer"
                                         onClick={() => onSelectSlide(segment.startIndex + 10)}
                                     >
-                                        + {segment.slideTitles.length - 10} more slides...
+                                        {t('narrative.moreSlides', { count: segment.slideTitles.length - 10 })}
                                     </div>
                                 )}
                             </div>
@@ -139,15 +146,20 @@ export const NarrativeFlowSidebar: React.FC<NarrativeFlowSidebarProps> = ({ slid
             </div>
 
             <div className="p-4 bg-muted/20 border-t border-border mt-auto">
-                <div className="flex items-center gap-2 mb-2">
-                    <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
-                    <span className="text-[10px] uppercase tracking-widest font-bold text-muted-foreground">Flow Guide</span>
+                <div className="flex items-center gap-2 mb-2 p-2 rounded-md bg-secondary/30">
+                    <div className="p-1 rounded bg-secondary text-secondary-foreground">
+                        <Wand2 className="w-3 h-3" />
+                    </div>
+                    <span className="text-[10px] uppercase tracking-wider font-bold text-muted-foreground/80">
+                        {t('narrative.guideTitle')}
+                    </span>
                 </div>
-                <p className="text-[11px] text-muted-foreground leading-snug">
-                    Categories are created automatically. Use <span className="font-semibold text-primary">Section Divider</span> slides to start new segments.
+                <p className="text-[11px] text-muted-foreground leading-relaxed px-1">
+                    <Trans i18nKey="narrative.guideDesc">
+                        Categories are created automatically. Use <span className="text-foreground font-medium">Section Divider</span> slides to start new segments.
+                    </Trans>
                 </p>
             </div>
         </div>
     );
 };
-

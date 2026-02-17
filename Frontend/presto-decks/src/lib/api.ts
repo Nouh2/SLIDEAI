@@ -527,7 +527,7 @@ export const api = {
    * Save/update a presentation
    * PUT /v1/presentations/:id
    */
-  async savePresentation(id: string, data: { slides?: any; title?: string; status?: string }, accessToken: string): Promise<any> {
+  async savePresentation(id: string, data: { slides?: any; title?: string; status?: string; fontConfig?: any }, accessToken: string): Promise<any> {
     const response = await fetch(`${API_BASE_URL}/presentations/${id}`, {
       method: 'PUT',
       headers: buildHeaders(accessToken, 'application/json'),

@@ -51,7 +51,7 @@ export default function OrgSettings() {
                 setMembers(data);
             } catch (err) {
                 console.error("Failed to load members", err);
-                setError("Failed to load members");
+                setError(t('orgSettings.loadError'));
             } finally {
                 setLoading(false);
             }
@@ -75,7 +75,7 @@ export default function OrgSettings() {
             setMembers(data);
         } catch (err: any) {
             console.error("Failed to invite member", err);
-            setError(err.message || "Failed to invite member");
+            setError(err.message || t('orgSettings.inviteError'));
         } finally {
             setInviteLoading(false);
         }
@@ -83,7 +83,7 @@ export default function OrgSettings() {
 
     const handleRemoveMember = async (userId: string) => {
         if (!session?.access_token || !orgId) return;
-        if (!confirm("Are you sure you want to remove this member?")) return;
+        if (!confirm(t('orgSettings.removeConfirm'))) return;
 
         try {
             await api.removeMember(orgId, userId, session.access_token);
@@ -101,15 +101,15 @@ export default function OrgSettings() {
     return (
         <div className="container mx-auto py-10 space-y-8">
             <div>
-                <h1 className="text-3xl font-bold tracking-tight">Organization Settings</h1>
-                <p className="text-muted-foreground">Manage your organization members and settings.</p>
+                <h1 className="text-3xl font-bold tracking-tight">{t('orgSettings.title')}</h1>
+                <p className="text-muted-foreground">{t('orgSettings.subtitle')}</p>
             </div>
 
             <Card>
                 <CardHeader>
-                    <CardTitle>Invite Members</CardTitle>
+                    <CardTitle>{t('orgSettings.inviteMembers')}</CardTitle>
                     <CardDescription>
-                        Add new members to your organization by email.
+                        {t('orgSettings.inviteDesc')}
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -126,7 +126,7 @@ export default function OrgSettings() {
                         <Button type="submit" disabled={inviteLoading}>
                             {inviteLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                             <UserPlus className="mr-2 h-4 w-4" />
-                            Invite
+                            {t('orgSettings.invite')}
                         </Button>
                     </form>
                     {error && <p className="text-sm text-red-500 mt-2">{error}</p>}
@@ -135,18 +135,18 @@ export default function OrgSettings() {
 
             <Card>
                 <CardHeader>
-                    <CardTitle>Members</CardTitle>
+                    <CardTitle>{t('orgSettings.members')}</CardTitle>
                     <CardDescription>
-                        Manage existing members and their roles.
+                        {t('orgSettings.membersDesc')}
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
                     <Table>
                         <TableHeader>
                             <TableRow>
-                                <TableHead>Email</TableHead>
-                                <TableHead>Role</TableHead>
-                                <TableHead className="text-right">Actions</TableHead>
+                                <TableHead>{t('orgSettings.email')}</TableHead>
+                                <TableHead>{t('orgSettings.role')}</TableHead>
+                                <TableHead className="text-right">{t('orgSettings.actions')}</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>

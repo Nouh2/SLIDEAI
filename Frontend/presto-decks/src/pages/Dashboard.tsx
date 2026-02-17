@@ -268,9 +268,9 @@ export default function Dashboard() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">{t('dashboard.allThemes')}</SelectItem>
-                <SelectItem value="startup">Startup</SelectItem>
-                <SelectItem value="corporate">Corporate</SelectItem>
-                <SelectItem value="creative">Creative</SelectItem>
+                <SelectItem value="startup">{t('dashboard.themes.startup')}</SelectItem>
+                <SelectItem value="corporate">{t('dashboard.themes.corporate')}</SelectItem>
+                <SelectItem value="creative">{t('dashboard.themes.creative')}</SelectItem>
               </SelectContent>
             </Select>
 
@@ -324,7 +324,7 @@ export default function Dashboard() {
                     {presentation.title}
                   </h3>
                   <p className="text-sm text-muted-foreground line-clamp-2">
-                    {t('dashboard.theme')}: {presentation.theme}
+                    {t('dashboard.theme')}: {t(`dashboard.themes.${presentation.theme}`)}
                   </p>
                 </div>
 
@@ -335,7 +335,7 @@ export default function Dashboard() {
                     <span>{new Date(presentation.createdAt).toLocaleDateString(i18n.language === 'fr' ? 'fr-FR' : 'en-US')}</span>
                   </div>
                   <div className="px-2 py-1 rounded-full bg-green-500/10 text-green-500 text-xs font-medium">
-                    {presentation.status}
+                    {t(`dashboard.statuses.${presentation.status}`)}
                   </div>
                 </div>
 
@@ -357,7 +357,7 @@ export default function Dashboard() {
                     </Button>
                   )}
 
-                  <Button size="sm" variant="outline" title="Duplicate">
+                  <Button size="sm" variant="outline" title={t('dashboard.duplicate')}>
                     <Copy className="h-4 w-4" />
                   </Button>
 
@@ -369,7 +369,7 @@ export default function Dashboard() {
                           size="sm"
                           variant="outline"
                           className="hover:bg-destructive/20 hover:border-destructive hover:text-destructive"
-                          title="Delete"
+                          title={t('dashboard.delete')}
                           disabled={deletingId === presentation.id}
                         >
                           {deletingId === presentation.id ? (

@@ -39,7 +39,7 @@ export const AiNarrativeFlowDialog: React.FC<AiNarrativeFlowDialogProps> = ({
 
         // Simulate API call
         setTimeout(() => {
-            const currentSegments = calculateNarrativeSegments(slides);
+            const currentSegments = calculateNarrativeSegments(slides, t);
             const newSlides = [...slides];
             const moves: string[] = [];
             let improved = false;
@@ -58,7 +58,7 @@ export const AiNarrativeFlowDialog: React.FC<AiNarrativeFlowDialogProps> = ({
                     // Reassemble
                     newSlides.length = 0;
                     newSlides.push(...nonAppendixSlides, ...appendixSlides);
-                    moves.push("Group all Appendix slides at the end of the presentation.");
+                    moves.push(t('narrative.moveAppendixToEnd'));
                     improved = true;
                 }
             }
@@ -72,7 +72,7 @@ export const AiNarrativeFlowDialog: React.FC<AiNarrativeFlowDialogProps> = ({
             if (agendaIndex > 2) {
                 const [agendaSlide] = newSlides.splice(agendaIndex, 1);
                 newSlides.splice(1, 0, agendaSlide); // Move to 2nd position
-                moves.push(`Move '${agendaSlide.title || 'Agenda'}' to position 2 for logical onboarding.`);
+                moves.push(t('narrative.moveAgendaToStart', { title: agendaSlide.title || t('common.agenda') }));
                 improved = true;
             }
 
@@ -80,7 +80,7 @@ export const AiNarrativeFlowDialog: React.FC<AiNarrativeFlowDialogProps> = ({
             // If a section has > 10 slides, suggest breaking it up (visual only for now)
             currentSegments.forEach(seg => {
                 if (seg.slideCount > 10 && seg.id !== 'appendix') {
-                    moves.push(`Segment '${seg.label}' is very long (${seg.slideCount} slides). Consider adding a sub-section divider.`);
+                    moves.push(t('narrative.sectionTooLong', { label: seg.label, count: seg.slideCount }));
                 }
             });
 
@@ -89,7 +89,7 @@ export const AiNarrativeFlowDialog: React.FC<AiNarrativeFlowDialogProps> = ({
             } else {
                 setSuggestions([{
                     newOrder: [...newSlides],
-                    reason: improved ? "Refined structure based on narrative patterns" : "Structural suggestions found",
+                    reason: improved ? t('narrative.refinedReason') : t('narrative.suggestionsFoundReason'),
                     changes: moves,
                     improved: improved
                 }]);
@@ -116,7 +116,7 @@ export const AiNarrativeFlowDialog: React.FC<AiNarrativeFlowDialogProps> = ({
     }, [open]);
 
     // Preview segments
-    const previewSegments = suggestions && suggestions[0] ? calculateNarrativeSegments(suggestions[0].newOrder) : [];
+    const previewSegments = suggestions && suggestions[0] ? calculateNarrativeSegments(suggestions[0].newOrder, t) : [];
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
@@ -124,10 +124,10 @@ export const AiNarrativeFlowDialog: React.FC<AiNarrativeFlowDialogProps> = ({
                 <DialogHeader>
                     <DialogTitle className="flex items-center gap-2 text-xl">
                         <Wand2 className="h-5 w-5 text-purple-600" />
-                        AI Flow Optimizer
+                        {t('narrative.optimizerTitle')}
                     </DialogTitle>
                     <DialogDescription>
-                        Our AI analyzes your sections and slide contents to suggest the most effective narrative arc.
+                        {t('narrative.optimizerDesc')}
                     </DialogDescription>
                 </DialogHeader>
 
@@ -139,15 +139,15 @@ export const AiNarrativeFlowDialog: React.FC<AiNarrativeFlowDialogProps> = ({
                                 <Layout className="h-4 w-4 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-purple-400" />
                             </div>
                             <div className="text-center">
-                                <p className="text-sm font-medium">Analyzing Narrative Structure...</p>
-                                <p className="text-xs text-muted-foreground mt-1">Evaluating segments, sections, and slide transitions</p>
+                                <p className="text-sm font-medium">{t('narrative.analyzingTitle')}</p>
+                                <p className="text-xs text-muted-foreground mt-1">{t('narrative.analyzingDesc')}</p>
                             </div>
                         </div>
                     ) : suggestions && suggestions.length > 0 ? (
                         <div className="space-y-6">
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-3">
-                                    <h4 className="text-[10px] uppercase font-bold tracking-widest text-muted-foreground px-1">Optimizations</h4>
+                                    <h4 className="text-[10px] uppercase font-bold tracking-widest text-muted-foreground px-1">{t('narrative.optimizations')}</h4>
                                     <div className="space-y-2">
                                         {suggestions[0].changes.map((change: string, i: number) => (
                                             <div key={i} className="flex items-start gap-2 p-3 rounded-lg bg-purple-500/5 border border-purple-200/50 dark:border-purple-800/50">
@@ -161,7 +161,7 @@ export const AiNarrativeFlowDialog: React.FC<AiNarrativeFlowDialogProps> = ({
                                 </div>
 
                                 <div className="space-y-3">
-                                    <h4 className="text-[10px] uppercase font-bold tracking-widest text-muted-foreground px-1">Suggested Flow</h4>
+                                    <h4 className="text-[10px] uppercase font-bold tracking-widest text-muted-foreground px-1">{t('narrative.suggestedFlow')}</h4>
                                     <ScrollArea className="h-[240px] rounded-lg border bg-muted/20 p-3">
                                         <div className="space-y-2">
                                             {previewSegments.map((seg, i) => (
@@ -172,7 +172,7 @@ export const AiNarrativeFlowDialog: React.FC<AiNarrativeFlowDialogProps> = ({
                                                         </div>
                                                         <span className="text-[11px] font-bold truncate">{seg.label}</span>
                                                         <span className="ml-auto text-[9px] font-medium bg-muted px-1.5 py-0.5 rounded">
-                                                            {seg.slideCount} slides
+                                                            {t('narrative.slidesCount', { count: seg.slideCount })}
                                                         </span>
                                                     </div>
                                                 </div>
@@ -185,7 +185,7 @@ export const AiNarrativeFlowDialog: React.FC<AiNarrativeFlowDialogProps> = ({
                             {!suggestions[0].improved && (
                                 <div className="flex items-center gap-2 p-3 rounded-lg bg-emerald-500/5 border border-emerald-200/50 dark:border-emerald-800/50">
                                     <CheckCircle2 className="h-4 w-4 text-emerald-600" />
-                                    <span className="text-xs text-emerald-700 dark:text-emerald-400">Your current structure already follows logical best practices!</span>
+                                    <span className="text-xs text-emerald-700 dark:text-emerald-400">{t('narrative.perfectStructure')}</span>
                                 </div>
                             )}
                         </div>
@@ -195,9 +195,9 @@ export const AiNarrativeFlowDialog: React.FC<AiNarrativeFlowDialogProps> = ({
                                 <CheckCircle2 className="h-6 w-6 text-green-600 dark:text-green-400" />
                             </div>
                             <div className="text-center">
-                                <h4 className="font-medium mb-1">Excellent Narrative!</h4>
+                                <h4 className="font-medium mb-1">{t('narrative.excellentNarrative')}</h4>
                                 <p className="text-sm text-muted-foreground">
-                                    Your story structure is coherent and well-organized.
+                                    {t('narrative.excellentNarrativeDesc')}
                                 </p>
                             </div>
                         </div>
@@ -206,14 +206,14 @@ export const AiNarrativeFlowDialog: React.FC<AiNarrativeFlowDialogProps> = ({
 
                 <DialogFooter className="gap-2">
                     <Button variant="outline" onClick={() => onOpenChange(false)} className="px-6">
-                        Close
+                        {t('common.close')}
                     </Button>
                     {suggestions && suggestions[0]?.improved && (
                         <Button
                             onClick={handleApply}
                             className="bg-purple-600 hover:bg-purple-700 text-white px-8"
                         >
-                            Apply Optimized Order
+                            {t('narrative.applyOptimized')}
                         </Button>
                     )}
                 </DialogFooter>

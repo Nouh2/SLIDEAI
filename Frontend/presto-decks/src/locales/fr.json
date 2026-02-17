@@ -22,6 +22,7 @@
     "loading": "Chargement...",
     "retry": "Réessayer",
     "untitled": "Sans titre",
+    "agenda": "Sommaire",
     "doubleClickToEdit": "Double clic pour modifier"
   },
   "hero": {
@@ -196,7 +197,18 @@
     "unlimitedPresentations": "Présentations illimitées",
     "presentations": "présentations",
     "paymentSuccess": "Paiement réussi ! 🎉",
-    "paymentSuccessMsg": "Votre abonnement est activé. Merci de votre confiance !"
+    "paymentSuccessMsg": "Votre abonnement est activé. Merci de votre confiance !",
+    "duplicate": "Dupliquer",
+    "themes": {
+      "startup": "Startup",
+      "corporate": "Entreprise",
+      "creative": "Créatif"
+    },
+    "statuses": {
+      "processing": "En cours",
+      "succeeded": "Terminé",
+      "failed": "Erreur"
+    }
   },
   "create": {
     "step1": "Choisir le livrable",
@@ -233,7 +245,17 @@
       "en": "Anglais",
       "fr": "Français",
       "es": "Espagnol"
-    }
+    },
+    "structureDetected": "Structure détectée",
+    "chaptersFound": "{{count}} chapitres trouvés. Vous pouvez sélectionner lesquels inclure.",
+    "generateFromDoc": "Générer une présentation à partir du document \"{{title}}\"",
+    "defaultTitle": "Présentation",
+    "errorGenerating": "Impossible de lancer la génération",
+    "error": "Erreur",
+    "configureGeneration": "Configurer la génération",
+    "selectChapters": "Sélectionnez les chapitres à inclure et le type de visuel pour chaque section",
+    "chapters": "{{count}} chapitres",
+    "brandKit": "Charte graphique"
   },
   "fontSelector": {
     "title": "Typographie",
@@ -256,6 +278,10 @@
     "saveError": "Erreur d'enregistrement",
     "ready": "Prêt",
     "slides": "Slides",
+    "typography": "Typographie",
+    "background": "Arrière-plan",
+    "title": "Titre",
+    "body": "Corps",
     "addSlide": "Ajouter une slide",
     "untitledSlide": "Slide sans titre",
     "slideOf": "Slide {{current}} sur {{total}}",
@@ -298,20 +324,32 @@
   "auth": {
     "welcome": "Bienvenue",
     "subtitle": "Connectez-vous ou créez un compte pour continuer",
-    "email": "Email",
-    "password": "Mot de passe",
-    "signIn": "Se connecter",
-    "signingIn": "Connexion...",
-    "signUp": "Créer un compte",
-    "signingUp": "Création...",
-    "emailPlaceholder": "vous@exemple.com",
-    "passwordPlaceholder": "Votre mot de passe",
-    "choosePassword": "Choisissez un mot de passe",
-    "haveAccount": "Déjà un compte ? Se connecter",
-    "noAccount": "Pas de compte ? S'inscrire",
-    "forgotPassword": "Mot de passe oublié ?",
-    "sendResetLink": "Envoyer le lien",
-    "sending": "Envoi...",
+    "ui": {
+      "sign_in": {
+        "email_label": "Email",
+        "password_label": "Mot de passe",
+        "button_label": "Se connecter",
+        "loading_button_label": "Connexion...",
+        "email_input_placeholder": "vous@exemple.com",
+        "password_input_placeholder": "Votre mot de passe",
+        "link_text": "Vous avez déjà un compte ? Connectez-vous"
+      },
+      "sign_up": {
+        "email_label": "Email",
+        "password_label": "Mot de passe",
+        "button_label": "Créer mon compte",
+        "loading_button_label": "Création...",
+        "email_input_placeholder": "vous@exemple.com",
+        "password_input_placeholder": "Choisissez un mot de passe",
+        "link_text": "Pas encore de compte ? Inscrivez-vous"
+      },
+      "forgotten_password": {
+        "email_label": "Email",
+        "button_label": "Envoyer le lien de réinitialisation",
+        "loading_button_label": "Envoi...",
+        "link_text": "Mot de passe oublié ?"
+      }
+    },
     "trustNote": "Déjà 10 000+ professionnels font confiance à SlideAI",
     "resetPasswordTitle": "Réinitialiser le mot de passe",
     "resetPasswordSubtitle": "Entrez votre nouveau mot de passe ci-dessous",
@@ -320,119 +358,21 @@
     "backToLogin": "Retour à la connexion",
     "updating": "Mise à jour..."
   },
-  "pricing": {
-    "badge": "Simple, transparent, évolutif",
-    "title": "Choisis comment tu veux",
-    "titleHighlight": "livrer tes clients",
-    "subtitle": "Teste SlideAI sans abonnement ou passe en illimité quand tu en as besoin.",
-    "monthly": "Mensuel",
-    "yearly": "Annuel",
-    "discount": "-25% (2 mois offerts)",
-    "perMonth": "/mois",
-    "billedYearly": "Facturé {{price}}€ par an",
-    "billedMonthly": "Facturé mensuellement",
-    "startFree": "Commencer gratuitement",
-    "choosePlan": "Choisir",
-    "tryFree": "Passer en illimité",
-    "contactSales": "Contacter les ventes",
-    "unsubscribe": "Se désabonner",
-    "included": "Inclus",
-    "mostPopular": "Le plus populaire",
-    "notReadyTitle": "Pas prêt pour un abonnement ?",
-    "packSubtitle": "Prenez un Pack Liberté.",
-    "packNote": "Pas de renouvellement automatique. Utilisez vos crédits quand vous voulez.",
-    "buyCredits": "Acheter",
-    "allCardsAccepted": "Toutes cartes acceptées • Annulation à tout moment",
-    "questions": "Des questions ?",
-    "contactUs": "Contactez-nous",
-    "plans": {
-      "free": {
-        "name": "Gratuit",
-        "description": "Suffisant pour tester l'outil",
-        "features": {
-          "presentations": "2 présentations par mois",
-          "pdfImport": "Import PDF (10 pages max)",
-          "storage": "Stockage : 3 projets max",
-          "aiSlides": "Ajout Slides IA (2 / prés.)",
-          "aiRegen": "Régénération IA (3 / prés.)",
-          "design": "Mises en page & Design : Accès complet",
-          "watermark": "Filigrane SlideAI"
-        },
-        "limitations": {
-          "export": "Export PDF Désactivé",
-          "brandKit": "Pas de Brand Kit"
-        }
-      },
-      "starter": {
-        "name": "Starter",
-        "description": "Pour les étudiants et l'usage occasionnel",
-        "features": {
-          "presentations": "15 présentations / mois",
-          "pdfImport": "Import PDF (50 pages max)",
-          "storage": "Stockage : 20 projets max",
-          "aiSlides": "Ajout Slides IA (5 / prés.)",
-          "aiRegen": "Régénération IA illimitée",
-          "export": "Export PDF HD (Sans filigrane)",
-          "sharing": "Lien de partage unique & privé"
-        },
-        "cta": "Choisir Starter"
-      },
-      "pro": {
-        "name": "Pro",
-        "description": "Pour les freelances qui livrent chaque semaine",
-        "features": {
-          "unlimitedGen": "Génération illimitée",
-          "pdfImport": "Import PDF (200 pages max)",
-          "storage": "Stockage illimité",
-          "unlimitedSlides": "Slides & Baguette Magique illimités",
-          "export": "Export PDF HD (Prioritaire)",
-          "support": "Support Prioritaire",
-          "beta": "Accès Early Bird (Beta)"
-        }
-      },
-      "business": {
-        "name": "Business",
-        "description": "Pour les équipes",
-        "features": {
-          "allPro": "Tout du plan Pro",
-          "collab": "Espace de travail collaboratif",
-          "support": "Support Prioritaire 24/7",
-          "analytics": "Analyses avancées",
-          "sso": "SSO (Single Sign-On)"
-        }
-      }
-    },
-    "packs": {
-      "discovery": {
-        "name": "Pack Freelance – Test sans engagement",
-        "subtitle": "Parfait pour une mission, un audit ou un premier client.",
-        "keyLine": "5 livrables clients",
-        "priceDetail": "paiement unique",
-        "credits": "5 présentations",
-        "badge": "Idéal pour tester",
-        "cta": "Tester sur une vraie mission"
-      },
-      "power": {
-        "name": "Pack Power",
-        "subtitle": "Pour les freelances avec plusieurs clients actifs",
-        "keyLine": "15 livrables clients",
-        "priceDetail": "paiement unique",
-        "credits": "15 présentations",
-        "cta": "Gagner du temps sur plusieurs missions"
-      }
-    },
-    "noSubscription": "Aucun abonnement. Aucun renouvellement automatique.",
-    "creditUsage": "Utilise tes crédits quand tu veux. Un client = un livrable.",
-    "errors": {
-      "checkout": "Erreur lors de la création de la session de paiement",
-      "cancel": "Erreur lors de la résiliation",
-      "packNotFound": "Pack non reconnu",
-      "generic": "Une erreur est survenue. Veuillez réessayer.",
-      "cancelConfirm": "Êtes-vous sûr de vouloir résilier votre abonnement ?"
-    },
-    "success": {
-      "cancel": "Abonnement résilié avec succès."
-    }
+  "orgSettings": {
+    "title": "Paramètres de l'organisation",
+    "subtitle": "Gérez les membres et les paramètres de votre organisation.",
+    "inviteMembers": "Inviter des membres",
+    "inviteDesc": "Ajoutez de nouveaux membres à votre organisation par email.",
+    "emailPlaceholder": "collegue@exemple.com",
+    "invite": "Inviter",
+    "members": "Membres",
+    "membersDesc": "Gérez les membres existants et leurs rôles.",
+    "email": "Email",
+    "role": "Rôle",
+    "actions": "Actions",
+    "removeConfirm": "Êtes-vous sûr de vouloir supprimer ce membre ?",
+    "loadError": "Impossible de charger les membres",
+    "inviteError": "Impossible d'inviter le membre"
   },
   "account": {
     "title": "Mon Compte",
@@ -550,22 +490,6 @@
       "large": "Grand"
     }
   },
-  "join": {
-    "invalidLink": "Lien de partage invalide.",
-    "joinError": "Impossible de rejoindre la présentation.",
-    "verifying": "Vérification du lien...",
-    "authRequiredTitle": "Connexion requise",
-    "authRequiredMsg": "Vous devez vous connecter ou créer un compte pour accéder à cette présentation.",
-    "presentationAdded": "Présentation ajoutée !",
-    "oops": "Oups !"
-  },
-  "view": {
-    "accessError": "Impossible d'accéder à la présentation.",
-    "fetching": "Récupération de la présentation",
-    "authRequiredMsg": "Vous devez vous connecter pour voir cette présentation.",
-    "readOnlyMode": "Mode lecture seule",
-    "presentationDefaultTitle": "Présentation"
-  },
   "share": {
     "title": "Partager cette présentation",
     "subtitle": "Choisissez le mode de partage et envoyez le lien à vos collaborateurs.",
@@ -624,11 +548,48 @@
     "timeoutMsg": "La génération prend trop de temps. Veuillez réessayer.",
     "generationFailed": "Échec de la génération.",
     "addError": "Impossible d'ajouter la slide.",
+    "titleDialog": "Ajouter une nouvelle slide",
+    "importData": "Importer des données",
+    "smartPasteTitle": "Coller des données intelligentes",
+    "smartPasteDesc": "Copiez des données depuis Excel, Sheets ou CSV et <0>collez-les n'importe où</0> dans l'éditeur (Ctrl+V) pour créer une slide instantanément.",
+    "smartPasteAi": "L'IA détecte automatiquement les tableaux et graphiques",
+    "smartPasteGotIt": "Compris !",
     "prompts": {
-      "conclusion": "Génère une slide de conclusion percutante avec un appel à l'action clair.",
-      "qa": "Génère une slide dédiée aux Questions/Réponses pour engager l'audience.",
-      "recap": "Génère une slide résumant les points clés pour renforcer la rétention.",
-      "cta": "Génère une slide incitant l'audience à passer à l'action immédiatement."
+      "conclusion": "Génère une diapositive de conclusion percutante avec un appel à l'action clair.",
+      "qa": "Génère une diapositive dédiée aux questions-réponses pour engager l'auditoire.",
+      "recap": "Génère une diapositive résumant les points clés pour renforcer la mémorisation.",
+      "cta": "Génère une diapositive incitant l'auditoire à passer à l'action immédiatement."
+    }
+  },
+  "narrative": {
+    "title": "Flux Narratif",
+    "subtitle": "Analyse dynamique de la structure",
+    "optimizeFlow": "Optimiser le flux avec l'IA",
+    "moreSlides": "+ {{count}} autres slides...",
+    "guideTitle": "Guide du Flux",
+    "guideDesc": "Les catégories sont créées automatiquement. Utilisez des diapositives de <0>Séparateur de Section</0> pour commencer de nouveaux segments.",
+    "optimizerTitle": "Optimiseur de Flux IA",
+    "optimizerDesc": "Notre IA analyse vos sections et le contenu de vos slides pour suggérer l'arc narratif le plus efficace.",
+    "analyzingTitle": "Analyse de la structure narrative...",
+    "analyzingDesc": "Évaluation des segments, sections et transitions entre slides",
+    "optimizations": "Optimisations",
+    "suggestedFlow": "Flux suggéré",
+    "slidesCount": "{{count}} slides",
+    "perfectStructure": "Votre structure actuelle suit déjà les meilleures pratiques logiques !",
+    "excellentNarrative": "Excellente Narration !",
+    "excellentNarrativeDesc": "La structure de votre histoire est cohérente et bien organisée.",
+    "applyOptimized": "Appliquer l'ordre optimisé",
+    "moveAppendixToEnd": "Grouper toutes les diapositives de l'annexe à la fin de la présentation.",
+    "moveAgendaToStart": "Déplacer '{{title}}' à la position 2 pour une introduction logique.",
+    "sectionTooLong": "Le segment '{{label}}' est très long ({{count}} slides). Pensez à ajouter un séparateur de sous-section.",
+    "refinedReason": "Structure affinée basée sur les schémas narratifs",
+    "suggestionsFoundReason": "Suggestions structurelles trouvées",
+    "labels": {
+      "introduction": "Introduction",
+      "section": "Section {{count}}",
+      "appendix": "Annexe",
+      "appendixPrefix": "Annexe : {{label}}",
+      "mainPresentation": "Présentation principale"
     }
   },
   "examples": {
@@ -649,6 +610,38 @@
     "previous": "Précédent",
     "next": "Suivant"
   },
+  "comments": {
+    "title": "Commentaires",
+    "empty": "Aucun commentaire sur cette slide.",
+    "emptySub": "Commencez la discussion !",
+    "reopen": "Rouvrir",
+    "resolve": "Résoudre",
+    "placeholder": "Écrire un commentaire...",
+    "post": "Envoyer",
+    "loadError": "Impossible de charger les commentaires",
+    "addError": "Impossible d'ajouter le commentaire",
+    "resolveError": "Impossible de mettre à jour le commentaire",
+    "deleteError": "Impossible de supprimer le commentaire"
+  },
+  "library": {
+    "title": "Ma bibliothèque de slides",
+    "searchPlaceholder": "Rechercher dans votre bibliothèque...",
+    "clearFilters": "Effacer tous les filtres",
+    "loading": "Chargement de vos ressources...",
+    "noSlides": "Aucune slide trouvée",
+    "noResults": "Essayez un autre terme de recherche",
+    "empty": "Enregistrez des slides depuis le Storyboard pour les voir ici.",
+    "tip": "Astuce : Faites glisser les slides dans le Storyboard",
+    "insertSlide": "Insérer la slide",
+    "removeTooltip": "Supprimer de la bibliothèque",
+    "fetchError": "Impossible de charger votre bibliothèque de slides.",
+    "deleteConfirm": "Êtes-vous sûr de vouloir supprimer cette slide de votre bibliothèque ?",
+    "deletedTitle": "Supprimé",
+    "deletedDesc": "Slide retirée de la bibliothèque.",
+    "deleteError": "Impossible de supprimer la slide.",
+    "slideInserted": "\"{{name}}\" a été insérée.",
+    "emptyHeader": "Aucune slide enregistrée."
+  },
   "notFound": {
     "title": "404",
     "message": "Page non trouvée",
@@ -668,6 +661,26 @@
     "or": "ou",
     "customInstructions": "Instructions personnalisées",
     "placeholder": "Ex: Ajouter plus de données, changer la disposition...",
+    "tabs": {
+      "modes": "Modes de mise en page",
+      "refine": "Affiner le contenu"
+    },
+    "tones": {
+      "label": "Ton",
+      "placeholder": "Sélectionner un ton",
+      "executive": "Exécutif",
+      "technical": "Technique",
+      "sales": "Ventes",
+      "academic": "Académique",
+      "casual": "Décontracté"
+    },
+    "commands": {
+      "label": "Commandes rapides",
+      "shorten": "Raccourcir",
+      "expand": "Développer",
+      "formalize": "Formaliser",
+      "simplify": "Simplifier"
+    },
     "cancel": "Annuler",
     "submit": "Régénérer",
     "submitting": "Régénération...",
@@ -705,10 +718,13 @@
     "successTitle": "✅ Bug signalé !",
     "successMsg": "Merci de votre retour. Notre équipe va analyser le problème.",
     "errorTitle": "Erreur",
-    "errorMsg": "Impossible d'envoyer le rapport. Veuillez réessayer.",
+    "errorMsg": "Échec de l'envoi du rapport. Veuillez réessayer.",
     "validation": {
       "descRequired": "Description requise",
       "descRequiredMsg": "Veuillez décrire le bug rencontré."
+    },
+    "errors": {
+      "sendFailure": "Échec de l'envoi"
     }
   },
   "colorPalette": {
@@ -936,7 +952,15 @@
     "title": "Le Blog SlideAI",
     "subtitle": "L'actualité de l'IA et les meilleures pratiques pour réussir vos présentations.",
     "readMore": "Lire l'article",
-    "loading": "Chargement des articles..."
+    "loading": "Chargement des articles...",
+    "notFound": "Article non trouvé",
+    "backToBlog": "Retour au blog",
+    "backToArticles": "Retour aux articles",
+    "cta": {
+      "title": "Envie de créer des slides comme un pro ?",
+      "description": "Utilisez notre IA pour générer votre prochaine présentation en quelques secondes. Essayez gratuitement.",
+      "button": "Générer une présentation"
+    }
   },
   "editorPage": {
     "errors": {
@@ -956,6 +980,12 @@
       "error": "Erreur de sauvegarde",
       "ready": "Prêt"
     },
+    "status": {
+      "placeholder": "Statut",
+      "draft": "Brouillon",
+      "review": "En revue",
+      "approved": "Approuvé"
+    },
     "actions": {
       "slideshow": "Diaporama",
       "save": "Sauvegarder",
@@ -963,7 +993,17 @@
       "export": "Exporter",
       "regenerateSlide": "Régénérer la slide",
       "deleteSlide": "Supprimer la slide",
-      "addSlide": "Ajouter une slide"
+      "addSlide": "Ajouter une slide",
+      "editorView": "Vue Éditeur",
+      "storyboardView": "Vue Storyboard",
+      "library": "Bibliothèque",
+      "libraryTooltip": "Ma bibliothèque de slides",
+      "comments": "Commentaires",
+      "play": "Lire"
+    },
+    "library": {
+      "slideAdded": "Slide ajoutée",
+      "slideAddedMsg": "La slide de la bibliothèque a été insérée."
     },
     "sidebar": {
       "slides": "SLIDES"
@@ -982,6 +1022,11 @@
       "textLabel": "Zone de texte",
       "imageLabel": "Image"
     },
+    "image": {
+      "updated": "Image mise à jour",
+      "photoBy": "Photo par {{name}}",
+      "applied": "Votre image a été appliquée"
+    },
     "cannotDelete": "Impossible de supprimer",
     "mustHaveOneRow": "Le tableau doit avoir au moins une ligne.",
     "rowDeleted": "Ligne supprimée",
@@ -993,7 +1038,23 @@
     "saveErrorMsg": "Impossible de sauvegarder les modifications.",
     "mustHaveOneSlide": "La présentation doit contenir au moins une slide.",
     "slideDeleted": "Slide supprimée",
-    "slideDeletedMsg": "La slide a été supprimée avec succès."
+    "slideDeletedMsg": "La slide a été supprimée avec succès.",
+    "speakerNotes": {
+      "title": "Notes du présentateur",
+      "placeholder": "Ajouter des notes ici...",
+      "button": "Notes"
+    },
+    "smartPaste": {
+      "title": "Copie Intelligente",
+      "tooltip": "Copie Intelligente (Excel/CSV)",
+      "import": "Importer",
+      "tableDetected": "Tableau détecté.",
+      "chartDetected": "Graphique détecté.",
+      "imageDetected": "Image détectée.",
+      "createTable": "Créer un Tableau",
+      "createChart": "Créer un Graphique",
+      "createImage": "Créer une Image"
+    }
   },
   "productShowcase": {
     "features": {
@@ -1008,6 +1069,137 @@
       "dashboard": {
         "title": "Tableau de Bord Intelligent",
         "description": "Gérez vos présentations efficacement avec un espace de travail organisé et magnifique."
+      }
+    }
+  },
+  "view": {
+    "presentationDefaultTitle": "Présentation",
+    "readOnlyMode": "Mode lecture seule",
+    "fetching": "Chargement de la présentation...",
+    "authRequiredMsg": "Vous devez être connecté pour voir cette présentation.",
+    "accessError": "Impossible d'accéder à la présentation"
+  },
+  "join": {
+    "invalidLink": "Lien invalide ou expiré.",
+    "joinError": "Impossible de rejoindre la présentation.",
+    "verifying": "Vérification du lien...",
+    "authRequiredTitle": "Authentification requise",
+    "authRequiredMsg": "Vous devez vous connecter ou créer un compte pour accéder à cette présentation.",
+    "presentationAdded": "Présentation ajoutée !",
+    "oops": "Oups !"
+  },
+  "seo": {
+    "view": {
+      "title": "Présentation SlideAI",
+      "description": "Regardez cette présentation créée avec SlideAI."
+    }
+  },
+  "pricing": {
+    "title": "Simple et Transparent",
+    "titleHighlight": "Tarifs",
+    "subtitle": "Choisissez le plan qui vous convient le mieux. Pas de frais cachés.",
+    "badge": "Tarifs",
+    "mostPopular": "Le plus populaire",
+    "perMonth": "/mois",
+    "billedYearly": "Facturé annuellement (€{{price}})",
+    "billedMonthly": "Facturé mensuellement",
+    "startFree": "Démarrer gratuitement",
+    "tryFree": "Essayer gratuitement",
+    "contactSales": "Contacter les ventes",
+    "unsubscribe": "Se désabonner",
+    "included": "Inclus",
+    "creditUsage": "Les crédits sont utilisés pour générer des présentations avec l'IA.",
+    "monthly": "Mensuel",
+    "yearly": "Annuel",
+    "discount": "-20%",
+    "allCardsAccepted": "Toutes les cartes majeures acceptées",
+    "noSubscription": "Sans abonnement requis",
+    "questions": "Des questions ?",
+    "contactUs": "Contactez-nous",
+    "errors": {
+      "checkout": "Impossible de rediriger vers le paiement.",
+      "generic": "Une erreur est survenue.",
+      "cancelConfirm": "Êtes-vous sûr de vouloir annuler votre abonnement ?",
+      "cancel": "Erreur lors de l'annulation de l'abonnement.",
+      "packNotFound": "Pack introuvable."
+    },
+    "success": {
+      "cancel": "Abonnement annulé avec succès."
+    },
+    "plans": {
+      "free": {
+        "name": "Gratuit",
+        "description": "Parfait pour essayer SlideAI.",
+        "features": {
+          "presentations": "3 présentations / mois",
+          "pdfImport": "Import PDF (Basique)",
+          "storage": "100 Mo de stockage",
+          "aiSlides": "Génération IA (Limitée)",
+          "aiRegen": "Régénération IA Standard",
+          "design": "Design Basique",
+          "watermark": "Filigrane sur les exports"
+        },
+        "limitations": {
+          "export": "Export PDF uniquement",
+          "brandKit": "Pas de Kit de Marque"
+        }
+      },
+      "starter": {
+        "name": "Starter",
+        "description": "Pour les individus et freelances qui débutent.",
+        "cta": "Choisir Starter",
+        "features": {
+          "presentations": "Présentations illimitées",
+          "pdfImport": "Import PDF (Avancé)",
+          "storage": "1 Go de stockage",
+          "aiSlides": "Génération IA Standard",
+          "aiRegen": "Régénération IA Illimitée",
+          "export": "Export PDF & PowerPoint",
+          "sharing": "Partage Privé"
+        }
+      },
+      "pro": {
+        "name": "Pro",
+        "description": "Pour les professionnels qui ont besoin de puissance.",
+        "features": {
+          "unlimitedGen": "Génération Illimitée",
+          "pdfImport": "PDF vers PowerPoint (Pro)",
+          "storage": "10 Go de stockage",
+          "unlimitedSlides": "Slides Illimitées",
+          "export": "Export Prioritaire",
+          "support": "Support Prioritaire",
+          "beta": "Accès aux fonctionnalités Beta"
+        }
+      },
+      "business": {
+        "name": "Business",
+        "description": "Pour les équipes et organisations.",
+        "features": {
+          "allPro": "Toutes les fonctionnalités Pro",
+          "collab": "Collaboration d'équipe",
+          "support": "Support Dédié",
+          "analytics": "Analytiques Avancées",
+          "sso": "SSO & Sécurité"
+        }
+      }
+    },
+    "packs": {
+      "discovery": {
+        "badge": "Découverte",
+        "name": "Pack Freight",
+        "subtitle": "Pour tester la puissance de l'IA",
+        "keyLine": "100 Crédits",
+        "priceDetail": "Paiement unique",
+        "credits": "100 Crédits",
+        "cta": "Acheter le pack"
+      },
+      "power": {
+        "name": "Pack Power",
+        "subtitle": "Pour les utilisateurs réguliers",
+        "keyLine": "500 Crédits",
+        "priceDetail": "Paiement unique",
+        "credits": "500 Crédits",
+        "cta": "Acheter le pack"
       }
     }
   }

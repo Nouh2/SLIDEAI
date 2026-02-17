@@ -159,8 +159,9 @@ const adaptDeck = (deck: any) => {
       sourceRef: s.sourceRef, // Pass through RAG citation
       isAppendix: s.isAppendix, // Persist appendix status
       isChartImage: s.isChartImage, // Persist chart status to avoid overlays
+      elements: s.elements || [], // Fix: Persist elements so font sizes are not lost
     })),
-    theme: deck.theme || rootData.theme || "startup-pitch",
+    theme: typeof rootData.theme === 'object' ? { ...rootData.theme, name: deck.theme || rootData.theme.name } : deck.theme || rootData.theme || "startup-pitch",
     themeConfig: deck.themeConfig || rootData.themeConfig,
     colorScheme: deck.colorPalette || deck.colorScheme || rootData.colorPalette || rootData.colorScheme,
     fontConfig: deck.fontConfig || rootData.fontConfig,
@@ -763,14 +764,18 @@ export default function Editor() {
   const handleThemeUpdate = (path: string, value: any) => {
     if (!currentProject) return;
 
+    // Fix: Handle case where theme is a string (legacy)
+    const currentTheme = typeof currentProject.theme === 'string'
+      ? { name: currentProject.theme }
+      : (currentProject.theme || { name: 'modern' });
+
     const newProject = {
       ...currentProject,
       theme: {
-        ...(currentProject.theme || {}),
+        ...currentTheme,
         [path]: value
       }
     };
-
     setCurrentProject(newProject);
     triggerAutoSave(newProject);
   };
@@ -873,7 +878,11 @@ export default function Editor() {
         subtitle: projectToSave.subtitle
       };
 
-      await api.savePresentation(projectToSave.id, { slides: deckData, status: projectToSave.status }, accessToken);
+      await api.savePresentation(projectToSave.id, {
+        slides: deckData,
+        status: projectToSave.status,
+        fontConfig: projectToSave.fontConfig
+      }, accessToken);
       setSaveStatus('saved');
       // Auto-hide "saved" status after 2 seconds
       setTimeout(() => setSaveStatus('idle'), 2000);
@@ -1108,25 +1117,25 @@ export default function Editor() {
                   onValueChange={handleStatusChange}
                 >
                   <SelectTrigger className="h-7 w-[110px] text-xs font-medium border-border/50 bg-muted/50">
-                    <SelectValue placeholder="Status" />
+                    <SelectValue placeholder={t('editorPage.status.placeholder')} />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="draft">
                       <div className="flex items-center gap-2">
                         <span className="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
-                        Draft
+                        {t('editorPage.status.draft')}
                       </div>
                     </SelectItem>
                     <SelectItem value="review">
                       <div className="flex items-center gap-2">
                         <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
-                        In Review
+                        {t('editorPage.status.review')}
                       </div>
                     </SelectItem>
                     <SelectItem value="approved">
                       <div className="flex items-center gap-2">
                         <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                        Approved
+                        {t('editorPage.status.approved')}
                       </div>
                     </SelectItem>
                   </SelectContent>
@@ -1176,10 +1185,10 @@ export default function Editor() {
                 size="sm"
                 className="h-9 px-3 gap-2 rounded-lg"
                 onClick={() => setIsLibraryOpen(!isLibraryOpen)}
-                title="My Slide Library"
+                title={t('editorPage.actions.libraryTooltip')}
               >
                 <Bookmark className={`h-4 w-4 ${isLibraryOpen ? "fill-primary text-primary" : ""}`} />
-                <span className="hidden lg:inline text-xs font-semibold">Library</span>
+                <span className="hidden lg:inline text-xs font-semibold">{t('editorPage.actions.library')}</span>
               </Button>
 
               <div className="h-6 w-px bg-[#E6E6E0]"></div>
@@ -1245,7 +1254,7 @@ export default function Editor() {
                   size="sm"
                   className="h-9 w-9 p-0 flex"
                   onClick={() => setIsCommentsOpen(!isCommentsOpen)}
-                  title="Comments"
+                  title={t('editorPage.actions.comments')}
                 >
                   <MessageSquare className={`h-4 w-4 ${isCommentsOpen ? "fill-primary text-primary" : ""}`} />
                 </Button>
@@ -1281,10 +1290,10 @@ export default function Editor() {
                       variant="ghost"
                       size="sm"
                       className="h-9 px-3 gap-2 rounded-lg text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 dark:text-emerald-400 dark:hover:bg-emerald-950/30"
-                      title="Smart Data Paste (Excel/CSV)"
+                      title={t('editorPage.smartPaste.tooltip')}
                     >
                       <TableProperties className="h-4 w-4" />
-                      <span className="hidden lg:inline text-xs font-semibold">Import</span>
+                      <span className="hidden lg:inline text-xs font-semibold">{t('editorPage.smartPaste.import')}</span>
                     </Button>
                   </AddSlideDialog>
                 )}
@@ -1580,7 +1589,7 @@ export default function Editor() {
                           onClick={() => setShowSpeakerNotes(!showSpeakerNotes)}
                         >
                           <NotebookPen className="w-3.5 h-3.5" />
-                          Notes
+                          {t('editorPage.speakerNotes.button')}
                         </Button>
                       </div>
                     </>
@@ -1593,7 +1602,7 @@ export default function Editor() {
                     <div className="flex items-center justify-between">
                       <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
                         <NotebookPen className="w-3 h-3" />
-                        Speaker Notes
+                        {t('editorPage.speakerNotes.title')}
                       </span>
                       <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => setShowSpeakerNotes(false)}>
                         <Minimize2 className="w-3 h-3" />
@@ -1602,7 +1611,7 @@ export default function Editor() {
                     <Textarea
                       value={currentProject.slides[selectedSlide].notes || ''}
                       onChange={handleNotesChange}
-                      placeholder="Add speaker notes here..."
+                      placeholder={t('editorPage.speakerNotes.placeholder')}
                       className="flex-1 resize-none bg-muted/30 border-muted focus-visible:ring-primary/20 font-sans text-sm leading-relaxed"
                     />
                   </div>
@@ -1679,8 +1688,8 @@ export default function Editor() {
                       setSelectedSlide(insertIndex);
 
                       toast({
-                        title: "Slide Added",
-                        description: "Slide from library inserted into your deck.",
+                        title: t('editorPage.library.slideAdded'),
+                        description: t('editorPage.library.slideAddedMsg'),
                       });
                     }}
                   />
@@ -1698,7 +1707,7 @@ export default function Editor() {
                 <SheetTrigger asChild>
                   <Button variant="ghost" size="icon" className="flex flex-col gap-1 h-auto py-2">
                     <Layers className="h-5 w-5" />
-                    <span className="text-[10px] font-medium">Slides</span>
+                    <span className="text-[10px] font-medium">{t('editorPage.sidebar.slides')}</span>
                   </Button>
                 </SheetTrigger>
                 <SheetContent side="left" className="w-[80vw] p-0 flex flex-col">
@@ -1742,7 +1751,7 @@ export default function Editor() {
               {/* Mobile Slideshow Trigger */}
               <Button variant="ghost" size="icon" className="flex flex-col gap-1 h-auto py-2" onClick={() => setIsMobileSlideshowOpen(true)}>
                 <Play className="h-5 w-5" />
-                <span className="text-[10px] font-medium">Play</span>
+                <span className="text-[10px] font-medium">{t('editorPage.actions.play')}</span>
               </Button>
 
             </div>
@@ -1860,8 +1869,8 @@ export default function Editor() {
             }
 
             toast({
-              title: "Image mise à jour",
-              description: attribution ? `Photo par ${attribution.name}` : "Votre image a été appliquée"
+              title: t('editorPage.image.updated'),
+              description: attribution ? t('editorPage.image.photoBy', { name: attribution.name }) : t('editorPage.image.applied')
             });
             setIsImageModalOpen(false);
           }}

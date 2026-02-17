@@ -319,16 +319,19 @@ export function ExportDialog({ open, onOpenChange, presentation, accessToken }: 
                             {/* PPTX Option */}
                             <button
                                 onClick={handlePPTXExport}
-                                disabled={isExporting}
-                                className="group relative flex flex-col items-center p-6 rounded-2xl border-2 border-border bg-surface/50 hover:border-primary hover:bg-primary/5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 text-left"
+                                disabled={true}
+                                className="group relative flex flex-col items-center p-6 rounded-2xl border-2 border-border bg-surface/30 opacity-60 cursor-not-allowed"
                             >
-                                <div className="w-14 h-14 rounded-xl bg-orange-500/10 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                                <div className="w-14 h-14 rounded-xl bg-orange-500/10 flex items-center justify-center mb-4 grayscale">
                                     <FileSpreadsheet className="w-7 h-7 text-orange-500" />
                                 </div>
                                 <h3 className="font-bold text-foreground mb-1">PowerPoint</h3>
                                 <p className="text-xs text-muted-foreground text-center">
                                     {t('export.pptxDescription', { defaultValue: 'Export PowerPoint haute fidélité avec support multi-langues.' })}
                                 </p>
+                                <span className="absolute top-3 right-3 text-[10px] font-bold uppercase tracking-wider text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
+                                    Bientôt
+                                </span>
                             </button>
 
                             {/* Google Slides Option */}

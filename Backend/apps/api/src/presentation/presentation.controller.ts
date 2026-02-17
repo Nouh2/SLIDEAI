@@ -19,6 +19,7 @@ const updatePresentationSchema = z.object({
     slides: z.any().optional(),
     title: z.string().optional(),
     status: z.enum(['ready', 'draft', 'review', 'approved']).optional(),
+    fontConfig: z.any().optional(),
 });
 
 const joinSchema = z.object({

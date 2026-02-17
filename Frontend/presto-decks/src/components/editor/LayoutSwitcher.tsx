@@ -249,7 +249,6 @@ export function LayoutSwitcher({ currentSlide, theme, colors, onUpdateSlide, onU
                         const previewSlide = v.isAdapter
                             ? adaptToLayout(currentSlide, v.id as SlideLayoutType)
                             : { ...currentSlide, variation: v.id };
-
                         return (
                             <div key={v.id} className="space-y-2">
                                 <div className="flex items-center justify-between">
@@ -299,9 +298,9 @@ export function LayoutSwitcher({ currentSlide, theme, colors, onUpdateSlide, onU
                     <div className="flex items-center gap-2">
                         {/* Title Scale Selector */}
                         <div className="flex-1 space-y-1">
-                            <span className="text-[9px] uppercase tracking-wider opacity-60 font-semibold pl-1">Title</span>
+                            <span className="text-[9px] uppercase tracking-wider opacity-60 font-semibold pl-1">{t('editor.title')}</span>
                             <Select
-                                value={String(theme?.titleFontScale || theme?.fontScale || 1)}
+                                value={String(theme?.titleFontScale || theme?.fontScale || 0.9)}
                                 onValueChange={(val) => onUpdateTheme('titleFontScale', parseFloat(val))}
                             >
                                 <SelectTrigger className="h-7 text-xs bg-background/50 border-input/50">
@@ -319,9 +318,9 @@ export function LayoutSwitcher({ currentSlide, theme, colors, onUpdateSlide, onU
 
                         {/* Body Scale Selector */}
                         <div className="flex-1 space-y-1">
-                            <span className="text-[9px] uppercase tracking-wider opacity-60 font-semibold pl-1">Body</span>
+                            <span className="text-[9px] uppercase tracking-wider opacity-60 font-semibold pl-1">{t('editor.body')}</span>
                             <Select
-                                value={String(theme?.textFontScale || theme?.fontScale || 1)}
+                                value={String(theme?.textFontScale || theme?.fontScale || 0.9)}
                                 onValueChange={(val) => onUpdateTheme('textFontScale', parseFloat(val))}
                             >
                                 <SelectTrigger className="h-7 text-xs bg-background/50 border-input/50">

@@ -2,7 +2,7 @@
 // Modal for adding a new slide with AI
 
 import { useState } from "react";
-import { useTranslation } from "react-i18next";
+import { useTranslation, Trans } from "react-i18next";
 import {
     Dialog,
     DialogContent,
@@ -52,7 +52,7 @@ export function AddSlideDialog({
         } catch (error) {
             toast({
                 title: t('common.error'),
-                description: "Failed to load library slides.",
+                description: t('library.fetchError'),
                 variant: "destructive",
             });
         } finally {
@@ -64,8 +64,8 @@ export function AddSlideDialog({
         onSuccess(slide.content);
         setOpen(false);
         toast({
-            title: "Slide added",
-            description: `"${slide.name}" has been inserted.`,
+            title: t('addSlide.slideAdded'),
+            description: t('library.slideInserted', { name: slide.name }),
         });
     };
 
@@ -161,7 +161,7 @@ export function AddSlideDialog({
                 <DialogHeader>
                     <DialogTitle className="flex items-center gap-2 text-xl">
                         <Plus className="h-5 w-5 text-primary" />
-                        Add New Slide
+                        {t('addSlide.titleDialog')}
                     </DialogTitle>
                 </DialogHeader>
 
@@ -173,11 +173,11 @@ export function AddSlideDialog({
                         </TabsTrigger>
                         <TabsTrigger value="library" className="gap-2">
                             <Library className="h-4 w-4" />
-                            My Library
+                            {t('library.title')}
                         </TabsTrigger>
                         <TabsTrigger value="import" className="gap-2 text-[10px] sm:text-sm">
                             <TableProperties className="h-4 w-4" />
-                            Import Data
+                            {t('addSlide.importData')}
                         </TabsTrigger>
                     </TabsList>
 
@@ -266,13 +266,13 @@ export function AddSlideDialog({
                             {isLoadingLibrary ? (
                                 <div className="col-span-2 py-20 flex flex-col items-center justify-center text-muted-foreground gap-3">
                                     <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                                    <p>Loading your library...</p>
+                                    <p>{t('library.loading')}</p>
                                 </div>
                             ) : librarySlides.length === 0 ? (
                                 <div className="col-span-2 py-20 flex flex-col items-center justify-center text-muted-foreground border-2 border-dashed rounded-xl bg-muted/20">
                                     <Bookmark className="h-10 w-10 mb-2 opacity-20" />
-                                    <p>No slides saved yet.</p>
-                                    <p className="text-xs">Save slides from the Storyboard view to see them here.</p>
+                                    <p>{t('library.emptyHeader')}</p>
+                                    <p className="text-xs">{t('library.empty')}</p>
                                 </div>
                             ) : (
                                 librarySlides.map((savedSlide) => (
@@ -285,8 +285,8 @@ export function AddSlideDialog({
                                             {/* Preview would go here, using a simplified renderer or just title */}
                                             <div className="absolute inset-0 flex items-center justify-center bg-slate-100 p-4">
                                                 <div className="text-center overflow-hidden">
-                                                    <p className="font-bold text-slate-800 text-sm mb-1">{savedSlide.content.title || "Untitled"}</p>
-                                                    <p className="text-[10px] text-slate-500 uppercase tracking-wider">{savedSlide.content.layout || "Content"}</p>
+                                                    <p className="font-bold text-slate-800 text-sm mb-1">{savedSlide.content.title || t('common.untitled')}</p>
+                                                    <p className="text-[10px] text-slate-500 uppercase tracking-wider">{savedSlide.content.layout || t('editor.content')}</p>
                                                 </div>
                                             </div>
                                             <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors flex items-center justify-center">
@@ -320,14 +320,16 @@ export function AddSlideDialog({
                                 <TableProperties className="h-10 w-10 text-primary" />
                             </div>
                             <div className="space-y-2">
-                                <h3 className="font-semibold text-lg italic">Smart Data Paste</h3>
+                                <h3 className="font-semibold text-lg italic">{t('addSlide.smartPasteTitle')}</h3>
                                 <p className="text-sm text-muted-foreground max-w-[400px]">
-                                    Copy data from Excel, Sheets, or CSV and <b>paste it anywhere</b> in the editor (Ctrl+V) to create a new slide instantly.
+                                    <Trans i18nKey="addSlide.smartPasteDesc">
+                                        Copy data from Excel, Sheets, or CSV and <b>paste it anywhere</b> in the editor (Ctrl+V) to create a new slide instantly.
+                                    </Trans>
                                 </p>
                             </div>
                             <div className="flex items-center gap-2 text-[10px] sm:text-xs font-medium text-emerald-600 bg-emerald-50 dark:bg-emerald-950/30 px-3 py-1.5 rounded-full border border-emerald-100 dark:border-emerald-900/30">
                                 <Sparkles className="h-3 w-3" />
-                                AI automatically detects tables and charts
+                                {t('addSlide.smartPasteAi')}
                             </div>
                         </div>
 
@@ -337,7 +339,7 @@ export function AddSlideDialog({
                                 onClick={() => setOpen(false)}
                                 className="w-full sm:w-auto"
                             >
-                                Got it!
+                                {t('addSlide.smartPasteGotIt')}
                             </Button>
                         </DialogFooter>
                     </TabsContent>

@@ -6,8 +6,9 @@ import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { MessageSquare, Loader2, Send, CheckCircle2, Circle, Trash2, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useTranslation } from 'react-i18next';
 import { formatDistanceToNow } from 'date-fns';
-import { fr } from 'date-fns/locale';
+import { fr, enUS } from 'date-fns/locale';
 
 interface Comment {
     id: string;
@@ -38,6 +39,8 @@ export function CommentsSidebar({
     onClose,
     currentUserEmail
 }: CommentsSidebarProps) {
+    const { t, i18n } = useTranslation();
+    const dateLocale = i18n.language === 'fr' ? fr : enUS;
     const [comments, setComments] = useState<Comment[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [newComment, setNewComment] = useState('');
@@ -53,7 +56,7 @@ export function CommentsSidebar({
             const data = await api.getComments(presentationId, accessToken);
             setComments(data);
         } catch (error) {
-            console.error('Failed to load comments:', error);
+            console.error(t('comments.loadError') + ':', error);
         } finally {
             setIsLoading(false);
         }
@@ -68,7 +71,7 @@ export function CommentsSidebar({
             setComments([...comments, comment]);
             setNewComment('');
         } catch (error) {
-            console.error('Failed to add comment:', error);
+            console.error(t('comments.addError') + ':', error);
         } finally {
             setIsSubmitting(false);
         }
@@ -79,7 +82,7 @@ export function CommentsSidebar({
             await api.resolveComment(commentId, resolved, accessToken);
             setComments(comments.map(c => c.id === commentId ? { ...c, resolved } : c));
         } catch (error) {
-            console.error('Failed to update comment:', error);
+            console.error(t('comments.resolveError') + ':', error);
         }
     };
 
@@ -88,7 +91,7 @@ export function CommentsSidebar({
             await api.deleteComment(commentId, accessToken);
             setComments(comments.filter(c => c.id !== commentId));
         } catch (error) {
-            console.error('Failed to delete comment:', error);
+            console.error(t('comments.deleteError') + ':', error);
         }
     };
 
@@ -101,7 +104,7 @@ export function CommentsSidebar({
                 <div className="flex items-center gap-2">
                     <MessageSquare className="w-4 h-4 text-primary" />
                     <h2 className="text-sm font-bold tracking-tight uppercase text-foreground">
-                        Comments
+                        {t('comments.title')}
                     </h2>
                 </div>
                 <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full" onClick={onClose}>
@@ -116,8 +119,8 @@ export function CommentsSidebar({
                     </div>
                 ) : slideComments.length === 0 ? (
                     <div className="text-center py-12 text-slate-500">
-                        <p className="text-sm">Aucun commentaire sur cette slide.</p>
-                        <p className="text-xs mt-1">Commencez la discussion !</p>
+                        <p className="text-sm">{t('comments.empty')}</p>
+                        <p className="text-xs mt-1">{t('comments.emptySub')}</p>
                     </div>
                 ) : (
                     <div className="space-y-4">
@@ -141,7 +144,7 @@ export function CommentsSidebar({
                                                 {comment.user.email.split('@')[0]}
                                             </span>
                                             <span className="text-[10px] text-slate-400">
-                                                {formatDistanceToNow(new Date(comment.createdAt), { addSuffix: true, locale: fr })}
+                                                {formatDistanceToNow(new Date(comment.createdAt), { addSuffix: true, locale: dateLocale })}
                                             </span>
                                         </div>
                                     </div>
@@ -151,7 +154,7 @@ export function CommentsSidebar({
                                             size="icon"
                                             className="h-6 w-6 hover:bg-green-50 hover:text-green-600"
                                             onClick={() => handleResolve(comment.id, !comment.resolved)}
-                                            title={comment.resolved ? "Rouvrir" : "Résoudre"}
+                                            title={comment.resolved ? t('comments.reopen') : t('comments.resolve')}
                                         >
                                             {comment.resolved ? (
                                                 <CheckCircle2 className="h-3.5 w-3.5 text-green-600" />
@@ -181,7 +184,7 @@ export function CommentsSidebar({
             <div className="p-4 border-t border-slate-100 bg-slate-50">
                 <div className="relative">
                     <Textarea
-                        placeholder="Écrire un commentaire..."
+                        placeholder={t('comments.placeholder')}
                         className="min-h-[80px] pr-10 resize-none bg-white"
                         value={newComment}
                         onChange={(e) => setNewComment(e.target.value)}

@@ -48,7 +48,7 @@ const getColors = (index: number) => {
 /**
  * Dynamically detects narrative segments based on slide content and layouts.
  */
-export const calculateNarrativeSegments = (slides: any[]): DynamicSegment[] => {
+export const calculateNarrativeSegments = (slides: any[], t?: (key: string, options?: any) => string): DynamicSegment[] => {
     const segments: DynamicSegment[] = [];
     let currentSegment: DynamicSegment | null = null;
     let sectionIndex = 0;
@@ -86,11 +86,17 @@ export const calculateNarrativeSegments = (slides: any[]): DynamicSegment[] => {
             (hasKeywordMatch && index > 0 && !slide.isAppendix && (currentSegment?.slideCount || 0) > 1);
 
         if (isNewSegment) {
-            let label = title || (index === 0 ? 'Introduction' : isDivider ? `Section ${sectionIndex + 1}` : 'Appendix');
+            let label = title || (
+                index === 0
+                    ? (t ? t('narrative.labels.introduction') : 'Introduction')
+                    : isDivider
+                        ? (t ? t('narrative.labels.section', { count: sectionIndex + 1 }) : `Section ${sectionIndex + 1}`)
+                        : (t ? t('narrative.labels.appendix') : 'Appendix')
+            );
 
             // Explicitly prefix appendix segments for visual clarity
             if (slide.isAppendix && !label.toLowerCase().includes('appendix') && !label.toLowerCase().includes('annex')) {
-                label = `Appendix: ${label}`;
+                label = t ? t('narrative.labels.appendixPrefix', { label }) : `Appendix: ${label}`;
             }
             const segmentId = slide.isAppendix ? `appendix-${index}` : (isDivider || index === 0) ? `section-${slide.id || index}` : `topic-${index}`;
 
@@ -114,12 +120,12 @@ export const calculateNarrativeSegments = (slides: any[]): DynamicSegment[] => {
     if (segments.length === 0 && slides.length > 0) {
         segments.push({
             id: 'default',
-            label: 'Main Presentation',
+            label: t ? t('narrative.labels.mainPresentation') : 'Main Presentation',
             icon: MessageSquare,
             color: getColors(0),
             slideCount: slides.length,
             startIndex: 0,
-            slideTitles: slides.map(s => s.title || "Untitled Slide")
+            slideTitles: slides.map(s => s.title || (t ? t('common.untitled') : "Untitled Slide"))
         });
     }
 

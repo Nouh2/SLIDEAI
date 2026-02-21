@@ -17,7 +17,6 @@ const STATIC_ROUTES = [
     { url: '/pricing', changefreq: 'monthly', priority: 0.8 },
     { url: '/examples', changefreq: 'weekly', priority: 0.8 },
     { url: '/blog', changefreq: 'daily', priority: 0.9 },
-    { url: '/auth', changefreq: 'monthly', priority: 0.5 },
     { url: '/privacy', changefreq: 'monthly', priority: 0.3 },
     { url: '/terms', changefreq: 'monthly', priority: 0.3 },
     { url: '/gdpr', changefreq: 'monthly', priority: 0.3 },

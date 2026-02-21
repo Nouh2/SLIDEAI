@@ -26,11 +26,6 @@
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://www.slideai.fr/auth</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
     <loc>https://www.slideai.fr/privacy</loc>
     <changefreq>monthly</changefreq>
     <priority>0.3</priority>

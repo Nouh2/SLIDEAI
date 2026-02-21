@@ -5,8 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite --config vite.config.mjs",
-    "build": "npm run generate:sitemap && vite build --config vite.config.mjs",
+    "build": "npm run generate:blog-static && npm run generate:sitemap && vite build --config vite.config.mjs",
     "build:dev": "vite build --config vite.config.mjs --mode development",
+    "generate:blog-static": "node scripts/generate-blog-static.js",
     "generate:sitemap": "node scripts/generate-sitemap.js",
     "test:visual": "node scripts/visual-regression.mjs",
     "test:visual:stress": "node scripts/visual-regression-stress.mjs",

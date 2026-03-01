@@ -8,6 +8,7 @@ export const Footer = () => {
   const links = {
     product: [
       { label: t('footer.links.examples'), href: "/examples" },
+      { label: "Blog", href: "/blog" },
       { label: t('footer.links.pricing'), href: "/pricing" },
     ],
     legal: [

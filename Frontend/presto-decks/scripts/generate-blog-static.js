@@ -8,8 +8,8 @@ const __dirname = path.dirname(__filename);
 
 const DOMAIN = "https://www.slideai.fr";
 const CONTENT_DIR = path.join(__dirname, "../src/content/blog");
-const PUBLIC_DIR = path.join(__dirname, "../public");
-const BLOG_PUBLIC_DIR = path.join(PUBLIC_DIR, "blog");
+const DIST_DIR = path.join(__dirname, "../dist");
+const BLOG_DIST_DIR = path.join(DIST_DIR, "blog");
 
 function escapeHtml(value) {
   return String(value)
@@ -18,151 +18,6 @@ function escapeHtml(value) {
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#39;");
-}
-
-function renderInline(text) {
-  let html = escapeHtml(text);
-  html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>');
-  html = html.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
-  html = html.replace(/\*([^*]+)\*/g, "<em>$1</em>");
-  html = html.replace(/`([^`]+)`/g, "<code>$1</code>");
-  return html;
-}
-
-function markdownToHtml(markdown) {
-  const lines = markdown.split(/\r?\n/);
-  const html = [];
-  let inUl = false;
-  let inOl = false;
-  let inCode = false;
-
-  const closeLists = () => {
-    if (inUl) {
-      html.push("</ul>");
-      inUl = false;
-    }
-    if (inOl) {
-      html.push("</ol>");
-      inOl = false;
-    }
-  };
-
-  for (const line of lines) {
-    if (line.startsWith("```")) {
-      closeLists();
-      if (!inCode) {
-        html.push("<pre><code>");
-        inCode = true;
-      } else {
-        html.push("</code></pre>");
-        inCode = false;
-      }
-      continue;
-    }
-
-    if (inCode) {
-      html.push(`${escapeHtml(line)}\n`);
-      continue;
-    }
-
-    if (!line.trim()) {
-      closeLists();
-      continue;
-    }
-
-    const headingMatch = line.match(/^(#{1,6})\s+(.*)$/);
-    if (headingMatch) {
-      closeLists();
-      const level = headingMatch[1].length;
-      html.push(`<h${level}>${renderInline(headingMatch[2])}</h${level}>`);
-      continue;
-    }
-
-    const blockquoteMatch = line.match(/^>\s+(.*)$/);
-    if (blockquoteMatch) {
-      closeLists();
-      html.push(`<blockquote>${renderInline(blockquoteMatch[1])}</blockquote>`);
-      continue;
-    }
-
-    const ulMatch = line.match(/^[-*]\s+(.*)$/);
-    if (ulMatch) {
-      if (!inUl) {
-        if (inOl) {
-          html.push("</ol>");
-          inOl = false;
-        }
-        html.push("<ul>");
-        inUl = true;
-      }
-      html.push(`<li>${renderInline(ulMatch[1])}</li>`);
-      continue;
-    }
-
-    const olMatch = line.match(/^\d+\.\s+(.*)$/);
-    if (olMatch) {
-      if (!inOl) {
-        if (inUl) {
-          html.push("</ul>");
-          inUl = false;
-        }
-        html.push("<ol>");
-        inOl = true;
-      }
-      html.push(`<li>${renderInline(olMatch[1])}</li>`);
-      continue;
-    }
-
-    closeLists();
-    html.push(`<p>${renderInline(line)}</p>`);
-  }
-
-  closeLists();
-  if (inCode) {
-    html.push("</code></pre>");
-  }
-
-  return html.join("\n");
-}
-
-function pageTemplate({ title, description, canonical, bodyHtml, coverImage }) {
-  const escapedTitle = escapeHtml(title);
-  const escapedDescription = escapeHtml(description || "");
-  const ogImage = coverImage || `${DOMAIN}/og-image.png`;
-
-  return `<!doctype html>
-<html lang="fr">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>${escapedTitle} | SlideAI</title>
-  <meta name="description" content="${escapedDescription}" />
-  <link rel="canonical" href="${canonical}" />
-  <meta name="robots" content="index,follow,max-image-preview:large" />
-  <meta property="og:type" content="article" />
-  <meta property="og:title" content="${escapedTitle} | SlideAI" />
-  <meta property="og:description" content="${escapedDescription}" />
-  <meta property="og:url" content="${canonical}" />
-  <meta property="og:image" content="${escapeHtml(ogImage)}" />
-  <style>
-    :root { color-scheme: light; }
-    body { margin: 0; font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; background: #f8fafc; color: #0f172a; }
-    main { max-width: 820px; margin: 0 auto; padding: 32px 20px 64px; }
-    a { color: #0369a1; }
-    h1, h2, h3 { line-height: 1.2; margin-top: 1.25em; }
-    h1 { font-size: 2rem; margin-top: 0.5em; }
-    p, li, blockquote { line-height: 1.75; font-size: 1.05rem; }
-    blockquote { border-left: 4px solid #cbd5e1; padding-left: 12px; margin-left: 0; color: #334155; }
-    img { max-width: 100%; border-radius: 12px; }
-    header p { color: #334155; margin-top: 8px; }
-    .back { display: inline-block; margin-top: 8px; margin-bottom: 8px; }
-    .cover { margin: 18px 0 24px; border-radius: 14px; width: 100%; object-fit: cover; max-height: 420px; }
-  </style>
-</head>
-<body>
-  <main>${bodyHtml}</main>
-</body>
-</html>`;
 }
 
 function ensureDir(dirPath) {
@@ -182,6 +37,7 @@ function parsePosts() {
       author: data.author || "SlideAI",
       excerpt: data.excerpt || "",
       coverImage: data.coverImage || "",
+      language: data.language || "fr",
       content,
     };
   });
@@ -190,76 +46,123 @@ function parsePosts() {
   return posts;
 }
 
-function renderBlogIndex(posts) {
-  const items = posts
-    .map(
-      (post) => `<article>
-  <h2><a href="/blog/${post.slug}">${escapeHtml(post.title)}</a></h2>
-  <p>${escapeHtml(post.excerpt)}</p>
-  <p><small>${escapeHtml(post.date)} - ${escapeHtml(post.author)}</small></p>
-</article>`
-    )
-    .join("\n");
+// Function to inject SEO tags into Vite's dist/index.html
+function injectSeoIntoHtml(baseHtml, { canonicalUrl, title, description, ogImage, type = "website", hreflangs = [] }) {
+  // We want to replace the current <title> and <meta name="description"> etc
+  // Or just append them right before </head> to override
 
-  const bodyHtml = `<header>
-  <a class="back" href="/">Retour au site SlideAI</a>
-  <h1>Blog SlideAI</h1>
-  <p>Guides et conseils pour creer des presentations avec l'IA.</p>
-</header>
-${items}`;
+  const tagTitle = `<title>${escapeHtml(title)} | SlideAI</title>`;
+  const tagDesc = `<meta name="description" content="${escapeHtml(description)}">`;
+  const tagCanonical = `<link rel="canonical" href="${escapeHtml(canonicalUrl)}">`;
 
-  const html = pageTemplate({
-    title: "Blog SlideAI",
-    description: "Guides et conseils pour creer des presentations avec l'IA.",
-    canonical: `${DOMAIN}/blog`,
-    bodyHtml,
-    coverImage: `${DOMAIN}/og-image.png`,
-  });
+  const tagOgTitle = `<meta property="og:title" content="${escapeHtml(title)} | SlideAI">`;
+  const tagOgDesc = `<meta property="og:description" content="${escapeHtml(description)}">`;
+  const tagOgUrl = `<meta property="og:url" content="${escapeHtml(canonicalUrl)}">`;
+  const tagOgImage = `<meta property="og:image" content="${escapeHtml(ogImage)}">`;
+  const tagOgType = `<meta property="og:type" content="${type}">`;
 
-  ensureDir(BLOG_PUBLIC_DIR);
-  fs.writeFileSync(path.join(BLOG_PUBLIC_DIR, "index.html"), html, "utf-8");
-}
+  const tagTwitterTitle = `<meta name="twitter:title" content="${escapeHtml(title)} | SlideAI">`;
+  const tagTwitterDesc = `<meta name="twitter:description" content="${escapeHtml(description)}">`;
+  const tagTwitterImage = `<meta name="twitter:image" content="${escapeHtml(ogImage)}">`;
 
-function renderPost(post) {
-  const postDir = path.join(BLOG_PUBLIC_DIR, post.slug);
-  ensureDir(postDir);
+  // Hreflang Tags (ex: <link rel="alternate" hreflang="en" href="..." />)
+  const hreflangTags = hreflangs.map(hf =>
+    `<link rel="alternate" hreflang="${escapeHtml(hf.lang)}" href="${escapeHtml(hf.url)}" />`
+  ).join("\n  ");
 
-  const articleHtml = markdownToHtml(post.content);
-  const coverHtml = post.coverImage
-    ? `<img class="cover" src="${escapeHtml(post.coverImage)}" alt="${escapeHtml(post.title)}" />`
-    : "";
+  const seoBlock = `
+  <!-- Injected Blog SEO Tags -->
+  ${tagTitle}
+  ${tagDesc}
+  ${tagCanonical}
+  ${tagOgTitle}
+  ${tagOgDesc}
+  ${tagOgUrl}
+  ${tagOgImage}
+  ${tagOgType}
+  ${tagTwitterTitle}
+  ${tagTwitterDesc}
+  ${tagTwitterImage}
+  ${hreflangTags}
+  <!-- End Injected SEO -->
+</head>`;
 
-  const bodyHtml = `<header>
-  <a class="back" href="/blog">← Retour au blog</a>
-  <h1>${escapeHtml(post.title)}</h1>
-  <p><small>${escapeHtml(post.date)} - ${escapeHtml(post.author)}</small></p>
-  ${coverHtml}
-</header>
-<article>
-${articleHtml}
-</article>`;
+  // Instead of complex parsing, we find </head> and insert our block right before it.
+  // The last tags placed in <head> usually win (or React Helmet will properly override, but these are for the crawlers)
+  // We also remove the default <title> tag to prevent duplicates
+  let newHtml = baseHtml.replace(/<title>.*?<\/title>/gi, "");
+  newHtml = newHtml.replace(/<meta name="description" content=".*?">/gi, "");
+  newHtml = newHtml.replace("</head>", seoBlock);
 
-  const html = pageTemplate({
-    title: post.title,
-    description: post.excerpt,
-    canonical: `${DOMAIN}/blog/${post.slug}`,
-    bodyHtml,
-    coverImage: post.coverImage,
-  });
-
-  fs.writeFileSync(path.join(postDir, "index.html"), html, "utf-8");
+  return newHtml;
 }
 
 function generateStaticBlog() {
+  console.log("Starting static blog SEO generation...");
+
   if (!fs.existsSync(CONTENT_DIR)) {
     console.warn(`Blog content directory not found: ${CONTENT_DIR}`);
     return;
   }
 
+  // Define paths to Vite's output
+  const baseIndexHtmlPath = path.join(DIST_DIR, "index.html");
+
+  if (!fs.existsSync(baseIndexHtmlPath)) {
+    console.error("❌ ERROR: dist/index.html not found! Ensure `vite build` runs before this script.");
+    process.exit(1);
+  }
+
+  const baseHtml = fs.readFileSync(baseIndexHtmlPath, "utf-8");
   const posts = parsePosts();
-  renderBlogIndex(posts);
-  posts.forEach(renderPost);
-  console.log(`Generated static HTML for ${posts.length} blog posts.`);
+
+  // Create dist/blog/ folder
+  ensureDir(BLOG_DIST_DIR);
+
+  // 1. Generate Blog Index Page in dist/blog/index.html
+  const blogIndexCanonical = `${DOMAIN}/blog`;
+  const blogIndexHtml = injectSeoIntoHtml(baseHtml, {
+    canonicalUrl: blogIndexCanonical,
+    title: "Blog SlideAI - Conseils et Astuces pour vos présentations",
+    description: "Découvrez nos guides, tutoriels et articles sur l'intelligence artificielle et la création de présentations impactantes.",
+    ogImage: `${DOMAIN}/og-image.png`,
+    type: "website"
+  });
+
+  fs.writeFileSync(path.join(BLOG_DIST_DIR, "index.html"), blogIndexHtml, "utf-8");
+  console.log(`✅ SEO HTML injected for /blog`);
+
+  // 2. Map multilang alternatives for Hreflang
+  // Some posts might be variations in EN vs FR. We build a dictionary to link them.
+  // We assume english posts might have "-en" suffix or "en" language attribute.
+  // NOTE: A more complex hreflang strategy could be implemented here as needed
+
+  // 3. Generate Individual Post Pages in dist/blog/[slug]/index.html
+  posts.forEach((post) => {
+    const postDir = path.join(BLOG_DIST_DIR, post.slug);
+    ensureDir(postDir);
+
+    const postCanonicalUrl = `${DOMAIN}/blog/${post.slug}`;
+    const postOgImage = post.coverImage ? post.coverImage : `${DOMAIN}/og-image.png`;
+
+    const hreflangs = [];
+    const langPrefix = post.language.toLowerCase().startsWith('en') ? 'en' : 'fr';
+    hreflangs.push({ lang: langPrefix, url: postCanonicalUrl });
+    hreflangs.push({ lang: 'x-default', url: postCanonicalUrl }); // Fallback
+
+    const postHtml = injectSeoIntoHtml(baseHtml, {
+      canonicalUrl: postCanonicalUrl,
+      title: post.title,
+      description: post.excerpt || "Article du blog SlideAI.",
+      ogImage: postOgImage,
+      type: "article",
+      hreflangs: hreflangs
+    });
+
+    fs.writeFileSync(path.join(postDir, "index.html"), postHtml, "utf-8");
+  });
+
+  console.log(`✅ Generated SEO HTML for ${posts.length} blog posts in dist/blog/`);
 }
 
 generateStaticBlog();

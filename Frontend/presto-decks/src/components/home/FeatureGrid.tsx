@@ -54,7 +54,7 @@ export function FeatureGrid() {
     },
   ];
   return (
-    <section className="relative py-12 md:py-20 px-4 overflow-hidden z-10">
+    <section className="relative py-8 md:py-12 px-4 overflow-hidden z-10">
       {/* Background */}
       <div className="absolute inset-0 -z-10">
         <div className="absolute bottom-0 right-1/4 w-60 md:w-96 h-60 md:h-96 bg-secondary/10 rounded-full blur-3xl animate-float-slow opacity-40" />
@@ -62,8 +62,8 @@ export function FeatureGrid() {
 
       <div className="max-w-7xl mx-auto">
         {/* Section Header */}
-        <div className="text-center mb-10 md:mb-16 space-y-4">
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 md:px-4 md:py-2 rounded-full glass-premium text-xs md:text-sm">
+        <div className="text-center mb-8 md:mb-10 space-y-4">
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 md:px-4 md:py-2 rounded-full glass-premium text-sm md:text-base">
             <Layers className="w-3.5 h-3.5 md:w-4 md:h-4 text-secondary" />
             <span className="text-foreground/80">{t('tools.pill')}</span>
           </div>
@@ -102,17 +102,17 @@ export function FeatureGrid() {
                     </motion.div>
 
                     <div>
-                      <h3 className="text-lg md:text-xl font-bold text-foreground group-hover:text-primary transition-colors">
+                      <h3 className="text-xl md:text-2xl font-bold text-foreground group-hover:text-primary transition-colors">
                         {feature.title}
                       </h3>
-                      <p className="text-sm md:text-base text-foreground/60 group-hover:text-foreground/80 transition-colors mt-2 leading-relaxed">
+                      <p className="text-base md:text-lg text-foreground/60 group-hover:text-foreground/80 transition-colors mt-2 leading-relaxed">
                         {feature.description}
                       </p>
                     </div>
 
                     {/* Hover indicator */}
                     <motion.div
-                      className="flex items-center gap-2 text-sm text-primary/60 opacity-0 group-hover:opacity-100 transition-opacity"
+                      className="flex items-center gap-2 text-sm md:text-base text-primary/60 opacity-0 group-hover:opacity-100 transition-opacity"
                       initial={{ x: -10 }}
                       whileHover={{ x: 0 }}
                     >

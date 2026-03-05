@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { BlogPost, getAllPosts } from "@/lib/blog";
-import { Button } from "@/components/ui/button";
+import { BlogCategorySummary, BlogPersonaSummary, BlogPost, getAllCategories, getAllPersonas, getAllPosts } from "@/lib/blog";
 import { ArrowRight, Calendar, User } from "lucide-react";
 import { SEO } from "@/components/common/SEO";
 import { useTranslation } from "react-i18next";
@@ -9,14 +8,22 @@ import { useTranslation } from "react-i18next";
 export default function Blog() {
     const { t, i18n } = useTranslation();
     const [posts, setPosts] = useState<BlogPost[]>([]);
+    const [categories, setCategories] = useState<BlogCategorySummary[]>([]);
+    const [personas, setPersonas] = useState<BlogPersonaSummary[]>([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         const loadPosts = async () => {
             try {
                 setLoading(true);
-                const data = await getAllPosts(i18n.language);
+                const [data, categoryData, personaData] = await Promise.all([
+                    getAllPosts(i18n.language),
+                    getAllCategories(i18n.language),
+                    getAllPersonas(i18n.language),
+                ]);
                 setPosts(data);
+                setCategories(categoryData);
+                setPersonas(personaData);
             } catch (error) {
                 console.error("Failed to load blog posts", error);
             } finally {
@@ -43,6 +50,64 @@ export default function Blog() {
                         {t('blog.subtitle')}
                     </p>
                 </div>
+
+                {!loading && personas.length > 0 && (
+                    <section className="space-y-5">
+                        <div>
+                            <h2 className="text-2xl md:text-3xl font-bold">Metiers</h2>
+                            <p className="text-muted-foreground">Pages hub pour chaque profil qui cree des PowerPoint toute la journee.</p>
+                        </div>
+                        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            {personas.map((persona) => (
+                                <Link
+                                    key={persona.slug}
+                                    to={`/blog/metier/${persona.slug}`}
+                                    className="rounded-2xl border border-border/50 bg-card/60 p-5 transition-all hover:border-primary/40 hover:-translate-y-1"
+                                >
+                                    <div className="flex items-center justify-between gap-4">
+                                        <h3 className="text-lg font-bold">{persona.label}</h3>
+                                        <span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
+                                            {persona.count} article{persona.count > 1 ? "s" : ""}
+                                        </span>
+                                    </div>
+                                    <p className="mt-3 text-sm text-muted-foreground">
+                                        Voir tous les guides pour {persona.label.toLowerCase()}.
+                                    </p>
+                                </Link>
+                            ))}
+                        </div>
+                    </section>
+                )}
+
+                {!loading && categories.length > 0 && (
+                    <section className="space-y-5">
+                        <div className="flex items-end justify-between gap-4">
+                            <div>
+                                <h2 className="text-2xl md:text-3xl font-bold">Clusters blog</h2>
+                                <p className="text-muted-foreground">Des hubs thematiques pour renforcer le maillage interne et la navigation SEO.</p>
+                            </div>
+                        </div>
+                        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            {categories.map((category) => (
+                                <Link
+                                    key={category.slug}
+                                    to={`/blog/c/${category.slug}`}
+                                    className="rounded-2xl border border-border/50 bg-card/60 p-5 transition-all hover:border-primary/40 hover:-translate-y-1"
+                                >
+                                    <div className="flex items-center justify-between gap-4">
+                                        <h3 className="text-lg font-bold">{category.label}</h3>
+                                        <span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
+                                            {category.count} article{category.count > 1 ? "s" : ""}
+                                        </span>
+                                    </div>
+                                    <p className="mt-3 text-sm text-muted-foreground">
+                                        Voir tous les contenus relies a {category.label.toLowerCase()}.
+                                    </p>
+                                </Link>
+                            ))}
+                        </div>
+                    </section>
+                )}
 
                 {loading ? (
                     <div className="flex justify-center py-20">

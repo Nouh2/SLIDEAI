@@ -13,9 +13,9 @@ export function WhyFreelance() {
     ];
 
     return (
-        <section className="py-12 md:py-16 px-4 relative overflow-hidden z-10">
+        <section className="py-8 md:py-10 px-4 relative overflow-hidden z-10">
             <div className="max-w-6xl mx-auto">
-                <div className="text-center mb-16">
+                <div className="text-center mb-10">
                     <h2 className="text-3xl md:text-5xl font-bold mb-6">
                         {t('whyFreelance.title')}
                     </h2>
@@ -33,7 +33,7 @@ export function WhyFreelance() {
                             <div className={`p-3 rounded-xl bg-white/5 ${point.color}`}>
                                 <point.icon className="w-6 h-6" />
                             </div>
-                            <p className="text-lg font-medium text-foreground/90">{point.text}</p>
+                            <p className="text-lg md:text-xl font-medium text-foreground/90">{point.text}</p>
                         </motion.div>
                     ))}
                 </div>

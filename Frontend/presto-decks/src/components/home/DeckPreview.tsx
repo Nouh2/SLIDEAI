@@ -32,12 +32,12 @@ export function DeckPreview() {
                     <h2 className="text-3xl md:text-5xl font-bold">
                         {t('livrables.title')}
                     </h2>
-                    <p className="text-lg text-muted-foreground">{t('livrables.subtitle')}</p>
+                    <p className="text-xl text-muted-foreground">{t('livrables.subtitle')}</p>
 
                     {/* Livrables List */}
                     <div className="flex flex-wrap justify-center gap-3 mt-6">
                         {examples.map((ex, i) => (
-                            <span key={i} className="px-4 py-2 rounded-full bg-secondary/10 border border-secondary/20 text-sm font-medium text-foreground/80">
+                            <span key={i} className="px-4 py-2 rounded-full bg-secondary/10 border border-secondary/20 text-base md:text-lg font-medium text-foreground/80">
                                 {ex}
                             </span>
                         ))}
@@ -141,7 +141,7 @@ export function DeckPreview() {
                                         <span className="text-gradient-primary">{t('deckPreview.slide.highlight')}</span>
                                     </h2>
 
-                                    <p className="text-muted-foreground text-xs md:text-base max-w-md leading-relaxed font-medium line-clamp-3 md:line-clamp-none">
+                                    <p className="text-muted-foreground text-sm md:text-lg max-w-md leading-relaxed font-medium line-clamp-3 md:line-clamp-none">
                                         {t('deckPreview.slide.desc')}
                                     </p>
                                     <p className="text-[10px] md:text-xs text-muted-foreground/60 uppercase tracking-wider font-semibold mt-1">

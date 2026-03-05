@@ -1,13 +1,52 @@
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Sparkles } from "lucide-react";
 import { motion, Variants } from "framer-motion";
 import { DeckPreview } from "@/components/home/DeckPreview";
+import { Analytics, ANALYTICS_EVENTS } from "@/lib/analytics";
+
+type HeroVariant = "time" | "quality";
+const HERO_AB_KEY = "slideai_hero_ab_v1";
 
 export function Hero() {
     const navigate = useNavigate();
-    const { t } = useTranslation();
+    const { t, i18n } = useTranslation();
+    const isFr = i18n.language.startsWith("fr");
+    const [variant, setVariant] = useState<HeroVariant>("time");
+
+    useEffect(() => {
+        const stored = localStorage.getItem(HERO_AB_KEY) as HeroVariant | null;
+        if (stored === "time" || stored === "quality") {
+            setVariant(stored);
+            return;
+        }
+        const assigned: HeroVariant = Math.random() < 0.5 ? "time" : "quality";
+        localStorage.setItem(HERO_AB_KEY, assigned);
+        setVariant(assigned);
+    }, []);
+
+    useEffect(() => {
+        Analytics.trackEvent("Experiment", "Hero Variant Viewed", `hero_ab_v1_${variant}`);
+    }, [variant]);
+    const segments = [
+        t('hero.segments.consulting'),
+        t('hero.segments.audit'),
+        t('hero.segments.marketing'),
+        t('hero.segments.freelance'),
+    ];
+    const anchorLinks = [
+        { href: "#creer-powerpoint-avec-ia", label: t("hero.anchorLinks.createWithAI") },
+        { href: "#pourquoi-outil-ia-presentation", label: t("hero.anchorLinks.whyTool") },
+        { href: "#generer-presentation-automatiquement", label: t("hero.anchorLinks.autoGenerate") },
+        { href: "#creer-premiere-presentation-30-secondes", label: t("hero.anchorLinks.startNow") },
+    ];
+    const trustChips = [
+        t('socialProof.trustChips.security'),
+        t('socialProof.trustChips.gdpr'),
+        t('socialProof.trustChips.noCard'),
+    ];
 
     const containerVariants: Variants = {
         hidden: { opacity: 0 },
@@ -29,8 +68,29 @@ export function Hero() {
         },
     };
 
+    const handleHeroCta = () => {
+        Analytics.trackEvent(
+            ANALYTICS_EVENTS.ECOMMERCE.CATEGORY,
+            ANALYTICS_EVENTS.ECOMMERCE.SELECT_PLAN,
+            `Landing Hero CTA - 7d Trial (${variant})`
+        );
+        navigate(`/auth?returnTo=${encodeURIComponent("/create")}`);
+    };
+
+    const headline = variant === "time"
+        ? t("hero.title")
+        : isFr
+            ? "Des slides B2B client-ready sans sacrifier la qualite"
+            : "Client-ready B2B slides without sacrificing quality";
+
+    const subtitle = variant === "time"
+        ? t("hero.subtitle")
+        : isFr
+            ? "SlideAI structure votre presentation, applique un design propre, et vous laisse finaliser vite avant livraison client."
+            : "SlideAI structures your presentation, applies a clean design, and lets you finalize fast before client delivery.";
+
     return (
-        <section className="min-h-[70vh] flex flex-col items-center justify-center py-10 px-4 md:py-16 relative z-10 overflow-hidden"
+        <section className="min-h-[70vh] flex flex-col items-center justify-center py-6 px-4 md:py-10 relative z-10 overflow-hidden"
             style={{ willChange: 'transform' }}>
 
             {/* Animated background elements */}
@@ -52,35 +112,58 @@ export function Hero() {
                             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
                             <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
                         </span>
-                        <span className="text-foreground/80 font-medium text-[10px] md:text-xs uppercase tracking-wider">{t('hero.badge')}</span>
+                        <span className="text-foreground/80 font-medium text-xs md:text-sm uppercase tracking-wider">{t('hero.badge')}</span>
                     </div>
                 </motion.div>
 
                 {/* Headline */}
                 <motion.div variants={itemVariants} className="text-center space-y-4 md:space-y-6">
                     <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold leading-tight tracking-tight px-2 max-w-5xl mx-auto">
-                        {t('hero.title')}
+                        {headline}
                     </h1>
 
                     <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed font-light">
-                        {t('hero.subtitle')}
+                        {subtitle}
                     </p>
+
+                    <div className="flex flex-wrap justify-center gap-2 md:gap-3">
+                        {segments.map((segment) => (
+                            <span
+                                key={segment}
+                                className="px-3 py-1 md:px-4 md:py-1.5 rounded-full text-sm md:text-base font-medium bg-secondary/20 border border-secondary/30 text-foreground/80"
+                            >
+                                {segment}
+                            </span>
+                        ))}
+                    </div>
+                    <div className="flex flex-wrap justify-center gap-2 pt-1">
+                        {anchorLinks.map((link) => (
+                            <a
+                                key={link.href}
+                                href={link.href}
+                                className="text-sm md:text-base text-primary hover:text-primary/80 underline underline-offset-4"
+                            >
+                                {link.label}
+                            </a>
+                        ))}
+                    </div>
                 </motion.div>
 
                 {/* CTA Buttons */}
                 <motion.div variants={itemVariants} className="flex flex-col items-center gap-6 pt-8">
                     <Button
                         size="lg"
-                        onClick={() => navigate("/create")}
+                        onClick={handleHeroCta}
                         className="h-14 px-8 text-base font-bold rounded-xl bg-gradient-primary hover:shadow-neon-hover transition-all duration-300 group text-foreground"
                     >
                         <Sparkles className="w-5 h-5 mr-2" />
                         {t('hero.cta')}
                         <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
                     </Button>
+                    <p className="text-base text-muted-foreground">{t('hero.trialNote')}</p>
 
                     {/* Micro-proofs */}
-                    <div className="flex flex-col md:flex-row items-center gap-4 text-sm text-muted-foreground">
+                    <div className="flex flex-col md:flex-row items-center gap-4 text-sm md:text-base text-muted-foreground">
                         <div className="flex items-center gap-2">
                             <span className="text-green-500">✔</span>
                             <span>{t('hero.microProofs.target')}</span>
@@ -97,36 +180,28 @@ export function Hero() {
                         </div>
                     </div>
 
-                    {/* SOCIAL PROOF */}
-                    <div className="pt-8 flex flex-col items-center gap-3 animate-fade-in-up delay-300">
-                        <div className="flex -space-x-3">
-                            <img className="w-10 h-10 rounded-full border-2 border-background" src="https://i.pravatar.cc/100?img=1" alt="User" />
-                            <img className="w-10 h-10 rounded-full border-2 border-background" src="https://i.pravatar.cc/100?img=5" alt="User" />
-                            <img className="w-10 h-10 rounded-full border-2 border-background" src="https://i.pravatar.cc/100?img=8" alt="User" />
-                            <img className="w-10 h-10 rounded-full border-2 border-background" src="https://i.pravatar.cc/100?img=12" alt="User" />
-                        </div>
-                        <div className="text-sm font-medium">
-                            <span className="text-primary font-bold">{t('socialProof.stats.generatedCount').split(' ')[0]}</span> {t('socialProof.stats.generatedCount').split(' ').slice(1).join(' ')}
-                        </div>
-                        <div className="flex items-center gap-1">
-                            {[1, 2, 3, 4, 5].map(i => (
-                                <svg key={i} className="w-4 h-4 text-yellow-500 fill-current" viewBox="0 0 20 20">
-                                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                                </svg>
+                    <div className="pt-6 flex flex-col items-center gap-3 animate-fade-in-up delay-300">
+                        <div className="text-base md:text-lg font-semibold text-primary text-center">{t('socialProof.stats.generatedCount')}</div>
+                        <div className="text-sm text-muted-foreground text-center">{t('socialProof.stats.rating')}</div>
+                        <div className="flex flex-wrap justify-center gap-2">
+                            {trustChips.map((chip) => (
+                                <span
+                                    key={chip}
+                                    className="px-3 py-1 md:px-4 md:py-1.5 rounded-full text-sm md:text-base font-medium bg-background/60 border border-border/60"
+                                >
+                                    {chip}
+                                </span>
                             ))}
-                            <span className="text-xs text-muted-foreground ml-1">{t('socialProof.stats.rating')}</span>
                         </div>
                     </div>
                 </motion.div>
 
                 {/* Deck Preview Section */}
-                <motion.div variants={itemVariants} className="w-full pt-12 md:pt-20">
+                <motion.div variants={itemVariants} className="w-full pt-8 md:pt-12">
                     <DeckPreview />
                 </motion.div>
-
 
             </motion.div>
         </section>
     );
 }
-

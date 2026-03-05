@@ -1,23 +1,32 @@
 import { motion } from "framer-motion";
 import { useTranslation } from "react-i18next";
-import { Check, X, ArrowRight } from "lucide-react";
+import { Check, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
+import { Analytics, ANALYTICS_EVENTS } from "@/lib/analytics";
 
 export function OfferSection() {
     const { t } = useTranslation();
     const navigate = useNavigate();
 
     const features = [
-        { text: t('offer.freelancePack.features.presents'), include: true },
-        { text: t('offer.freelancePack.features.import'), include: true },
-        { text: t('offer.freelancePack.features.design'), include: true },
-        { text: t('offer.freelancePack.features.export'), include: true },
-        { text: t('offer.freelancePack.features.subscription'), include: false },
+        t('offer.freelancePack.features.presents'),
+        t('offer.freelancePack.features.import'),
+        t('offer.freelancePack.features.design'),
+        t('offer.freelancePack.features.export'),
+        t('offer.freelancePack.features.noCard'),
     ];
+    const handleTrialCta = () => {
+        Analytics.trackEvent(
+            ANALYTICS_EVENTS.ECOMMERCE.CATEGORY,
+            ANALYTICS_EVENTS.ECOMMERCE.SELECT_PLAN,
+            "Landing Trial Section CTA - 7d Trial"
+        );
+        navigate(`/auth?returnTo=${encodeURIComponent("/create")}`);
+    };
 
     return (
-        <section className="py-12 md:py-16 px-4 relative overflow-hidden z-10">
+        <section className="py-8 md:py-10 px-4 relative overflow-hidden z-10">
             <div className="absolute inset-0 bg-primary/5 -z-10" />
             <div className="max-w-4xl mx-auto">
                 <motion.div
@@ -38,20 +47,14 @@ export function OfferSection() {
                             <div className="space-y-3">
                                 {features.map((feature, i) => (
                                     <div key={i} className="flex items-center gap-3">
-                                        {feature.include ? (
-                                            <div className="p-1 rounded-full bg-green-500/10 text-green-500">
-                                                <Check className="w-4 h-4" />
-                                            </div>
-                                        ) : (
-                                            <div className="p-1 rounded-full bg-red-500/10 text-red-500">
-                                                <X className="w-4 h-4" />
-                                            </div>
-                                        )}
-                                        <span className="font-medium">{feature.text}</span>
+                                        <div className="p-1 rounded-full bg-green-500/10 text-green-500">
+                                            <Check className="w-4 h-4" />
+                                        </div>
+                                        <span className="text-lg font-medium">{feature}</span>
                                     </div>
                                 ))}
                             </div>
-                            <p className="text-sm text-muted-foreground/80 italic border-l-2 border-primary/30 pl-3">
+                            <p className="text-base text-muted-foreground/80 italic border-l-2 border-primary/30 pl-3">
                                 {t('offer.freelancePack.uniquenessNote')}
                             </p>
                         </div>
@@ -62,12 +65,13 @@ export function OfferSection() {
                             </div>
                             <Button
                                 size="lg"
-                                onClick={() => navigate("/create")}
+                                onClick={handleTrialCta}
                                 className="w-full h-12 text-base font-bold bg-primary hover:bg-primary/90 text-primary-foreground"
                             >
                                 {t('offer.freelancePack.cta')}
                                 <ArrowRight className="w-4 h-4 ml-2" />
                             </Button>
+                            <p className="text-xs text-muted-foreground text-center">{t('offer.freelancePack.helper')}</p>
                         </div>
                     </div>
                 </motion.div>

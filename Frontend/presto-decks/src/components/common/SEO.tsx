@@ -6,6 +6,7 @@ interface SEOProps {
     image?: string;
     url?: string;
     type?: string;
+    keywords?: string;
 }
 
 export function SEO({
@@ -13,7 +14,8 @@ export function SEO({
     description = "Generate, edit, and share professional PowerPoint presentations with AI.",
     image = "/og-image.png",
     url = "https://www.slideai.fr/",
-    type = "website"
+    type = "website",
+    keywords
 }: SEOProps) {
 
     const siteTitle = "SlideAI";
@@ -28,6 +30,7 @@ export function SEO({
             {/* Standard Metadata */}
             <title>{fullTitle}</title>
             <meta name="description" content={description} />
+            {keywords && <meta name="keywords" content={keywords} />}
 
             {/* Open Graph / Facebook */}
             <meta property="og:type" content={type} />

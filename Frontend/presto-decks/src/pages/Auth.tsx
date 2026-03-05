@@ -1,25 +1,53 @@
 import { useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { supabase } from "@/contexts/AuthContext";
 import { Auth } from "@supabase/auth-ui-react";
 import { ThemeSupa } from "@supabase/auth-ui-shared";
 import { Analytics, ANALYTICS_EVENTS } from "@/lib/analytics";
 
+const sanitizeInternalPath = (path: string | null | undefined): string => {
+  if (!path) return "/dashboard";
+  let decoded = path;
+  try {
+    decoded = decodeURIComponent(path);
+  } catch {
+    return "/dashboard";
+  }
+
+  if (!decoded.startsWith("/") || decoded.startsWith("//")) {
+    return "/dashboard";
+  }
+
+  return decoded;
+};
+
 export default function AuthPage() {
   const navigate = useNavigate();
-  const { t, i18n } = useTranslation();
+  const location = useLocation();
+  const { t } = useTranslation();
+  const queryParams = new URLSearchParams(location.search);
+  const queryReturnTo = queryParams.get("returnTo");
+  const stateFrom = (location.state as { from?: { pathname?: string; search?: string; hash?: string } } | null)?.from;
+  const stateReturnTo = stateFrom?.pathname
+    ? `${stateFrom.pathname}${stateFrom.search || ""}${stateFrom.hash || ""}`
+    : null;
+  const returnTo = sanitizeInternalPath(queryReturnTo || stateReturnTo || "/dashboard");
 
   // Listen for auth state changes
   useEffect(() => {
-    const queryParams = new URLSearchParams(window.location.search);
-    const returnTo = queryParams.get("returnTo") || "/dashboard";
-
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === "PASSWORD_RECOVERY") {
         navigate("/reset-password");
       } else if (event === "SIGNED_IN" && session) {
-        Analytics.trackEvent(ANALYTICS_EVENTS.AUTH.CATEGORY, ANALYTICS_EVENTS.AUTH.LOGIN);
+        const createdAt = session.user.created_at ? new Date(session.user.created_at).getTime() : 0;
+        const lastSignInAt = session.user.last_sign_in_at ? new Date(session.user.last_sign_in_at).getTime() : 0;
+        const isLikelySignup = createdAt > 0 && lastSignInAt > 0 && Math.abs(lastSignInAt - createdAt) < 10000;
+
+        Analytics.trackEvent(
+          ANALYTICS_EVENTS.AUTH.CATEGORY,
+          isLikelySignup ? ANALYTICS_EVENTS.AUTH.SIGN_UP : ANALYTICS_EVENTS.AUTH.LOGIN
+        );
         navigate(returnTo);
       }
     });
@@ -34,7 +62,7 @@ export default function AuthPage() {
     return () => {
       subscription.unsubscribe();
     };
-  }, [navigate]);
+  }, [navigate, returnTo]);
 
   // Dynamic localization based on current language
   const getLocalization = () => {
@@ -118,7 +146,7 @@ export default function AuthPage() {
           theme="light"
           providers={[]}
           localization={getLocalization()}
-          redirectTo={`${window.location.origin}/dashboard`}
+          redirectTo={`${window.location.origin}${returnTo}`}
         />
       </div>
 
@@ -126,4 +154,3 @@ export default function AuthPage() {
     </div>
   );
 }
-

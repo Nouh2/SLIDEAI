@@ -7,7 +7,9 @@
     "login": "Login",
     "getStarted": "Get Started",
     "myAccount": "My Account",
-    "logout": "Logout"
+    "logout": "Logout",
+    "startTrial": "Try for free",
+    "menu": "Menu"
   },
   "common": {
     "cancel": "Cancel",
@@ -27,13 +29,26 @@
   },
   "hero": {
     "badge": "SlideAI v2.0",
-    "title": "Free AI PowerPoint: Turn client docs into pro presentations in 40s.",
-    "subtitle": "Our free AI presentation generator converts PDF & Word into editable slides. Test Pack: 5 presentations for €7 – no subscription.",
-    "cta": "Try for free",
+    "title": "AI PowerPoint generator to create presentations automatically",
+    "subtitle": "SlideAI helps consulting, audit, marketing teams, and freelancers create PowerPoint decks with AI and generate presentations automatically.",
+    "cta": "Start 7-day trial",
     "microProofs": {
-      "target": "Designed for marketing freelancers, consultants & coaches",
-      "roi": "1 client = tool paid off",
-      "features": "PDF Export • Client Sharing • Pro Design"
+      "target": "Built for consulting, audit, marketing teams and freelancers",
+      "roi": "Save multiple hours per mission",
+      "features": "PDF/PPTX Export | Client Sharing | Pro Design"
+    },
+    "trialNote": "7-day free trial. No credit card required. Account required to save decks.",
+    "segments": {
+      "consulting": "Consulting",
+      "audit": "Audit",
+      "marketing": "Marketing",
+      "freelance": "Freelance"
+    },
+    "anchorLinks": {
+      "createWithAI": "How to create a PowerPoint with AI",
+      "whyTool": "Why use an AI presentation tool",
+      "autoGenerate": "Generate a presentation automatically",
+      "startNow": "Create your first presentation in 30 seconds"
     }
   },
   "livrables": {
@@ -47,19 +62,19 @@
       "pitch": "Pitch / Sales Deck",
       "strategy": "Strategic Presentation"
     },
-    "footer": "Same AI engine, but freelance business language."
+    "footer": "Same AI engine, adapted to B2B deliverables."
   },
   "whyFreelance": {
-    "title": "Less PowerPoint. More Clients.",
+    "title": "Why use an AI tool for your presentations",
     "points": {
-      "time": "Save hours per mission",
-      "structure": "Clear and professional structure from generation",
-      "impress": "Impress your clients without a designer",
-      "deliver": "Deliver faster, invoice with peace of mind"
+      "time": "Save hours on every mission",
+      "structure": "Clear and professional structure from first generation",
+      "impress": "Impress clients without using a designer",
+      "deliver": "Deliver faster and hit deadlines with confidence"
     }
   },
   "howItWorks": {
-    "title": "How it works",
+    "title": "How to create a PowerPoint with AI in 30 seconds",
     "steps": {
       "1": {
         "title": "Import your client document",
@@ -104,34 +119,36 @@
     "learnMore": "Learn more"
   },
   "landingProductShowcase": {
-    "title": "Designed for freelancers who deliver regularly",
-    "subtitle": "A clear dashboard to manage your presentations, regenerate slides, adjust design and deliver without friction."
+    "title": "How SlideAI generates your slides automatically",
+    "subtitle": "A clear dashboard to manage presentations, regenerate slides, adjust design, and deliver without friction."
   },
   "offer": {
     "freelancePack": {
-      "title": "Freelance Pack – Commitment-free test",
-      "subtitle": "Perfect for a one-off mission or a first client.",
+      "title": "7-day free trial - no card required",
+      "subtitle": "Perfect to test SlideAI on real client deliverables.",
       "features": {
-        "presents": "5 generated presentations",
-        "import": "PDF & Word Import",
-        "design": "Automatic Design & Structure",
-        "export": "PDF Export",
-        "subscription": "No subscription"
+        "presents": "Presentation generation for 7 days",
+        "import": "PDF and Word import",
+        "design": "Automatic structure and design",
+        "export": "PDF and PPTX export",
+        "subscription": "Cancel anytime",
+        "noCard": "No credit card required"
       },
-      "uniquenessNote": "Each generation adapts to the content, client, and context. Even for a similar mission, the deliverable is different.",
-      "price": "€7 – one-time payment",
-      "cta": "Test now"
+      "uniquenessNote": "Each generation adapts to content, client, and context. Even for similar missions, output stays tailored.",
+      "price": "7 days free",
+      "cta": "Start trial",
+      "helper": "No card asked. Activate your trial in under 30 seconds."
     },
     "proSubscription": {
-      "title": "Regular needs? Switch to Pro subscription",
-      "subtitle": "For freelancers who deliver presentations every week.",
+      "title": "Need regular usage? Upgrade to Pro",
+      "subtitle": "For consulting, audit, marketing teams and freelancers delivering every week.",
       "features": {
         "unlimited": "Unlimited Generation",
         "pages": "PDF Import up to 200 pages",
         "export": "Priority HD Export",
         "support": "Priority Support"
       },
-      "price": "€19/month",
+      "price": "19€/month",
       "cta": "View Pro subscription"
     }
   },
@@ -141,7 +158,7 @@
     "ctaSubtitle": "Join thousands of professionals who transform their ideas into exceptional presentations with SlideAI",
     "ctaButton": "Start now",
     "viewPricing": "View pricing",
-    "freeNote": "✨ Free for the first 2 presentations · No credit card required"
+    "freeNote": "7-day free trial | no credit card required"
   },
   "dashboard": {
     "title": "Dashboard",
@@ -719,7 +736,7 @@
     "cancel": "Cancel",
     "submit": "Send report",
     "submitting": "Sending...",
-    "successTitle": "✅ Bug reported!",
+    "successTitle": "âœ… Bug reported!",
     "successMsg": "Thank you for your feedback. Our team will analyze the issue.",
     "errorTitle": "Error",
     "errorMsg": "Unable to send report. Please try again later.",
@@ -807,8 +824,8 @@
       "presentations": "Presentations created",
       "users": "Active users",
       "satisfaction": "Customer satisfaction",
-      "generatedCount": "5000+ slides generated this month",
-      "rating": "4.9/5 by founders"
+      "generatedCount": "Built for B2B teams shipping presentations every week",
+      "rating": "Consulting, audit, marketing, freelance use cases"
     },
     "heading": {
       "lovedBy": "Loved by",
@@ -818,8 +835,8 @@
     "trustedBy": {
       "label": "Certified by",
       "badges": {
-        "topStartup": "🏆 Top Startup",
-        "stars": "⭐ 4.9/5 Stars",
+        "topStartup": "ðŸ† Top Startup",
+        "stars": "â­ 4.9/5 Stars",
         "secure": "🔒 Secure"
       }
     },
@@ -836,6 +853,11 @@
         "quote": "Finally a simple solution for creating impactful presentations.",
         "title": "Innovation Consultant"
       }
+    },
+    "trustChips": {
+      "security": "Encrypted data",
+      "gdpr": "GDPR aligned",
+      "noCard": "No-card trial"
     }
   },
   "featureGrid": {
@@ -879,26 +901,34 @@
     "questions": {
       "subscription": {
         "q": "Is there a mandatory subscription?",
-        "a": "No. The €7 pack is a one-time payment."
+        "a": "No. You can use the free plan, start a 7-day no-card trial, or buy a one-time pack."
       },
       "deliver": {
-        "q": "Can I really deliver this to a client?",
-        "a": "Yes. Slides are designed for professional use."
+        "q": "Can I really deliver these slides to clients?",
+        "a": "Yes. Slides are designed for professional B2B use."
       },
       "pdf": {
-        "q": "Can I export to PDF?",
-        "a": "Yes, export is included in the pack."
+        "q": "Can I export to PDF and PowerPoint?",
+        "a": "Yes, both PDF and PPTX exports are available."
       },
       "usage": {
-        "q": "Is it complicated to use?",
-        "a": "No. Import → generate → deliver."
+        "q": "Is it hard to use?",
+        "a": "No. Import -> generate -> adjust -> deliver."
+      },
+      "trial": {
+        "q": "Does the 7-day trial require a credit card?",
+        "a": "No. You can start your trial without a credit card."
+      },
+      "security": {
+        "q": "Are client documents secure?",
+        "a": "Yes. Data is processed securely and in GDPR-compliant workflows."
       }
     }
   },
   "finalCta": {
-    "title": "Ready to deliver faster to your clients?",
-    "subtitle": "Test SlideAI with 5 presentations for €7\nNo subscription. No commitment.",
-    "button": "Test the Freelance Pack"
+    "title": "Create your first presentation in 30 seconds",
+    "subtitle": "Start your 7-day free trial.\nNo credit card. No commitment.",
+    "button": "Start my 7-day trial"
   },
   "deckPreview": {
     "badge": "Live Preview",
@@ -920,11 +950,11 @@
     "description": "You have used all your generation credits. Buy a pack or upgrade to a subscription to continue creating presentations.",
     "packs": {
       "title": "Freedom Packs",
-      "desc": "Buy credits individually, no commitment. Starting at €7."
+      "desc": "Buy credits individually, no commitment. Starting at 7€."
     },
     "subscriptions": {
       "title": "Subscriptions",
-      "desc": "Up to unlimited presentations per month. Starting at €7/mo."
+      "desc": "Up to unlimited presentations per month. Starting at 7€/mo."
     },
     "seeOptions": "See options",
     "later": "Later"
@@ -1141,14 +1171,14 @@
   "pricing": {
     "title": "Simple and Transparent",
     "titleHighlight": "Pricing",
-    "subtitle": "Choose the plan that suits you best. No hidden fees.",
+    "subtitle": "Choose the plan that matches your B2B deliverable volume.",
     "badge": "Prices",
     "mostPopular": "Most Popular",
     "perMonth": "/mo",
-    "billedYearly": "Billed yearly (€{{price}})",
+    "billedYearly": "Billed yearly ({{price}}€)",
     "billedMonthly": "Billed monthly",
-    "startFree": "Start for free",
-    "tryFree": "Try for free",
+    "startFree": "Start trial",
+    "tryFree": "Start 7-day trial",
     "contactSales": "Contact Sales",
     "unsubscribe": "Unsubscribe",
     "included": "Included",
@@ -1156,8 +1186,8 @@
     "monthly": "Monthly",
     "yearly": "Yearly",
     "discount": "-20%",
-    "allCardsAccepted": "All major cards accepted",
-    "noSubscription": "No subscription required",
+    "allCardsAccepted": "Secure payment only if you continue after trial.",
+    "noSubscription": "7-day free trial with no credit card",
     "questions": "Questions?",
     "contactUs": "Contact us",
     "errors": {
@@ -1190,8 +1220,8 @@
       },
       "starter": {
         "name": "Starter",
-        "description": "For individuals and freelancers starting out.",
-        "cta": "Choose Starter",
+        "description": "For consultants and teams delivering regularly.",
+        "cta": "Start Starter trial",
         "features": {
           "presentations": "Unlimited presentations",
           "pdfImport": "PDF Import (Advanced)",
@@ -1204,7 +1234,7 @@
       },
       "pro": {
         "name": "Pro",
-        "description": "For professionals who need power.",
+        "description": "For teams needing higher volume, speed, and premium output.",
         "features": {
           "unlimitedGen": "Unlimited Generation",
           "pdfImport": "PDF to PowerPoint (Pro)",
@@ -1245,7 +1275,8 @@
         "credits": "500 Credits",
         "cta": "Buy Pack"
       }
-    }
+    },
+    "trialLine": "7-day free trial on Starter and Pro, no credit card required."
   },
   "view": {
     "presentationDefaultTitle": "Presentation",

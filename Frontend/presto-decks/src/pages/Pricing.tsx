@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CheckCircle2, Sparkles, Zap, Layers, HelpCircle, Loader2 } from "lucide-react";
-import { supabase } from "@/contexts/AuthContext";
+import { supabase, useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { Analytics, ANALYTICS_EVENTS } from "@/lib/analytics";
 
@@ -16,6 +16,11 @@ export default function Pricing() {
   const [currentPlan, setCurrentPlan] = useState<string | null>(null);
   const [subscription, setSubscription] = useState<any>(null);
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const redirectToAuth = () => {
+    navigate(`/auth?returnTo=${encodeURIComponent("/pricing")}`);
+  };
+  const createCtaPath = user ? "/create" : `/auth?returnTo=${encodeURIComponent("/create")}`;
 
   // Mapping plans to Stripe Price IDs
   const STRIPE_PRICE_IDS: Record<string, { monthly: string; yearly: string }> = {
@@ -89,7 +94,7 @@ export default function Pricing() {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
         toast.error(t('auth.noAccount')); // Using closest "Sign up/Login" hint or generic error. Or custom string
-        navigate("/join");
+        redirectToAuth();
         return;
       }
 
@@ -119,6 +124,15 @@ export default function Pricing() {
     } finally {
       setLoadingPlan(null);
     }
+  };
+
+  const handleStartTrial = () => {
+    Analytics.trackEvent(
+      ANALYTICS_EVENTS.ECOMMERCE.CATEGORY,
+      ANALYTICS_EVENTS.ECOMMERCE.SELECT_PLAN,
+      "Pricing Start Trial CTA"
+    );
+    navigate(createCtaPath);
   };
 
   const handleCancelSubscription = async () => {
@@ -197,7 +211,7 @@ export default function Pricing() {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
         toast.error(t('editor.connectionRequired'));
-        navigate("/join");
+        redirectToAuth();
         return;
       }
 
@@ -379,6 +393,7 @@ export default function Pricing() {
       badge: null,
     }, */
   ];
+  const visiblePlans = plans.filter((plan) => plan.name !== "Free");
 
   const packs = [
     {
@@ -420,7 +435,13 @@ export default function Pricing() {
           <p className="text-base md:text-xl text-foreground/70 max-w-2xl mx-auto px-2">
             {t('pricing.subtitle')}
           </p>
-
+          <div className="flex flex-col items-center gap-3">
+            <Button size="lg" onClick={handleStartTrial} className="font-bold">
+              <Sparkles className="h-4 w-4 mr-2" />
+              {t('pricing.tryFree')}
+            </Button>
+            <p className="text-sm text-muted-foreground">{t('pricing.noSubscription')}</p>
+          </div>
         </div>
 
         {/* Credit Packs Section - NOW FIRST */}
@@ -547,8 +568,8 @@ export default function Pricing() {
         </div>
 
         {/* Subscription Cards */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-7xl mx-auto mb-24">
-          {plans.map((plan, index) => (
+        <div className="grid md:grid-cols-2 gap-6 max-w-5xl mx-auto mb-24">
+          {visiblePlans.map((plan, index) => (
             <Card
               key={plan.name}
               className={`relative flex flex-col rounded-2xl transition-all duration-500 ${plan.popular

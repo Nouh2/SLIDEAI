@@ -7,6 +7,9 @@ export const Footer = () => {
 
   const links = {
     product: [
+      { label: "Generateur PowerPoint IA", href: "/generateur-powerpoint-ia" },
+      { label: "Creer un PowerPoint avec IA", href: "/creer-powerpoint-avec-ia" },
+      { label: "Outil IA presentation", href: "/outil-ia-presentation" },
       { label: t('footer.links.examples'), href: "/examples" },
       { label: "Blog", href: "/blog" },
       { label: t('footer.links.pricing'), href: "/pricing" },

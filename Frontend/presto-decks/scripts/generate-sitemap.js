@@ -14,6 +14,9 @@ const SITEMAP_PATH = path.join(PUBLIC_DIR, 'sitemap.xml');
 const STATIC_ROUTES = [
     { url: '/', changefreq: 'weekly', priority: 1.0 },
     { url: '/pdf-to-powerpoint', changefreq: 'weekly', priority: 0.9 },
+    { url: '/generateur-powerpoint-ia', changefreq: 'weekly', priority: 0.9 },
+    { url: '/creer-powerpoint-avec-ia', changefreq: 'weekly', priority: 0.9 },
+    { url: '/outil-ia-presentation', changefreq: 'weekly', priority: 0.9 },
     { url: '/pricing', changefreq: 'monthly', priority: 0.8 },
     { url: '/examples', changefreq: 'weekly', priority: 0.8 },
     { url: '/blog', changefreq: 'daily', priority: 0.9 },
@@ -26,6 +29,8 @@ async function generateSitemap() {
     console.log('Generating sitemap...');
 
     let urls = [...STATIC_ROUTES];
+    const categoryUrls = new Set();
+    const personaUrls = new Set();
 
     // Read blog posts
     try {
@@ -49,6 +54,26 @@ async function generateSitemap() {
                     priority: 0.8,
                     lastmod: lastmod
                 });
+
+                if (data.category) {
+                    const categorySlug = String(data.category)
+                        .toLowerCase()
+                        .normalize('NFD')
+                        .replace(/[\u0300-\u036f]/g, '')
+                        .replace(/[^a-z0-9]+/g, '-')
+                        .replace(/^-+|-+$/g, '');
+                    categoryUrls.add(categorySlug);
+                }
+
+                if (data.persona) {
+                    const personaSlug = String(data.persona)
+                        .toLowerCase()
+                        .normalize('NFD')
+                        .replace(/[\u0300-\u036f]/g, '')
+                        .replace(/[^a-z0-9]+/g, '-')
+                        .replace(/^-+|-+$/g, '');
+                    personaUrls.add(personaSlug);
+                }
             }
             console.log(`Found ${files.length} blog posts.`);
         } else {
@@ -57,6 +82,22 @@ async function generateSitemap() {
     } catch (error) {
         console.error('Error reading blog posts:', error);
     }
+
+    categoryUrls.forEach((categorySlug) => {
+        urls.push({
+            url: `/blog/c/${categorySlug}`,
+            changefreq: 'weekly',
+            priority: 0.7,
+        });
+    });
+
+    personaUrls.forEach((personaSlug) => {
+        urls.push({
+            url: `/blog/metier/${personaSlug}`,
+            changefreq: 'weekly',
+            priority: 0.8,
+        });
+    });
 
     // Generate XML
     const sitemap = `<?xml version="1.0" encoding="UTF-8"?>

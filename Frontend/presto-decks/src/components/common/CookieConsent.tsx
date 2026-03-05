@@ -43,78 +43,81 @@ export const CookieConsent = () => {
     if (!isVisible) return null;
 
     return (
-        <div className="fixed bottom-4 right-4 z-50 w-full max-w-md animate-in slide-in-from-bottom-5 fade-in duration-300">
-            <div className="bg-card/95 backdrop-blur border border-border rounded-lg shadow-xl overflow-hidden flex flex-col">
-
-                {/* Header */}
-                <div className="p-4 flex items-start justify-between gap-3 border-b border-border/50 bg-muted/20">
-                    <div className="flex items-center gap-2">
-                        <Cookie className="h-5 w-5 text-primary" />
-                        <h3 className="font-semibold text-sm">{t('cookie.title')}</h3>
-                    </div>
-                    <button
-                        onClick={() => savePreferences(false, true)}
-                        className="text-muted-foreground hover:text-foreground transition-colors"
-                    >
-                        <X className="h-4 w-4" />
-                    </button>
-                </div>
-
-                <div className="p-4 space-y-4">
+        <div className="fixed bottom-4 left-4 right-4 sm:left-auto sm:right-6 sm:bottom-6 z-[100] sm:w-[380px] animate-in slide-in-from-bottom-5 fade-in duration-300">
+            <div className="bg-background/80 backdrop-blur-xl border border-border/50 rounded-[1.25rem] shadow-2xl overflow-hidden flex flex-col">
+                <div className="p-4 sm:p-5">
                     {!showPreferences ? (
-                        <>
-                            <p className="text-sm text-muted-foreground leading-relaxed">
-                                {t('cookie.text')}
-                            </p>
-                            <div className="flex flex-col sm:flex-row gap-2 justify-end pt-2">
-                                <Button variant="outline" size="sm" onClick={() => setShowPreferences(true)}>
+                        <div className="space-y-4">
+                            <div className="flex items-start gap-3">
+                                <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 shrink-0">
+                                    <Cookie className="h-4 w-4 text-primary" />
+                                </div>
+                                <div className="space-y-1.5 mt-0.5">
+                                    <h3 className="font-semibold text-sm leading-none tracking-tight">{t('cookie.title')}</h3>
+                                    <p className="text-xs text-muted-foreground leading-relaxed">
+                                        {t('cookie.text')}
+                                    </p>
+                                </div>
+                            </div>
+                            <div className="flex flex-col gap-2 pt-1">
+                                <div className="flex gap-2">
+                                    <Button size="sm" onClick={() => savePreferences(true)} className="flex-1 rounded-xl text-xs h-9 font-medium shadow-sm">
+                                        {t('cookie.accept')}
+                                    </Button>
+                                    <Button variant="secondary" size="sm" onClick={() => savePreferences(false, true)} className="flex-1 rounded-xl text-xs h-9 font-medium">
+                                        {t('cookie.refuse')}
+                                    </Button>
+                                </div>
+                                <Button variant="ghost" size="sm" onClick={() => setShowPreferences(true)} className="w-full rounded-xl text-xs h-8 text-muted-foreground hover:text-foreground">
                                     {t('cookie.manage')}
                                 </Button>
-                                <Button variant="secondary" size="sm" onClick={() => savePreferences(false, true)}>
-                                    {t('cookie.refuse')}
-                                </Button>
-                                <Button size="sm" onClick={() => savePreferences(true)}>
-                                    {t('cookie.accept')}
-                                </Button>
                             </div>
-                        </>
+                        </div>
                     ) : (
-                        <>
-                            <div className="space-y-3">
+                        <div className="space-y-4">
+                            <div className="flex items-center gap-2 mb-2">
+                                <button onClick={() => setShowPreferences(false)} className="p-1 -ml-1 hover:bg-muted rounded-full transition-colors">
+                                    <ChevronRight className="h-4 w-4 rotate-180 text-muted-foreground" />
+                                </button>
+                                <h3 className="font-semibold text-sm">{t('cookie.manage')}</h3>
+                            </div>
+
+                            <div className="space-y-2">
                                 {/* Necessary (Locked) */}
-                                <div className="flex items-start justify-between gap-4 p-3 rounded-md bg-muted/30 border border-border/50">
-                                    <div className="flex flex-col gap-1">
+                                <div className="flex flex-col gap-2 p-3 rounded-xl bg-muted/40 border border-border/50">
+                                    <div className="flex justify-between items-center">
                                         <div className="flex items-center gap-2">
-                                            <ShieldCheck className="h-3.5 w-3.5 text-green-500" />
+                                            <ShieldCheck className="h-4 w-4 text-emerald-500" />
                                             <span className="text-sm font-medium">{t('cookie.necessary')}</span>
                                         </div>
-                                        <span className="text-xs text-muted-foreground">{t('cookie.necessaryDesc')}</span>
+                                        <Switch checked disabled className="scale-75 origin-right" />
                                     </div>
-                                    <Switch checked disabled />
+                                    <p className="text-[11px] text-muted-foreground leading-relaxed px-1">{t('cookie.necessaryDesc')}</p>
                                 </div>
 
                                 {/* Analytics */}
-                                <div className="flex items-start justify-between gap-4 p-3 rounded-md bg-card border border-border/50">
-                                    <div className="flex flex-col gap-1">
-                                        <span className="text-sm font-medium">{t('cookie.analytics')}</span>
-                                        <span className="text-xs text-muted-foreground">{t('cookie.analyticsDesc')}</span>
+                                <div className="flex flex-col gap-2 p-3 rounded-xl bg-background border border-border/50 shadow-sm">
+                                    <div className="flex justify-between items-center">
+                                        <div className="flex items-center gap-2">
+                                            <div className="h-4 w-4 rounded-full bg-primary/10 flex items-center justify-center">
+                                                <div className="h-1.5 w-1.5 rounded-full bg-primary" />
+                                            </div>
+                                            <span className="text-sm font-medium">{t('cookie.analytics')}</span>
+                                        </div>
+                                        <Switch
+                                            checked={analyticsEnabled}
+                                            onCheckedChange={setAnalyticsEnabled}
+                                            className="scale-75 origin-right data-[state=checked]:bg-primary"
+                                        />
                                     </div>
-                                    <Switch
-                                        checked={analyticsEnabled}
-                                        onCheckedChange={setAnalyticsEnabled}
-                                    />
+                                    <p className="text-[11px] text-muted-foreground leading-relaxed px-1">{t('cookie.analyticsDesc')}</p>
                                 </div>
                             </div>
 
-                            <div className="flex gap-2 justify-end pt-2 border-t border-border/50 mt-4">
-                                <Button variant="ghost" size="sm" onClick={() => setShowPreferences(false)}>
-                                    {t('common.back')}
-                                </Button>
-                                <Button size="sm" onClick={() => savePreferences()}>
-                                    {t('cookie.save')}
-                                </Button>
-                            </div>
-                        </>
+                            <Button size="sm" onClick={() => savePreferences()} className="w-full rounded-xl text-xs h-9 font-medium shadow-sm mt-2">
+                                {t('cookie.save')}
+                            </Button>
+                        </div>
                     )}
                 </div>
             </div>

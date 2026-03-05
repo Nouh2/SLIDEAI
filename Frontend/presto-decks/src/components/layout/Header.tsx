@@ -1,4 +1,4 @@
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { LogoConcept as Logo } from "./LogoConcept";
@@ -14,16 +14,29 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { useState } from "react";
+import { Analytics, ANALYTICS_EVENTS } from "@/lib/analytics";
 
 export const Header = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { t } = useTranslation();
   const { user, loading, signOut } = useAuth();
   const [open, setOpen] = useState(false);
+  const isLandingForLoggedOut = !user && location.pathname === "/";
+  const createCtaPath = user ? "/create" : `/auth?returnTo=${encodeURIComponent("/create")}`;
 
   const handleSignOut = async () => {
     await signOut();
     navigate("/");
+  };
+  const handleHeaderTrial = () => {
+    Analytics.trackEvent(
+      ANALYTICS_EVENTS.ECOMMERCE.CATEGORY,
+      ANALYTICS_EVENTS.ECOMMERCE.SELECT_PLAN,
+      "Landing Header CTA - 7d Trial"
+    );
+    navigate(createCtaPath);
+    setOpen(false);
   };
 
   const navLinks = (
@@ -37,27 +50,33 @@ export const Header = () => {
           {t('header.dashboard')}
         </Link>
       )}
-      <Link
-        to="/create"
-        className="text-sm font-medium text-zinc-950 hover:text-[#1fb6ff] transition-colors"
-        onClick={() => setOpen(false)}
-      >
-        {t('header.create')}
-      </Link>
-      <Link
-        to="/brand-kit"
-        className="text-sm font-medium text-zinc-950 hover:text-[#1fb6ff] transition-colors"
-        onClick={() => setOpen(false)}
-      >
-        Brand Kit
-      </Link>
-      <Link
-        to="/examples"
-        className="text-sm font-medium text-zinc-950 hover:text-[#1fb6ff] transition-colors"
-        onClick={() => setOpen(false)}
-      >
-        {t('header.examples')}
-      </Link>
+      {user && (
+        <Link
+          to={createCtaPath}
+          className="text-sm font-medium text-zinc-950 hover:text-[#1fb6ff] transition-colors"
+          onClick={() => setOpen(false)}
+        >
+          {t('header.create')}
+        </Link>
+      )}
+      {user && (
+        <Link
+          to="/brand-kit"
+          className="text-sm font-medium text-zinc-950 hover:text-[#1fb6ff] transition-colors"
+          onClick={() => setOpen(false)}
+        >
+          Brand Kit
+        </Link>
+      )}
+      {!user && (
+        <Link
+          to="/examples"
+          className="text-sm font-medium text-zinc-950 hover:text-[#1fb6ff] transition-colors"
+          onClick={() => setOpen(false)}
+        >
+          {t('header.examples')}
+        </Link>
+      )}
       <Link
         to="/pricing"
         className="text-sm font-medium text-zinc-950 hover:text-[#1fb6ff] transition-colors"
@@ -65,13 +84,15 @@ export const Header = () => {
       >
         {t('header.pricing')}
       </Link>
-      <Link
-        to="/blog"
-        className="text-sm font-medium text-zinc-950 hover:text-[#1fb6ff] transition-colors"
-        onClick={() => setOpen(false)}
-      >
-        Blog
-      </Link>
+      {(!user || !isLandingForLoggedOut) && (
+        <Link
+          to="/blog"
+          className="text-sm font-medium text-zinc-950 hover:text-[#1fb6ff] transition-colors"
+          onClick={() => setOpen(false)}
+        >
+          Blog
+        </Link>
+      )}
     </>
   );
 
@@ -87,12 +108,16 @@ export const Header = () => {
               {t('header.dashboard')}
             </Link>
           )}
-          <Link to="/create" className="text-sm font-medium text-zinc-950 hover:text-[#1fb6ff] transition-colors">
-            {t('header.create')}
-          </Link>
-          <Link to="/brand-kit" className="text-sm font-medium text-zinc-950 hover:text-[#1fb6ff] transition-colors">
-            Brand Kit
-          </Link>
+          {user && (
+            <Link to={createCtaPath} className="text-sm font-medium text-zinc-950 hover:text-[#1fb6ff] transition-colors">
+              {t('header.create')}
+            </Link>
+          )}
+          {user && (
+            <Link to="/brand-kit" className="text-sm font-medium text-zinc-950 hover:text-[#1fb6ff] transition-colors">
+              Brand Kit
+            </Link>
+          )}
           {!user && (
             <Link to="/examples" className="text-sm font-medium text-zinc-950 hover:text-[#1fb6ff] transition-colors">
               {t('header.examples')}
@@ -141,6 +166,11 @@ export const Header = () => {
             ) : (
               // Logged out state
               <>
+                {isLandingForLoggedOut && (
+                  <Button onClick={handleHeaderTrial} size="sm" className="font-semibold">
+                    {t('header.startTrial')}
+                  </Button>
+                )}
                 <Button variant="ghost" size="sm" asChild className="text-zinc-950 hover:text-zinc-950">
                   <Link to="/auth">{t('header.login')}</Link>
                 </Button>
@@ -163,6 +193,11 @@ export const Header = () => {
                   <SheetTitle className="text-left">Menu</SheetTitle>
                 </SheetHeader>
                 <div className="flex flex-col space-y-4 mt-6">
+                  {isLandingForLoggedOut && (
+                    <Button onClick={handleHeaderTrial} className="justify-start">
+                      {t('header.startTrial')}
+                    </Button>
+                  )}
                   {navLinks}
                   <div className="h-px bg-border my-4" />
                   {user ? (

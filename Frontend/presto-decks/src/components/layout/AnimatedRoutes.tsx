@@ -25,11 +25,16 @@ const ViewPage = lazy(() => import("@/pages/ViewPage"));
 const ResetPassword = lazy(() => import("@/pages/ResetPassword"));
 const Blog = lazy(() => import("@/pages/Blog"));
 const BlogPost = lazy(() => import("@/pages/BlogPost"));
+const BlogCategory = lazy(() => import("@/pages/BlogCategory"));
+const BlogPersona = lazy(() => import("@/pages/BlogPersona"));
 const ChartDemoPage = lazy(() => import("@/pages/ChartDemo"));
 const VisualRegressionPage = lazy(() => import("@/pages/VisualRegression"));
 
 const PDFToPowerPoint = lazy(() => import("@/pages/PDFToPowerPoint"));
 const OrgSettings = lazy(() => import("@/pages/OrgSettings"));
+const GenerateurPowerPointIA = lazy(() => import("@/pages/GenerateurPowerPointIA"));
+const CreerPowerPointAvecIA = lazy(() => import("@/pages/CreerPowerPointAvecIA"));
+const OutilIAPresentation = lazy(() => import("@/pages/OutilIAPresentation"));
 
 const PageLoader = () => (
     <div className="h-[calc(100vh-4rem)] w-full flex items-center justify-center">
@@ -56,10 +61,15 @@ export const AnimatedRoutes = () => {
                     <Route path="/terms" element={<PageTransition><TermsPage /></PageTransition>} />
                     <Route path="/gdpr" element={<PageTransition><GdprPage /></PageTransition>} />
                     <Route path="/blog" element={<PageTransition><Blog /></PageTransition>} />
+                    <Route path="/blog/c/:category" element={<PageTransition><BlogCategory /></PageTransition>} />
+                    <Route path="/blog/metier/:persona" element={<PageTransition><BlogPersona /></PageTransition>} />
                     <Route path="/blog/:slug" element={<PageTransition><BlogPost /></PageTransition>} />
                     <Route path="/charts-demo" element={<PageTransition><ChartDemoPage /></PageTransition>} />
                     <Route path="/qa/visual-regression" element={<PageTransition><VisualRegressionPage /></PageTransition>} />
                     <Route path="/pdf-to-powerpoint" element={<PageTransition><PDFToPowerPoint /></PageTransition>} />
+                    <Route path="/generateur-powerpoint-ia" element={<PageTransition><GenerateurPowerPointIA /></PageTransition>} />
+                    <Route path="/creer-powerpoint-avec-ia" element={<PageTransition><CreerPowerPointAvecIA /></PageTransition>} />
+                    <Route path="/outil-ia-presentation" element={<PageTransition><OutilIAPresentation /></PageTransition>} />
 
 
                     {/* GUEST ONLY ROUTES - Redirect to dashboard if logged in */}

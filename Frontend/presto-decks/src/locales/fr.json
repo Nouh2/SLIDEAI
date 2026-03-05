@@ -7,7 +7,9 @@
     "login": "Connexion",
     "getStarted": "Commencer",
     "myAccount": "Mon Compte",
-    "logout": "Déconnexion"
+    "logout": "Déconnexion",
+    "startTrial": "Tester gratuitement",
+    "menu": "Menu"
   },
   "common": {
     "cancel": "Annuler",
@@ -27,17 +29,30 @@
   },
   "hero": {
     "badge": "SlideAI v2.0",
-    "title": "IA PowerPoint Gratuit : Vos documents clients en présentations pro en 40 secondes.",
-    "subtitle": "Notre IA générateur de présentation gratuit transforme PDF & Word en slides éditables. Pack test : 5 présentations pour 7€ – sans abonnement.",
-    "cta": "Essayer gratuitement",
+    "title": "Le générateur PowerPoint IA pour créer vos présentations automatiquement",
+    "subtitle": "SlideAI est l'outil IA présentation pour créer un PowerPoint avec IA, générer une présentation automatiquement et livrer vos slides plus vite.",
+    "cta": "Démarrer l'essai 7 jours",
     "microProofs": {
-      "target": "Pensé pour freelances marketing, consultants & coachs",
-      "roi": "1 client = outil rentabilisé",
-      "features": "Export PDF • Partage client • Design pro"
+      "target": "Conçu pour cabinets de conseil, audit, marketing et freelances",
+      "roi": "Jusqu'à plusieurs heures gagnées par mission",
+      "features": "Export PDF/PPTX | Partage client | Design pro"
+    },
+    "trialNote": "Essai gratuit 7 jours. Sans carte bancaire. Compte requis pour sauvegarder vos decks.",
+    "segments": {
+      "consulting": "Consulting",
+      "audit": "Audit",
+      "marketing": "Marketing",
+      "freelance": "Freelance"
+    },
+    "anchorLinks": {
+      "createWithAI": "Comment créer un PowerPoint avec IA",
+      "whyTool": "Pourquoi utiliser un outil IA présentation",
+      "autoGenerate": "Générer une présentation automatiquement",
+      "startNow": "Créez votre première présentation en 30 secondes"
     }
   },
   "livrables": {
-    "title": "Voici les livrables que tu peux créer avec SlideAI",
+    "title": "Voici les livrables que vous pouvez créer avec SlideAI",
     "subtitle": "Pas juste des slides. Des présentations client-ready.",
     "badge": "Livrables",
     "examples": {
@@ -47,22 +62,22 @@
       "pitch": "Pitch / deck de vente",
       "strategy": "Présentation stratégique"
     },
-    "footer": "Même moteur IA, mais langage métier freelance."
+    "footer": "Même moteur IA, adapté aux livrables B2B."
   },
   "whyFreelance": {
-    "title": "Moins de PowerPoint. Plus de clients.",
+    "title": "Pourquoi utiliser un outil IA pour vos présentations",
     "points": {
-      "time": "Gagne plusieurs heures par mission",
+      "time": "Gagnez plusieurs heures par mission",
       "structure": "Structure claire et professionnelle dès la génération",
-      "impress": "Impressionne tes clients sans designer",
-      "deliver": "Livre plus vite, facture plus sereinement"
+      "impress": "Impressionnez vos clients sans mobiliser un designer",
+      "deliver": "Livrez plus vite et sécurisez vos deadlines"
     }
   },
   "howItWorks": {
-    "title": "Comment ça marche",
+    "title": "Comment créer un PowerPoint avec IA en 30 secondes",
     "steps": {
       "1": {
-        "title": "Importe ton document client",
+        "title": "Importez votre document client",
         "desc": "Brief, audit, rapport ou simple idée."
       },
       "2": {
@@ -70,7 +85,7 @@
         "desc": "Structure, contenu et design automatiquement."
       },
       "3": {
-        "title": "Ajuste et livre",
+        "title": "Ajustez et livrez",
         "desc": "Édition rapide, export PDF, partage client."
       }
     },
@@ -94,7 +109,7 @@
       },
       "fastEdit": {
         "title": "Édition rapide",
-        "desc": "Ajuste en temps réel avant l’envoi au client."
+        "desc": "Ajuste en temps réel avant l'envoi au client."
       },
       "shareExport": {
         "title": "Partage & export",
@@ -104,35 +119,37 @@
     "learnMore": "En savoir plus"
   },
   "landingProductShowcase": {
-    "title": "Conçu pour les freelances qui livrent régulièrement",
-    "subtitle": "Un tableau de bord clair pour gérer tes présentations, regénérer des slides, ajuster le design et livrer sans friction."
+    "title": "Comment SlideAI génère vos slides automatiquement",
+    "subtitle": "Un tableau de bord clair pour gérer vos présentations, régénérer des slides, ajuster le design et livrer sans friction."
   },
   "offer": {
     "freelancePack": {
-      "title": "Pack Freelance – Test sans engagement",
-      "subtitle": "Parfait pour une mission ponctuelle ou un premier client.",
+      "title": "Essai gratuit 7 jours - sans carte",
+      "subtitle": "Testez l'outil IA présentation sur vos vrais livrables clients.",
       "features": {
-        "presents": "5 présentations générées",
-        "import": "Import PDF & Word",
-        "design": "Design & structure automatiques",
-        "export": "Export PDF",
-        "subscription": "Aucun abonnement"
+        "presents": "Générations de présentations pendant 7 jours",
+        "import": "Import PDF et Word",
+        "design": "Design et structure automatiques",
+        "export": "Export PDF et PPTX",
+        "subscription": "Annulation à tout moment",
+        "noCard": "Sans carte bancaire"
       },
-      "uniquenessNote": "Chaque génération s’adapte au contenu, au client et au contexte. Même pour une mission similaire, le livrable est différent.",
-      "price": "7€ – paiement unique",
-      "cta": "Tester maintenant"
+      "uniquenessNote": "Chaque génération s'adapte au contenu, au client et au contexte. Même sur une mission similaire, le livrable reste adapté.",
+      "price": "7 jours gratuits",
+      "cta": "Démarrer l'essai",
+      "helper": "Aucune carte demandée. Activez votre essai en moins de 30 secondes."
     },
     "proSubscription": {
-      "title": "Besoin régulier ? Passe à l’abonnement Pro",
-      "subtitle": "Pour les freelances qui livrent des présentations chaque semaine.",
+      "title": "Besoin régulier ? Passez à l'abonnement Pro",
+      "subtitle": "Pour les équipes conseil, audit, marketing et freelances qui livrent chaque semaine.",
       "features": {
         "unlimited": "Génération illimitée",
-        "pages": "Import PDF jusqu’à 200 pages",
+        "pages": "Import PDF jusqu'à 200 pages",
         "export": "Export HD prioritaire",
         "support": "Support prioritaire"
       },
       "price": "19€/mois",
-      "cta": "Voir l’abonnement Pro"
+      "cta": "Voir l'abonnement Pro"
     }
   },
   "faq": {
@@ -140,26 +157,34 @@
     "questions": {
       "subscription": {
         "q": "Y a-t-il un abonnement obligatoire ?",
-        "a": "Non. Le pack à 7€ est un paiement unique."
+        "a": "Non. Vous pouvez utiliser le plan gratuit, démarrer un essai 7 jours sans carte, ou acheter un pack en paiement unique."
       },
       "deliver": {
-        "q": "Puis-je vraiment livrer ça à un client ?",
-        "a": "Oui. Les slides sont conçues pour un usage professionnel."
+        "q": "Puis-je vraiment livrer ces slides à un client ?",
+        "a": "Oui. Les slides sont conçues pour un usage professionnel B2B."
       },
       "pdf": {
-        "q": "Puis-je exporter en PDF ?",
-        "a": "Oui, l’export est inclus dans le pack."
+        "q": "Puis-je exporter en PDF et PowerPoint ?",
+        "a": "Oui, les exports PDF et PPTX sont disponibles."
       },
       "usage": {
         "q": "Est-ce compliqué à utiliser ?",
-        "a": "Non. Import → génération → livraison."
+        "a": "Non. Import -> génération -> ajustement -> livraison."
+      },
+      "trial": {
+        "q": "L'essai 7 jours demande-t-il une carte bancaire ?",
+        "a": "Non. Vous pouvez démarrer l'essai sans carte bancaire."
+      },
+      "security": {
+        "q": "Mes documents clients sont-ils sécurisés ?",
+        "a": "Oui. Les données sont traitées de manière sécurisée et en conformité RGPD."
       }
     }
   },
   "finalCta": {
-    "title": "Prêt à livrer plus vite à tes clients ?",
-    "subtitle": "Teste SlideAI avec 5 présentations pour 7€\nSans abonnement. Sans engagement.",
-    "button": "Tester le Pack Freelance"
+    "title": "Créez votre première presentation en 30 secondes",
+    "subtitle": "Démarrez votre essai gratuit de 7 jours.\nSans carte bancaire. Sans engagement.",
+    "button": "Demarrer mon essai 7 jours"
   },
   "dashboard": {
     "title": "Tableau de bord",
@@ -232,11 +257,11 @@
     "step1": "Choisir le livrable",
     "step2": "Personnaliser & Générer",
     "continue": "Générer ce livrable →",
-    "continueSub": "(Tu pourras ajuster le design ensuite)",
+    "continueSub": "(Vous pourrez ajuster le design ensuite)",
     "skipStep": "Passer cette étape",
     "backToTemplates": "Retour aux livrables",
     "selectedTemplate": "Livrable sélectionné :",
-    "proTip": "Tu livres souvent ce type de document ? Le plan Pro est plus rentable dès 2–3 missions.",
+    "proTip": "Vous livrez souvent ce type de document ? Le plan Pro est plus rentable dès 2–3 missions.",
     "aiTitle": "L'IA au service de vos",
     "aiTitleHighlight": "idées",
     "aiSubtitle": "Décrivez votre sujet, importez vos notes, et laissez SlideAI structurer et designer votre présentation.",
@@ -738,7 +763,7 @@
     "cancel": "Annuler",
     "submit": "Envoyer le rapport",
     "submitting": "Envoi...",
-    "successTitle": "✅ Bug signalé !",
+    "successTitle": "âœ… Bug signalé !",
     "successMsg": "Merci de votre retour. Notre équipe va analyser le problème.",
     "errorTitle": "Erreur",
     "errorMsg": "Échec de l'envoi du rapport. Veuillez réessayer.",
@@ -826,8 +851,8 @@
       "presentations": "Présentations créées",
       "users": "Utilisateurs actifs",
       "satisfaction": "Satisfaction client",
-      "generatedCount": "5000+ slides générées ce mois-ci",
-      "rating": "4.9/5 par les fondateurs"
+      "generatedCount": "Conçu pour les équipes B2B qui livrent chaque semaine",
+      "rating": "Consulting, audit, marketing, freelance"
     },
     "heading": {
       "lovedBy": "Aimé par les",
@@ -837,8 +862,8 @@
     "trustedBy": {
       "label": "Certifié par",
       "badges": {
-        "topStartup": "🏆 Top Startup",
-        "stars": "⭐ 4.9/5 Étoiles",
+        "topStartup": "ðŸ† Top Startup",
+        "stars": "â­ 4.9/5 Étoiles",
         "secure": "🔒 Sécurisé"
       }
     },
@@ -855,6 +880,11 @@
         "quote": "Enfin une solution simple pour créer des présentations impactantes.",
         "title": "Consultante Innovation"
       }
+    },
+    "trustChips": {
+      "security": "Données chiffrées",
+      "gdpr": "Conforme RGPD",
+      "noCard": "Essai sans carte"
     }
   },
   "deckPreview": {
@@ -888,7 +918,7 @@
   },
   "templateSelector": {
     "pill": "Collection Premium",
-    "title": "Choisis le type de",
+    "title": "Choisissez le type de",
     "highlight": "livrable que tu veux envoyer",
     "description": "Chaque livrable est optimisé pour être prêt à être facturé (structure, message, design).",
     "select": "Choisir ce livrable",
@@ -1120,14 +1150,14 @@
   "pricing": {
     "title": "Simple et Transparent",
     "titleHighlight": "Tarifs",
-    "subtitle": "Choisissez le plan qui vous convient le mieux. Pas de frais cachés.",
+    "subtitle": "Choisissez un plan adapte a votre volume de livrables B2B.",
     "badge": "Tarifs",
     "mostPopular": "Le plus populaire",
     "perMonth": "/mois",
-    "billedYearly": "Facturé annuellement (€{{price}})",
+    "billedYearly": "Facturé annuellement ({{price}}€)",
     "billedMonthly": "Facturé mensuellement",
-    "startFree": "Démarrer gratuitement",
-    "tryFree": "Essayer gratuitement",
+    "startFree": "Démarrer l'essai",
+    "tryFree": "Démarrer l'essai 7 jours",
     "contactSales": "Contacter les ventes",
     "unsubscribe": "Se désabonner",
     "included": "Inclus",
@@ -1135,8 +1165,8 @@
     "monthly": "Mensuel",
     "yearly": "Annuel",
     "discount": "-20%",
-    "allCardsAccepted": "Toutes les cartes majeures acceptées",
-    "noSubscription": "Sans abonnement requis",
+    "allCardsAccepted": "Paiement sécurisé si vous continuez apres l'essai.",
+    "noSubscription": "Essai 7 jours sans carte bancaire",
     "questions": "Des questions ?",
     "contactUs": "Contactez-nous",
     "errors": {
@@ -1169,8 +1199,8 @@
       },
       "starter": {
         "name": "Starter",
-        "description": "Pour les individus et freelances qui débutent.",
-        "cta": "Choisir Starter",
+        "description": "Pour consultants et equipes qui livrent regulierement.",
+        "cta": "Demarrer essai Starter",
         "features": {
           "presentations": "Présentations illimitées",
           "pdfImport": "Import PDF (Avancé)",
@@ -1183,7 +1213,7 @@
       },
       "pro": {
         "name": "Pro",
-        "description": "Pour les professionnels qui ont besoin de puissance.",
+        "description": "Pour les equipes qui veulent du volume, de la vitesse et un rendu premium.",
         "features": {
           "unlimitedGen": "Génération Illimitée",
           "pdfImport": "PDF vers PowerPoint (Pro)",
@@ -1224,6 +1254,10 @@
         "credits": "500 Crédits",
         "cta": "Acheter le pack"
       }
-    }
+    },
+    "trialLine": "Essai gratuit 7 jours sur Starter et Pro, sans carte bancaire."
+  },
+  "home": {
+    "freeNote": "Essai 7 jours gratuit | sans carte bancaire"
   }
 }

@@ -24,10 +24,10 @@ export function HowItWorks() {
     ];
 
     return (
-        <section className="py-12 md:py-16 px-4 relative z-10">
+        <section className="py-8 md:py-10 px-4 relative z-10">
             <div className="absolute inset-0 bg-gradient-to-b from-transparent via-primary/5 to-transparent -z-10" />
             <div className="max-w-7xl mx-auto">
-                <div className="text-center mb-16">
+                <div className="text-center mb-10">
                     <h2 className="text-3xl md:text-5xl font-bold mb-4">{t('howItWorks.title')}</h2>
                 </div>
 
@@ -50,15 +50,15 @@ export function HowItWorks() {
                                 </div>
                             </div>
                             <div className="space-y-2 max-w-xs">
-                                <h3 className="text-xl font-bold">{step.title}</h3>
-                                <p className="text-muted-foreground">{step.desc}</p>
+                                <h3 className="text-xl md:text-2xl font-bold">{step.title}</h3>
+                                <p className="text-base md:text-lg text-muted-foreground">{step.desc}</p>
                             </div>
                         </motion.div>
                     ))}
                 </div>
 
-                <div className="mt-16 text-center">
-                    <p className="text-lg font-medium text-gradient-secondary">{t('howItWorks.time')}</p>
+                <div className="mt-10 text-center">
+                    <p className="text-xl md:text-2xl font-medium text-gradient-secondary">{t('howItWorks.time')}</p>
                 </div>
             </div>
         </section>

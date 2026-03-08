@@ -11,6 +11,42 @@ import { TemplateOverlay } from "@/components/slides/TemplateOverlay";
 
 type ViewStatus = "loading" | "viewing" | "error" | "auth_required";
 
+const isPlainObject = (value: unknown): value is Record<string, unknown> =>
+    typeof value === "object" && value !== null && !Array.isArray(value);
+
+const repairStringLikeObjects = (value: any): any => {
+    if (Array.isArray(value)) {
+        return value.map(repairStringLikeObjects);
+    }
+
+    if (!isPlainObject(value)) {
+        return value;
+    }
+
+    const keys = Object.keys(value);
+    const numericKeys = keys
+        .filter((key) => /^\d+$/.test(key))
+        .sort((a, b) => Number(a) - Number(b));
+
+    if (numericKeys.length > 0) {
+        return numericKeys.map((key) => String(value[key] ?? "")).join("");
+    }
+
+    const wrapperKeys = new Set(["value", "text", "style"]);
+    const isTextWrapper =
+        keys.length > 0 &&
+        keys.every((key) => wrapperKeys.has(key)) &&
+        (typeof value.value === "string" || typeof value.text === "string");
+
+    if (isTextWrapper) {
+        return value.value ?? value.text ?? "";
+    }
+
+    return Object.fromEntries(
+        Object.entries(value).map(([key, entry]) => [key, repairStringLikeObjects(entry)])
+    );
+};
+
 // Helper to adapt API deck format to frontend format (same as Editor)
 const adaptDeck = (deck: any) => {
     const rootData = deck.slides?.slides ? deck.slides : deck;
@@ -18,39 +54,43 @@ const adaptDeck = (deck: any) => {
 
     return {
         id: deck.id || "generated",
-        title: deck.title || rootData.title,
-        subtitle: deck.subtitle || rootData.subtitle,
-        slides: slideItems.map((s: any, index: number) => ({
-            id: s.id || `slide-${index}`,
-            type: s.type || s.layout || "content",
-            title: s.title,
-            subtitle: s.subtitle || s.content?.subtitle,
-            layout: s.layout || "title-top-bullets-bottom",
-            backgroundImage: s.backgroundImage,
-            imageSearchQuery: s.imageSearchQuery,
-            bullets: s.bullets || s.content?.bullets || [],
-            quote: s.quote || s.content?.quote,
-            metrics: s.metrics || s.content?.metrics,
-            columns: s.columns || s.content?.columns,
-            description: s.description || s.content?.description,
-            benefits: s.benefits || s.content?.benefits,
-            chart: s.chart || s.content?.chart,
-            table: s.table || s.content?.table,
-            timeline: s.timeline || s.content?.timeline,
-            infographic: s.infographic || s.content?.infographic,
-            comparison: s.comparison || s.content?.comparison,
-            stats: s.stats || s.content?.stats,
-            items: s.items || s.content?.items,
-            text: s.text || s.content?.text,
-            variation: s.variation,
-            content: s.content,
-            illustration: s.illustration || {
-                type: "icon",
-                iconName: "Sparkles",
-                url: "https://images.unsplash.com/photo-1557804506-669a67965ba0?w=800&q=80"
-            },
-            notes: s.notes || "",
-        })),
+        title: repairStringLikeObjects(deck.title || rootData.title),
+        subtitle: repairStringLikeObjects(deck.subtitle || rootData.subtitle),
+        slides: slideItems.map((rawSlide: any, index: number) => {
+            const s = repairStringLikeObjects(rawSlide);
+
+            return {
+                id: s.id || `slide-${index}`,
+                type: s.type || s.layout || "content",
+                title: s.title,
+                subtitle: s.subtitle || s.content?.subtitle,
+                layout: s.layout || "title-top-bullets-bottom",
+                backgroundImage: s.backgroundImage,
+                imageSearchQuery: s.imageSearchQuery,
+                bullets: s.bullets || s.content?.bullets || [],
+                quote: s.quote || s.content?.quote,
+                metrics: s.metrics || s.content?.metrics,
+                columns: s.columns || s.content?.columns,
+                description: s.description || s.content?.description,
+                benefits: s.benefits || s.content?.benefits,
+                chart: s.chart || s.content?.chart,
+                table: s.table || s.content?.table,
+                timeline: s.timeline || s.content?.timeline,
+                infographic: s.infographic || s.content?.infographic,
+                comparison: s.comparison || s.content?.comparison,
+                stats: s.stats || s.content?.stats,
+                items: s.items || s.content?.items,
+                text: s.text || s.content?.text,
+                variation: s.variation,
+                content: s.content,
+                illustration: s.illustration || {
+                    type: "icon",
+                    iconName: "Sparkles",
+                    url: "https://images.unsplash.com/photo-1557804506-669a67965ba0?w=800&q=80"
+                },
+                notes: s.notes || "",
+            };
+        }),
         theme: deck.theme || rootData.theme || "startup-pitch",
         themeConfig: deck.themeConfig || rootData.themeConfig,
         colorScheme: deck.colorPalette || deck.colorScheme || rootData.colorPalette || rootData.colorScheme,

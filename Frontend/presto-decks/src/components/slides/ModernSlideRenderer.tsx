@@ -160,6 +160,42 @@ const getFontFamily = (fontId: string): string => {
     return FONT_MAP[fontId] || 'inherit';
 };
 
+const isPlainObject = (value: unknown): value is Record<string, unknown> =>
+    typeof value === 'object' && value !== null && !Array.isArray(value);
+
+const repairStringLikeObjects = (value: any): any => {
+    if (Array.isArray(value)) {
+        return value.map(repairStringLikeObjects);
+    }
+
+    if (!isPlainObject(value)) {
+        return value;
+    }
+
+    const keys = Object.keys(value);
+    const numericKeys = keys
+        .filter((key) => /^\d+$/.test(key))
+        .sort((a, b) => Number(a) - Number(b));
+
+    if (numericKeys.length > 0) {
+        return numericKeys.map((key) => String(value[key] ?? '')).join('');
+    }
+
+    const wrapperKeys = new Set(['value', 'text', 'style']);
+    const isTextWrapper =
+        keys.length > 0 &&
+        keys.every((key) => wrapperKeys.has(key)) &&
+        (typeof value.value === 'string' || typeof value.text === 'string');
+
+    if (isTextWrapper) {
+        return value.value ?? value.text ?? '';
+    }
+
+    return Object.fromEntries(
+        Object.entries(value).map(([key, entry]) => [key, repairStringLikeObjects(entry)])
+    );
+};
+
 // Enhanced abstract background shapes - premium artistic look
 const AbstractShapes = ({ colors, variant = 'default' }: { colors: any; variant?: string }) => {
     const primary = colors.primary || '#2563EB';
@@ -3904,7 +3940,7 @@ const ExecutiveSummaryLayout = ({ slide, colors, variation = 'dashboard', onSele
                     onSelect={onSelect}
                     isSelected={selectedId === 'title'}
                 >
-                    <h2 className="text-6xl font-bold" style={{ color: colors.text, fontSize: `calc(var(--slide-font-scale, 1) * ${fontScale} * 3.75rem)` }}>{slide.title}</h2>
+                    <h2 className="text-6xl font-bold" style={{ color: colors.text, fontSize: `calc(var(--slide-font-scale, 1) * ${titleFontScale} * 3.75rem)` }}>{slide.title}</h2>
                 </EditableElement>
             </div>
 
@@ -6842,7 +6878,7 @@ const MasterCoverLayout = ({ slide, colors, variation = 'centered-minimal', onSe
 // ============================================
 // Main component
 export const ModernSlideRenderer = ({
-    slide,
+    slide: rawSlide,
     theme: rawTheme = 'modern',
     className,
     colorPalette,
@@ -6856,6 +6892,7 @@ export const ModernSlideRenderer = ({
     titleFontScale = 0.9,
     textFontScale = 0.9
 }: SlideRendererProps) => {
+    const slide = repairStringLikeObjects(rawSlide);
     // Ensure theme is always a string to prevent .includes() errors
     const theme = typeof rawTheme === 'string' ? rawTheme : 'modern';
     // If templateOverlay config exists, prioritize its setting over the prop

@@ -96,6 +96,42 @@ import { TemplateOverlay } from "@/components/slides/TemplateOverlay";
 import { ToastAction } from "@/components/ui/toast";
 import { parseClipboardData, createSlideFromTable } from "@/lib/smartPaste";
 
+const isPlainObject = (value: unknown): value is Record<string, unknown> =>
+  typeof value === "object" && value !== null && !Array.isArray(value);
+
+const repairStringLikeObjects = (value: any): any => {
+  if (Array.isArray(value)) {
+    return value.map(repairStringLikeObjects);
+  }
+
+  if (!isPlainObject(value)) {
+    return value;
+  }
+
+  const keys = Object.keys(value);
+  const numericKeys = keys
+    .filter((key) => /^\d+$/.test(key))
+    .sort((a, b) => Number(a) - Number(b));
+
+  if (numericKeys.length > 0) {
+    return numericKeys.map((key) => String(value[key] ?? "")).join("");
+  }
+
+  const wrapperKeys = new Set(["value", "text", "style"]);
+  const isTextWrapper =
+    keys.length > 0 &&
+    keys.every((key) => wrapperKeys.has(key)) &&
+    (typeof value.value === "string" || typeof value.text === "string");
+
+  if (isTextWrapper) {
+    return value.value ?? value.text ?? "";
+  }
+
+  return Object.fromEntries(
+    Object.entries(value).map(([key, entry]) => [key, repairStringLikeObjects(entry)])
+  );
+};
+
 // Helper to adapt API deck format to frontend format
 const adaptDeck = (deck: any) => {
   // If deck is coming from Supabase, the 'slides' property actually contains the FULL deck object
@@ -105,62 +141,50 @@ const adaptDeck = (deck: any) => {
 
   return {
     id: deck.id || "generated",
-    title: deck.title || rootData.title,
-    subtitle: deck.subtitle || rootData.subtitle,
+    title: repairStringLikeObjects(deck.title || rootData.title),
+    subtitle: repairStringLikeObjects(deck.subtitle || rootData.subtitle),
     thumbnail: "https://images.unsplash.com/photo-1557804506-669a67965ba0?w=800&q=80",
     lastModified: new Date().toISOString(),
-    slides: slideItems.map((s: any, index: number) => ({
-      id: s.id || `slide-${index}`,
-      type: s.type || s.layout || "content",
-      title: s.title,
-      subtitle: s.subtitle || s.content?.subtitle,
-      layout: s.layout || "title-top-bullets-bottom",
+    slides: slideItems.map((rawSlide: any, index: number) => {
+      const s = repairStringLikeObjects(rawSlide);
 
-      // Background image from Unsplash
-      backgroundImage: s.backgroundImage,
-      imageSearchQuery: s.imageSearchQuery, // Used by some layouts as fallback
-
-      // Legacy content fields
-      // Legacy content fields
-      bullets: s.bullets || s.content?.bullets || [],
-      quote: s.quote || s.content?.quote,
-      metrics: s.metrics || s.content?.metrics,
-      columns: s.columns || s.content?.columns,
-      description: s.description || s.content?.description,
-      benefits: s.benefits || s.content?.benefits,
-
-      // NEW: Rich content types
-      chart: s.chart || s.content?.chart,
-      table: s.table || s.content?.table,
-      timeline: s.timeline || s.content?.timeline,
-      infographic: s.infographic || s.content?.infographic,
-      comparison: s.comparison || s.content?.comparison,
-      stats: s.stats || s.content?.stats,
-      items: s.items || s.content?.items,
-      text: s.text || s.content?.text,
-
-      // Layout variation selection (user choice from LayoutSwitcher)
-      variation: s.variation,
-
-      // Pass through the entire content object as fallback
-      content: s.content,
-
-      // Unsplash photographer attribution
-      unsplashPhotographer: s.unsplashPhotographer,
-
-      // Illustration handling
-      illustration: s.illustration || {
-        type: "icon",
-        iconName: "Sparkles",
-        url: "https://images.unsplash.com/photo-1557804506-669a67965ba0?w=800&q=80"
-      },
-
-      notes: s.notes || "",
-      sourceRef: s.sourceRef, // Pass through RAG citation
-      isAppendix: s.isAppendix, // Persist appendix status
-      isChartImage: s.isChartImage, // Persist chart status to avoid overlays
-      elements: s.elements || [], // Fix: Persist elements so font sizes are not lost
-    })),
+      return {
+        id: s.id || `slide-${index}`,
+        type: s.type || s.layout || "content",
+        title: s.title,
+        subtitle: s.subtitle || s.content?.subtitle,
+        layout: s.layout || "title-top-bullets-bottom",
+        backgroundImage: s.backgroundImage,
+        imageSearchQuery: s.imageSearchQuery,
+        bullets: s.bullets || s.content?.bullets || [],
+        quote: s.quote || s.content?.quote,
+        metrics: s.metrics || s.content?.metrics,
+        columns: s.columns || s.content?.columns,
+        description: s.description || s.content?.description,
+        benefits: s.benefits || s.content?.benefits,
+        chart: s.chart || s.content?.chart,
+        table: s.table || s.content?.table,
+        timeline: s.timeline || s.content?.timeline,
+        infographic: s.infographic || s.content?.infographic,
+        comparison: s.comparison || s.content?.comparison,
+        stats: s.stats || s.content?.stats,
+        items: s.items || s.content?.items,
+        text: s.text || s.content?.text,
+        variation: s.variation,
+        content: s.content,
+        unsplashPhotographer: s.unsplashPhotographer,
+        illustration: s.illustration || {
+          type: "icon",
+          iconName: "Sparkles",
+          url: "https://images.unsplash.com/photo-1557804506-669a67965ba0?w=800&q=80"
+        },
+        notes: s.notes || "",
+        sourceRef: s.sourceRef,
+        isAppendix: s.isAppendix,
+        isChartImage: s.isChartImage,
+        elements: s.elements || [],
+      };
+    }),
     theme: typeof rootData.theme === 'object' ? { ...rootData.theme, name: deck.theme || rootData.theme.name } : deck.theme || rootData.theme || "startup-pitch",
     themeConfig: deck.themeConfig || rootData.themeConfig,
     colorScheme: deck.colorPalette || deck.colorScheme || rootData.colorPalette || rootData.colorScheme,
@@ -717,20 +741,21 @@ export default function Editor() {
     if (pathParts.length === 0) return value;
 
     const [head, ...tail] = pathParts;
-    const index = parseInt(head);
-    const isArrayIndex = !isNaN(index);
-
-    // If strict array syntax was used in path splitting, we can know if it's an array
-    // But simple inference: if valid integer, treat as array access if obj is array or empty
-
-    const currentVal = obj || {};
+    const currentVal = obj ?? {};
     const isCurrentArray = Array.isArray(currentVal);
+    const currentEntry = currentVal?.[head];
 
     // Create shallow copy
-    const copy = isCurrentArray ? [...currentVal] : { ...currentVal };
+    const copy = isCurrentArray
+      ? [...currentVal]
+      : isPlainObject(currentVal)
+        ? { ...currentVal }
+        : typeof currentVal === "string" || typeof currentVal === "number"
+          ? { value: currentVal }
+          : {};
 
     // recurse
-    copy[head] = updateDeep(currentVal[head], tail, value);
+    copy[head] = updateDeep(currentEntry, tail, value);
 
     return copy;
   };
@@ -1879,4 +1904,3 @@ export default function Editor() {
     </DndContext >
   );
 }
-

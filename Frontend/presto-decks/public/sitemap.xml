@@ -56,6 +56,12 @@
     <priority>0.3</priority>
   </url>
   <url>
+    <loc>https://www.slideai.fr/blog/analyste-financier-generer-presentations-analyse-financiere-quelques-minutes</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <lastmod>2026-03-09</lastmod>
+  </url>
+  <url>
     <loc>https://www.slideai.fr/blog/best-gamma-app-alternatives</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
@@ -84,6 +90,12 @@
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
     <lastmod>2026-03-05</lastmod>
+  </url>
+  <url>
+    <loc>https://www.slideai.fr/blog/consultant-strategie-creer-plus-vite-presentations-recommandations-clients</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <lastmod>2026-03-09</lastmod>
   </url>
   <url>
     <loc>https://www.slideai.fr/blog/convert-pdf-to-powerpoint-ai</loc>
@@ -120,6 +132,12 @@
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
     <lastmod>2024-05-25</lastmod>
+  </url>
+  <url>
+    <loc>https://www.slideai.fr/blog/directeur-commercial-arretez-perdre-heures-presentations-resultats-ventes</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <lastmod>2026-03-09</lastmod>
   </url>
   <url>
     <loc>https://www.slideai.fr/blog/directeur-marketing-generer-presentations-strategiques-rapidement</loc>
@@ -170,6 +188,11 @@
     <lastmod>2025-06-05</lastmod>
   </url>
   <url>
+    <loc>https://www.slideai.fr/blog/c/finance</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://www.slideai.fr/blog/c/consulting</loc>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
@@ -185,9 +208,19 @@
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://www.slideai.fr/blog/c/sales</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://www.slideai.fr/blog/c/marketing</loc>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.slideai.fr/blog/metier/analyste-financier</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
   </url>
   <url>
     <loc>https://www.slideai.fr/blog/metier/consultant-rh</loc>
@@ -196,6 +229,16 @@
   </url>
   <url>
     <loc>https://www.slideai.fr/blog/metier/consultant-seo</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.slideai.fr/blog/metier/consultant-strategie</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.slideai.fr/blog/metier/directeur-commercial</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>

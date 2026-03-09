@@ -32,6 +32,8 @@ export interface BlogPersonaSummary {
 const CATEGORY_LABELS: Record<string, string> = {
     "consulting": "Conseil",
     "marketing": "Marketing",
+    "sales": "Commercial",
+    "finance": "Finance",
     "powerpoint-ai": "PowerPoint IA",
     "pitch-deck": "Pitch deck",
     "competitive": "Alternatives et comparatifs",
@@ -41,10 +43,12 @@ const CATEGORY_LABELS: Record<string, string> = {
 const PERSONA_LABELS: Record<string, string> = {
     "consultant-rh": "Consultant RH",
     "consultant-seo": "Consultant SEO",
+    "consultant-strategie": "Consultant strategie",
     "directeur-marketing": "Directeur marketing",
+    "directeur-commercial": "Directeur commercial",
+    "analyste-financier": "Analyste financier",
     "freelance": "Freelance",
     "product-manager": "Product manager",
-    "consultant-strategie": "Consultant strategie",
     "sales-manager": "Sales manager",
 };
 
@@ -66,6 +70,14 @@ function inferCategoryAndTags(slug: string, title: string): { category: string; 
 
     if (source.includes("marketing")) {
         return { category: "marketing", tags: ["marketing", "b2b", "powerpoint", "ia"] };
+    }
+
+    if (source.includes("commercial") || source.includes("vente") || source.includes("sales")) {
+        return { category: "sales", tags: ["sales", "b2b", "powerpoint", "ia"] };
+    }
+
+    if (source.includes("financier") || source.includes("finance")) {
+        return { category: "finance", tags: ["finance", "analyse", "powerpoint", "ia"] };
     }
 
     if (source.includes("gamma") || source.includes("alternative")) {
@@ -94,6 +106,12 @@ function inferPersona(slug: string, title: string): string | undefined {
     }
     if (source.includes("directeur-marketing") || (source.includes("directeur") && source.includes("marketing"))) {
         return "directeur-marketing";
+    }
+    if (source.includes("directeur-commercial") || (source.includes("directeur") && source.includes("commercial"))) {
+        return "directeur-commercial";
+    }
+    if (source.includes("analyste-financier") || (source.includes("analyste") && source.includes("financier"))) {
+        return "analyste-financier";
     }
     if (source.includes("freelance")) {
         return "freelance";

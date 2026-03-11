@@ -1617,29 +1617,31 @@ const translateDeckWorker = new Worker(
 const lifecycleEmailWorker = new Worker(
   'lifecycle-email',
   async (job) => {
-    const {
-      userId,
-      email,
-      emailType,
-      dedupeKey,
-      trialStartedAt,
-      trialEndsAt,
-      legacyFree,
-      canceledAt,
-      invoiceId,
-      packType,
-    } = job.data as {
-      userId: string;
-      email: string;
-      emailType: string;
-      dedupeKey: string;
-      trialStartedAt?: string;
-      trialEndsAt?: string;
-      legacyFree?: boolean;
-      canceledAt?: string;
-      invoiceId?: string;
-      packType?: string;
-    };
+      const {
+        userId,
+        email,
+        emailType,
+        dedupeKey,
+        trialStartedAt,
+        trialEndsAt,
+        legacyFree,
+        canceledAt,
+        invoiceId,
+        packType,
+        forceSend,
+      } = job.data as {
+        userId: string;
+        email: string;
+        emailType: string;
+        dedupeKey: string;
+        trialStartedAt?: string;
+        trialEndsAt?: string;
+        legacyFree?: boolean;
+        canceledAt?: string;
+        invoiceId?: string;
+        packType?: string;
+        forceSend?: boolean;
+      };
 
     console.log(`\n========== LIFECYCLE EMAIL JOB: ${dedupeKey} ==========`);
     console.log(`[LifecycleEmail] User ID: ${userId} | Type: ${emailType}`);
@@ -1668,7 +1670,7 @@ const lifecycleEmailWorker = new Worker(
 
     let shouldSend = false;
 
-    switch (emailType) {
+      switch (emailType) {
       case 'signup_day1_no_presentation':
         shouldSend = presentationCount === 0;
         break;
@@ -1732,16 +1734,21 @@ const lifecycleEmailWorker = new Worker(
       case 'failed_payment_day0':
         shouldSend = Boolean(invoiceId);
         break;
-      default:
-        shouldSend = false;
-        break;
-    }
+        default:
+          shouldSend = false;
+          break;
+      }
 
-    if (!shouldSend) {
-      console.log(`[LifecycleEmail] Conditions not met for ${emailType}, skipping`);
-      await setLifecycleEmailStatus(dedupeKey, 'skipped');
-      return { dedupeKey, status: 'skipped' };
-    }
+      if (forceSend) {
+        console.log(`[LifecycleEmail] Force send enabled for ${emailType}`);
+        shouldSend = true;
+      }
+
+      if (!shouldSend) {
+        console.log(`[LifecycleEmail] Conditions not met for ${emailType}, skipping`);
+        await setLifecycleEmailStatus(dedupeKey, 'skipped');
+        return { dedupeKey, status: 'skipped' };
+      }
 
     const winbackOffer =
       emailType === 'trial_winback_day2'

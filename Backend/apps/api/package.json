@@ -9,7 +9,8 @@
     "start:dev": "cross-env NODE_ENV=development nest start --watch",
     "build": "nest build",
     "test": "jest --passWithNoTests",
-    "backfill:legacy-trial": "node scripts/backfill-legacy-free-trial.mjs"
+    "backfill:legacy-trial": "node scripts/backfill-legacy-free-trial.mjs",
+    "lifecycle:smoke": "node scripts/trigger-lifecycle-smoke.mjs"
   },
   "dependencies": {
     "@fastify/cors": "^9.0.1",

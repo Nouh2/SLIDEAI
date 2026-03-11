@@ -150,12 +150,17 @@ export default function OpsDashboard() {
   }, []);
 
   useEffect(() => {
-    if (selectedTemplate?.slug) {
-      setTemplateForm(patchToForm(selectedTemplate.previewDraft?.model || selectedTemplate.draftJson));
-      setPreview(selectedTemplate.previewDraft);
+    if (!selectedTemplate) {
+      setTemplateForm(EMPTY_FORM);
+      setPreview(null);
       setPreviewMode("draft");
+      return;
     }
-  }, [selectedTemplate?.slug]);
+
+    setTemplateForm(patchToForm(selectedTemplate.previewDraft?.model || selectedTemplate.draftJson));
+    setPreview(selectedTemplate.previewDraft);
+    setPreviewMode("draft");
+  }, [selectedTemplate]);
 
   const loadOps = async () => {
     setLoading(true);
@@ -217,8 +222,10 @@ export default function OpsDashboard() {
   const loadTemplate = async (slug: string, accessToken?: string) => {
     const token = accessToken || (await supabase.auth.getSession()).data.session?.access_token;
     if (!token) return;
-    const template = await api.getOpsTemplate(slug, token);
     setSelectedTemplateSlug(slug);
+    setSelectedTemplate(null);
+    setPreview(null);
+    const template = await api.getOpsTemplate(slug, token);
     setSelectedTemplate(template);
     setPreview(template.previewDraft);
   };

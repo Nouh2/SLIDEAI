@@ -3,9 +3,9 @@
 // Each layout type maps to a dedicated render function
 
 import PptxGenJS from 'pptxgenjs';
-import type { ThemeConfig } from '../config/themes';
-import type { Slide, SlideContent } from '../utils/sanitize';
-import { cleanText } from '../utils/sanitize';
+import type { ThemeConfig } from '../config/themes.js';
+import type { Slide, SlideContent } from '../utils/sanitize.js';
+import { cleanText } from '../utils/sanitize.js';
 
 // Type alias for PptxGenJS slide
 type PptxSlide = ReturnType<InstanceType<typeof PptxGenJS>['addSlide']>;

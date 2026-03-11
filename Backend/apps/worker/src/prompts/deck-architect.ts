@@ -8,7 +8,7 @@
  * - Adapt to the user-selected theme
  * - Create professional narrative flow
  */
-import { THEMES } from '../config/themes';
+import { THEMES } from '../config/themes.js';
 
 export const DECK_ARCHITECT_PROMPT = `
 You are **SlideAI Deliverable Architect**, an expert at creating professional client deliverables for consultants and freelancers.

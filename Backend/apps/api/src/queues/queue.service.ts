@@ -1,7 +1,7 @@
 // apps/api/src/queues/queue.service.ts
 import 'dotenv/config'; // Load env vars FIRST
 import { Injectable } from '@nestjs/common';
-import { Queue, QueueEvents, Worker, JobsOptions } from 'bullmq';
+import { Queue, QueueEvents, JobsOptions } from 'bullmq';
 import IORedis from 'ioredis';
 import * as path from 'path';
 import * as dotenv from 'dotenv';
@@ -144,6 +144,26 @@ export class QueueService {
       return job;
     } catch (error: any) {
       console.error('[QueueService] Error adding analyze-image job:', error.message);
+      throw error;
+    }
+  }
+
+  // === LIFECYCLE EMAIL ===
+  readonly lifecycleEmailQueue = new Queue('lifecycle-email', { connection });
+  readonly lifecycleEmailEvents = new QueueEvents('lifecycle-email', { connection });
+
+  async addLifecycleEmail(payload: any, opts: JobsOptions = {}) {
+    console.log('[QueueService] Adding job to lifecycle-email queue...');
+    try {
+      const job = await this.lifecycleEmailQueue.add('lifecycle-email', payload, {
+        attempts: 3,
+        removeOnComplete: 1000,
+        ...opts,
+      });
+      console.log('[QueueService] Lifecycle email job added:', job.id);
+      return job;
+    } catch (error: any) {
+      console.error('[QueueService] Error adding lifecycle-email job:', error.message);
       throw error;
     }
   }

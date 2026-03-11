@@ -41,20 +41,20 @@ export function OutOfCreditsModal({ isOpen, onClose }: OutOfCreditsModalProps) {
 
                 <div className="my-4 space-y-3">
                     <div className="flex items-start gap-3 p-3 rounded-lg bg-secondary/30 border border-border/50">
-                        <Sparkles className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
-                        <div>
-                            <p className="font-medium text-sm">{t('outOfCredits.packs.title')}</p>
-                            <p className="text-xs text-muted-foreground">
-                                {t('outOfCredits.packs.desc')}
-                            </p>
-                        </div>
-                    </div>
-                    <div className="flex items-start gap-3 p-3 rounded-lg bg-secondary/30 border border-border/50">
                         <CreditCard className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
                         <div>
                             <p className="font-medium text-sm">{t('outOfCredits.subscriptions.title')}</p>
                             <p className="text-xs text-muted-foreground">
                                 {t('outOfCredits.subscriptions.desc')}
+                            </p>
+                        </div>
+                    </div>
+                    <div className="flex items-start gap-3 p-3 rounded-lg bg-secondary/30 border border-border/50">
+                        <Sparkles className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                        <div>
+                            <p className="font-medium text-sm">{t('outOfCredits.packs.title')}</p>
+                            <p className="text-xs text-muted-foreground">
+                                {t('outOfCredits.packs.desc')}
                             </p>
                         </div>
                     </div>

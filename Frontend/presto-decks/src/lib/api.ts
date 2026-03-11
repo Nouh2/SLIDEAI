@@ -674,6 +674,18 @@ export const api = {
     return response.json();
   },
 
+  async startTrial(accessToken: string): Promise<any> {
+    const response = await fetch(`${API_BASE_URL}/subscription/start-trial`, {
+      method: 'POST',
+      headers: buildHeaders(accessToken, 'application/json'),
+    });
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({ message: 'Impossible de démarrer l\'essai' }));
+      throw new Error(err.message || 'Impossible de démarrer l\'essai');
+    }
+    return response.json();
+  },
+
   /**
    * Get a presentation by view-only token (NO AUTH REQUIRED)
    * GET /v1/public/view/:token

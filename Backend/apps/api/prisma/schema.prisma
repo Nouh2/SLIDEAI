@@ -483,6 +483,11 @@ model Subscription {
   status               String    @default("active")
   creditsRemaining     Int       @default(1)
   creditsResetAt       DateTime?
+  trialStartedAt       DateTime?
+  trialEndsAt          DateTime?
+  trialConsumedAt      DateTime?
+  legacyFree           Boolean   @default(false)
+  requiresPayment      Boolean   @default(false)
   stripeCustomerId     String?
   stripeSubscriptionId String?
   currentPeriodEnd     DateTime?
@@ -490,6 +495,7 @@ model Subscription {
   updatedAt            DateTime
   User                 User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  @@index([status, trialEndsAt])
   @@schema("public")
 }
 
@@ -501,7 +507,26 @@ model User {
   Membership   Membership[]
   Project      Project[]
   Subscription Subscription?
+  LifecycleEmailLog LifecycleEmailLog[]
 
+  @@schema("public")
+}
+
+model LifecycleEmailLog {
+  id           String   @id @default(uuid())
+  dedupeKey    String   @unique
+  userId       String
+  emailType    String
+  scheduledFor DateTime
+  sentAt       DateTime?
+  status       String   @default("pending")
+  payload      Json?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  User         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, emailType])
+  @@index([status, scheduledFor])
   @@schema("public")
 }
 

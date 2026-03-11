@@ -2,7 +2,7 @@
 // Content sanitization, validation, and NORMALIZATION utilities
 // This is the "DOUANIER" - it ensures all AI output is converted to standard format
 
-import type { ThemeConfig } from '../config/themes';
+import type { ThemeConfig } from '../config/themes.js';
 
 /**
  * Represents a slide with all possible content types (STANDARD FORMAT)

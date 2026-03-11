@@ -51,13 +51,11 @@ export default function Dashboard() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [subscription, setSubscription] = useState<any>(null);
 
-  // Initialize state directly from window location to avoid race conditions
   const [showSuccess, setShowSuccess] = useState(() => {
     const params = new URLSearchParams(window.location.search);
     return !!(params.get("session_id") || params.get("pack_success"));
   });
 
-  // Clean URL when success is detected
   useEffect(() => {
     const sessionId = searchParams.get("session_id");
     const packSuccess = searchParams.get("pack_success");
@@ -65,7 +63,6 @@ export default function Dashboard() {
     if (sessionId || packSuccess) {
       if (!showSuccess) setShowSuccess(true);
 
-      // Clean URL silently
       const newParams = new URLSearchParams(searchParams);
       newParams.delete("session_id");
       newParams.delete("pack_success");
@@ -73,14 +70,11 @@ export default function Dashboard() {
     }
   }, [searchParams, setSearchParams, showSuccess]);
 
-  // Load presentations via API
   useEffect(() => {
     const fetchPresentations = async () => {
-      // Don't fetch if showing success screen
       if (showSuccess) return;
 
       setIsLoading(true);
-
       const { data: { session } } = await supabase.auth.getSession();
 
       if (!session) {
@@ -91,17 +85,18 @@ export default function Dashboard() {
       try {
         const [result, subResult] = await Promise.all([
           api.getPresentations(session.access_token),
-          api.getMySubscription(session.access_token)
+          api.getMySubscription(session.access_token),
         ]);
+
         setOwnedPresentations(result.owned || []);
         setSharedPresentations(result.shared || []);
         setViewOnlyPresentations(result.viewOnly || []);
         setSubscription(subResult);
       } catch (error: any) {
-        console.error('Error fetching presentations:', error);
+        console.error("Error fetching presentations:", error);
         toast({
-          title: t('common.error'),
-          description: t('dashboard.loadError'),
+          title: t("common.error"),
+          description: t("dashboard.loadError"),
           variant: "destructive",
         });
       }
@@ -116,25 +111,23 @@ export default function Dashboard() {
     try {
       setDeletingId(id);
 
-      // Delete from Supabase (we keep this direct for now as delete is owner-only)
       const { error } = await supabase
-        .from('presentations')
+        .from("presentations")
         .delete()
-        .eq('id', id);
+        .eq("id", id);
 
       if (error) throw error;
 
-      // Update local state
-      setOwnedPresentations(prev => prev.filter(p => p.id !== id));
+      setOwnedPresentations((prev) => prev.filter((p) => p.id !== id));
 
       toast({
-        title: t('dashboard.presentationDeleted'),
-        description: t('dashboard.presentationDeletedMsg'),
+        title: t("dashboard.presentationDeleted"),
+        description: t("dashboard.presentationDeletedMsg"),
       });
     } catch (error) {
       toast({
-        title: t('common.error'),
-        description: t('dashboard.deleteError'),
+        title: t("common.error"),
+        description: t("dashboard.deleteError"),
         variant: "destructive",
       });
     } finally {
@@ -142,16 +135,32 @@ export default function Dashboard() {
     }
   };
 
-  // Get the current list based on active tab
-  // For shared tab, combine shared and viewOnly but track which is which
   const currentList = activeTab === "owned"
     ? ownedPresentations
-    : [...sharedPresentations.map(p => ({ ...p, _accessType: 'edit' as const })),
-    ...viewOnlyPresentations.map(p => ({ ...p, _accessType: 'view' as const }))];
+    : [
+      ...sharedPresentations.map((p) => ({ ...p, _accessType: "edit" as const })),
+      ...viewOnlyPresentations.map((p) => ({ ...p, _accessType: "view" as const })),
+    ];
 
   const totalSharedCount = sharedPresentations.length + viewOnlyPresentations.length;
+  const isPackActive = Boolean(subscription?.packActive);
+  const planLabel = isPackActive
+    ? t("dashboard.packActive", { defaultValue: "Pack actif" })
+    : `${t("dashboard.plan")} ${subscription?.plan}`;
 
-  // Filters + sorting (client-side)
+  const planMeta = subscription?.status === "trialing"
+    ? (i18n.language === "fr"
+        ? `Essai: ${subscription?.trialDaysLeft ?? 0} jour(s) restant(s)`
+        : `Trial: ${subscription?.trialDaysLeft ?? 0} day(s) left`)
+    : subscription?.creditsRemaining === -1
+      ? t("dashboard.unlimitedPresentations")
+      : isPackActive
+        ? t("dashboard.packRemaining", {
+            defaultValue: "{{count}} generation(s) ponctuelle(s) restante(s)",
+            count: subscription?.packCreditsRemaining ?? subscription?.creditsRemaining ?? 0,
+          })
+        : `${subscription?.creditsRemaining ?? 0} ${t("dashboard.presentations")}`;
+
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
 
@@ -185,61 +194,66 @@ export default function Dashboard() {
 
   return (
     <div className="container py-12 space-y-8">
-      {/* Header Section */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 animate-fade-in-up">
         <div>
           <h1 className="text-4xl md:text-5xl font-bold mb-2 text-gradient">
-            {t('dashboard.title')}
+            {t("dashboard.title")}
           </h1>
-          <div className="flex items-center gap-3 mt-1">
-            <p className="text-muted-foreground text-base">{t('dashboard.subtitle')}</p>
-            {subscription && (
-              <div className="flex items-center gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-                <div className="px-3 py-1 rounded-full bg-primary/10 border border-primary/20 flex items-center gap-2 transition-all hover:bg-primary/20 cursor-default group">
-                  <Zap className="w-3.5 h-3.5 text-primary group-hover:scale-110 transition-transform" />
-                  <span className="text-xs font-bold uppercase tracking-wider text-primary">
-                    {t('dashboard.plan')} {subscription.plan}
-                  </span>
-                  <span className="w-px h-3 bg-primary/20 mx-1" />
-                  <span className="text-xs font-medium text-primary/80">
-                    {subscription.creditsRemaining === -1 ? t('dashboard.unlimitedPresentations') : `${subscription.creditsRemaining} ${t('dashboard.presentations')}`}
-                  </span>
+          <div className="flex flex-col gap-3 mt-1">
+            <div className="flex items-center gap-3">
+              <p className="text-muted-foreground text-base">{t("dashboard.subtitle")}</p>
+              {subscription && (
+                <div className="flex items-center gap-2">
+                  <span className={`w-1.5 h-1.5 rounded-full animate-pulse ${isPackActive ? "bg-amber-500" : "bg-primary"}`} />
+                  <div className={`px-3 py-1 rounded-full border flex items-center gap-2 transition-all cursor-default group ${
+                    isPackActive
+                      ? "bg-amber-50 border-amber-200 hover:bg-amber-100/80"
+                      : "bg-primary/10 border-primary/20 hover:bg-primary/20"
+                  }`}>
+                    <Zap className={`w-3.5 h-3.5 group-hover:scale-110 transition-transform ${isPackActive ? "text-amber-700" : "text-primary"}`} />
+                    <span className={`text-xs font-bold uppercase tracking-wider ${isPackActive ? "text-amber-700" : "text-primary"}`}>
+                      {planLabel}
+                    </span>
+                    <span className={`w-px h-3 mx-1 ${isPackActive ? "bg-amber-200" : "bg-primary/20"}`} />
+                    <span className={`text-xs font-medium ${isPackActive ? "text-amber-700/90" : "text-primary/80"}`}>
+                      {planMeta}
+                    </span>
+                  </div>
                 </div>
-              </div>
+              )}
+            </div>
+
+            {isPackActive && (
+              <p className="text-sm text-muted-foreground max-w-2xl">
+                {t("dashboard.packNote", {
+                  defaultValue:
+                    "Votre pack ajoute des generations ponctuelles et l export PDF/PPTX. Les fonctionnalites avancees restent reservees a Pro.",
+                })}
+              </p>
             )}
           </div>
         </div>
         <Button size="lg" asChild variant="solid">
           <Link to="/create">
             <Plus className="mr-2 h-5 w-5" />
-            {t('dashboard.newPresentation')}
+            {t("dashboard.newPresentation")}
           </Link>
         </Button>
       </div>
 
-      {/* Tabs */}
       <div className="flex gap-2 border-b border-border pb-2 overflow-x-auto scrollbar-hide -mx-4 px-4 md:mx-0 md:px-0">
-        <Button
-          variant={activeTab === "owned" ? "solid" : "ghost"}
-          onClick={() => setActiveTab("owned")}
-          className="rounded-b-none"
-        >
+        <Button variant={activeTab === "owned" ? "solid" : "ghost"} onClick={() => setActiveTab("owned")} className="rounded-b-none">
           <FolderOpen className="w-4 h-4 mr-2" />
-          {t('dashboard.myPresentations')}
+          {t("dashboard.myPresentations")}
           {ownedPresentations.length > 0 && (
             <span className="ml-2 px-2 py-0.5 text-xs bg-muted rounded-full">
               {ownedPresentations.length}
             </span>
           )}
         </Button>
-        <Button
-          variant={activeTab === "shared" ? "solid" : "ghost"}
-          onClick={() => setActiveTab("shared")}
-          className="rounded-b-none"
-        >
+        <Button variant={activeTab === "shared" ? "solid" : "ghost"} onClick={() => setActiveTab("shared")} className="rounded-b-none">
           <Users className="w-4 h-4 mr-2" />
-          {t('dashboard.sharedWithMe')}
+          {t("dashboard.sharedWithMe")}
           {totalSharedCount > 0 && (
             <span className="ml-2 px-2 py-0.5 text-xs bg-muted rounded-full">
               {totalSharedCount}
@@ -248,14 +262,13 @@ export default function Dashboard() {
         </Button>
       </div>
 
-      {/* Filters & Search */}
       <Card className="bg-surface border-border">
         <CardContent className="p-6">
           <div className="grid md:grid-cols-3 gap-4">
             <div className="relative">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
               <Input
-                placeholder={t('dashboard.search')}
+                placeholder={t("dashboard.search")}
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 className="pl-12 h-12 bg-surface/50 border-border rounded-2xl focus:border-primary transition-all"
@@ -264,31 +277,30 @@ export default function Dashboard() {
 
             <Select value={filter} onValueChange={setFilter}>
               <SelectTrigger className="bg-surface/50 border-border rounded-2xl h-12 hover:border-primary transition-all">
-                <SelectValue placeholder={t('dashboard.filterByTheme')} />
+                <SelectValue placeholder={t("dashboard.filterByTheme")} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">{t('dashboard.allThemes')}</SelectItem>
-                <SelectItem value="startup">{t('dashboard.themes.startup')}</SelectItem>
-                <SelectItem value="corporate">{t('dashboard.themes.corporate')}</SelectItem>
-                <SelectItem value="creative">{t('dashboard.themes.creative')}</SelectItem>
+                <SelectItem value="all">{t("dashboard.allThemes")}</SelectItem>
+                <SelectItem value="startup">{t("dashboard.themes.startup")}</SelectItem>
+                <SelectItem value="corporate">{t("dashboard.themes.corporate")}</SelectItem>
+                <SelectItem value="creative">{t("dashboard.themes.creative")}</SelectItem>
               </SelectContent>
             </Select>
 
             <Select value={sortBy} onValueChange={setSortBy}>
               <SelectTrigger className="bg-surface/50 border-border rounded-2xl h-12 hover:border-primary transition-all">
-                <SelectValue placeholder={t('dashboard.sortBy')} />
+                <SelectValue placeholder={t("dashboard.sortBy")} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="recent">{t('dashboard.mostRecent')}</SelectItem>
-                <SelectItem value="oldest">{t('dashboard.oldest')}</SelectItem>
-                <SelectItem value="name">{t('dashboard.nameAZ')}</SelectItem>
+                <SelectItem value="recent">{t("dashboard.mostRecent")}</SelectItem>
+                <SelectItem value="oldest">{t("dashboard.oldest")}</SelectItem>
+                <SelectItem value="name">{t("dashboard.nameAZ")}</SelectItem>
               </SelectContent>
             </Select>
           </div>
         </CardContent>
       </Card>
 
-      {/* Projects Grid */}
       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filtered.map((presentation) => (
           <Card
@@ -296,72 +308,66 @@ export default function Dashboard() {
             className="group bg-surface border-border hover:scale-[1.02] hover:border-primary/50 transition-all duration-300 overflow-hidden"
           >
             <CardContent className="p-0">
-              {/* Thumbnail */}
               <div className="relative overflow-hidden bg-muted aspect-video">
                 <ProjectThumbnail presentation={presentation} />
-
-                {/* Overlays */}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-60 group-hover:opacity-80 transition-opacity pointer-events-none" />
 
                 <div className="absolute top-3 right-3 px-3 py-1.5 rounded-full bg-surface/80 backdrop-blur-sm border border-border text-xs font-semibold z-10">
-                  {presentation.slides?.slides?.length || 0} {t('dashboard.slides')}
+                  {presentation.slides?.slides?.length || 0} {t("dashboard.slides")}
                 </div>
                 {activeTab === "shared" && (
-                  <div className={`absolute top-3 left-3 px-2 py-1 rounded-full text-xs font-medium flex items-center gap-1 z-10 ${(presentation as any)._accessType === 'view'
-                    ? 'bg-violet-500/20 border border-violet-500/50 text-violet-400'
-                    : 'bg-blue-500/20 border border-blue-500/50 text-blue-400'
-                    }`}>
+                  <div className={`absolute top-3 left-3 px-2 py-1 rounded-full text-xs font-medium flex items-center gap-1 z-10 ${
+                    (presentation as any)._accessType === "view"
+                      ? "bg-violet-500/20 border border-violet-500/50 text-violet-400"
+                      : "bg-blue-500/20 border border-blue-500/50 text-blue-400"
+                  }`}>
                     <Users className="w-3 h-3" />
-                    {(presentation as any)._accessType === 'view' ? t('dashboard.readOnly') : t('dashboard.collaborative')}
+                    {(presentation as any)._accessType === "view" ? t("dashboard.readOnly") : t("dashboard.collaborative")}
                   </div>
                 )}
               </div>
 
-              {/* Info */}
               <div className="p-5 space-y-4">
                 <div>
                   <h3 className="font-bold text-lg mb-2 line-clamp-1 group-hover:text-primary transition-colors">
                     {presentation.title}
                   </h3>
                   <p className="text-sm text-muted-foreground line-clamp-2">
-                    {t('dashboard.theme')}: {t(`dashboard.themes.${presentation.theme}`)}
+                    {t("dashboard.theme")}: {t(`dashboard.themes.${presentation.theme}`)}
                   </p>
                 </div>
 
-                {/* Meta Info */}
                 <div className="flex items-center justify-between text-xs text-muted-foreground">
                   <div className="flex items-center space-x-1.5">
                     <Calendar className="h-3.5 w-3.5" />
-                    <span>{new Date(presentation.createdAt).toLocaleDateString(i18n.language === 'fr' ? 'fr-FR' : 'en-US')}</span>
+                    <span>{new Date(presentation.createdAt).toLocaleDateString(i18n.language === "fr" ? "fr-FR" : "en-US")}</span>
                   </div>
                   <div className="px-2 py-1 rounded-full bg-green-500/10 text-green-500 text-xs font-medium">
                     {t(`dashboard.statuses.${presentation.status}`)}
                   </div>
                 </div>
 
-                {/* Actions */}
                 <div className="flex gap-2 pt-2 border-t border-border">
-                  {activeTab === "shared" && (presentation as any)._accessType === 'view' ? (
+                  {activeTab === "shared" && (presentation as any)._accessType === "view" ? (
                     <Button size="sm" variant="solid" asChild className="flex-1">
                       <Link to={`/viewer?id=${presentation.id}`}>
                         <FolderOpen className="mr-1 h-4 w-4" />
-                        {t('dashboard.view')}
+                        {t("dashboard.view")}
                       </Link>
                     </Button>
                   ) : (
                     <Button size="sm" variant="solid" asChild className="flex-1">
                       <Link to={`/editor?id=${presentation.id}`}>
                         <FolderOpen className="mr-1 h-4 w-4" />
-                        {t('dashboard.open')}
+                        {t("dashboard.open")}
                       </Link>
                     </Button>
                   )}
 
-                  <Button size="sm" variant="outline" title={t('dashboard.duplicate')}>
+                  <Button size="sm" variant="outline" title={t("dashboard.duplicate")}>
                     <Copy className="h-4 w-4" />
                   </Button>
 
-                  {/* Only show delete for owned presentations */}
                   {activeTab === "owned" && (
                     <AlertDialog>
                       <AlertDialogTrigger asChild>
@@ -369,7 +375,7 @@ export default function Dashboard() {
                           size="sm"
                           variant="outline"
                           className="hover:bg-destructive/20 hover:border-destructive hover:text-destructive"
-                          title={t('dashboard.delete')}
+                          title={t("dashboard.delete")}
                           disabled={deletingId === presentation.id}
                         >
                           {deletingId === presentation.id ? (
@@ -381,18 +387,18 @@ export default function Dashboard() {
                       </AlertDialogTrigger>
                       <AlertDialogContent>
                         <AlertDialogHeader>
-                          <AlertDialogTitle>{t('dashboard.deleteConfirmTitle')}</AlertDialogTitle>
+                          <AlertDialogTitle>{t("dashboard.deleteConfirmTitle")}</AlertDialogTitle>
                           <AlertDialogDescription>
-                            {t('dashboard.deleteConfirmMessage')} "{presentation.title}".
+                            {t("dashboard.deleteConfirmMessage")} "{presentation.title}".
                           </AlertDialogDescription>
                         </AlertDialogHeader>
                         <AlertDialogFooter>
-                          <AlertDialogCancel>{t('dashboard.cancel')}</AlertDialogCancel>
+                          <AlertDialogCancel>{t("dashboard.cancel")}</AlertDialogCancel>
                           <AlertDialogAction
                             onClick={() => handleDelete(presentation.id)}
                             className="bg-destructive hover:bg-destructive/90 text-white"
                           >
-                            {t('dashboard.delete')}
+                            {t("dashboard.delete")}
                           </AlertDialogAction>
                         </AlertDialogFooter>
                       </AlertDialogContent>
@@ -405,7 +411,6 @@ export default function Dashboard() {
         ))}
       </div>
 
-      {/* Empty State */}
       {filtered.length === 0 && (
         <div className="text-center py-20">
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-r from-primary to-secondary mb-6">
@@ -416,18 +421,16 @@ export default function Dashboard() {
             )}
           </div>
           <h3 className="text-2xl font-bold mb-2">
-            {activeTab === "owned" ? t('dashboard.noPresentation') : t('dashboard.noSharedPresentation')}
+            {activeTab === "owned" ? t("dashboard.noPresentation") : t("dashboard.noSharedPresentation")}
           </h3>
           <p className="text-muted-foreground mb-6">
-            {activeTab === "owned"
-              ? t('dashboard.createFirst')
-              : t('dashboard.askColleagues')}
+            {activeTab === "owned" ? t("dashboard.createFirst") : t("dashboard.askColleagues")}
           </p>
           {activeTab === "owned" && (
             <Button size="lg" asChild variant="solid">
               <Link to="/create">
                 <Plus className="mr-2 h-5 w-5" />
-                {t('dashboard.createPresentation')}
+                {t("dashboard.createPresentation")}
               </Link>
             </Button>
           )}
@@ -436,4 +439,3 @@ export default function Dashboard() {
     </div>
   );
 }
-

@@ -4,12 +4,13 @@ import { PresentationController } from './presentation.controller.js';
 import { PublicViewController } from './public-view.controller.js';
 import { PresentationService } from './presentation.service.js';
 import { PrismaService } from '../prisma.service.js';
-import { SubscriptionService } from '../subscription/subscription.service.js';
-import { QueueService } from '../queues/queue.service.js';
+import { SubscriptionModule } from '../subscription/subscription.module.js';
+import { QueueModule } from '../queues/queue.module.js';
 
 @Module({
+    imports: [SubscriptionModule, QueueModule],
     controllers: [PresentationController, PublicViewController],
-    providers: [PresentationService, PrismaService, SubscriptionService, QueueService],
+    providers: [PresentationService, PrismaService],
     exports: [PresentationService],
 })
 export class PresentationModule { }

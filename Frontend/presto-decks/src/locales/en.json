@@ -195,6 +195,9 @@
     "plan": "Plan",
     "unlimitedPresentations": "Unlimited Presentations",
     "presentations": "presentations",
+    "packActive": "Active pack",
+    "packRemaining": "{{count}} one-shot generation(s) left",
+    "packNote": "Your pack adds one-shot generations and PDF/PPTX export. Advanced features remain reserved for Pro.",
     "paymentSuccess": "Payment successful! 🎉",
     "paymentSuccessMsg": "Your subscription is activated. Thank you for your trust!",
     "duplicate": "Duplicate",
@@ -418,6 +421,13 @@
     "upgradeToPro": "Upgrade to Pro",
     "manageSubscription": "Manage subscription",
     "stripeNote": "Billing is managed through our secure partner Stripe.",
+    "packActive": "Active pack",
+    "packBadge": "One-shot credits",
+    "packActiveNote": "Your pack adds one-shot generations and PDF/PPTX export. Advanced features remain reserved for Pro.",
+    "packActiveTitle": "One-shot generations available",
+    "packActiveDetail": "This pack lets you keep generating occasionally and export to PDF/PPTX while keeping the rest of the free-plan feature set.",
+    "buyAnotherPack": "Buy another pack",
+    "packFooter": "Packs are one-shot purchases. Pro remains the best fit for regular usage.",
     "recentPresentations": "Recent presentations",
     "viewAll": "View all",
     "draft": "Draft",
@@ -542,7 +552,7 @@
     "pixelPerfect": "Pixel Perfect",
     "editable": "Editable",
     "pptxDescription": "High fidelity PowerPoint export (images).",
-    "pptxDescriptionEditable": "PowerPoint export as editable objects (beta)."
+    "pptxDescriptionEditable": "Editable PowerPoint export for supported layouts, with automatic image fallback for the rest."
   },
   "addSlide": {
     "title": "Add a magic slide",
@@ -947,14 +957,14 @@
   },
   "outOfCredits": {
     "title": "Out of credits",
-    "description": "You have used all your generation credits. Buy a pack or upgrade to a subscription to continue creating presentations.",
+    "description": "You have used all available generations. Upgrade for regular usage, or buy a pack if your need is occasional and you still want export.",
     "packs": {
-      "title": "Freedom Packs",
-      "desc": "Buy credits individually, no commitment. Starting at 7€."
+      "title": "One-shot packs",
+      "desc": "Buy one-shot generations with no subscription, with PDF/PPTX export included."
     },
     "subscriptions": {
       "title": "Subscriptions",
-      "desc": "Up to unlimited presentations per month. Starting at 7€/mo."
+      "desc": "For regular usage, advanced features, and up to unlimited generations."
     },
     "seeOptions": "See options",
     "later": "Later"
@@ -1188,6 +1198,13 @@
     "discount": "-20%",
     "allCardsAccepted": "Secure payment only if you continue after trial.",
     "noSubscription": "7-day free trial with no credit card",
+    "packActiveBannerLabel": "Active pack",
+    "packActiveBannerTitle": "You still have {{count}} one-shot generation(s)",
+    "packActiveBannerDesc": "Packs add one-shot generations with PDF/PPTX export. Upgrade to Pro for advanced features and regular usage.",
+    "secondarySectionBadge": "Occasional usage",
+    "secondarySectionTitle": "Need it occasionally?",
+    "secondarySectionSubtitle": "Packs fit one-off needs. They include PDF/PPTX export, but not the rest of Pro's advanced features.",
+    "packRule": "Packs add one-shot generations and PDF/PPTX export without unlocking all Pro features.",
     "questions": "Questions?",
     "contactUs": "Contact us",
     "errors": {
@@ -1260,19 +1277,20 @@
     "packs": {
       "discovery": {
         "badge": "Discovery",
-        "name": "Freight Pack",
-        "subtitle": "To test the power of AI",
-        "keyLine": "100 Credits",
-        "priceDetail": "One-time payment",
-        "credits": "100 Credits",
+        "name": "Freelance Pack",
+        "subtitle": "For an occasional need",
+        "keyLine": "5 generations",
+        "priceDetail": "One-time payment, no subscription",
+        "credits": "5 generations",
         "cta": "Buy Pack"
       },
       "power": {
+        "badge": "Volume",
         "name": "Power Pack",
-        "subtitle": "For regular users",
-        "keyLine": "500 Credits",
-        "priceDetail": "One-time payment",
-        "credits": "500 Credits",
+        "subtitle": "For several deliverables without a subscription",
+        "keyLine": "15 generations",
+        "priceDetail": "One-time payment, no subscription",
+        "credits": "15 generations",
         "cta": "Buy Pack"
       }
     },

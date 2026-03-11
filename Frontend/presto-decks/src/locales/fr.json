@@ -221,6 +221,9 @@
     "plan": "Plan",
     "unlimitedPresentations": "Présentations illimitées",
     "presentations": "présentations",
+    "packActive": "Pack actif",
+    "packRemaining": "{{count}} génération(s) ponctuelle(s) restante(s)",
+    "packNote": "Votre pack ajoute des générations ponctuelles et l'export PDF/PPTX. Les fonctionnalités avancées restent réservées à Pro.",
     "paymentSuccess": "Paiement réussi ! 🎉",
     "paymentSuccessMsg": "Votre abonnement est activé. Merci de votre confiance !",
     "duplicate": "Dupliquer",
@@ -445,6 +448,13 @@
     "upgradeToPro": "Passer Pro",
     "manageSubscription": "Gérer l'abonnement",
     "stripeNote": "La facturation est gérée via notre partenaire sécurisé Stripe.",
+    "packActive": "Pack actif",
+    "packBadge": "Crédits one-shot",
+    "packActiveNote": "Votre pack ajoute des générations ponctuelles et l'export PDF/PPTX. Les fonctionnalités avancées restent réservées à Pro.",
+    "packActiveTitle": "Générations ponctuelles disponibles",
+    "packActiveDetail": "Ce pack vous permet de continuer à générer ponctuellement et à exporter en PDF/PPTX, tout en gardant le reste des fonctionnalités du plan gratuit.",
+    "buyAnotherPack": "Acheter un autre pack",
+    "packFooter": "Les packs sont des achats one-shot. L'abonnement Pro reste recommandé pour un usage régulier.",
     "recentPresentations": "Présentations récentes",
     "viewAll": "Voir tout",
     "draft": "Brouillon",
@@ -904,14 +914,14 @@
   },
   "outOfCredits": {
     "title": "Plus de crédits disponibles",
-    "description": "Vous avez utilisé tous vos crédits de génération. Achetez un pack ou passez à un abonnement pour continuer à créer des présentations.",
+    "description": "Vous avez utilisé toutes vos générations disponibles. Passez à l'abonnement pour un usage régulier, ou achetez un pack si votre besoin est ponctuel et que vous voulez continuer à exporter.",
     "packs": {
-      "title": "Packs Liberté",
-      "desc": "Achetez des crédits à l'unité, sans engagement. À partir de 7€."
+      "title": "Packs one-shot",
+      "desc": "Achetez des générations ponctuelles, sans abonnement, avec export PDF/PPTX inclus."
     },
     "subscriptions": {
       "title": "Abonnements",
-      "desc": "Jusqu'à un nombre illimité de présentations par mois. À partir de 7€/mois."
+      "desc": "Pour un usage régulier, des fonctionnalités avancées et jusqu'à des générations illimitées."
     },
     "seeOptions": "Voir les options",
     "later": "Plus tard"
@@ -1167,6 +1177,13 @@
     "discount": "-20%",
     "allCardsAccepted": "Paiement sécurisé si vous continuez apres l'essai.",
     "noSubscription": "Essai 7 jours sans carte bancaire",
+    "packActiveBannerLabel": "Pack actif",
+    "packActiveBannerTitle": "Vous avez encore {{count}} génération(s) ponctuelle(s)",
+    "packActiveBannerDesc": "Les packs ajoutent des générations one-shot avec export PDF/PPTX. Pour débloquer les fonctionnalités avancées et un usage régulier, passez à Pro.",
+    "secondarySectionBadge": "Usage ponctuel",
+    "secondarySectionTitle": "Besoin ponctuel ?",
+    "secondarySectionSubtitle": "Les packs conviennent à un besoin one-shot. Ils incluent l'export PDF/PPTX, mais pas les autres fonctionnalités avancées de Pro.",
+    "packRule": "Les packs ajoutent des générations ponctuelles et l'export PDF/PPTX, sans débloquer toutes les fonctionnalités Pro.",
     "questions": "Des questions ?",
     "contactUs": "Contactez-nous",
     "errors": {
@@ -1239,19 +1256,20 @@
     "packs": {
       "discovery": {
         "badge": "Découverte",
-        "name": "Pack Freight",
-        "subtitle": "Pour tester la puissance de l'IA",
-        "keyLine": "100 Crédits",
-        "priceDetail": "Paiement unique",
-        "credits": "100 Crédits",
+        "name": "Pack Freelance",
+        "subtitle": "Pour un besoin ponctuel",
+        "keyLine": "5 générations",
+        "priceDetail": "Paiement unique, sans abonnement",
+        "credits": "5 générations",
         "cta": "Acheter le pack"
       },
       "power": {
+        "badge": "Volume",
         "name": "Pack Power",
-        "subtitle": "Pour les utilisateurs réguliers",
-        "keyLine": "500 Crédits",
-        "priceDetail": "Paiement unique",
-        "credits": "500 Crédits",
+        "subtitle": "Pour plusieurs livrables sans abonnement",
+        "keyLine": "15 générations",
+        "priceDetail": "Paiement unique, sans abonnement",
+        "credits": "15 générations",
         "cta": "Acheter le pack"
       }
     },

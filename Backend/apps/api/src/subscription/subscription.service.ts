@@ -1,444 +1,710 @@
-// apps/api/src/subscription/subscription.service.ts
-import { Injectable, ForbiddenException } from '@nestjs/common';
+import { ForbiddenException, Injectable, Logger } from '@nestjs/common';
+import type { Subscription as PrismaSubscription, User as PrismaUser } from '@prisma/client';
+import { randomUUID } from 'crypto';
 import { PrismaService } from '../prisma.service.js';
+import { LifecycleEmailService } from './lifecycle-email.service.js';
 
-// === Plan Limits Configuration ===
-// === Plan Limits Configuration ===
-const PLAN_LIMITS: Record<string, {
-    creditsPerMonth: number;
-    features: string[];
-    limits: {
-        pdfPages: number;
-        maxProjects: number;
-        aiAddPerPresentation: number;
-        aiWandPerPresentation: number;
-    }
-}> = {
-    free: {
-        creditsPerMonth: 2,
-        features: ['watermark'],
-        limits: {
-            pdfPages: 10,
-            maxProjects: 3,
-            aiAddPerPresentation: 2,
-            aiWandPerPresentation: 3,
-        }
-    },
-    starter: {
-        creditsPerMonth: 15,
-        features: ['web_viewer', 'public_link', 'no_watermark', 'export_pdf'],
-        limits: {
-            pdfPages: 50,
-            maxProjects: 20,
-            aiAddPerPresentation: 5,
-            aiWandPerPresentation: -1,
-        }
-    },
-    pro: {
-        creditsPerMonth: -1, // Unlimited
-        features: ['web_viewer', 'public_link', 'no_watermark', 'brand_kit', 'ai_priority', 'export_beta', 'export_pdf', 'support_priority'],
-        limits: {
-            pdfPages: 200,
-            maxProjects: -1,
-            aiAddPerPresentation: -1,
-            aiWandPerPresentation: -1,
-        }
-    },
-    business: {
-        creditsPerMonth: -1, // Unlimited
-        features: ['web_viewer', 'public_link', 'no_watermark', 'brand_kit', 'ai_priority', 'export_beta', 'team_workspace', 'sso', 'analytics', 'export_pdf'],
-        limits: {
-            pdfPages: 500,
-            maxProjects: -1,
-            aiAddPerPresentation: -1,
-            aiWandPerPresentation: -1,
-        }
-    },
+type PlanLimits = {
+  creditsPerMonth: number;
+  features: string[];
+  limits: {
+    pdfPages: number;
+    maxProjects: number;
+    aiAddPerPresentation: number;
+    aiWandPerPresentation: number;
+  };
 };
 
-// === Credit Pack Configuration (one-time purchases) ===
+type AccessState = 'legacy_free' | 'trialing' | 'pack_active' | 'active_paid' | 'trial_expired';
+
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+const PLAN_LIMITS: Record<string, PlanLimits> = {
+  free: {
+    creditsPerMonth: 2,
+    features: ['watermark'],
+    limits: {
+      pdfPages: 10,
+      maxProjects: 3,
+      aiAddPerPresentation: 2,
+      aiWandPerPresentation: 3,
+    },
+  },
+  starter: {
+    creditsPerMonth: 15,
+    features: ['web_viewer', 'public_link', 'no_watermark', 'export_pdf'],
+    limits: {
+      pdfPages: 50,
+      maxProjects: 20,
+      aiAddPerPresentation: 5,
+      aiWandPerPresentation: -1,
+    },
+  },
+  pro: {
+    creditsPerMonth: -1,
+    features: ['web_viewer', 'public_link', 'no_watermark', 'brand_kit', 'ai_priority', 'export_beta', 'export_pdf', 'support_priority'],
+    limits: {
+      pdfPages: 200,
+      maxProjects: -1,
+      aiAddPerPresentation: -1,
+      aiWandPerPresentation: -1,
+    },
+  },
+  business: {
+    creditsPerMonth: -1,
+    features: ['web_viewer', 'public_link', 'no_watermark', 'brand_kit', 'ai_priority', 'export_beta', 'team_workspace', 'sso', 'analytics', 'export_pdf'],
+    limits: {
+      pdfPages: 500,
+      maxProjects: -1,
+      aiAddPerPresentation: -1,
+      aiWandPerPresentation: -1,
+    },
+  },
+};
+
 const CREDIT_PACKS: Record<string, number> = {
-    'pack_decouverte': 5,
-    'pack_power': 15,
+  pack_decouverte: 5,
+  pack_power: 15,
 };
 
 @Injectable()
 export class SubscriptionService {
-    constructor(private prisma: PrismaService) { }
+  private readonly logger = new Logger(SubscriptionService.name);
 
-    /**
-     * Récupère l'abonnement d'un utilisateur.
-     * Si l'utilisateur n'a pas d'abonnement, en crée un gratuit.
-     */
-    async getOrCreateSubscription(userId: string, userEmail?: string) {
-        let subscription = await this.prisma.subscription.findUnique({
-            where: { userId },
-        });
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly lifecycleEmailService: LifecycleEmailService,
+  ) {}
 
-        if (!subscription) {
-            // First, ensure the user exists in the User table (for foreign key constraint)
-            await this.prisma.user.upsert({
-                where: { id: userId },
-                update: {}, // No update needed if exists
-                create: {
-                    id: userId,
-                    email: userEmail || `${userId}@placeholder.local`,
-                },
-            });
+  async getOrCreateSubscription(userId: string, userEmail?: string) {
+    const subscription = await this.getOrCreateSubscriptionRecord(userId, userEmail);
+    return this.serializeSubscription(subscription);
+  }
 
-            // Now create a free subscription for the new user
-            const now = new Date();
-            const resetAt = new Date(now.getFullYear(), now.getMonth() + 1, 1); // 1er du mois prochain
+  async startTrial(userId: string, userEmail?: string) {
+    const user = await this.ensureLocalUser(userId, userEmail);
+    const subscription = await this.getOrCreateSubscriptionRecord(userId, user.email);
 
-            subscription = await this.prisma.subscription.create({
-                data: {
-                    id: crypto.randomUUID(),
-                    userId,
-                    plan: 'free',
-                    status: 'active',
-                    creditsRemaining: PLAN_LIMITS.free.creditsPerMonth,
-                    creditsResetAt: resetAt,
-                    updatedAt: new Date(),
-                },
-            });
-        }
-
-        const limits = this.getPlanLimits(subscription.plan, subscription.creditsRemaining);
-
-        return {
-            ...subscription,
-            limits,
-        };
+    if (!this.canStartTrial(subscription)) {
+      throw new ForbiddenException("Votre essai gratuit n'est pas disponible pour ce compte.");
     }
 
-    /**
-     * Retrieves the Stripe Subscription ID for cancellation.
-     * Throws if no active subscription exists.
-     */
-    async getSubscriptionIdForCancellation(userId: string): Promise<string> {
-        const sub = await this.prisma.subscription.findUnique({
-            where: { userId },
-        });
+    const trialStartedAt = new Date();
+    const trialEndsAt = new Date(trialStartedAt.getTime() + this.getTrialDurationMs());
 
-        if (!sub || !sub.stripeSubscriptionId) {
-            throw new ForbiddenException("Aucun abonnement actif trouvé à résilier.");
-        }
+    const updated = await this.prisma.subscription.update({
+      where: { userId },
+      data: {
+        plan: 'pro',
+        status: 'trialing',
+        creditsRemaining: PLAN_LIMITS.pro.creditsPerMonth,
+        creditsResetAt: null,
+        trialStartedAt,
+        trialEndsAt,
+        trialConsumedAt: trialStartedAt,
+        requiresPayment: false,
+        updatedAt: new Date(),
+      },
+    });
 
-        return sub.stripeSubscriptionId;
+    await this.lifecycleEmailService.scheduleTrialLifecycleEmails({
+      userId,
+      email: user.email,
+      trialStartedAt,
+      trialEndsAt,
+      legacyFree: true,
+    });
+
+    return this.serializeSubscription(updated);
+  }
+
+  async getSubscriptionIdForCancellation(userId: string): Promise<string> {
+    const sub = await this.prisma.subscription.findUnique({
+      where: { userId },
+    });
+
+    if (!sub || !sub.stripeSubscriptionId) {
+      throw new ForbiddenException("Aucun abonnement actif trouvé à résilier.");
     }
 
-    /**
-     * Vérifie si l'utilisateur peut générer une présentation.
-     * Retourne true si oui, sinon lance une exception.
-     */
-    async canGenerate(userId: string, userEmail?: string): Promise<boolean> {
-        // DEV MODE BYPASS: Skip credit checks in development
-        if (process.env.NODE_ENV === 'development') {
-            console.log('[Subscription] DEV MODE: Skipping credit check');
-            return true;
-        }
+    return sub.stripeSubscriptionId;
+  }
 
-        const sub = await this.getOrCreateSubscription(userId, userEmail);
-        const limits = this.getPlanLimits(sub.plan, sub.creditsRemaining);
+  async getStripeCustomerIdForCheckout(userId: string, userEmail?: string): Promise<string | null> {
+    const sub = await this.getOrCreateSubscriptionRecord(userId, userEmail);
+    return sub.stripeCustomerId ?? null;
+  }
 
-        // Unlimited pour pro/business
-        if (limits.creditsPerMonth === -1) {
-            return true;
-        }
-
-        // Vérifier si les crédits doivent être resetés
-        if (sub.creditsResetAt && new Date() >= sub.creditsResetAt) {
-            await this.resetCredits(userId, sub.plan);
-            return true; // Après reset, l'utilisateur a des crédits
-        }
-
-        if (sub.creditsRemaining <= 0) {
-            throw new ForbiddenException(
-                `Vous avez atteint votre limite de ${limits.creditsPerMonth} génération(s) ce mois-ci. Passez à un plan supérieur pour continuer.`
-            );
-        }
-
-        return true;
+  async canGenerate(userId: string, userEmail?: string): Promise<boolean> {
+    if (process.env.NODE_ENV === 'development') {
+      this.logger.log('DEV MODE: skipping credit check');
+      return true;
     }
 
-    /**
-     * Consomme un crédit après une génération réussie.
-     */
-    async consumeCredit(userId: string, userEmail?: string): Promise<void> {
-        const sub = await this.getOrCreateSubscription(userId, userEmail);
-        const limits = this.getPlanLimits(sub.plan, sub.creditsRemaining);
+    let sub = await this.getOrCreateSubscriptionRecord(userId, userEmail);
+    let entitlements = this.resolveEntitlements(sub);
 
-        // Ne pas décrémenter pour les plans illimités
-        if (limits.creditsPerMonth === -1) {
-            return;
-        }
-
-        await this.prisma.subscription.update({
-            where: { userId },
-            data: {
-                creditsRemaining: { decrement: 1 },
-            },
-        });
+    if (entitlements.accessState === 'trial_expired') {
+      throw new ForbiddenException("Votre essai gratuit est terminé. Passez à l'abonnement Pro pour continuer.");
     }
 
-    /**
-     * Réinitialise les crédits mensuels.
-     */
-    private async resetCredits(userId: string, plan: string): Promise<void> {
-        // Here we just use the static definition because reset always goes back to the monthly allowance
-        const limits = PLAN_LIMITS[plan] || PLAN_LIMITS.free;
+    if (entitlements.limits.creditsPerMonth === -1) {
+      return true;
+    }
+
+    if (sub.creditsResetAt && new Date() >= sub.creditsResetAt) {
+      sub = await this.resetCredits(sub.userId, entitlements.effectivePlan);
+      entitlements = this.resolveEntitlements(sub);
+    }
+
+    if (sub.creditsRemaining <= 0) {
+      throw new ForbiddenException(
+        `Vous avez atteint votre limite de ${entitlements.limits.creditsPerMonth} génération(s). Passez à un plan supérieur pour continuer.`,
+      );
+    }
+
+    return true;
+  }
+
+  async consumeCredit(userId: string, userEmail?: string): Promise<void> {
+    const sub = await this.getOrCreateSubscriptionRecord(userId, userEmail);
+    const entitlements = this.resolveEntitlements(sub);
+
+    if (entitlements.accessState === 'trial_expired') {
+      return;
+    }
+
+    if (entitlements.limits.creditsPerMonth === -1) {
+      return;
+    }
+
+    await this.prisma.subscription.update({
+      where: { userId },
+      data: {
+        creditsRemaining: { decrement: 1 },
+        updatedAt: new Date(),
+      },
+    });
+  }
+
+  async hasFeature(userId: string, feature: string): Promise<boolean> {
+    const sub = await this.getOrCreateSubscriptionRecord(userId);
+    const entitlements = this.resolveEntitlements(sub);
+
+    if (entitlements.accessState === 'trial_expired') {
+      return false;
+    }
+
+    return entitlements.limits.features.includes(feature);
+  }
+
+  getPlanLimits(plan: string) {
+    return PLAN_LIMITS[plan] || PLAN_LIMITS.free;
+  }
+
+  async handleStripeEvent(event: any) {
+    this.logger.log(`[Stripe Webhook] Handling event: ${event.type}`);
+
+    switch (event.type) {
+      case 'checkout.session.completed': {
+        const session = event.data.object;
+        const userId = session.client_reference_id || session.metadata?.userId;
+        const stripeCustomerId = session.customer;
+        const stripeSubscriptionId = session.subscription;
+
+        if (!userId) {
+          this.logger.error(`[Stripe Webhook] No userId found in session ${session.id}`);
+          return;
+        }
+
+        const user = await this.ensureLocalUser(userId, session.customer_email);
+
+        if (!stripeSubscriptionId && session.metadata?.packType) {
+          await this.handleCreditPackPurchase(userId, user.email, session.metadata.packType);
+          return;
+        }
+
+        const plan = session.metadata?.plan || 'starter';
         const now = new Date();
-        const nextResetAt = new Date(now.getFullYear(), now.getMonth() + 1, 1);
 
-        await this.prisma.subscription.update({
+        await this.prisma.subscription.upsert({
+          where: { userId },
+          update: {
+            stripeCustomerId,
+            stripeSubscriptionId,
+            plan,
+            status: 'active',
+            requiresPayment: false,
+            creditsRemaining: PLAN_LIMITS[plan]?.creditsPerMonth ?? 0,
+            creditsResetAt: this.isUnlimitedPlan(plan) ? null : this.buildNextMonthlyResetAt(now),
+            updatedAt: now,
+          },
+          create: {
+            id: randomUUID(),
+            userId,
+            stripeCustomerId,
+            stripeSubscriptionId,
+            plan,
+            status: 'active',
+            creditsRemaining: PLAN_LIMITS[plan]?.creditsPerMonth ?? 0,
+            creditsResetAt: this.isUnlimitedPlan(plan) ? null : this.buildNextMonthlyResetAt(now),
+            updatedAt: now,
+          },
+        });
+        break;
+      }
+
+      case 'customer.subscription.updated': {
+        const subscription = event.data.object;
+        const userId = await this.getUserIdByStripeCustomerId(subscription.customer);
+
+        if (userId) {
+          const existing = await this.prisma.subscription.findUnique({ where: { userId } });
+          const plan = existing?.plan || subscription.metadata?.plan || 'starter';
+          await this.prisma.subscription.update({
             where: { userId },
             data: {
-                creditsRemaining: limits.creditsPerMonth,
-                creditsResetAt: nextResetAt,
+              status: subscription.status,
+              currentPeriodEnd: new Date(subscription.current_period_end * 1000),
+              creditsResetAt: this.isUnlimitedPlan(plan)
+                ? null
+                : new Date(subscription.current_period_end * 1000),
+              requiresPayment: false,
+              updatedAt: new Date(),
             },
+          });
+        }
+        break;
+      }
+
+      case 'customer.subscription.deleted': {
+        const subscription = event.data.object;
+        const userId = await this.getUserIdByStripeCustomerId(subscription.customer);
+
+        if (userId) {
+          const existing = await this.prisma.subscription.findUnique({ where: { userId } });
+
+          if (!existing) {
+            return;
+          }
+
+          if (existing.legacyFree) {
+            await this.prisma.subscription.update({
+              where: { userId },
+              data: {
+                plan: 'free',
+                status: 'active',
+                stripeSubscriptionId: null,
+                creditsRemaining: PLAN_LIMITS.free.creditsPerMonth,
+                creditsResetAt: this.buildNextMonthlyResetAt(new Date()),
+                requiresPayment: false,
+                updatedAt: new Date(),
+              },
+            });
+          } else {
+            await this.prisma.subscription.update({
+              where: { userId },
+              data: {
+                status: 'trial_expired',
+                stripeSubscriptionId: null,
+                currentPeriodEnd: new Date(subscription.current_period_end * 1000),
+                creditsRemaining: 0,
+                creditsResetAt: null,
+                requiresPayment: true,
+                updatedAt: new Date(),
+              },
+            });
+          }
+        }
+        break;
+      }
+    }
+  }
+
+  async getUserIdByStripeCustomerId(customerId: string): Promise<string | null> {
+    const sub = await this.prisma.subscription.findFirst({
+      where: { stripeCustomerId: customerId },
+    });
+    return sub?.userId || null;
+  }
+
+  async checkProjectLimit(userId: string): Promise<boolean> {
+    const sub = await this.getOrCreateSubscriptionRecord(userId);
+    const entitlements = this.ensureWritableAccess(sub);
+
+    if (entitlements.limits.limits.maxProjects === -1) {
+      return true;
+    }
+
+    const presentationCount = await this.prisma.presentations.count({
+      where: { user_id: userId },
+    });
+
+    if (presentationCount >= entitlements.limits.limits.maxProjects) {
+      throw new ForbiddenException(
+        `Limite de plan atteinte : vous ne pouvez avoir que ${entitlements.limits.limits.maxProjects} présentations actives.`,
+      );
+    }
+
+    return true;
+  }
+
+  async checkPdfPageLimit(userId: string, pageCount: number): Promise<boolean> {
+    const sub = await this.getOrCreateSubscriptionRecord(userId);
+    const entitlements = this.ensureWritableAccess(sub);
+
+    if (entitlements.limits.limits.pdfPages === -1) {
+      return true;
+    }
+
+    if (pageCount > entitlements.limits.limits.pdfPages) {
+      throw new ForbiddenException(
+        `Ce PDF dépasse la limite de ${entitlements.limits.limits.pdfPages} pages de votre plan.`,
+      );
+    }
+
+    return true;
+  }
+
+  async checkAiAddLimit(userId: string, currentUsage: number): Promise<boolean> {
+    const sub = await this.getOrCreateSubscriptionRecord(userId);
+    const entitlements = this.ensureWritableAccess(sub);
+
+    if (entitlements.limits.limits.aiAddPerPresentation === -1) {
+      return true;
+    }
+
+    if (currentUsage >= entitlements.limits.limits.aiAddPerPresentation) {
+      throw new ForbiddenException(
+        `Limite atteinte : vous ne pouvez ajouter que ${entitlements.limits.limits.aiAddPerPresentation} slides IA par présentation avec ce plan.`,
+      );
+    }
+
+    return true;
+  }
+
+  async checkAiWandLimit(userId: string, currentUsage: number): Promise<boolean> {
+    const sub = await this.getOrCreateSubscriptionRecord(userId);
+    const entitlements = this.ensureWritableAccess(sub);
+
+    if (entitlements.limits.limits.aiWandPerPresentation === -1) {
+      return true;
+    }
+
+    if (currentUsage >= entitlements.limits.limits.aiWandPerPresentation) {
+      throw new ForbiddenException(
+        `Limite atteinte : vous ne pouvez régénérer que ${entitlements.limits.limits.aiWandPerPresentation} fois par présentation avec ce plan.`,
+      );
+    }
+
+    return true;
+  }
+
+  private async getOrCreateSubscriptionRecord(userId: string, userEmail?: string) {
+    const user = await this.ensureLocalUser(userId, userEmail);
+    let subscription = await this.prisma.subscription.findUnique({
+      where: { userId },
+    });
+
+    if (!subscription) {
+      subscription = await this.createInitialSubscription(user);
+    }
+
+    return this.refreshSubscriptionState(subscription);
+  }
+
+  private async ensureLocalUser(userId: string, userEmail?: string): Promise<PrismaUser> {
+    const existing = await this.prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (existing) {
+      if (userEmail && existing.email.endsWith('@placeholder.local')) {
+        return this.prisma.user.update({
+          where: { id: userId },
+          data: { email: userEmail },
         });
+      }
+
+      return existing;
     }
 
-    /**
-     * Vérifie si l'utilisateur a accès à une fonctionnalité spécifique.
-     */
-    async hasFeature(userId: string, feature: string): Promise<boolean> {
-        const sub = await this.getOrCreateSubscription(userId);
-        const limits = this.getPlanLimits(sub.plan, sub.creditsRemaining);
-        return limits.features.includes(feature);
+    return this.prisma.user.create({
+      data: {
+        id: userId,
+        email: userEmail || `${userId}@placeholder.local`,
+      },
+    });
+  }
+
+  private async createInitialSubscription(user: PrismaUser) {
+    if (this.isLegacyEligible(user.createdAt)) {
+      return this.prisma.subscription.create({
+        data: {
+          id: randomUUID(),
+          userId: user.id,
+          plan: 'free',
+          status: 'active',
+          creditsRemaining: PLAN_LIMITS.free.creditsPerMonth,
+          creditsResetAt: this.buildNextMonthlyResetAt(new Date()),
+          legacyFree: true,
+          requiresPayment: false,
+          updatedAt: new Date(),
+        },
+      });
     }
 
-    /**
-     * Retourne les limites d'un plan.
-     * Si l'utilisateur a un plan FREE mais plus de crédits que la limite gratuite,
-     * on considère qu'il a acheté un pack et on lui donne les avantages PRO.
-     */
-    getPlanLimits(plan: string, creditsRemaining?: number) {
-        const defaultLimits = PLAN_LIMITS[plan] || PLAN_LIMITS.free;
+    const trialStartedAt = new Date();
+    const trialEndsAt = new Date(trialStartedAt.getTime() + this.getTrialDurationMs());
 
-        // "BOOST" LOGIC:
-        // If user is on FREE plan AND has more credits than the free monthly allowance (2),
-        // we assume they purchased a pack (or accrued credits) and grant PRO features/limits.
-        // We do NOT grant unlimited credits (since they are burning them), but we unlock features.
-        if (plan === 'free' && creditsRemaining !== undefined && creditsRemaining > PLAN_LIMITS.free.creditsPerMonth) {
-            // Apply PRO limits but keep the credit consumption logic
-            return {
-                ...PLAN_LIMITS.pro,
-                creditsPerMonth: PLAN_LIMITS.free.creditsPerMonth, // Keep tracking credits (don't set to -1 unlimited)
-            };
-        }
+    const subscription = await this.prisma.subscription.create({
+      data: {
+        id: randomUUID(),
+        userId: user.id,
+        plan: 'pro',
+        status: 'trialing',
+        creditsRemaining: PLAN_LIMITS.pro.creditsPerMonth,
+        creditsResetAt: null,
+        trialStartedAt,
+        trialEndsAt,
+        trialConsumedAt: trialStartedAt,
+        legacyFree: false,
+        requiresPayment: false,
+        updatedAt: new Date(),
+      },
+    });
 
-        return defaultLimits;
+    await this.lifecycleEmailService.scheduleTrialLifecycleEmails({
+      userId: user.id,
+      email: user.email,
+      trialStartedAt,
+      trialEndsAt,
+      legacyFree: false,
+    });
+
+    return subscription;
+  }
+
+  private async refreshSubscriptionState(subscription: PrismaSubscription) {
+    if (subscription.status !== 'trialing' || !subscription.trialEndsAt) {
+      return subscription;
     }
 
-    /**
-     * Gère les événements reçus de Stripe.
-     */
-    async handleStripeEvent(event: any) {
-        console.log(`[Stripe Webhook] Handling event: ${event.type}`);
-
-        switch (event.type) {
-            case 'checkout.session.completed': {
-                const session = event.data.object;
-                const userId = session.client_reference_id || session.metadata?.userId;
-                const stripeCustomerId = session.customer;
-                const stripeSubscriptionId = session.subscription;
-
-                if (!userId) {
-                    console.error('[Stripe Webhook] No userId found in session', session.id);
-                    return;
-                }
-
-                // Ensure user exists (Fix for potential FK constraint error)
-                await this.prisma.user.upsert({
-                    where: { id: userId },
-                    update: {},
-                    create: { id: userId, email: session.customer_email || `${userId}@placeholder.local` }
-                });
-
-                // === CREDIT PACK PURCHASE (one-time payment, no subscription) ===
-                if (!stripeSubscriptionId && session.metadata?.packType) {
-                    const packType = session.metadata.packType;
-                    const creditsToAdd = CREDIT_PACKS[packType] || 0;
-
-                    if (creditsToAdd > 0) {
-                        // Make sure user has a subscription record to add credits to
-                        const sub = await this.getOrCreateSubscription(userId, session.customer_email);
-                        const freeLimit = PLAN_LIMITS.free.creditsPerMonth;
-
-                        // LOGIC: Reset to base (2) if below, THEN add pack.
-                        // This ensures the user gets the full value of the pack as "extra" credits above the free tier.
-                        let baseCredits = sub.creditsRemaining;
-                        if (sub.plan === 'free' && baseCredits < freeLimit) {
-                            baseCredits = freeLimit; // Reset to 2
-                        }
-
-                        const newTotal = baseCredits + creditsToAdd;
-
-                        await this.prisma.subscription.update({
-                            where: { userId },
-                            data: {
-                                creditsRemaining: newTotal,
-                            },
-                        });
-                        console.log(`[Stripe Webhook] Pack purchased. Reset base to ${baseCredits} and added ${creditsToAdd}. New total: ${newTotal}. User: ${userId}`);
-                    } else {
-                        console.warn(`[Stripe Webhook] Unknown packType: ${packType}`);
-                    }
-                    break;
-                }
-
-                // === SUBSCRIPTION PURCHASE ===
-                const plan = session.metadata?.plan || 'starter';
-
-                await this.prisma.subscription.upsert({
-                    where: { userId },
-                    update: {
-                        stripeCustomerId,
-                        stripeSubscriptionId,
-                        plan: plan,
-                        status: 'active',
-                        creditsRemaining: PLAN_LIMITS[plan]?.creditsPerMonth || 0,
-                        updatedAt: new Date(),
-                    },
-                    create: {
-                        id: crypto.randomUUID(),
-                        userId,
-                        stripeCustomerId,
-                        stripeSubscriptionId,
-                        plan: plan,
-                        status: 'active',
-                        creditsRemaining: PLAN_LIMITS[plan]?.creditsPerMonth || 0,
-                        updatedAt: new Date(),
-                    },
-                });
-                break;
-            }
-
-            case 'customer.subscription.updated': {
-                const subscription = event.data.object;
-                const userId = await this.getUserIdByStripeCustomerId(subscription.customer);
-
-                if (userId) {
-                    await this.prisma.subscription.update({
-                        where: { userId },
-                        data: {
-                            status: subscription.status,
-                            currentPeriodEnd: new Date(subscription.current_period_end * 1000),
-                        },
-                    });
-                }
-                break;
-            }
-
-            case 'customer.subscription.deleted': {
-                const subscription = event.data.object;
-                const userId = await this.getUserIdByStripeCustomerId(subscription.customer);
-
-                if (userId) {
-                    await this.prisma.subscription.update({
-                        where: { userId },
-                        data: {
-                            plan: 'free',
-                            status: 'canceled',
-                            stripeSubscriptionId: null,
-                            creditsRemaining: PLAN_LIMITS.free.creditsPerMonth,
-                        },
-                    });
-                }
-                break;
-            }
-        }
+    if (new Date() < subscription.trialEndsAt) {
+      return subscription;
     }
 
-    async getUserIdByStripeCustomerId(customerId: string): Promise<string | null> {
-        const sub = await this.prisma.subscription.findFirst({
-            where: { stripeCustomerId: customerId },
-        });
-        return sub?.userId || null;
+    if (subscription.legacyFree) {
+      return this.prisma.subscription.update({
+        where: { userId: subscription.userId },
+        data: {
+          plan: 'free',
+          status: 'active',
+          creditsRemaining: PLAN_LIMITS.free.creditsPerMonth,
+          creditsResetAt: this.buildNextMonthlyResetAt(new Date()),
+          requiresPayment: false,
+          updatedAt: new Date(),
+        },
+      });
     }
 
-    /**
-     * Vérifie si l'utilisateur peut créer un nouveau projet (limite de stockage).
-     */
-    async checkProjectLimit(userId: string): Promise<boolean> {
-        const sub = await this.getOrCreateSubscription(userId);
-        const limits = this.getPlanLimits(sub.plan, sub.creditsRemaining).limits;
+    return this.prisma.subscription.update({
+      where: { userId: subscription.userId },
+      data: {
+        status: 'trial_expired',
+        creditsRemaining: 0,
+        creditsResetAt: null,
+        requiresPayment: true,
+        updatedAt: new Date(),
+      },
+    });
+  }
 
-        if (limits.maxProjects === -1) return true;
+  private async resetCredits(userId: string, plan: string) {
+    const limits = PLAN_LIMITS[plan] || PLAN_LIMITS.free;
+    return this.prisma.subscription.update({
+      where: { userId },
+      data: {
+        creditsRemaining: limits.creditsPerMonth,
+        creditsResetAt: this.buildNextMonthlyResetAt(new Date()),
+        updatedAt: new Date(),
+      },
+    });
+  }
 
-        // Note: Presentation = Project in this context roughly, but wait, schema has Project and Presentation.
-        // "Stockage (Dashboard) 3 projets max".
-        // The dashboard lists 'presentations', so we should count Presentations.
-        // But there is also a 'Project' model. The user prompt says "Stockage (Dashboard), 3 projets max".
-        // Dashboard.tsx fetches `api.getPresentations`. So it's likely Presentations.
-        // However, let's look at schema. Presentation model exists. Project model exists.
-        // Dashboard shows Presentations. So I should count Presentations.
-        // Let's count Presentations as "Projects" for the user facing term
-        const presentationCount = await this.prisma.presentations.count({
-            where: { user_id: userId },
-        });
+  private resolveEntitlements(subscription: PrismaSubscription) {
+    const accessState = this.getAccessState(subscription);
 
-        if (presentationCount >= limits.maxProjects) {
-            throw new ForbiddenException(
-                `Limite de plan atteinte : vous ne pouvez avoir que ${limits.maxProjects} présentations actives. Supprimez-en une ou passez au plan supérieur.`
-            );
-        }
-
-        return true;
+    if (accessState === 'trialing') {
+      return {
+        accessState,
+        effectivePlan: 'pro',
+        limits: PLAN_LIMITS.pro,
+      };
     }
 
-    /**
-     * Vérifie la limite de pages pour l'import PDF.
-     */
-    async checkPdfPageLimit(userId: string, pageCount: number): Promise<boolean> {
-        const sub = await this.getOrCreateSubscription(userId);
-        const limits = this.getPlanLimits(sub.plan, sub.creditsRemaining).limits;
-
-        if (limits.pdfPages === -1) return true;
-
-        if (pageCount > limits.pdfPages) {
-            throw new ForbiddenException(
-                `Ce PDF dépasse la limite de ${limits.pdfPages} pages de votre plan. Passez au plan supérieur pour importer des documents plus longs.`
-            );
-        }
-
-        return true;
+    if (accessState === 'pack_active') {
+      return {
+        accessState,
+        effectivePlan: 'free',
+        limits: this.getPackLimits(),
+      };
     }
 
-    /**
-     * Vérifie la limite d'ajout de slides par IA pour une présentation.
-     */
-    async checkAiAddLimit(userId: string, currentUsage: number): Promise<boolean> {
-        const sub = await this.getOrCreateSubscription(userId);
-        const limits = this.getPlanLimits(sub.plan, sub.creditsRemaining).limits;
-
-        if (limits.aiAddPerPresentation === -1) return true;
-
-        if (currentUsage >= limits.aiAddPerPresentation) {
-            throw new ForbiddenException(
-                `Limite atteinte : vous ne pouvez ajouter que ${limits.aiAddPerPresentation} slides par IA par présentation avec ce plan.`
-            );
-        }
-
-        return true;
+    if (accessState === 'active_paid' && PLAN_LIMITS[subscription.plan]) {
+      return {
+        accessState,
+        effectivePlan: subscription.plan,
+        limits: this.getPlanLimits(subscription.plan),
+      };
     }
 
-    /**
-     * Vérifie la limite de régénération (Wand) par présentation.
-     */
-    async checkAiWandLimit(userId: string, currentUsage: number): Promise<boolean> {
-        const sub = await this.getOrCreateSubscription(userId);
-        const limits = this.getPlanLimits(sub.plan, sub.creditsRemaining).limits;
+    return {
+      accessState,
+      effectivePlan: 'free',
+      limits: this.getPlanLimits('free'),
+    };
+  }
 
-        if (limits.aiWandPerPresentation === -1) return true;
+  private ensureWritableAccess(subscription: PrismaSubscription) {
+    const entitlements = this.resolveEntitlements(subscription);
 
-        if (currentUsage >= limits.aiWandPerPresentation) {
-            throw new ForbiddenException(
-                `Limite atteinte : vous ne pouvez régénérer que ${limits.aiWandPerPresentation} fois par présentation avec ce plan.`
-            );
-        }
-
-        return true;
+    if (entitlements.accessState === 'trial_expired') {
+      throw new ForbiddenException("Votre essai gratuit est terminé. Passez à l'abonnement Pro pour continuer.");
     }
+
+    return entitlements;
+  }
+
+  private getAccessState(subscription: PrismaSubscription): AccessState {
+    if (subscription.status === 'trialing' && subscription.trialEndsAt && new Date() < subscription.trialEndsAt) {
+      return 'trialing';
+    }
+
+    if (subscription.plan === 'free' && !subscription.legacyFree && subscription.creditsRemaining > 0) {
+      return 'pack_active';
+    }
+
+    if (subscription.requiresPayment) {
+      return 'trial_expired';
+    }
+
+    if (subscription.legacyFree || subscription.plan === 'free') {
+      return 'legacy_free';
+    }
+
+    return 'active_paid';
+  }
+
+  private canStartTrial(subscription: PrismaSubscription) {
+    return Boolean(
+      subscription.legacyFree &&
+      !subscription.trialConsumedAt &&
+      !subscription.stripeSubscriptionId &&
+      subscription.status !== 'trialing',
+    );
+  }
+
+  private serializeSubscription(subscription: PrismaSubscription) {
+    const entitlements = this.resolveEntitlements(subscription);
+    const now = Date.now();
+    const packActive = this.isPackActive(subscription);
+    const trialDaysLeft = subscription.trialEndsAt
+      ? Math.max(0, Math.ceil((subscription.trialEndsAt.getTime() - now) / DAY_MS))
+      : 0;
+
+    return {
+      ...subscription,
+      accessState: entitlements.accessState,
+      creditsTotal: entitlements.limits.creditsPerMonth,
+      limits: entitlements.limits,
+      trialDaysLeft,
+      canStartTrial: this.canStartTrial(subscription),
+      requiresPayment: entitlements.accessState === 'trial_expired',
+      legacyFree: subscription.legacyFree,
+      packActive,
+      packCreditsRemaining: packActive ? subscription.creditsRemaining : 0,
+      packFeaturesMode: packActive ? 'generation_and_export' : null,
+    };
+  }
+
+  private async handleCreditPackPurchase(userId: string, userEmail: string, packType: string) {
+    const creditsToAdd = CREDIT_PACKS[packType] || 0;
+
+    if (creditsToAdd <= 0) {
+      this.logger.warn(`[Stripe Webhook] Unknown packType: ${packType}`);
+      return;
+    }
+
+    const user = await this.ensureLocalUser(userId, userEmail);
+    let sub = await this.prisma.subscription.findUnique({
+      where: { userId },
+    });
+
+    if (!sub) {
+      sub = await this.prisma.subscription.create({
+        data: {
+          id: randomUUID(),
+          userId,
+          plan: 'free',
+          status: 'active',
+          creditsRemaining: this.isLegacyEligible(user.createdAt) ? PLAN_LIMITS.free.creditsPerMonth : 0,
+          creditsResetAt: this.isLegacyEligible(user.createdAt) ? this.buildNextMonthlyResetAt(new Date()) : null,
+          legacyFree: this.isLegacyEligible(user.createdAt),
+          requiresPayment: !this.isLegacyEligible(user.createdAt),
+          updatedAt: new Date(),
+        },
+      });
+    }
+
+    const freeLimit = PLAN_LIMITS.free.creditsPerMonth;
+    const baseCredits = sub.legacyFree ? Math.max(sub.creditsRemaining, freeLimit) : Math.max(sub.creditsRemaining, 0);
+
+    await this.prisma.subscription.update({
+      where: { userId },
+      data: {
+        plan: 'free',
+        status: 'active',
+        creditsRemaining: baseCredits + creditsToAdd,
+        creditsResetAt: sub.legacyFree ? sub.creditsResetAt || this.buildNextMonthlyResetAt(new Date()) : null,
+        requiresPayment: sub.legacyFree ? false : true,
+        updatedAt: new Date(),
+      },
+    });
+
+    this.logger.log(`[Stripe Webhook] Added ${creditsToAdd} pack credits to ${userId}`);
+  }
+
+  private isLegacyEligible(createdAt: Date) {
+    return createdAt.getTime() < this.getFreeTrialLaunchAt().getTime();
+  }
+
+  private getFreeTrialLaunchAt() {
+    const launchAt = process.env.FREE_TRIAL_LAUNCH_AT || '2026-03-10T00:00:00.000Z';
+    return new Date(launchAt);
+  }
+
+  private getTrialDurationMs() {
+    const days = Number(process.env.FREE_TRIAL_DAYS || 7);
+    return Math.max(1, days) * DAY_MS;
+  }
+
+  private buildNextMonthlyResetAt(from: Date) {
+    return new Date(from.getFullYear(), from.getMonth() + 1, 1);
+  }
+
+  private isUnlimitedPlan(plan: string) {
+    return (PLAN_LIMITS[plan]?.creditsPerMonth ?? 0) === -1;
+  }
+
+  private isPackActive(subscription: PrismaSubscription) {
+    return subscription.plan === 'free' && !subscription.legacyFree && subscription.creditsRemaining > 0;
+  }
+
+  private getPackLimits(): PlanLimits {
+    return {
+      ...PLAN_LIMITS.free,
+      features: [...PLAN_LIMITS.free.features, 'export_pdf'],
+    };
+  }
 }

@@ -23,7 +23,14 @@ export class StripeService implements OnModuleInit {
     /**
      * Creates a checkout session for a customer to subscribe to a plan.
      */
-    async createCheckoutSession(userId: string, userEmail: string, priceId: string, plan: string, origin?: string) {
+    async createCheckoutSession(
+        userId: string,
+        userEmail: string,
+        priceId: string,
+        plan: string,
+        origin?: string,
+        stripeCustomerId?: string | null,
+    ) {
         if (!this.stripe) throw new Error('Stripe is not initialized');
 
         // Use the request origin if permitted (handled by CORS in main.ts), otherwise fallback to env
@@ -38,7 +45,7 @@ export class StripeService implements OnModuleInit {
                 },
             ],
             mode: 'subscription',
-            customer_email: userEmail,
+            ...(stripeCustomerId ? { customer: stripeCustomerId } : { customer_email: userEmail }),
             client_reference_id: userId,
             success_url: `${frontendUrl}/app?session_id={CHECKOUT_SESSION_ID}`,
             cancel_url: `${frontendUrl}/pricing`,

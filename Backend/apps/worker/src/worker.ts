@@ -13,22 +13,27 @@ import PptxGenJS from 'pptxgenjs';
 import * as fs from 'fs';
 import * as path from 'path';
 import { createClient } from '@supabase/supabase-js';
+import {
+  buildTrialEmailContent as buildLifecycleEmailContent,
+  sendLifecycleEmail as deliverLifecycleEmail,
+} from './lifecycle-email.js';
 
 // Local modules
-import { THEMES, normalizeTheme, type ThemeConfig } from './config/themes';
-import { DECK_ARCHITECT_PROMPT, buildUserPrompt } from './prompts/deck-architect';
-import { SLIDE_REGENERATOR_PROMPT, buildSlideRegeneratorPrompt } from './prompts/slide-regenerator';
-import { SLIDE_ADDER_PROMPT, buildSlideAdderPrompt } from './prompts/slide-adder';
-import { TRANSLATE_DECK_PROMPT, buildTranslateDeckPrompt } from './prompts/translate-deck';
-import { getUnsplashImage, fetchImagesForDeck } from './utils/unsplash';
-import { sanitizeDeck, type Deck, type Slide } from './utils/sanitize';
-import { renderSlide, defineThemeMasters } from './renderers';
-import { DECK_RESPONSE_SCHEMA, SINGLE_SLIDE_RESPONSE_SCHEMA } from './schemas/deck-schema';
+import { THEMES, normalizeTheme, type ThemeConfig } from './config/themes.js';
+import { DECK_ARCHITECT_PROMPT, buildUserPrompt } from './prompts/deck-architect.js';
+import { SLIDE_REGENERATOR_PROMPT, buildSlideRegeneratorPrompt } from './prompts/slide-regenerator.js';
+import { SLIDE_ADDER_PROMPT, buildSlideAdderPrompt } from './prompts/slide-adder.js';
+import { TRANSLATE_DECK_PROMPT, buildTranslateDeckPrompt } from './prompts/translate-deck.js';
+import { getUnsplashImage, fetchImagesForDeck } from './utils/unsplash.js';
+import { sanitizeDeck, type Deck, type Slide } from './utils/sanitize.js';
+import { renderSlide, defineThemeMasters } from './renderers/index.js';
+import { DECK_RESPONSE_SCHEMA, SINGLE_SLIDE_RESPONSE_SCHEMA } from './schemas/deck-schema.js';
 
 // ============================================
 // FILE-BASED LOGGING
 // ============================================
 const LOG_FILE = path.join(process.cwd(), 'worker-debug.log');
+const DAY_MS = 24 * 60 * 60 * 1000;
 
 function logToFile(message: string, data?: any) {
   const timestamp = new Date().toISOString();
@@ -175,6 +180,255 @@ async function saveTokenUsage(params: {
   } catch (err: any) {
     console.error('[TokenUsage] ❌ Exception:', err.message);
   }
+}
+
+type SubscriptionRow = {
+  userId: string;
+  plan: string;
+  status: string;
+  creditsRemaining: number;
+  creditsResetAt?: string | null;
+  trialStartedAt?: string | null;
+  trialEndsAt?: string | null;
+  trialConsumedAt?: string | null;
+  legacyFree?: boolean | null;
+  requiresPayment?: boolean | null;
+  stripeSubscriptionId?: string | null;
+};
+
+function buildNextMonthlyResetAt(from: Date): string {
+  return new Date(from.getFullYear(), from.getMonth() + 1, 1).toISOString();
+}
+
+function sameInstant(left?: string | null, right?: string | null): boolean {
+  if (!left || !right) return false;
+  return new Date(left).getTime() === new Date(right).getTime();
+}
+
+function hasPaidAccess(subscription: SubscriptionRow | null): boolean {
+  if (!subscription) return false;
+  if (subscription.status === 'trialing') return false;
+  if (subscription.requiresPayment) return false;
+  return ['starter', 'pro', 'business'].includes(subscription.plan);
+}
+
+async function getSubscriptionRow(userId: string): Promise<SubscriptionRow | null> {
+  if (!supabase) return null;
+
+  const { data, error } = await supabase
+    .from('Subscription')
+    .select('*')
+    .eq('userId', userId)
+    .maybeSingle();
+
+  if (error) {
+    console.error('[LifecycleEmail] Failed to load subscription:', error.message);
+    return null;
+  }
+
+  return data as SubscriptionRow | null;
+}
+
+async function normalizeSubscriptionRow(subscription: SubscriptionRow | null): Promise<SubscriptionRow | null> {
+  if (!subscription || subscription.status !== 'trialing' || !subscription.trialEndsAt) {
+    return subscription;
+  }
+
+  if (new Date(subscription.trialEndsAt) > new Date()) {
+    return subscription;
+  }
+
+  if (!supabase) return subscription;
+
+  const now = new Date().toISOString();
+
+  if (subscription.legacyFree) {
+    const patch = {
+      plan: 'free',
+      status: 'active',
+      creditsRemaining: 2,
+      creditsResetAt: buildNextMonthlyResetAt(new Date()),
+      requiresPayment: false,
+      updatedAt: now,
+    };
+
+    const { data, error } = await supabase
+      .from('Subscription')
+      .update(patch)
+      .eq('userId', subscription.userId)
+      .select('*')
+      .single();
+
+    if (error) {
+      console.error('[LifecycleEmail] Failed to restore legacy free after trial:', error.message);
+      return subscription;
+    }
+
+    return data as SubscriptionRow;
+  }
+
+  const patch = {
+    status: 'trial_expired',
+    creditsRemaining: 0,
+    creditsResetAt: null,
+    requiresPayment: true,
+    updatedAt: now,
+  };
+
+  const { data, error } = await supabase
+    .from('Subscription')
+    .update(patch)
+    .eq('userId', subscription.userId)
+    .select('*')
+    .single();
+
+  if (error) {
+    console.error('[LifecycleEmail] Failed to mark trial as expired:', error.message);
+    return subscription;
+  }
+
+  return data as SubscriptionRow;
+}
+
+async function getPresentationCount(userId: string): Promise<number> {
+  if (!supabase) return 0;
+
+  const { count, error } = await supabase
+    .from('presentations')
+    .select('id', { count: 'exact', head: true })
+    .eq('user_id', userId);
+
+  if (error) {
+    console.error('[LifecycleEmail] Failed to count presentations:', error.message);
+    return 0;
+  }
+
+  return count || 0;
+}
+
+async function getLifecycleEmailStatus(dedupeKey: string): Promise<string | null> {
+  if (!supabase) return null;
+
+  const { data, error } = await supabase
+    .from('LifecycleEmailLog')
+    .select('status')
+    .eq('dedupeKey', dedupeKey)
+    .maybeSingle();
+
+  if (error) {
+    console.error('[LifecycleEmail] Failed to load lifecycle log:', error.message);
+    return null;
+  }
+
+  return (data as { status?: string } | null)?.status || null;
+}
+
+async function setLifecycleEmailStatus(dedupeKey: string, status: 'sent' | 'skipped') {
+  if (!supabase) return;
+
+  const patch: Record<string, any> = {
+    status,
+    updatedAt: new Date().toISOString(),
+  };
+
+  if (status === 'sent') {
+    patch.sentAt = new Date().toISOString();
+  }
+
+  const { error } = await supabase
+    .from('LifecycleEmailLog')
+    .update(patch)
+    .eq('dedupeKey', dedupeKey);
+
+  if (error) {
+    console.error('[LifecycleEmail] Failed to update lifecycle log:', error.message);
+  }
+}
+
+function buildTrialEmailContent(params: {
+  emailType: string;
+  legacyFree: boolean;
+  trialEndsAt: string;
+  presentationCount: number;
+}) {
+  const appUrl = process.env.FRONTEND_URL || 'https://slideai.fr';
+  const pricingUrl = `${appUrl.replace(/\/$/, '')}/pricing`;
+  const createUrl = `${appUrl.replace(/\/$/, '')}/create`;
+  const daysLeft = Math.max(0, Math.ceil((new Date(params.trialEndsAt).getTime() - Date.now()) / DAY_MS));
+
+  switch (params.emailType) {
+    case 'trial_welcome':
+      return {
+        subject: 'Bienvenue dans votre essai Pro SlideAI',
+        html: `<p>Votre essai Pro de 7 jours est activé.</p><p>Commencez par créer votre première présentation pour voir la valeur tout de suite.</p><p><a href="${createUrl}">Créer ma première présentation</a></p>`,
+      };
+    case 'trial_inactive_day1':
+      return {
+        subject: 'Votre essai est lancé: créez votre première présentation',
+        html: `<p>Vous avez activé SlideAI mais vous n'avez pas encore créé de présentation.</p><p>Commencez avec un document client et obtenez un deck en quelques minutes.</p><p><a href="${createUrl}">Lancer une génération</a></p>`,
+      };
+    case 'trial_value_day4':
+      return {
+        subject: 'Continuez à profiter de votre essai Pro',
+        html: `<p>Vous avez déjà créé ${params.presentationCount} présentation(s) pendant l'essai.</p><p>Profitez du reste de votre accès Pro pour générer, exporter et livrer plus vite.</p><p><a href="${pricingUrl}">Voir l'offre Pro</a></p>`,
+      };
+    case 'trial_ending_day6':
+      return {
+        subject: 'Votre essai SlideAI se termine demain',
+        html: `<p>Il vous reste environ ${daysLeft} jour avant la fin de votre essai Pro.</p><p>Si vous voulez garder l'accès complet, passez au plan Pro maintenant.</p><p><a href="${pricingUrl}">Passer à Pro</a></p>`,
+      };
+    case 'trial_expired':
+      return {
+        subject: params.legacyFree
+          ? 'Votre essai Pro est terminé'
+          : 'Votre essai Pro SlideAI est terminé',
+        html: params.legacyFree
+          ? `<p>Votre essai Pro est terminé. Votre compte revient maintenant sur votre accès gratuit historique.</p><p>Pour retrouver toutes les fonctionnalités Pro, activez un abonnement.</p><p><a href="${pricingUrl}">Voir l'offre Pro</a></p>`
+          : `<p>Votre essai Pro est terminé et les nouvelles créations sont maintenant bloquées.</p><p>Activez l'abonnement Pro pour continuer à utiliser SlideAI.</p><p><a href="${pricingUrl}">Débloquer SlideAI</a></p>`,
+      };
+    case 'trial_winback_day2':
+      return {
+        subject: 'Offre de relance: -20% sur votre premier mois',
+        html: `<p>Vous pouvez reprendre SlideAI maintenant avec -20% sur votre premier mois.</p><p>Utilisez le code <strong>TRIAL20</strong> au checkout dans les prochaines 72 heures.</p><p><a href="${pricingUrl}">Activer mon offre</a></p>`,
+      };
+    default:
+      return null;
+  }
+}
+
+async function sendLifecycleEmail(params: {
+  to: string;
+  subject: string;
+  html: string;
+}) {
+  const resendApiKey = process.env.RESEND_API_KEY;
+  const from = process.env.EMAIL_FROM || 'SlideAI <noreply@slideai.fr>';
+
+  if (!resendApiKey) {
+    console.warn('[LifecycleEmail] RESEND_API_KEY missing, skipping actual send');
+    return { skipped: true };
+  }
+
+  const response = await fetch('https://api.resend.com/emails', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${resendApiKey}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      from,
+      to: [params.to],
+      subject: params.subject,
+      html: params.html,
+    }),
+  });
+
+  if (!response.ok) {
+    const body = await response.text();
+    throw new Error(`Resend error (${response.status}): ${body}`);
+  }
+
+  return response.json();
 }
 
 /**
@@ -872,7 +1126,7 @@ const regenerateSlideWorker = new Worker(
 // ============================================
 // MODIFY COLOR PALETTE WORKER
 // ============================================
-import { COLOR_PALETTE_MODIFIER_PROMPT, buildColorPalettePrompt } from './prompts/color-palette-modifier';
+import { COLOR_PALETTE_MODIFIER_PROMPT, buildColorPalettePrompt } from './prompts/color-palette-modifier.js';
 
 const modifyColorPaletteWorker = new Worker(
   'modify-color-palette',
@@ -1220,6 +1474,98 @@ const translateDeckWorker = new Worker(
   { connection }
 );
 
+const lifecycleEmailWorker = new Worker(
+  'lifecycle-email',
+  async (job) => {
+    const { userId, email, emailType, dedupeKey, trialStartedAt, trialEndsAt, legacyFree } = job.data as {
+      userId: string;
+      email: string;
+      emailType: string;
+      dedupeKey: string;
+      trialStartedAt: string;
+      trialEndsAt: string;
+      legacyFree: boolean;
+    };
+
+    console.log(`\n========== LIFECYCLE EMAIL JOB: ${dedupeKey} ==========`);
+    console.log(`[LifecycleEmail] User ID: ${userId} | Type: ${emailType}`);
+
+    const existingStatus = await getLifecycleEmailStatus(dedupeKey);
+    if (existingStatus === 'sent' || existingStatus === 'skipped') {
+      console.log(`[LifecycleEmail] Skipping ${dedupeKey}, already ${existingStatus}`);
+      return { dedupeKey, status: existingStatus };
+    }
+
+    let subscription = await getSubscriptionRow(userId);
+    subscription = await normalizeSubscriptionRow(subscription);
+
+    if (!subscription) {
+      await setLifecycleEmailStatus(dedupeKey, 'skipped');
+      return { dedupeKey, status: 'skipped' };
+    }
+
+    const presentationCount = await getPresentationCount(userId);
+    const sameTrial = sameInstant(subscription.trialConsumedAt || subscription.trialStartedAt, trialStartedAt);
+
+    let shouldSend = false;
+
+    switch (emailType) {
+      case 'trial_welcome':
+        shouldSend = subscription.status === 'trialing' && sameInstant(subscription.trialStartedAt, trialStartedAt);
+        break;
+      case 'trial_inactive_day1':
+        shouldSend = subscription.status === 'trialing' && sameInstant(subscription.trialStartedAt, trialStartedAt) && presentationCount === 0;
+        break;
+      case 'trial_value_day4':
+        shouldSend = subscription.status === 'trialing' && sameInstant(subscription.trialStartedAt, trialStartedAt) && presentationCount > 0;
+        break;
+      case 'trial_ending_day6':
+        shouldSend = subscription.status === 'trialing' && sameInstant(subscription.trialStartedAt, trialStartedAt);
+        break;
+      case 'trial_expired':
+        shouldSend = sameTrial && !hasPaidAccess(subscription) && (Boolean(subscription.requiresPayment) || Boolean(subscription.legacyFree));
+        break;
+      case 'trial_winback_day2':
+        shouldSend = sameTrial && !hasPaidAccess(subscription);
+        break;
+      default:
+        shouldSend = false;
+        break;
+    }
+
+    if (!shouldSend) {
+      console.log(`[LifecycleEmail] Conditions not met for ${emailType}, skipping`);
+      await setLifecycleEmailStatus(dedupeKey, 'skipped');
+      return { dedupeKey, status: 'skipped' };
+    }
+
+    const content = buildLifecycleEmailContent({
+      emailType,
+      legacyFree,
+      trialEndsAt,
+      presentationCount,
+    });
+
+    if (!content) {
+      await setLifecycleEmailStatus(dedupeKey, 'skipped');
+      return { dedupeKey, status: 'skipped' };
+    }
+
+    const delivery = await deliverLifecycleEmail({
+      to: email,
+      subject: content.subject,
+      html: content.html,
+    });
+
+    const finalStatus = (delivery as { skipped?: boolean }).skipped ? 'skipped' : 'sent';
+    await setLifecycleEmailStatus(dedupeKey, finalStatus);
+    console.log(`[LifecycleEmail] Email ${finalStatus}: ${dedupeKey}`);
+
+    return { dedupeKey, status: finalStatus };
+  },
+  { connection }
+);
+
 // ============================================
 // STARTUP
 // ============================================
@@ -1299,6 +1645,17 @@ translateDeckWorker.on('completed', (job) => {
 
 translateDeckWorker.on('failed', (job, err) => {
   console.error(`❌ [TranslateDeck Worker] FAILED - Job ${job?.id} failed:`, err.message);
+});
+lifecycleEmailWorker.on('ready', () => {
+  console.log('✅ [LifecycleEmail Worker] READY - Connected and listening');
+});
+
+lifecycleEmailWorker.on('completed', (job) => {
+  console.log(`✅ [LifecycleEmail Worker] COMPLETED - Job ${job.id} finished successfully`);
+});
+
+lifecycleEmailWorker.on('failed', (job, err) => {
+  console.error(`❌ [LifecycleEmail Worker] FAILED - Job ${job?.id} failed:`, err.message);
 });
 // ============================================
 // WORKER: ANALYZE IMAGE

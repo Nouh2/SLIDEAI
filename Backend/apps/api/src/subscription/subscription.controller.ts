@@ -19,7 +19,7 @@ export class SubscriptionController {
     @UseGuards(SupabaseGuard)
     async getMySubscription(@Req() req: any) {
         const userId = req.user.sub;
-        const subscription = await this.subscriptionService.getOrCreateSubscription(userId);
+        const subscription = await this.subscriptionService.getOrCreateSubscription(userId, req.user.email);
         return subscription;
     }
 
@@ -36,7 +36,16 @@ export class SubscriptionController {
         if (!body.priceId) throw new ForbiddenException('priceId is required');
         if (!body.plan) throw new ForbiddenException('plan is required');
 
-        return this.stripeService.createCheckoutSession(userId, userEmail, body.priceId, body.plan, origin);
+        const stripeCustomerId = await this.subscriptionService.getStripeCustomerIdForCheckout(userId, userEmail);
+        return this.stripeService.createCheckoutSession(userId, userEmail, body.priceId, body.plan, origin, stripeCustomerId);
+    }
+
+    @Post('start-trial')
+    @UseGuards(SupabaseGuard)
+    async startTrial(@Req() req: any) {
+        const userId = req.user.sub;
+        const userEmail = req.user.email;
+        return this.subscriptionService.startTrial(userId, userEmail);
     }
 
     /**

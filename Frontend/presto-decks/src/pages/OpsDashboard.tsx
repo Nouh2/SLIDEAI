@@ -125,11 +125,21 @@ function formatDate(value?: string | null) {
 
 export default function OpsDashboard() {
   const { toast } = useToast();
-  const [loading, setLoading] = useState(true);
+  const [bootstrapping, setBootstrapping] = useState(true);
+  const [activeTab, setActiveTab] = useState<"overview" | "templates" | "flows" | "logs">("overview");
   const [overview, setOverview] = useState<any>(null);
   const [templates, setTemplates] = useState<any[]>([]);
   const [flows, setFlows] = useState<any[]>([]);
   const [logs, setLogs] = useState<any[]>([]);
+  const [overviewLoaded, setOverviewLoaded] = useState(false);
+  const [templatesLoaded, setTemplatesLoaded] = useState(false);
+  const [flowsLoaded, setFlowsLoaded] = useState(false);
+  const [logsLoaded, setLogsLoaded] = useState(false);
+  const [overviewLoading, setOverviewLoading] = useState(false);
+  const [templatesLoading, setTemplatesLoading] = useState(false);
+  const [flowsLoading, setFlowsLoading] = useState(false);
+  const [logsLoading, setLogsLoading] = useState(false);
+  const [templateLoading, setTemplateLoading] = useState(false);
   const [selectedTemplateSlug, setSelectedTemplateSlug] = useState<string | null>(null);
   const [selectedTemplate, setSelectedTemplate] = useState<any>(null);
   const [templateForm, setTemplateForm] = useState<TemplateFormState>(EMPTY_FORM);
@@ -146,8 +156,12 @@ export default function OpsDashboard() {
   );
 
   useEffect(() => {
-    loadOps();
+    void bootstrapOps();
   }, []);
+
+  useEffect(() => {
+    void loadTabData(activeTab);
+  }, [activeTab]);
 
   useEffect(() => {
     if (!selectedTemplate) {
@@ -162,72 +176,160 @@ export default function OpsDashboard() {
     setPreviewMode("draft");
   }, [selectedTemplate]);
 
-  const loadOps = async () => {
-    setLoading(true);
+  const getAccessToken = async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    return session?.access_token || null;
+  };
+
+  const bootstrapOps = async () => {
+    setBootstrapping(false);
+  };
+
+  const loadTabData = async (tab: "overview" | "templates" | "flows" | "logs") => {
+    if (tab === "overview" && !overviewLoaded && !overviewLoading) {
+      await loadOverviewData();
+      return;
+    }
+
+    if (tab === "templates" && !templatesLoaded && !templatesLoading) {
+      await loadTemplatesData();
+      return;
+    }
+
+    if (tab === "flows" && !flowsLoaded && !flowsLoading) {
+      await loadFlowsData();
+      return;
+    }
+
+    if (tab === "logs" && !logsLoaded && !logsLoading) {
+      await loadLogsData();
+    }
+  };
+
+  const loadOverviewData = async () => {
+    setOverviewLoading(true);
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) return;
+      const accessToken = await getAccessToken();
+      if (!accessToken) return;
+      const data = await api.getOpsOverview(accessToken);
+      setOverview(data);
+      setOverviewLoaded(true);
+    } catch (error: any) {
+      toast({
+        title: "Erreur KPIs",
+        description: error.message || "Impossible de charger la vue globale ops.",
+        variant: "destructive",
+      });
+    } finally {
+      setOverviewLoading(false);
+    }
+  };
 
-      const [overviewResult, templatesResult, flowsResult, logsResult] = await Promise.allSettled([
-        api.getOpsOverview(session.access_token),
-        api.getOpsTemplates(session.access_token),
-        api.getOpsFlows(session.access_token),
-        api.getOpsLogs(session.access_token),
-      ]);
+  const loadTemplatesData = async () => {
+    setTemplatesLoading(true);
+    try {
+      const accessToken = await getAccessToken();
+      if (!accessToken) return;
+      const data = await api.getOpsTemplates(accessToken);
+      setTemplates(data);
+      setTemplatesLoaded(true);
 
-      const nextOverview = overviewResult.status === "fulfilled" ? overviewResult.value : null;
-      const nextTemplates = templatesResult.status === "fulfilled" ? templatesResult.value : [];
-      const nextFlows = flowsResult.status === "fulfilled" ? flowsResult.value : [];
-      const nextLogs = logsResult.status === "fulfilled" ? logsResult.value : [];
-
-      setOverview(nextOverview);
-      setTemplates(nextTemplates);
-      setFlows(nextFlows);
-      setLogs(nextLogs);
-
-      if (nextTemplates.length > 0) {
-        const slug = selectedTemplateSlug || nextTemplates[0]?.slug;
-        await loadTemplate(slug, session.access_token);
+      if (data.length > 0) {
+        const slug = selectedTemplateSlug || data[0]?.slug;
+        await loadTemplate(slug, accessToken);
       } else {
         setSelectedTemplate(null);
         setPreview(null);
         setTemplateForm(EMPTY_FORM);
       }
-
-      const failedSections = [
-        overviewResult.status === "rejected" ? "KPIs" : null,
-        templatesResult.status === "rejected" ? "templates" : null,
-        flowsResult.status === "rejected" ? "flows" : null,
-        logsResult.status === "rejected" ? "logs" : null,
-      ].filter(Boolean);
-
-      if (failedSections.length > 0) {
-        toast({
-          title: "Chargement partiel",
-          description: `Certaines sections ops n'ont pas charge: ${failedSections.join(", ")}.`,
-          variant: "destructive",
-        });
-      }
     } catch (error: any) {
       toast({
-        title: "Erreur ops",
-        description: error.message || "Impossible de charger le backoffice ops.",
+        title: "Erreur templates",
+        description: error.message || "Impossible de charger les templates email.",
         variant: "destructive",
       });
     } finally {
-      setLoading(false);
+      setTemplatesLoading(false);
     }
   };
 
+  const loadFlowsData = async () => {
+    setFlowsLoading(true);
+    try {
+      const accessToken = await getAccessToken();
+      if (!accessToken) return;
+      const data = await api.getOpsFlows(accessToken);
+      setFlows(data);
+      setFlowsLoaded(true);
+    } catch (error: any) {
+      toast({
+        title: "Erreur flows",
+        description: error.message || "Impossible de charger les flows.",
+        variant: "destructive",
+      });
+    } finally {
+      setFlowsLoading(false);
+    }
+  };
+
+  const loadLogsData = async () => {
+    setLogsLoading(true);
+    try {
+      const accessToken = await getAccessToken();
+      if (!accessToken) return;
+      const data = await api.getOpsLogs(accessToken);
+      setLogs(data);
+      setLogsLoaded(true);
+    } catch (error: any) {
+      toast({
+        title: "Erreur logs",
+        description: error.message || "Impossible de charger les logs email.",
+        variant: "destructive",
+      });
+    } finally {
+      setLogsLoading(false);
+    }
+  };
+
+  const refreshActiveTab = async () => {
+    if (activeTab === "overview") {
+      await loadOverviewData();
+      return;
+    }
+
+    if (activeTab === "templates") {
+      await loadTemplatesData();
+      return;
+    }
+
+    if (activeTab === "flows") {
+      await loadFlowsData();
+      return;
+    }
+
+    await loadLogsData();
+  };
+
   const loadTemplate = async (slug: string, accessToken?: string) => {
-    const token = accessToken || (await supabase.auth.getSession()).data.session?.access_token;
+    const token = accessToken || (await getAccessToken());
     if (!token) return;
+    setTemplateLoading(true);
     setSelectedTemplateSlug(slug);
     setSelectedTemplate(null);
     setPreview(null);
-    const template = await api.getOpsTemplate(slug, token);
-    setSelectedTemplate(template);
-    setPreview(template.previewDraft);
+    try {
+      const template = await api.getOpsTemplate(slug, token);
+      setSelectedTemplate(template);
+      setPreview(template.previewDraft);
+    } catch (error: any) {
+      toast({
+        title: "Erreur template",
+        description: error.message || "Impossible de charger ce template.",
+        variant: "destructive",
+      });
+    } finally {
+      setTemplateLoading(false);
+    }
   };
 
   const handleSaveTemplate = async () => {
@@ -318,7 +420,7 @@ export default function OpsDashboard() {
     }
   };
 
-  if (loading) {
+  if (bootstrapping) {
     return (
       <div className="mx-auto max-w-7xl px-6 py-12">
         <Card>
@@ -343,13 +445,13 @@ export default function OpsDashboard() {
             Pilotage des flows lifecycle, preview des emails, envois de test et KPIs produit/revenu.
           </p>
         </div>
-        <Button variant="outline" onClick={loadOps} className="gap-2">
+        <Button variant="outline" onClick={refreshActiveTab} className="gap-2">
           <RefreshCcw className="h-4 w-4" />
           Rafraîchir
         </Button>
       </div>
 
-      <Tabs defaultValue="overview" className="space-y-6">
+      <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as typeof activeTab)} className="space-y-6">
         <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="overview">Vue globale</TabsTrigger>
           <TabsTrigger value="templates">Emails</TabsTrigger>
@@ -358,6 +460,14 @@ export default function OpsDashboard() {
         </TabsList>
 
         <TabsContent value="overview" className="space-y-6">
+          {overviewLoading && !overview ? (
+            <Card>
+              <CardContent className="py-12 text-center text-muted-foreground">
+                Chargement des KPIs...
+              </CardContent>
+            </Card>
+          ) : null}
+
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
             <MetricCard icon={BarChart3} label="Nouveaux users 30j" value={overview?.summary?.newUsers30d ?? 0} />
             <MetricCard icon={Rocket} label="Essais actifs" value={overview?.summary?.trialingCount ?? 0} />
@@ -432,6 +542,14 @@ export default function OpsDashboard() {
         </TabsContent>
 
         <TabsContent value="templates" className="space-y-6">
+          {templatesLoading && templates.length === 0 ? (
+            <Card>
+              <CardContent className="py-12 text-center text-muted-foreground">
+                Chargement des templates...
+              </CardContent>
+            </Card>
+          ) : null}
+
           <div className="grid gap-6 lg:grid-cols-[300px_1fr_1fr]">
             <Card className="h-[760px] overflow-hidden">
               <CardHeader>
@@ -469,6 +587,11 @@ export default function OpsDashboard() {
               <CardContent className="h-[660px] p-0">
                 <ScrollArea className="h-full px-6 pb-6">
                 <div className="space-y-4 py-1">
+                {templateLoading && !selectedTemplate ? (
+                  <div className="rounded-2xl border border-dashed p-6 text-center text-sm text-muted-foreground">
+                    Chargement du template...
+                  </div>
+                ) : null}
                 <div className="grid gap-3 md:grid-cols-2">
                   <InputField label="Subject" value={templateForm.subject} onChange={(value) => setTemplateForm((prev) => ({ ...prev, subject: value }))} />
                   <InputField label="Preview" value={templateForm.preview} onChange={(value) => setTemplateForm((prev) => ({ ...prev, preview: value }))} />
@@ -524,6 +647,11 @@ export default function OpsDashboard() {
               <CardContent className="h-[660px] p-0">
                 <ScrollArea className="h-full px-6 pb-6">
                 <div className="space-y-4 py-1">
+                {templateLoading && !preview ? (
+                  <div className="rounded-2xl border border-dashed p-6 text-center text-sm text-muted-foreground">
+                    GÃ©nÃ©ration du preview...
+                  </div>
+                ) : null}
                 <div className="flex flex-wrap gap-2">
                   <Button variant={previewMode === "draft" ? "default" : "outline"} onClick={() => handleRefreshPreview("draft")}>Preview draft</Button>
                   <Button variant={previewMode === "live" ? "default" : "outline"} onClick={() => handleRefreshPreview("live")}>Preview live</Button>
@@ -555,6 +683,14 @@ export default function OpsDashboard() {
         </TabsContent>
 
         <TabsContent value="flows" className="space-y-6">
+          {flowsLoading && flows.length === 0 ? (
+            <Card>
+              <CardContent className="py-12 text-center text-muted-foreground">
+                Chargement des flows...
+              </CardContent>
+            </Card>
+          ) : null}
+
           <div className="grid gap-4 lg:grid-cols-2">
             {flows.map((flow) => (
               <Card key={flow.slug}>
@@ -609,6 +745,14 @@ export default function OpsDashboard() {
         </TabsContent>
 
         <TabsContent value="logs">
+          {logsLoading && logs.length === 0 ? (
+            <Card>
+              <CardContent className="py-12 text-center text-muted-foreground">
+                Chargement des logs...
+              </CardContent>
+            </Card>
+          ) : null}
+
           <Card>
             <CardHeader>
               <CardTitle>Logs email</CardTitle>

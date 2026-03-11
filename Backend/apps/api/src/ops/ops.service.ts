@@ -23,6 +23,8 @@ type TemplateMode = 'draft' | 'live';
 @Injectable()
 export class OpsService {
   private readonly stripe: Stripe | null;
+  private catalogReadyAt: number | null = null;
+  private catalogPromise: Promise<void> | null = null;
 
   constructor(private readonly prisma: PrismaService) {
     const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
@@ -192,12 +194,11 @@ export class OpsService {
     }
 
     const previewDraft = await this.renderTemplate(slug, 'draft');
-    const previewLive = await this.renderTemplate(slug, 'live');
 
     return {
       ...template,
       previewDraft,
-      previewLive,
+      previewLive: null,
       definition: OPS_EMAIL_TEMPLATE_MAP[slug],
     };
   }
@@ -433,15 +434,32 @@ export class OpsService {
   }
 
   private async ensureCatalog() {
-    for (const definition of OPS_EMAIL_TEMPLATE_DEFINITIONS) {
-      await this.prisma.opsEmailTemplate.upsert({
-        where: { slug: definition.slug },
-        update: {
-          name: definition.name,
-          category: definition.category,
-          kind: definition.kind,
-        },
-        create: {
+    const tenMinutes = 10 * 60 * 1000;
+    if (this.catalogReadyAt && Date.now() - this.catalogReadyAt < tenMinutes) {
+      return;
+    }
+
+    if (this.catalogPromise) {
+      return this.catalogPromise;
+    }
+
+    this.catalogPromise = this.seedCatalog().finally(() => {
+      this.catalogReadyAt = Date.now();
+      this.catalogPromise = null;
+    });
+
+    return this.catalogPromise;
+  }
+
+  private async seedCatalog() {
+    const [templateCount, flowCount] = await Promise.all([
+      this.prisma.opsEmailTemplate.count(),
+      this.prisma.opsEmailFlow.count(),
+    ]);
+
+    if (templateCount < OPS_EMAIL_TEMPLATE_DEFINITIONS.length) {
+      await this.prisma.opsEmailTemplate.createMany({
+        data: OPS_EMAIL_TEMPLATE_DEFINITIONS.map((definition) => ({
           slug: definition.slug,
           name: definition.name,
           category: definition.category,
@@ -449,20 +467,14 @@ export class OpsService {
           kind: definition.kind,
           draftJson: {},
           liveJson: {},
-        },
+        })),
+        skipDuplicates: true,
       });
     }
 
-    for (const definition of OPS_EMAIL_FLOW_DEFINITIONS) {
-      await this.prisma.opsEmailFlow.upsert({
-        where: { slug: definition.slug },
-        update: {
-          name: definition.name,
-          category: definition.category,
-          kind: definition.kind,
-          emailTypes: definition.emailTypes,
-        },
-        create: {
+    if (flowCount < OPS_EMAIL_FLOW_DEFINITIONS.length) {
+      await this.prisma.opsEmailFlow.createMany({
+        data: OPS_EMAIL_FLOW_DEFINITIONS.map((definition) => ({
           slug: definition.slug,
           name: definition.name,
           category: definition.category,
@@ -475,7 +487,8 @@ export class OpsService {
           weekdaysOnly: definition.defaultConfig.weekdaysOnly,
           draftConfig: definition.defaultConfig,
           liveConfig: definition.defaultConfig,
-        },
+        })),
+        skipDuplicates: true,
       });
     }
   }

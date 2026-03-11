@@ -151,7 +151,7 @@ export default function OpsDashboard() {
 
   useEffect(() => {
     if (selectedTemplate?.slug) {
-      setTemplateForm(patchToForm(selectedTemplate.draftJson));
+      setTemplateForm(patchToForm(selectedTemplate.previewDraft?.model || selectedTemplate.draftJson));
       setPreview(selectedTemplate.previewDraft);
       setPreviewMode("draft");
     }
@@ -300,7 +300,7 @@ export default function OpsDashboard() {
   }
 
   return (
-    <div className="mx-auto max-w-7xl px-6 py-10 space-y-8">
+    <div className="mx-auto max-w-7xl px-6 py-10 pb-32 space-y-8">
       <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
         <div>
           <div className="flex items-center gap-2 text-sm font-medium text-[#1fb6ff]">
@@ -402,7 +402,7 @@ export default function OpsDashboard() {
 
         <TabsContent value="templates" className="space-y-6">
           <div className="grid gap-6 lg:grid-cols-[300px_1fr_1fr]">
-            <Card className="h-[760px]">
+            <Card className="h-[760px] overflow-hidden">
               <CardHeader>
                 <CardTitle>Templates</CardTitle>
                 <CardDescription>{templates.length} emails pilotés depuis le CMS.</CardDescription>
@@ -430,12 +430,14 @@ export default function OpsDashboard() {
               </CardContent>
             </Card>
 
-            <Card className="h-[760px]">
+            <Card className="h-[760px] overflow-hidden">
               <CardHeader>
                 <CardTitle>{selectedTemplate?.name || "Template"}</CardTitle>
                 <CardDescription>Edition draft en blocks + variables.</CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="h-[660px] p-0">
+                <ScrollArea className="h-full px-6 pb-6">
+                <div className="space-y-4 py-1">
                 <div className="grid gap-3 md:grid-cols-2">
                   <InputField label="Subject" value={templateForm.subject} onChange={(value) => setTemplateForm((prev) => ({ ...prev, subject: value }))} />
                   <InputField label="Preview" value={templateForm.preview} onChange={(value) => setTemplateForm((prev) => ({ ...prev, preview: value }))} />
@@ -478,15 +480,19 @@ export default function OpsDashboard() {
                     {publishingTemplate ? "Publication..." : "Publier en live"}
                   </Button>
                 </div>
+                </div>
+                </ScrollArea>
               </CardContent>
             </Card>
 
-            <Card className="h-[760px]">
+            <Card className="h-[760px] overflow-hidden">
               <CardHeader>
                 <CardTitle>Preview & test</CardTitle>
                 <CardDescription>Preview fidèle au renderer utilisé par le worker.</CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="h-[660px] p-0">
+                <ScrollArea className="h-full px-6 pb-6">
+                <div className="space-y-4 py-1">
                 <div className="flex flex-wrap gap-2">
                   <Button variant={previewMode === "draft" ? "default" : "outline"} onClick={() => handleRefreshPreview("draft")}>Preview draft</Button>
                   <Button variant={previewMode === "live" ? "default" : "outline"} onClick={() => handleRefreshPreview("live")}>Preview live</Button>
@@ -510,6 +516,8 @@ export default function OpsDashboard() {
                     srcDoc={preview?.html || "<html><body style='font-family:sans-serif;padding:24px;'>Aucun preview</body></html>"}
                   />
                 </div>
+                </div>
+                </ScrollArea>
               </CardContent>
             </Card>
           </div>

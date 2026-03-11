@@ -17,6 +17,22 @@
             "destination": "/blog/:slug/index.html"
         },
         {
+            "source": "/blog/c/:category",
+            "destination": "/blog/c/:category/index.html"
+        },
+        {
+            "source": "/blog/c/:category/",
+            "destination": "/blog/c/:category/index.html"
+        },
+        {
+            "source": "/blog/metier/:persona",
+            "destination": "/blog/metier/:persona/index.html"
+        },
+        {
+            "source": "/blog/metier/:persona/",
+            "destination": "/blog/metier/:persona/index.html"
+        },
+        {
             "source": "/(.*)",
             "destination": "/"
         }

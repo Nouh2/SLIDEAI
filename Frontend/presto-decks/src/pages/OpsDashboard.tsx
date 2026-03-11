@@ -163,21 +163,45 @@ export default function OpsDashboard() {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) return;
 
-      const [overviewData, templatesData, flowsData, logsData] = await Promise.all([
+      const [overviewResult, templatesResult, flowsResult, logsResult] = await Promise.allSettled([
         api.getOpsOverview(session.access_token),
         api.getOpsTemplates(session.access_token),
         api.getOpsFlows(session.access_token),
         api.getOpsLogs(session.access_token),
       ]);
 
-      setOverview(overviewData);
-      setTemplates(templatesData);
-      setFlows(flowsData);
-      setLogs(logsData);
+      const nextOverview = overviewResult.status === "fulfilled" ? overviewResult.value : null;
+      const nextTemplates = templatesResult.status === "fulfilled" ? templatesResult.value : [];
+      const nextFlows = flowsResult.status === "fulfilled" ? flowsResult.value : [];
+      const nextLogs = logsResult.status === "fulfilled" ? logsResult.value : [];
 
-      const slug = selectedTemplateSlug || templatesData[0]?.slug;
-      if (slug) {
+      setOverview(nextOverview);
+      setTemplates(nextTemplates);
+      setFlows(nextFlows);
+      setLogs(nextLogs);
+
+      if (nextTemplates.length > 0) {
+        const slug = selectedTemplateSlug || nextTemplates[0]?.slug;
         await loadTemplate(slug, session.access_token);
+      } else {
+        setSelectedTemplate(null);
+        setPreview(null);
+        setTemplateForm(EMPTY_FORM);
+      }
+
+      const failedSections = [
+        overviewResult.status === "rejected" ? "KPIs" : null,
+        templatesResult.status === "rejected" ? "templates" : null,
+        flowsResult.status === "rejected" ? "flows" : null,
+        logsResult.status === "rejected" ? "logs" : null,
+      ].filter(Boolean);
+
+      if (failedSections.length > 0) {
+        toast({
+          title: "Chargement partiel",
+          description: `Certaines sections ops n'ont pas charge: ${failedSections.join(", ")}.`,
+          variant: "destructive",
+        });
       }
     } catch (error: any) {
       toast({

@@ -144,17 +144,28 @@ export default function Dashboard() {
 
   const totalSharedCount = sharedPresentations.length + viewOnlyPresentations.length;
   const isPackActive = Boolean(subscription?.packActive);
+  const isTrialing = subscription?.accessState === "trialing";
+  const isExpiredTrial = subscription?.accessState === "trial_expired";
+  const isLegacyFree = subscription?.accessState === "legacy_free";
   const planLabel = isPackActive
     ? t("dashboard.packActive", { defaultValue: "Pack actif" })
-    : `${t("dashboard.plan")} ${subscription?.plan}`;
+    : isTrialing
+      ? t("dashboard.proTrial", { defaultValue: "Essai Pro" })
+      : isExpiredTrial
+        ? t("dashboard.trialExpired", { defaultValue: "Essai expiré" })
+        : isLegacyFree
+          ? t("dashboard.freeLegacy", { defaultValue: "Plan gratuit" })
+          : `${t("dashboard.plan")} ${subscription?.plan}`;
 
-  const planMeta = subscription?.status === "trialing"
+  const planMeta = isTrialing
     ? (i18n.language === "fr"
         ? `Essai: ${subscription?.trialDaysLeft ?? 0} jour(s) restant(s)`
         : `Trial: ${subscription?.trialDaysLeft ?? 0} day(s) left`)
-    : subscription?.creditsRemaining === -1
-      ? t("dashboard.unlimitedPresentations")
-      : isPackActive
+    : isExpiredTrial
+      ? t("dashboard.paymentRequired", { defaultValue: "Abonnement requis pour continuer" })
+      : subscription?.creditsRemaining === -1
+        ? t("dashboard.unlimitedPresentations")
+        : isPackActive
         ? t("dashboard.packRemaining", {
             defaultValue: "{{count}} generation(s) ponctuelle(s) restante(s)",
             count: subscription?.packCreditsRemaining ?? subscription?.creditsRemaining ?? 0,

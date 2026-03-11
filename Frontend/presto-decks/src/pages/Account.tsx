@@ -158,15 +158,20 @@ export default function Account() {
   }
 
   const isPackActive = Boolean(subscription?.packActive);
-  const isFree = !subscription || (subscription.plan === "free" && !isPackActive);
+  const isTrialing = subscription?.accessState === "trialing";
+  const isExpiredTrial = subscription?.accessState === "trial_expired";
+  const isFree = !subscription || (subscription?.accessState === "legacy_free" && !isPackActive);
   const isUnlimited = subscription?.creditsRemaining === -1;
-  const isTrialing = subscription?.status === "trialing";
   const canStartTrial = Boolean(subscription?.canStartTrial);
   const planColor = isPackActive ? "text-amber-700" : isFree ? "text-muted-foreground" : "text-primary";
   const planName = isPackActive
     ? t("account.packActive", { defaultValue: "Active pack" })
-    : subscription?.plan
-      ? t(`pricing.plans.${subscription.plan}.name`)
+    : isTrialing
+      ? t("account.proTrial", { defaultValue: "Essai Pro" })
+      : isExpiredTrial
+        ? t("account.trialExpired", { defaultValue: "Essai expiré" })
+      : subscription?.plan
+        ? t(`pricing.plans.${subscription.plan}.name`)
       : t("pricing.plans.free.name");
 
   return (

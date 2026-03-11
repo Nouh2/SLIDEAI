@@ -678,6 +678,7 @@ export const api = {
     const response = await fetch(`${API_BASE_URL}/subscription/start-trial`, {
       method: 'POST',
       headers: buildHeaders(accessToken, 'application/json'),
+      body: JSON.stringify({}),
     });
     if (!response.ok) {
       const err = await response.json().catch(() => ({ message: 'Impossible de démarrer l\'essai' }));

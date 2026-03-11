@@ -410,6 +410,7 @@ export class SubscriptionService {
       subscription = await this.createInitialSubscription(user);
     }
 
+    subscription = await this.repairMisclassifiedTrialSubscription(user, subscription);
     return this.refreshSubscriptionState(subscription);
   }
 
@@ -478,7 +479,6 @@ export class SubscriptionService {
       where: { email: userEmail },
       data: {
         id: userId,
-        createdAt: new Date(),
       },
     });
   }
@@ -512,7 +512,6 @@ export class SubscriptionService {
           data: {
             id: userId,
             email: userEmail,
-            createdAt: new Date(),
           },
         });
       }
@@ -547,10 +546,59 @@ export class SubscriptionService {
         where: { id: userId },
         data: {
           email: userEmail,
-          createdAt: new Date(),
         },
       });
     });
+  }
+
+  private async repairMisclassifiedTrialSubscription(user: PrismaUser, subscription: PrismaSubscription) {
+    const launchAt = this.getFreeTrialLaunchAt();
+    const looksMisclassified =
+      subscription.legacyFree &&
+      subscription.plan === 'free' &&
+      subscription.status === 'active' &&
+      !subscription.trialConsumedAt &&
+      !subscription.stripeSubscriptionId &&
+      !subscription.stripeCustomerId &&
+      user.createdAt.getTime() >= launchAt.getTime() &&
+      subscription.createdAt.getTime() >= launchAt.getTime();
+
+    if (!looksMisclassified) {
+      return subscription;
+    }
+
+    this.logger.warn(
+      `Repairing misclassified free-trial account for user ${user.id} (${user.email})`,
+    );
+
+    const trialStartedAt = new Date();
+    const trialEndsAt = new Date(trialStartedAt.getTime() + this.getTrialDurationMs());
+
+    const updated = await this.prisma.subscription.update({
+      where: { userId: user.id },
+      data: {
+        plan: 'pro',
+        status: 'trialing',
+        creditsRemaining: PLAN_LIMITS.pro.creditsPerMonth,
+        creditsResetAt: null,
+        trialStartedAt,
+        trialEndsAt,
+        trialConsumedAt: trialStartedAt,
+        legacyFree: false,
+        requiresPayment: false,
+        updatedAt: new Date(),
+      },
+    });
+
+    await this.lifecycleEmailService.scheduleTrialLifecycleEmails({
+      userId: user.id,
+      email: user.email,
+      trialStartedAt,
+      trialEndsAt,
+      legacyFree: false,
+    });
+
+    return updated;
   }
 
   private async createInitialSubscription(user: PrismaUser) {

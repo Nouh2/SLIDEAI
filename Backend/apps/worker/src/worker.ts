@@ -17,6 +17,7 @@ import Stripe from 'stripe';
 import {
   buildTrialEmailContent as buildLifecycleEmailContent,
   sendLifecycleEmail as deliverLifecycleEmail,
+  type EmailContentPatch,
   type WinbackOffer,
 } from './lifecycle-email.js';
 
@@ -367,12 +368,18 @@ async function getLifecycleEmailLog(dedupeKey: string): Promise<{ status?: strin
   return (data as { status?: string; payload?: any } | null) || null;
 }
 
-async function setLifecycleEmailStatus(dedupeKey: string, status: 'sent' | 'skipped') {
+async function setLifecycleEmailStatus(
+  dedupeKey: string,
+  status: 'sent' | 'skipped',
+  options?: { statusReason?: string; providerMessageId?: string | null },
+) {
   if (!supabase) return;
 
   const patch: Record<string, any> = {
     status,
     updatedAt: new Date().toISOString(),
+    ...(options?.statusReason ? { statusReason: options.statusReason } : {}),
+    ...(options?.providerMessageId ? { providerMessageId: options.providerMessageId } : {}),
   };
 
   if (status === 'sent') {
@@ -1629,6 +1636,13 @@ const lifecycleEmailWorker = new Worker(
         invoiceId,
         packType,
         forceSend,
+        unsubscribeUrl,
+        templateSlug,
+        templateVersion,
+        templatePatch,
+        flowSlug,
+        flowVersion,
+        footerReason,
       } = job.data as {
         userId: string;
         email: string;
@@ -1641,6 +1655,13 @@ const lifecycleEmailWorker = new Worker(
         invoiceId?: string;
         packType?: string;
         forceSend?: boolean;
+        unsubscribeUrl?: string;
+        templateSlug?: string;
+        templateVersion?: number;
+        templatePatch?: EmailContentPatch;
+        flowSlug?: string;
+        flowVersion?: number;
+        footerReason?: string;
       };
 
     console.log(`\n========== LIFECYCLE EMAIL JOB: ${dedupeKey} ==========`);
@@ -1746,7 +1767,7 @@ const lifecycleEmailWorker = new Worker(
 
       if (!shouldSend) {
         console.log(`[LifecycleEmail] Conditions not met for ${emailType}, skipping`);
-        await setLifecycleEmailStatus(dedupeKey, 'skipped');
+        await setLifecycleEmailStatus(dedupeKey, 'skipped', { statusReason: 'conditions_not_met' });
         return { dedupeKey, status: 'skipped' };
       }
 
@@ -1759,16 +1780,19 @@ const lifecycleEmailWorker = new Worker(
           })) || undefined
         : undefined;
 
-    const content = buildLifecycleEmailContent({
-      emailType,
-      legacyFree: Boolean(legacyFree),
-      trialEndsAt: trialEndsAt || subscription.trialEndsAt || new Date().toISOString(),
-      presentationCount,
-      winbackOffer,
-    });
+      const content = buildLifecycleEmailContent({
+        emailType,
+        legacyFree: Boolean(legacyFree),
+        trialEndsAt: trialEndsAt || subscription.trialEndsAt || new Date().toISOString(),
+        presentationCount,
+        winbackOffer,
+        contentPatch: templatePatch,
+        unsubscribeUrl,
+        footerReason,
+      });
 
     if (!content) {
-      await setLifecycleEmailStatus(dedupeKey, 'skipped');
+      await setLifecycleEmailStatus(dedupeKey, 'skipped', { statusReason: 'renderer_returned_null' });
       return { dedupeKey, status: 'skipped' };
     }
 
@@ -1779,7 +1803,16 @@ const lifecycleEmailWorker = new Worker(
     });
 
     const finalStatus = (delivery as { skipped?: boolean }).skipped ? 'skipped' : 'sent';
-    await setLifecycleEmailStatus(dedupeKey, finalStatus);
+    await setLifecycleEmailStatus(dedupeKey, finalStatus, {
+      statusReason: finalStatus === 'sent' ? 'provider_accepted' : 'provider_skipped',
+      providerMessageId: (delivery as { id?: string }).id || null,
+    });
+    await mergeLifecycleEmailPayload(dedupeKey, {
+      templateSlug,
+      templateVersion,
+      flowSlug,
+      flowVersion,
+    });
     console.log(`[LifecycleEmail] Email ${finalStatus}: ${dedupeKey}`);
 
     return { dedupeKey, status: finalStatus };

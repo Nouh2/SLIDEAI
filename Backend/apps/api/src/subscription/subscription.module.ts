@@ -5,8 +5,10 @@ import { SubscriptionService } from './subscription.service.js';
 import { StripeService } from './stripe.service.js';
 import { PrismaService } from '../prisma.service.js';
 import { LifecycleEmailService } from './lifecycle-email.service.js';
+import { OpsModule } from '../ops/ops.module.js';
 
 @Module({
+    imports: [OpsModule],
     controllers: [SubscriptionController],
     providers: [SubscriptionService, StripeService, PrismaService, LifecycleEmailService],
     exports: [SubscriptionService, StripeService],

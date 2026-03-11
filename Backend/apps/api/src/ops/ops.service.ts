@@ -1,0 +1,716 @@
+import { Injectable } from '@nestjs/common';
+import { PrismaService } from '../prisma.service.js';
+import {
+  OPS_EMAIL_FLOW_DEFINITIONS,
+  OPS_EMAIL_FLOW_MAP,
+  OPS_EMAIL_TEMPLATE_DEFINITIONS,
+  OPS_EMAIL_TEMPLATE_MAP,
+} from './ops-email-catalog.js';
+import {
+  buildLifecycleEmailModel,
+  buildTrialEmailContent,
+  sendLifecycleEmail,
+  type EmailContentPatch,
+  type WinbackOffer,
+} from './ops-email-renderer.js';
+import jwt from 'jsonwebtoken';
+import Stripe from 'stripe';
+
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+type TemplateMode = 'draft' | 'live';
+
+@Injectable()
+export class OpsService {
+  private readonly stripe: Stripe | null;
+
+  constructor(private readonly prisma: PrismaService) {
+    const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
+    this.stripe = stripeSecretKey
+      ? new Stripe(stripeSecretKey, {
+          apiVersion: '2024-12-18.acacia' as any,
+        })
+      : null;
+  }
+
+  async getOpsSession(email: string) {
+    await this.ensureCatalog();
+
+    return {
+      email,
+      templates: OPS_EMAIL_TEMPLATE_DEFINITIONS.length,
+      flows: OPS_EMAIL_FLOW_DEFINITIONS.length,
+    };
+  }
+
+  async getOverview() {
+    await this.ensureCatalog();
+    const now = new Date();
+    const since7d = new Date(now.getTime() - 7 * DAY_MS);
+    const since30d = new Date(now.getTime() - 30 * DAY_MS);
+
+    const [
+      totalUsers,
+      newUsers7d,
+      newUsers30d,
+      totalPresentations,
+      presentations7d,
+      presentations30d,
+      trialingCount,
+      paidSubscriptions,
+      legacyFreeCount,
+      trialExpiredCount,
+      packActiveCount,
+      sentLogs30d,
+      pendingLogs,
+      skippedLogs30d,
+      recentPresentingUsers,
+      activatedUsers30d,
+      gaOverview,
+    ] = await Promise.all([
+      this.prisma.user.count(),
+      this.prisma.user.count({ where: { createdAt: { gte: since7d } } }),
+      this.prisma.user.count({ where: { createdAt: { gte: since30d } } }),
+      this.prisma.presentations.count(),
+      this.prisma.presentations.count({ where: { created_at: { gte: since7d } } }),
+      this.prisma.presentations.count({ where: { created_at: { gte: since30d } } }),
+      this.prisma.subscription.count({ where: { status: 'trialing', trialEndsAt: { gt: now } } }),
+      this.prisma.subscription.findMany({
+        where: {
+          stripeSubscriptionId: { not: null },
+          status: { in: ['active', 'trialing'] },
+        },
+        select: {
+          stripeSubscriptionId: true,
+        },
+      }),
+      this.prisma.subscription.count({ where: { legacyFree: true, plan: 'free' } }),
+      this.prisma.subscription.count({ where: { status: 'trial_expired' } }),
+      this.prisma.subscription.count({
+        where: {
+          plan: 'free',
+          legacyFree: false,
+          stripeSubscriptionId: null,
+          creditsRemaining: { gt: 0 },
+        },
+      }),
+      this.prisma.lifecycleEmailLog.count({
+        where: {
+          status: 'sent',
+          createdAt: { gte: since30d },
+        },
+      }),
+      this.prisma.lifecycleEmailLog.count({
+        where: {
+          status: 'pending',
+        },
+      }),
+      this.prisma.lifecycleEmailLog.count({
+        where: {
+          status: 'skipped',
+          createdAt: { gte: since30d },
+        },
+      }),
+      this.prisma.presentations.findMany({
+        where: { created_at: { gte: since7d } },
+        select: { user_id: true },
+        distinct: ['user_id'],
+      }),
+      this.prisma.user.findMany({
+        where: { createdAt: { gte: since30d } },
+        select: {
+          id: true,
+          createdAt: true,
+        },
+      }),
+      this.fetchGaOverview(),
+    ]);
+
+    const paidSubscriptionIds = paidSubscriptions
+      .map((item) => item.stripeSubscriptionId)
+      .filter((value): value is string => Boolean(value));
+
+    const revenue = await this.getStripeRevenueSnapshot(paidSubscriptionIds);
+
+    const activatedUserIds30d = new Set(
+      (
+        await this.prisma.presentations.findMany({
+          where: {
+            created_at: { gte: since30d },
+            user_id: {
+              in: activatedUsers30d.map((user) => user.id),
+            },
+          },
+          select: { user_id: true },
+          distinct: ['user_id'],
+        })
+      ).map((item) => item.user_id),
+    );
+
+    const activationRate30d =
+      activatedUsers30d.length > 0
+        ? Math.round((activatedUserIds30d.size / activatedUsers30d.length) * 100)
+        : 0;
+
+    return {
+      summary: {
+        totalUsers,
+        newUsers7d,
+        newUsers30d,
+        totalPresentations,
+        presentations7d,
+        presentations30d,
+        activeCreators7d: recentPresentingUsers.length,
+        trialingCount,
+        activePaidCount: paidSubscriptionIds.length,
+        legacyFreeCount,
+        trialExpiredCount,
+        packActiveCount,
+        activationRate30d,
+        sentEmails30d: sentLogs30d,
+        pendingEmails: pendingLogs,
+        skippedEmails30d: skippedLogs30d,
+        mrrCents: revenue.mrrCents,
+        mrrCurrency: revenue.currency,
+      },
+      acquisition: gaOverview,
+      flows: await this.getFlowPerformanceSnapshot(since30d),
+    };
+  }
+
+  async listTemplates() {
+    await this.ensureCatalog();
+
+    const templates = await this.prisma.opsEmailTemplate.findMany({
+      orderBy: [{ category: 'asc' }, { name: 'asc' }],
+    });
+
+    return templates.map((template) => {
+      const definition = OPS_EMAIL_TEMPLATE_MAP[template.slug];
+      return {
+        ...template,
+        flowSlug: definition?.flowSlug,
+      };
+    });
+  }
+
+  async getTemplate(slug: string) {
+    await this.ensureCatalog();
+    const template = await this.prisma.opsEmailTemplate.findUnique({ where: { slug } });
+    if (!template) {
+      throw new Error('Template introuvable');
+    }
+
+    const previewDraft = await this.renderTemplate(slug, 'draft');
+    const previewLive = await this.renderTemplate(slug, 'live');
+
+    return {
+      ...template,
+      previewDraft,
+      previewLive,
+      definition: OPS_EMAIL_TEMPLATE_MAP[slug],
+    };
+  }
+
+  async updateTemplate(slug: string, input: { draftJson?: EmailContentPatch | null }, editorEmail: string) {
+    await this.ensureCatalog();
+
+    const updated = await this.prisma.opsEmailTemplate.update({
+      where: { slug },
+      data: {
+        draftJson: input.draftJson ?? {},
+        draftVersion: { increment: 1 },
+        updatedBy: editorEmail,
+      },
+    });
+
+    return updated;
+  }
+
+  async publishTemplate(slug: string, editorEmail: string) {
+    await this.ensureCatalog();
+    const template = await this.prisma.opsEmailTemplate.findUnique({ where: { slug } });
+    if (!template) {
+      throw new Error('Template introuvable');
+    }
+
+    return this.prisma.opsEmailTemplate.update({
+      where: { slug },
+      data: {
+        liveJson: (template.draftJson ?? {}) as any,
+        liveVersion: template.draftVersion,
+        updatedBy: editorEmail,
+      },
+    });
+  }
+
+  async previewTemplate(slug: string, mode: TemplateMode, fixtureOverrides?: Record<string, any>) {
+    await this.ensureCatalog();
+    return this.renderTemplate(slug, mode, fixtureOverrides);
+  }
+
+  async sendTemplateTest(slug: string, mode: TemplateMode, to: string, fixtureOverrides?: Record<string, any>) {
+    const preview = await this.renderTemplate(slug, mode, fixtureOverrides);
+    const response = await sendLifecycleEmail({
+      to,
+      subject: `[Test] ${preview.subject}`,
+      html: preview.html,
+    });
+
+    return {
+      preview,
+      response,
+    };
+  }
+
+  async listFlows() {
+    await this.ensureCatalog();
+    return this.prisma.opsEmailFlow.findMany({
+      orderBy: [{ category: 'asc' }, { name: 'asc' }],
+    });
+  }
+
+  async updateFlow(
+    slug: string,
+    input: {
+      enabled?: boolean;
+      timezone?: string;
+      sendWindowStart?: string;
+      sendWindowEnd?: string;
+      weekdaysOnly?: boolean;
+      draftConfig?: Record<string, any>;
+    },
+    editorEmail: string,
+  ) {
+    await this.ensureCatalog();
+    const updated = await this.prisma.opsEmailFlow.update({
+      where: { slug },
+      data: {
+        ...(input.enabled != null ? { enabled: input.enabled } : {}),
+        ...(input.timezone ? { timezone: input.timezone } : {}),
+        ...(input.sendWindowStart ? { sendWindowStart: input.sendWindowStart } : {}),
+        ...(input.sendWindowEnd ? { sendWindowEnd: input.sendWindowEnd } : {}),
+        ...(input.weekdaysOnly != null ? { weekdaysOnly: input.weekdaysOnly } : {}),
+        ...(input.draftConfig ? { draftConfig: input.draftConfig } : {}),
+        draftVersion: { increment: 1 },
+        updatedBy: editorEmail,
+      },
+    });
+
+    return updated;
+  }
+
+  async publishFlow(slug: string, editorEmail: string) {
+    await this.ensureCatalog();
+    const flow = await this.prisma.opsEmailFlow.findUnique({ where: { slug } });
+    if (!flow) {
+      throw new Error('Flow introuvable');
+    }
+
+    return this.prisma.opsEmailFlow.update({
+      where: { slug },
+      data: {
+        liveConfig: (flow.draftConfig ?? {}) as any,
+        liveVersion: flow.draftVersion,
+        updatedBy: editorEmail,
+      },
+    });
+  }
+
+  async listLogs(limit = 120) {
+    await this.ensureCatalog();
+    const logs = await this.prisma.lifecycleEmailLog.findMany({
+      take: Math.min(limit, 300),
+      orderBy: { createdAt: 'desc' },
+      include: {
+        User: {
+          select: {
+            email: true,
+          },
+        },
+      },
+    });
+
+    return logs.map((log) => ({
+      ...log,
+      userEmail: log.User.email,
+    }));
+  }
+
+  async unsubscribeByToken(token: string) {
+    const preference = await this.prisma.opsEmailPreference.findUnique({
+      where: { unsubscribeToken: token },
+      include: {
+        User: true,
+      },
+    });
+
+    if (!preference) {
+      return {
+        success: false,
+        html: '<html><body style="font-family: Arial, sans-serif; padding: 24px;"><h1>Lien invalide</h1><p>Le lien de desinscription est invalide ou a expire.</p></body></html>',
+      };
+    }
+
+    await this.prisma.opsEmailPreference.update({
+      where: { userId: preference.userId },
+      data: {
+        marketingOptIn: false,
+        marketingUnsubscribedAt: new Date(),
+      },
+    });
+
+    return {
+      success: true,
+      html: `<html><body style="font-family: Arial, sans-serif; padding: 24px;"><h1>Desinscription prise en compte</h1><p>${preference.User.email} ne recevra plus d'emails marketing SlideAI.</p></body></html>`,
+    };
+  }
+
+  async getTemplateRuntime(slug: string) {
+    await this.ensureCatalog();
+    const template = await this.prisma.opsEmailTemplate.findUnique({ where: { slug } });
+    if (!template) {
+      return null;
+    }
+
+    return {
+      slug: template.slug,
+      liveVersion: template.liveVersion,
+      draftVersion: template.draftVersion,
+      kind: template.kind,
+      flowSlug: OPS_EMAIL_TEMPLATE_MAP[slug]?.flowSlug,
+      liveJson: (template.liveJson as Record<string, any> | null) || {},
+    };
+  }
+
+  async getFlowRuntimeByEmailType(emailType: string) {
+    await this.ensureCatalog();
+    const templateDefinition = OPS_EMAIL_TEMPLATE_MAP[emailType];
+    const flowSlug = templateDefinition?.flowSlug;
+    if (!flowSlug) {
+      return null;
+    }
+
+    const flow = await this.prisma.opsEmailFlow.findUnique({
+      where: { slug: flowSlug },
+    });
+
+    if (!flow) {
+      return null;
+    }
+
+    return {
+      slug: flow.slug,
+      enabled: flow.enabled,
+      liveVersion: flow.liveVersion,
+      kind: flow.kind,
+      timezone: flow.timezone,
+      sendWindowStart: flow.sendWindowStart,
+      sendWindowEnd: flow.sendWindowEnd,
+      weekdaysOnly: flow.weekdaysOnly,
+      config: (flow.liveConfig as Record<string, any> | null) || {},
+    };
+  }
+
+  async ensureEmailPreference(userId: string) {
+    return this.prisma.opsEmailPreference.upsert({
+      where: { userId },
+      update: {},
+      create: { userId },
+    });
+  }
+
+  async isMarketingAllowed(userId: string) {
+    const preference = await this.ensureEmailPreference(userId);
+    return preference.marketingOptIn;
+  }
+
+  async getUnsubscribeUrl(userId: string) {
+    const preference = await this.ensureEmailPreference(userId);
+    const apiUrl = process.env.API_PUBLIC_URL || process.env.FRONTEND_API_URL || process.env.RAILWAY_PUBLIC_DOMAIN;
+    const fallback = process.env.FRONTEND_URL ? `${process.env.FRONTEND_URL.replace(/\/$/, '')}/api` : '';
+    const baseUrl = apiUrl
+      ? apiUrl.startsWith('http')
+        ? apiUrl
+        : `https://${apiUrl}`
+      : fallback;
+
+    if (!baseUrl) {
+      return undefined;
+    }
+
+    return `${baseUrl.replace(/\/$/, '')}/v1/ops/unsubscribe/${preference.unsubscribeToken}`;
+  }
+
+  private async ensureCatalog() {
+    for (const definition of OPS_EMAIL_TEMPLATE_DEFINITIONS) {
+      await this.prisma.opsEmailTemplate.upsert({
+        where: { slug: definition.slug },
+        update: {
+          name: definition.name,
+          category: definition.category,
+          kind: definition.kind,
+        },
+        create: {
+          slug: definition.slug,
+          name: definition.name,
+          category: definition.category,
+          locale: 'fr',
+          kind: definition.kind,
+          draftJson: {},
+          liveJson: {},
+        },
+      });
+    }
+
+    for (const definition of OPS_EMAIL_FLOW_DEFINITIONS) {
+      await this.prisma.opsEmailFlow.upsert({
+        where: { slug: definition.slug },
+        update: {
+          name: definition.name,
+          category: definition.category,
+          kind: definition.kind,
+          emailTypes: definition.emailTypes,
+        },
+        create: {
+          slug: definition.slug,
+          name: definition.name,
+          category: definition.category,
+          kind: definition.kind,
+          emailTypes: definition.emailTypes,
+          enabled: definition.defaultConfig.enabled,
+          timezone: definition.defaultConfig.timezone,
+          sendWindowStart: definition.defaultConfig.sendWindowStart,
+          sendWindowEnd: definition.defaultConfig.sendWindowEnd,
+          weekdaysOnly: definition.defaultConfig.weekdaysOnly,
+          draftConfig: definition.defaultConfig,
+          liveConfig: definition.defaultConfig,
+        },
+      });
+    }
+  }
+
+  private async renderTemplate(slug: string, mode: TemplateMode, fixtureOverrides?: Record<string, any>) {
+    const template = await this.prisma.opsEmailTemplate.findUnique({ where: { slug } });
+    const definition = OPS_EMAIL_TEMPLATE_MAP[slug];
+
+    if (!template || !definition) {
+      throw new Error('Template introuvable');
+    }
+
+    const patch = ((mode === 'draft' ? template.draftJson : template.liveJson) as EmailContentPatch | null) || {};
+    const fixture = this.buildFixture(definition, fixtureOverrides);
+    const preview = buildTrialEmailContent({
+      emailType: slug,
+      legacyFree: fixture.legacyFree,
+      presentationCount: fixture.presentationCount,
+      trialEndsAt: fixture.trialEndsAt,
+      winbackOffer: fixture.winbackOffer,
+      contentPatch: patch,
+      unsubscribeUrl: fixture.unsubscribeUrl,
+      footerReason: fixture.footerReason,
+    });
+
+    const model = buildLifecycleEmailModel({
+      emailType: slug,
+      legacyFree: fixture.legacyFree,
+      presentationCount: fixture.presentationCount,
+      trialEndsAt: fixture.trialEndsAt,
+      winbackOffer: fixture.winbackOffer,
+      contentPatch: patch,
+      unsubscribeUrl: fixture.unsubscribeUrl,
+      footerReason: fixture.footerReason,
+    });
+
+    if (!preview || !model) {
+      throw new Error('Impossible de generer le preview');
+    }
+
+    return {
+      subject: preview.subject,
+      html: preview.html,
+      model,
+      fixture,
+      version: mode === 'draft' ? template.draftVersion : template.liveVersion,
+    };
+  }
+
+  private buildFixture(definition: (typeof OPS_EMAIL_TEMPLATE_DEFINITIONS)[number], overrides?: Record<string, any>) {
+    const trialEndsAt = new Date(
+      Date.now() + (overrides?.trialEndsAtOffsetDays ?? definition.sample.trialEndsAtOffsetDays ?? 7) * DAY_MS,
+    ).toISOString();
+
+    const footerReason =
+      definition.kind === 'marketing'
+        ? 'Vous recevez cet email car vous utilisez SlideAI et avez accepte les emails marketing.'
+        : 'Vous recevez cet email car il est lie a votre compte SlideAI.';
+
+    return {
+      legacyFree: overrides?.legacyFree ?? definition.sample.legacyFree ?? false,
+      presentationCount: overrides?.presentationCount ?? definition.sample.presentationCount ?? 0,
+      trialEndsAt,
+      winbackOffer:
+        definition.slug === 'trial_winback_day2'
+          ? ({
+              code: 'TRIAL20-PREVIEW',
+              expiresAt: new Date(Date.now() + 72 * DAY_MS / 24).toISOString(),
+              percentOff: 20,
+              expiresInHours: 72,
+            } satisfies WinbackOffer)
+          : undefined,
+      unsubscribeUrl: definition.kind === 'marketing' ? 'https://www.slideai.fr/account' : undefined,
+      footerReason,
+    };
+  }
+
+  private async getFlowPerformanceSnapshot(since: Date) {
+    const rows = await this.prisma.lifecycleEmailLog.findMany({
+      where: {
+        createdAt: { gte: since },
+      },
+      select: {
+        flowSlug: true,
+        status: true,
+      },
+    });
+
+    const acc = new Map<string, { flowSlug: string; sent: number; skipped: number; pending: number }>();
+
+    for (const row of rows) {
+      const flowSlug = row.flowSlug || 'unclassified';
+      const current = acc.get(flowSlug) || { flowSlug, sent: 0, skipped: 0, pending: 0 };
+
+      if (row.status === 'sent') current.sent += 1;
+      if (row.status === 'skipped') current.skipped += 1;
+      if (row.status === 'pending') current.pending += 1;
+
+      acc.set(flowSlug, current);
+    }
+
+    return Array.from(acc.values()).sort((a, b) => b.sent - a.sent);
+  }
+
+  private async getStripeRevenueSnapshot(subscriptionIds: string[]) {
+    const uniqueIds = Array.from(new Set(subscriptionIds.filter(Boolean)));
+
+    if (!this.stripe || uniqueIds.length === 0) {
+      return {
+        mrrCents: uniqueIds.length * Number(process.env.OPS_PRO_MONTHLY_PRICE_CENTS || 2900),
+        currency: 'eur',
+      };
+    }
+
+    const subscriptions = await Promise.all(
+      uniqueIds.map((subscriptionId) => this.stripe!.subscriptions.retrieve(subscriptionId)),
+    );
+
+    let mrrCents = 0;
+    let currency = 'eur';
+
+    for (const subscription of subscriptions) {
+      if (!['active', 'trialing', 'past_due'].includes(subscription.status)) {
+        continue;
+      }
+
+      for (const item of subscription.items.data) {
+        const unitAmount = item.price.unit_amount || 0;
+        const recurring = item.price.recurring;
+        currency = item.price.currency || currency;
+
+        if (!recurring || recurring.interval === 'month') {
+          mrrCents += Math.round(unitAmount / Math.max(recurring?.interval_count || 1, 1)) * (item.quantity || 1);
+          continue;
+        }
+
+        if (recurring.interval === 'year') {
+          mrrCents += Math.round(unitAmount / 12 / Math.max(recurring.interval_count || 1, 1)) * (item.quantity || 1);
+          continue;
+        }
+
+        mrrCents += unitAmount * (item.quantity || 1);
+      }
+    }
+
+    return { mrrCents, currency };
+  }
+
+  private async fetchGaOverview() {
+    const propertyId = process.env.GA4_PROPERTY_ID;
+    const clientEmail = process.env.GOOGLE_SERVICE_ACCOUNT_CLIENT_EMAIL;
+    const privateKey = process.env.GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY?.replace(/\\n/g, '\n');
+
+    if (!propertyId || !clientEmail || !privateKey) {
+      return {
+        configured: false,
+        source: 'ga4',
+      };
+    }
+
+    const accessToken = await this.getGoogleAccessToken(clientEmail, privateKey);
+    const response = await fetch(`https://analyticsdata.googleapis.com/v1beta/properties/${propertyId}:runReport`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        dateRanges: [{ startDate: '30daysAgo', endDate: 'today' }],
+        metrics: [{ name: 'sessions' }, { name: 'totalUsers' }, { name: 'screenPageViews' }],
+      }),
+    });
+
+    if (!response.ok) {
+      const errorBody = await response.text();
+      return {
+        configured: true,
+        source: 'ga4',
+        error: errorBody,
+      };
+    }
+
+    const body = await response.json();
+    const metrics = body.rows?.[0]?.metricValues || [];
+
+    return {
+      configured: true,
+      source: 'ga4',
+      sessions30d: Number(metrics[0]?.value || 0),
+      users30d: Number(metrics[1]?.value || 0),
+      pageViews30d: Number(metrics[2]?.value || 0),
+      vercelClientEnabled: true,
+    };
+  }
+
+  private async getGoogleAccessToken(clientEmail: string, privateKey: string) {
+    const now = Math.floor(Date.now() / 1000);
+    const assertion = jwt.sign(
+      {
+        iss: clientEmail,
+        scope: 'https://www.googleapis.com/auth/analytics.readonly',
+        aud: 'https://oauth2.googleapis.com/token',
+        iat: now,
+        exp: now + 3600,
+      },
+      privateKey,
+      { algorithm: 'RS256' },
+    );
+
+    const response = await fetch('https://oauth2.googleapis.com/token', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: new URLSearchParams({
+        grant_type: 'urn:ietf:params:oauth:grant-type:jwt-bearer',
+        assertion,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Google token error: ${await response.text()}`);
+    }
+
+    const body = await response.json();
+    return body.access_token as string;
+  }
+}

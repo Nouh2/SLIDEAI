@@ -1,6 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../prisma.service.js';
 import { QueueService } from '../queues/queue.service.js';
+import { OpsService } from '../ops/ops.service.js';
+import { getTemplateDefinition } from '../ops/ops-email-catalog.js';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -47,6 +49,7 @@ export class LifecycleEmailService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly queues: QueueService,
+    private readonly opsService: OpsService,
   ) {}
 
   async scheduleTrialLifecycleEmails(params: {
@@ -251,12 +254,12 @@ export class LifecycleEmailService {
     payload: Record<string, unknown>;
   }) {
     for (const step of params.steps) {
-      const scheduledFor = new Date(params.anchorAt.getTime() + step.offsetMs);
+      const targetScheduledFor = new Date(params.anchorAt.getTime() + step.offsetMs);
       await this.scheduleSingleEmail({
         userId: params.userId,
         email: params.email,
         emailType: step.emailType,
-        scheduledFor,
+        scheduledFor: targetScheduledFor,
         scopeKey: `${params.scopeKey}_${step.emailType}`,
         payload: params.payload,
       });
@@ -271,6 +274,40 @@ export class LifecycleEmailService {
     scopeKey: string;
     payload: Record<string, unknown>;
   }) {
+    const templateRuntime = await this.opsService.getTemplateRuntime(params.emailType);
+    const flowRuntime = await this.opsService.getFlowRuntimeByEmailType(params.emailType);
+    const templateDefinition = getTemplateDefinition(params.emailType);
+
+    if (flowRuntime && !flowRuntime.enabled) {
+      this.logger.log(`Skipping ${params.emailType} for ${params.userId}: flow ${flowRuntime.slug} disabled`);
+      return;
+    }
+
+    const isMarketing = templateDefinition?.kind === 'marketing';
+    if (isMarketing) {
+      const allowed = await this.opsService.isMarketingAllowed(params.userId);
+      if (!allowed) {
+        await this.prisma.lifecycleEmailLog.create({
+          data: {
+            dedupeKey: `${params.emailType}__${params.userId}__${this.sanitizeScopeKey(params.scopeKey)}__optout`,
+            userId: params.userId,
+            emailType: params.emailType,
+            templateSlug: templateRuntime?.slug,
+            templateVersion: templateRuntime?.liveVersion,
+            flowSlug: flowRuntime?.slug,
+            flowVersion: flowRuntime?.liveVersion,
+            scheduledFor: params.scheduledFor,
+            status: 'skipped',
+            statusReason: 'marketing_unsubscribed',
+            payload: params.payload as any,
+          },
+        }).catch(() => undefined);
+        return;
+      }
+    }
+
+    const unsubscribeUrl = isMarketing ? await this.opsService.getUnsubscribeUrl(params.userId) : undefined;
+    const scheduledFor = this.applyFlowWindow(params.scheduledFor, flowRuntime);
     const dedupeKey = `${params.emailType}__${params.userId}__${this.sanitizeScopeKey(params.scopeKey)}`;
 
     const existing = await this.prisma.lifecycleEmailLog.findUnique({
@@ -285,6 +322,17 @@ export class LifecycleEmailService {
       ...params.payload,
       email: params.email,
       scopeKey: params.scopeKey,
+      unsubscribeUrl,
+      templateSlug: templateRuntime?.slug,
+      templateVersion: templateRuntime?.liveVersion,
+      templatePatch: templateRuntime?.liveJson || {},
+      flowSlug: flowRuntime?.slug,
+      flowVersion: flowRuntime?.liveVersion,
+      flowConfig: flowRuntime?.config || {},
+      footerReason:
+        templateDefinition?.kind === 'marketing'
+          ? 'Vous recevez cet email car vous utilisez SlideAI et avez accepte les emails marketing.'
+          : 'Vous recevez cet email car il est lie a votre compte SlideAI.',
     };
 
     await this.prisma.lifecycleEmailLog.create({
@@ -292,8 +340,12 @@ export class LifecycleEmailService {
         dedupeKey,
         userId: params.userId,
         emailType: params.emailType,
-        scheduledFor: params.scheduledFor,
-        payload,
+        templateSlug: templateRuntime?.slug,
+        templateVersion: templateRuntime?.liveVersion,
+        flowSlug: flowRuntime?.slug,
+        flowVersion: flowRuntime?.liveVersion,
+        scheduledFor,
+        payload: payload as any,
       },
     });
 
@@ -306,7 +358,7 @@ export class LifecycleEmailService {
       },
       {
         jobId: dedupeKey,
-        delay: Math.max(0, params.scheduledFor.getTime() - Date.now()),
+        delay: Math.max(0, scheduledFor.getTime() - Date.now()),
         removeOnComplete: 500,
         removeOnFail: 500,
       },
@@ -319,5 +371,45 @@ export class LifecycleEmailService {
 
   private sanitizeScopeKey(value: string) {
     return value.replace(/[^a-zA-Z0-9_-]/g, '-');
+  }
+
+  private applyFlowWindow(date: Date, flowRuntime: Awaited<ReturnType<OpsService['getFlowRuntimeByEmailType']>>) {
+    if (!flowRuntime) {
+      return date;
+    }
+
+    const scheduled = new Date(date);
+    const [startHour, startMinute] = flowRuntime.sendWindowStart.split(':').map((value: string) => Number(value));
+    const [endHour, endMinute] = flowRuntime.sendWindowEnd.split(':').map((value: string) => Number(value));
+
+    const minutes = scheduled.getHours() * 60 + scheduled.getMinutes();
+    const startMinutes = startHour * 60 + startMinute;
+    const endMinutes = endHour * 60 + endMinute;
+
+    if (flowRuntime.weekdaysOnly) {
+      while (scheduled.getDay() === 0 || scheduled.getDay() === 6) {
+        scheduled.setDate(scheduled.getDate() + 1);
+        scheduled.setHours(startHour, startMinute, 0, 0);
+      }
+    }
+
+    if (minutes < startMinutes) {
+      scheduled.setHours(startHour, startMinute, 0, 0);
+      return scheduled;
+    }
+
+    if (minutes > endMinutes) {
+      scheduled.setDate(scheduled.getDate() + 1);
+      scheduled.setHours(startHour, startMinute, 0, 0);
+
+      if (flowRuntime.weekdaysOnly) {
+        while (scheduled.getDay() === 0 || scheduled.getDay() === 6) {
+          scheduled.setDate(scheduled.getDate() + 1);
+          scheduled.setHours(startHour, startMinute, 0, 0);
+        }
+      }
+    }
+
+    return scheduled;
   }
 }

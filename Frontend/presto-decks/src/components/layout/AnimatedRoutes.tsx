@@ -3,7 +3,7 @@ import { AnimatePresence } from "framer-motion";
 import { PageTransition } from "@/components/layout/PageTransition";
 import { Suspense, lazy } from "react";
 import { Loader2 } from "lucide-react";
-import { ProtectedRoute, GuestRoute } from "@/components/auth/RouteGuards";
+import { ProtectedRoute, GuestRoute, OpsRoute } from "@/components/auth/RouteGuards";
 
 // Lazy load pages for better performance
 const Home = lazy(() => import("@/pages/Home"));
@@ -13,6 +13,7 @@ const Editor = lazy(() => import("@/pages/Editor"));
 const Pricing = lazy(() => import("@/pages/Pricing"));
 const Examples = lazy(() => import("@/pages/Examples"));
 const Account = lazy(() => import("@/pages/Account"));
+const OpsDashboard = lazy(() => import("@/pages/OpsDashboard"));
 const Auth = lazy(() => import("@/pages/Auth"));
 const Brand = lazy(() => import("@/pages/Brand"));
 const BrandKitPage = lazy(() => import("@/pages/BrandKitPage"));
@@ -114,6 +115,11 @@ export const AnimatedRoutes = () => {
                         <ProtectedRoute>
                             <PageTransition><Account /></PageTransition>
                         </ProtectedRoute>
+                    } />
+                    <Route path="/ops" element={
+                        <OpsRoute>
+                            <PageTransition><OpsDashboard /></PageTransition>
+                        </OpsRoute>
                     } />
                     <Route path="/org/:orgId/settings" element={
                         <ProtectedRoute>

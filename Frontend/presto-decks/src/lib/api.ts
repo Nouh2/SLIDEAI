@@ -826,6 +826,118 @@ export const api = {
   },
 
   // ============================================
+  // OPS CMS API
+  // ============================================
+
+  async getOpsMe(accessToken: string): Promise<any> {
+    const response = await fetch(`${API_BASE_URL}/ops/me`, {
+      headers: buildHeaders(accessToken),
+    });
+    if (!response.ok) throw new Error('Acces ops refuse');
+    return response.json();
+  },
+
+  async getOpsOverview(accessToken: string): Promise<any> {
+    const response = await fetch(`${API_BASE_URL}/ops/overview`, {
+      headers: buildHeaders(accessToken),
+    });
+    if (!response.ok) throw new Error('Impossible de charger les KPIs ops');
+    return response.json();
+  },
+
+  async getOpsTemplates(accessToken: string): Promise<any[]> {
+    const response = await fetch(`${API_BASE_URL}/ops/email-templates`, {
+      headers: buildHeaders(accessToken),
+    });
+    if (!response.ok) throw new Error('Impossible de charger les templates email');
+    return response.json();
+  },
+
+  async getOpsTemplate(slug: string, accessToken: string): Promise<any> {
+    const response = await fetch(`${API_BASE_URL}/ops/email-templates/${slug}`, {
+      headers: buildHeaders(accessToken),
+    });
+    if (!response.ok) throw new Error('Impossible de charger le template');
+    return response.json();
+  },
+
+  async updateOpsTemplate(slug: string, draftJson: Record<string, any>, accessToken: string): Promise<any> {
+    const response = await fetch(`${API_BASE_URL}/ops/email-templates/${slug}`, {
+      method: 'PUT',
+      headers: buildHeaders(accessToken, 'application/json'),
+      body: JSON.stringify({ draftJson }),
+    });
+    if (!response.ok) throw new Error('Impossible de sauvegarder le draft');
+    return response.json();
+  },
+
+  async publishOpsTemplate(slug: string, accessToken: string): Promise<any> {
+    const response = await fetch(`${API_BASE_URL}/ops/email-templates/${slug}/publish`, {
+      method: 'POST',
+      headers: buildHeaders(accessToken, 'application/json'),
+      body: JSON.stringify({}),
+    });
+    if (!response.ok) throw new Error('Impossible de publier le template');
+    return response.json();
+  },
+
+  async previewOpsTemplate(slug: string, mode: 'draft' | 'live', accessToken: string): Promise<any> {
+    const response = await fetch(`${API_BASE_URL}/ops/email-templates/${slug}/preview`, {
+      method: 'POST',
+      headers: buildHeaders(accessToken, 'application/json'),
+      body: JSON.stringify({ mode }),
+    });
+    if (!response.ok) throw new Error('Impossible de generer le preview');
+    return response.json();
+  },
+
+  async sendOpsTemplateTest(slug: string, mode: 'draft' | 'live', to: string, accessToken: string): Promise<any> {
+    const response = await fetch(`${API_BASE_URL}/ops/email-templates/${slug}/test-send`, {
+      method: 'POST',
+      headers: buildHeaders(accessToken, 'application/json'),
+      body: JSON.stringify({ mode, to }),
+    });
+    if (!response.ok) throw new Error('Impossible d envoyer le mail de test');
+    return response.json();
+  },
+
+  async getOpsFlows(accessToken: string): Promise<any[]> {
+    const response = await fetch(`${API_BASE_URL}/ops/email-flows`, {
+      headers: buildHeaders(accessToken),
+    });
+    if (!response.ok) throw new Error('Impossible de charger les flows');
+    return response.json();
+  },
+
+  async updateOpsFlow(slug: string, payload: Record<string, any>, accessToken: string): Promise<any> {
+    const response = await fetch(`${API_BASE_URL}/ops/email-flows/${slug}`, {
+      method: 'PUT',
+      headers: buildHeaders(accessToken, 'application/json'),
+      body: JSON.stringify(payload),
+    });
+    if (!response.ok) throw new Error('Impossible de sauvegarder le flow');
+    return response.json();
+  },
+
+  async publishOpsFlow(slug: string, accessToken: string): Promise<any> {
+    const response = await fetch(`${API_BASE_URL}/ops/email-flows/${slug}/publish`, {
+      method: 'POST',
+      headers: buildHeaders(accessToken, 'application/json'),
+      body: JSON.stringify({}),
+    });
+    if (!response.ok) throw new Error('Impossible de publier le flow');
+    return response.json();
+  },
+
+  async getOpsLogs(accessToken: string, limit = 120): Promise<any[]> {
+    const response = await fetch(`${API_BASE_URL}/ops/email-logs?limit=${limit}`, {
+      headers: buildHeaders(accessToken),
+    });
+    if (!response.ok) throw new Error('Impossible de charger les logs email');
+    return response.json();
+  },
+
+  // ============================================
   // ORGANIZATION API
   // ============================================
 

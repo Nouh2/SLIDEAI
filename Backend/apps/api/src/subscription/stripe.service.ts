@@ -115,6 +115,64 @@ export class StripeService implements OnModuleInit {
         });
     }
 
+    async getRevenueSnapshot(subscriptionIds: string[]) {
+        const uniqueIds = Array.from(new Set(subscriptionIds.filter(Boolean)));
+
+        if (!this.stripe || uniqueIds.length === 0) {
+            return {
+                mrrCents: 0,
+                currency: 'eur',
+                subscriptionCount: 0,
+            };
+        }
+
+        const subscriptions = await Promise.all(
+            uniqueIds.map((subscriptionId) => this.stripe.subscriptions.retrieve(subscriptionId)),
+        );
+
+        let mrrCents = 0;
+        let currency = 'eur';
+        let subscriptionCount = 0;
+
+        for (const subscription of subscriptions) {
+            if (!['active', 'trialing', 'past_due'].includes(subscription.status)) {
+                continue;
+            }
+
+            subscriptionCount += 1;
+
+            for (const item of subscription.items.data) {
+                const unitAmount = item.price.unit_amount || 0;
+                currency = item.price.currency || currency;
+                const quantity = item.quantity || 1;
+                const recurring = item.price.recurring;
+
+                if (!recurring) {
+                    mrrCents += unitAmount * quantity;
+                    continue;
+                }
+
+                if (recurring.interval === 'month') {
+                    mrrCents += Math.round((unitAmount * quantity) / Math.max(recurring.interval_count || 1, 1));
+                    continue;
+                }
+
+                if (recurring.interval === 'year') {
+                    mrrCents += Math.round((unitAmount * quantity) / 12 / Math.max(recurring.interval_count || 1, 1));
+                    continue;
+                }
+
+                mrrCents += unitAmount * quantity;
+            }
+        }
+
+        return {
+            mrrCents,
+            currency,
+            subscriptionCount,
+        };
+    }
+
     private async resolvePromotionCodeId(code: string): Promise<string | null> {
         const normalizedCode = code.trim();
         if (!normalizedCode) {

@@ -508,6 +508,7 @@ model User {
   Project      Project[]
   Subscription Subscription?
   LifecycleEmailLog LifecycleEmailLog[]
+  OpsEmailPreference OpsEmailPreference?
 
   @@schema("public")
 }
@@ -517,9 +518,15 @@ model LifecycleEmailLog {
   dedupeKey    String   @unique
   userId       String
   emailType    String
+  templateSlug String?
+  templateVersion Int?
+  flowSlug     String?
+  flowVersion  Int?
+  providerMessageId String?
   scheduledFor DateTime
   sentAt       DateTime?
   status       String   @default("pending")
+  statusReason String?
   payload      Json?
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
@@ -527,6 +534,76 @@ model LifecycleEmailLog {
 
   @@index([userId, emailType])
   @@index([status, scheduledFor])
+  @@schema("public")
+}
+
+model OpsEmailTemplate {
+  id            String   @id @default(uuid())
+  slug          String   @unique
+  name          String
+  category      String
+  locale        String   @default("fr")
+  kind          String   @default("marketing")
+  draftJson     Json?
+  liveJson      Json?
+  draftVersion  Int      @default(1)
+  liveVersion   Int      @default(1)
+  updatedBy     String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([category, locale])
+  @@schema("public")
+}
+
+model OpsEmailFlow {
+  id            String   @id @default(uuid())
+  slug          String   @unique
+  name          String
+  category      String
+  kind          String   @default("marketing")
+  emailTypes    String[] @default([])
+  enabled       Boolean  @default(true)
+  timezone      String   @default("Europe/Paris")
+  sendWindowStart String @default("09:00")
+  sendWindowEnd String   @default("18:00")
+  weekdaysOnly  Boolean  @default(true)
+  draftConfig   Json?
+  liveConfig    Json?
+  draftVersion  Int      @default(1)
+  liveVersion   Int      @default(1)
+  updatedBy     String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([category, enabled])
+  @@schema("public")
+}
+
+model OpsEmailPreference {
+  userId                 String   @id
+  marketingOptIn         Boolean  @default(true)
+  marketingUnsubscribedAt DateTime?
+  unsubscribeToken       String   @unique @default(uuid())
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+  User                   User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@schema("public")
+}
+
+model MetricSnapshot {
+  id         String   @id @default(uuid())
+  key        String
+  bucket     String
+  bucketStart DateTime
+  bucketEnd  DateTime
+  payload    Json
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([key, bucket, bucketStart, bucketEnd])
+  @@index([key, bucketStart])
   @@schema("public")
 }
 

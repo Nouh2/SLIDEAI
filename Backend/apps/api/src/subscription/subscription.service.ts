@@ -420,6 +420,14 @@ export class SubscriptionService {
 
     if (existing) {
       if (userEmail && existing.email.endsWith('@placeholder.local')) {
+        const existingByEmail = await this.prisma.user.findUnique({
+          where: { email: userEmail },
+        });
+
+        if (existingByEmail && existingByEmail.id !== userId) {
+          return this.reconcileDuplicateLocalUsers(existing, existingByEmail, userId, userEmail);
+        }
+
         return this.prisma.user.update({
           where: { id: userId },
           data: { email: userEmail },
@@ -435,17 +443,7 @@ export class SubscriptionService {
       });
 
       if (existingByEmail) {
-        this.logger.warn(
-          `Reconciling local user by email for ${userEmail}: moving ${existingByEmail.id} to ${userId}`,
-        );
-
-        return this.prisma.user.update({
-          where: { email: userEmail },
-          data: {
-            id: userId,
-            createdAt: new Date(),
-          },
-        });
+        return this.claimExistingUserByEmail(existingByEmail, userId, userEmail);
       }
     }
 
@@ -463,22 +461,96 @@ export class SubscriptionService {
         });
 
         if (existingByEmail) {
-          this.logger.warn(
-            `Recovered from duplicate local user email for ${userEmail}: moving ${existingByEmail.id} to ${userId}`,
-          );
-
-          return this.prisma.user.update({
-            where: { email: userEmail },
-            data: {
-              id: userId,
-              createdAt: new Date(),
-            },
-          });
+          return this.claimExistingUserByEmail(existingByEmail, userId, userEmail);
         }
       }
 
       throw error;
     }
+  }
+
+  private async claimExistingUserByEmail(existingByEmail: PrismaUser, userId: string, userEmail: string) {
+    this.logger.warn(
+      `Reconciling local user by email for ${userEmail}: moving ${existingByEmail.id} to ${userId}`,
+    );
+
+    return this.prisma.user.update({
+      where: { email: userEmail },
+      data: {
+        id: userId,
+        createdAt: new Date(),
+      },
+    });
+  }
+
+  private async reconcileDuplicateLocalUsers(
+    placeholderUser: PrismaUser,
+    emailUser: PrismaUser,
+    userId: string,
+    userEmail: string,
+  ) {
+    this.logger.warn(
+      `Merging duplicate local users for ${userEmail}: placeholder=${placeholderUser.id}, emailOwner=${emailUser.id}, target=${userId}`,
+    );
+
+    return this.prisma.$transaction(async (tx) => {
+      const placeholderSubscription = await tx.subscription.findUnique({
+        where: { userId: placeholderUser.id },
+      });
+
+      const emailSubscription = await tx.subscription.findUnique({
+        where: { userId: emailUser.id },
+      });
+
+      if (!placeholderSubscription) {
+        await tx.user.delete({
+          where: { id: placeholderUser.id },
+        });
+
+        return tx.user.update({
+          where: { id: emailUser.id },
+          data: {
+            id: userId,
+            email: userEmail,
+            createdAt: new Date(),
+          },
+        });
+      }
+
+      await tx.membership.updateMany({
+        where: { userId: emailUser.id },
+        data: { userId },
+      });
+
+      await tx.project.updateMany({
+        where: { ownerId: emailUser.id },
+        data: { ownerId: userId },
+      });
+
+      await tx.lifecycleEmailLog.updateMany({
+        where: { userId: emailUser.id },
+        data: { userId },
+      });
+
+      if (!emailSubscription) {
+        await tx.subscription.update({
+          where: { userId: placeholderUser.id },
+          data: { userId },
+        });
+      }
+
+      await tx.user.delete({
+        where: { id: emailUser.id },
+      });
+
+      return tx.user.update({
+        where: { id: userId },
+        data: {
+          email: userEmail,
+          createdAt: new Date(),
+        },
+      });
+    });
   }
 
   private async createInitialSubscription(user: PrismaUser) {

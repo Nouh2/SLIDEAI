@@ -429,12 +429,56 @@ export class SubscriptionService {
       return existing;
     }
 
-    return this.prisma.user.create({
-      data: {
-        id: userId,
-        email: userEmail || `${userId}@placeholder.local`,
-      },
-    });
+    if (userEmail) {
+      const existingByEmail = await this.prisma.user.findUnique({
+        where: { email: userEmail },
+      });
+
+      if (existingByEmail) {
+        this.logger.warn(
+          `Reconciling local user by email for ${userEmail}: moving ${existingByEmail.id} to ${userId}`,
+        );
+
+        return this.prisma.user.update({
+          where: { email: userEmail },
+          data: {
+            id: userId,
+            createdAt: new Date(),
+          },
+        });
+      }
+    }
+
+    try {
+      return await this.prisma.user.create({
+        data: {
+          id: userId,
+          email: userEmail || `${userId}@placeholder.local`,
+        },
+      });
+    } catch (error: any) {
+      if (error?.code === 'P2002' && userEmail) {
+        const existingByEmail = await this.prisma.user.findUnique({
+          where: { email: userEmail },
+        });
+
+        if (existingByEmail) {
+          this.logger.warn(
+            `Recovered from duplicate local user email for ${userEmail}: moving ${existingByEmail.id} to ${userId}`,
+          );
+
+          return this.prisma.user.update({
+            where: { email: userEmail },
+            data: {
+              id: userId,
+              createdAt: new Date(),
+            },
+          });
+        }
+      }
+
+      throw error;
+    }
   }
 
   private async createInitialSubscription(user: PrismaUser) {

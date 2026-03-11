@@ -116,12 +116,14 @@ export class SubscriptionController {
     @UseGuards(SupabaseGuard)
     async cancelSubscription(@Req() req: any) {
         const userId = req.user.sub;
+        const userEmail = req.user.email;
 
         // 1. Get Subscription ID
         const stripeSubscriptionId = await this.subscriptionService.getSubscriptionIdForCancellation(userId);
 
         // 2. Call Stripe
         await this.stripeService.cancelSubscription(stripeSubscriptionId);
+        await this.subscriptionService.scheduleCancellationEmails(userId, userEmail);
 
         return { success: true, message: "Abonnement résilié à la fin de la période." };
     }

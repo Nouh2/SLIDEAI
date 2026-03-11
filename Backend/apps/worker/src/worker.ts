@@ -314,6 +314,25 @@ async function getPresentationCount(userId: string): Promise<number> {
   return count || 0;
 }
 
+async function getRecentPresentationCount(userId: string, days: number): Promise<number> {
+  if (!supabase) return 0;
+
+  const since = new Date(Date.now() - days * DAY_MS).toISOString();
+
+  const { count, error } = await supabase
+    .from('presentations')
+    .select('id', { count: 'exact', head: true })
+    .eq('user_id', userId)
+    .gte('created_at', since);
+
+  if (error) {
+    console.error(`[LifecycleEmail] Failed to count presentations over ${days}d:`, error.message);
+    return 0;
+  }
+
+  return count || 0;
+}
+
 async function getLifecycleEmailStatus(dedupeKey: string): Promise<string | null> {
   if (!supabase) return null;
 
@@ -1598,14 +1617,28 @@ const translateDeckWorker = new Worker(
 const lifecycleEmailWorker = new Worker(
   'lifecycle-email',
   async (job) => {
-    const { userId, email, emailType, dedupeKey, trialStartedAt, trialEndsAt, legacyFree } = job.data as {
+    const {
+      userId,
+      email,
+      emailType,
+      dedupeKey,
+      trialStartedAt,
+      trialEndsAt,
+      legacyFree,
+      canceledAt,
+      invoiceId,
+      packType,
+    } = job.data as {
       userId: string;
       email: string;
       emailType: string;
       dedupeKey: string;
-      trialStartedAt: string;
-      trialEndsAt: string;
-      legacyFree: boolean;
+      trialStartedAt?: string;
+      trialEndsAt?: string;
+      legacyFree?: boolean;
+      canceledAt?: string;
+      invoiceId?: string;
+      packType?: string;
     };
 
     console.log(`\n========== LIFECYCLE EMAIL JOB: ${dedupeKey} ==========`);
@@ -1626,11 +1659,25 @@ const lifecycleEmailWorker = new Worker(
     }
 
     const presentationCount = await getPresentationCount(userId);
-    const sameTrial = sameInstant(subscription.trialConsumedAt || subscription.trialStartedAt, trialStartedAt);
+    const recent7dCount = await getRecentPresentationCount(userId, 7);
+    const recent14dCount = await getRecentPresentationCount(userId, 14);
+    const recent21dCount = await getRecentPresentationCount(userId, 21);
+    const sameTrial = trialStartedAt
+      ? sameInstant(subscription.trialConsumedAt || subscription.trialStartedAt, trialStartedAt)
+      : false;
 
     let shouldSend = false;
 
     switch (emailType) {
+      case 'signup_day1_no_presentation':
+        shouldSend = presentationCount === 0;
+        break;
+      case 'signup_day3_no_presentation':
+        shouldSend = presentationCount === 0;
+        break;
+      case 'signup_day5_activated':
+        shouldSend = presentationCount > 0;
+        break;
       case 'trial_welcome':
         shouldSend = subscription.status === 'trialing' && sameInstant(subscription.trialStartedAt, trialStartedAt);
         break;
@@ -1648,6 +1695,42 @@ const lifecycleEmailWorker = new Worker(
         break;
       case 'trial_winback_day2':
         shouldSend = sameTrial && !hasPaidAccess(subscription);
+        break;
+      case 'pack_purchase_confirmation':
+        shouldSend = Boolean(packType);
+        break;
+      case 'pack_low_balance':
+        shouldSend =
+          !subscription.legacyFree &&
+          subscription.plan === 'free' &&
+          subscription.creditsRemaining > 0 &&
+          subscription.creditsRemaining <= 2 &&
+          !hasPaidAccess(subscription);
+        break;
+      case 'pack_exhausted':
+        shouldSend =
+          !subscription.legacyFree &&
+          subscription.plan === 'free' &&
+          subscription.creditsRemaining <= 0 &&
+          !hasPaidAccess(subscription);
+        break;
+      case 'inactive_7d':
+        shouldSend = presentationCount > 0 && recent7dCount === 0;
+        break;
+      case 'inactive_14d':
+        shouldSend = presentationCount > 0 && recent14dCount === 0;
+        break;
+      case 'inactive_21d_offer':
+        shouldSend = presentationCount > 0 && recent21dCount === 0 && !hasPaidAccess(subscription);
+        break;
+      case 'cancel_confirmation':
+        shouldSend = Boolean(canceledAt);
+        break;
+      case 'cancel_day3_winback':
+        shouldSend = Boolean(canceledAt);
+        break;
+      case 'failed_payment_day0':
+        shouldSend = Boolean(invoiceId);
         break;
       default:
         shouldSend = false;
@@ -1671,8 +1754,8 @@ const lifecycleEmailWorker = new Worker(
 
     const content = buildLifecycleEmailContent({
       emailType,
-      legacyFree,
-      trialEndsAt,
+      legacyFree: Boolean(legacyFree),
+      trialEndsAt: trialEndsAt || subscription.trialEndsAt || new Date().toISOString(),
       presentationCount,
       winbackOffer,
     });

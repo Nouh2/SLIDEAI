@@ -360,6 +360,101 @@ function buildInactiveDay1Email(createUrl: string): EmailContent {
   };
 }
 
+function buildSignupDay1NoPresentationEmail(createUrl: string): EmailContent {
+  return {
+    subject: 'Le plus simple pour démarrer SlideAI',
+    preview: 'Prenez un brief ou un document récent. C’est le meilleur premier test.',
+    badge: 'Premier pas',
+    title: 'Ne cherchez pas le cas parfait',
+    intro: 'Le meilleur premier usage de SlideAI est un cas réel, même simple: un brief, un document client, quelques notes.',
+    stats: [
+      { value: '1 brief', label: 'Suffit pour commencer' },
+      { value: 'Quelques min', label: 'Pour voir un premier résultat' },
+      { value: '0 carte', label: 'Toujours sans paiement' },
+    ],
+    spotlight: {
+      tone: 'info',
+      title: 'Le vrai objectif',
+      body: 'Valider une chose: est-ce que SlideAI vous aide à produire plus vite sur un vrai sujet ?',
+    },
+    body: [
+      'Si vous attendez le bon projet, vous risquez de laisser passer de la valeur sans jamais la tester correctement.',
+      'Le bon point de départ est souvent le plus simple: une matière déjà existante, puis quelques ajustements.',
+    ],
+    bullets: [
+      'Importez un document ou partez d’un prompt clair',
+      'Laissez SlideAI proposer une structure',
+      'Ajustez puis exportez quand le deck est prêt',
+    ],
+    ctaLabel: 'Créer ma première présentation',
+    ctaUrl: createUrl,
+  };
+}
+
+function buildSignupDay3NoPresentationEmail(examplesUrl: string): EmailContent {
+  return {
+    subject: 'Voici comment des pros utilisent SlideAI',
+    preview: 'Le plus utile est souvent de partir d’un cas d’usage proche du vôtre.',
+    badge: 'Cas d’usage',
+    title: 'Projetez-vous sur un cas concret',
+    intro: 'Si vous n’avez pas encore lancé votre premier deck, le plus efficace est de regarder un exemple proche de votre manière de travailler.',
+    stats: [
+      { value: 'Consulting', label: 'Reco, audit, reporting' },
+      { value: 'Sales', label: 'Pitch, support de rendez-vous' },
+      { value: 'Freelance', label: 'Livrables plus rapides' },
+    ],
+    spotlight: {
+      tone: 'info',
+      title: 'Pourquoi ça aide',
+      body: 'Quand vous voyez un cas d’usage concret, il devient beaucoup plus simple d’identifier où SlideAI peut vous faire gagner du temps.',
+    },
+    body: [
+      'Les meilleurs essais ne partent pas d’une feuille blanche. Ils partent d’un besoin qui ressemble déjà à votre quotidien.',
+      'Regardez quelques exemples, puis testez-en un sur votre propre matière.',
+    ],
+    bullets: [
+      'Voir un rendu proche de votre usage',
+      'Comprendre quoi tester en premier',
+      'Réduire la friction du premier lancement',
+    ],
+    ctaLabel: 'Voir des exemples',
+    ctaUrl: examplesUrl,
+  };
+}
+
+function buildSignupDay5ActivatedEmail(createUrl: string, presentationCount: number): EmailContent {
+  const usageLabel = formatPresentationCount(presentationCount);
+
+  return {
+    subject: `Vous avez déjà créé ${usageLabel} avec SlideAI`,
+    preview: 'Le plus intéressant maintenant est de transformer cet essai en habitude de production.',
+    badge: 'Activation',
+    title: 'Vous avez déjà passé le cap le plus important',
+    intro: `Avec ${usageLabel} déjà créées, vous avez validé l’essentiel: SlideAI peut vous aider à aller plus vite sur un vrai livrable.`,
+    stats: [
+      { value: usageLabel, label: 'Déjà créées' },
+      { value: 'Moins de manuel', label: 'Plus de temps pour le fond' },
+      { value: 'Workflow', label: 'Déjà en train de se former' },
+    ],
+    spotlight: {
+      tone: 'success',
+      title: 'La bonne suite',
+      body: 'Créer une nouvelle présentation pendant que le produit est encore frais dans votre tête. C’est le meilleur moyen de confirmer la valeur.',
+    },
+    body: [
+      'La plupart des utilisateurs qui convertissent ne se demandent plus “est-ce que l’outil marche ?”. Ils voient surtout qu’ils ont envie de garder cette manière de produire.',
+      'Le bon prochain test est simplement le suivant: refaire un deck avec SlideAI au lieu de repartir à zéro.',
+    ],
+    bullets: [
+      'Conserver le rythme d’utilisation',
+      'Tester un second cas concret',
+      'Mieux sentir la valeur dans votre workflow',
+    ],
+    ctaLabel: 'Créer une autre présentation',
+    ctaUrl: createUrl,
+  };
+}
+
 function buildValueDay4Email(pricingUrl: string, presentationCount: number): EmailContent {
   const isStrongUsage = presentationCount >= 3;
   const usageLabel = formatPresentationCount(presentationCount);
@@ -396,6 +491,285 @@ function buildValueDay4Email(pricingUrl: string, presentationCount: number): Ema
       'Gardez SlideAI comme outil de production, pas comme simple test',
     ],
     ctaLabel: 'Continuer avec Pro',
+    ctaUrl: pricingUrl,
+  };
+}
+
+function buildPackPurchaseConfirmationEmail(createUrl: string): EmailContent {
+  return {
+    subject: 'Votre pack est actif',
+    preview: 'Vous pouvez continuer à générer et exporter sans abonnement.',
+    badge: 'Pack activé',
+    title: 'Votre pack est prêt à être utilisé',
+    intro: 'Votre achat est confirmé. Vous pouvez continuer à générer ponctuellement et exporter en PDF/PPTX dès maintenant.',
+    stats: [
+      { value: 'One-shot', label: 'Achat ponctuel, sans abonnement' },
+      { value: 'PDF/PPTX', label: 'Exports inclus' },
+      { value: 'Immédiat', label: 'Utilisable maintenant' },
+    ],
+    spotlight: {
+      tone: 'success',
+      title: 'Le meilleur usage du pack',
+      body: 'L’utiliser sur un vrai livrable à court terme, puis juger si votre volume justifie un passage à Pro.',
+    },
+    body: [
+      'Le pack est idéal si votre besoin est ponctuel ou si vous voulez continuer à produire sans vous engager dans un abonnement tout de suite.',
+      'Quand vous êtes prêt, le plus simple est de lancer directement votre prochain deck.',
+    ],
+    bullets: [
+      'Créer immédiatement une nouvelle présentation',
+      'Exporter en PDF/PPTX quand le deck est prêt',
+      'Mesurer si votre usage reste ponctuel ou devient régulier',
+    ],
+    ctaLabel: 'Créer une présentation',
+    ctaUrl: createUrl,
+  };
+}
+
+function buildPackLowBalanceEmail(pricingUrl: string): EmailContent {
+  return {
+    subject: 'Il vous reste peu de crédits dans votre pack',
+    preview: 'Anticipez la rupture si vous comptez continuer à produire.',
+    badge: 'Pack bientôt épuisé',
+    title: 'Votre marge devient courte',
+    intro: 'Il vous reste peu de générations dans votre pack. Si vous comptez produire d’autres decks, c’est le bon moment pour anticiper.',
+    stats: [
+      { value: 'Peu de crédits', label: 'Le pack arrive à sa fin' },
+      { value: 'Sans coupure', label: 'Passez à Pro si le besoin continue' },
+      { value: 'Simple', label: 'Une seule action pour continuer' },
+    ],
+    spotlight: {
+      tone: 'warning',
+      title: 'Le vrai choix ici',
+      body: 'Si votre besoin reste ponctuel, un autre pack peut suffire. Si vous produisez régulièrement, Pro sera vite plus logique.',
+    },
+    body: [
+      'Le pack est excellent pour absorber un besoin ponctuel. Mais dès que le volume devient plus fréquent, il commence à coûter plus en friction qu’il n’en enlève.',
+      'Le bon moment pour décider est avant la rupture, pas une fois bloqué.',
+    ],
+    bullets: [
+      'Éviter l’arrêt au mauvais moment',
+      'Choisir entre pack ponctuel et usage régulier',
+      'Garder un workflow fluide',
+    ],
+    ctaLabel: 'Voir mes options',
+    ctaUrl: pricingUrl,
+  };
+}
+
+function buildPackExhaustedEmail(pricingUrl: string): EmailContent {
+  return {
+    subject: 'Votre pack est épuisé',
+    preview: 'Choisissez la suite la plus simple pour continuer à produire.',
+    badge: 'Pack terminé',
+    title: 'Vous avez consommé votre pack',
+    intro: 'Votre pack est terminé. Si vous voulez continuer à créer sans revenir au manuel, il faut maintenant choisir la bonne suite.',
+    stats: [
+      { value: '0 crédit', label: 'Le pack est consommé' },
+      { value: 'Pack ou Pro', label: 'Deux façons simples de reprendre' },
+      { value: 'Sans perte', label: 'Vos données restent disponibles' },
+    ],
+    spotlight: {
+      tone: 'warning',
+      title: 'Le bon arbitrage',
+      body: 'Pack si votre besoin reste ponctuel. Pro si SlideAI commence à entrer dans votre routine de production.',
+    },
+    body: [
+      'Vous avez déjà vu comment SlideAI peut accélérer la création d’un deck. La vraie question maintenant est votre fréquence d’usage.',
+      'Si vous produisez souvent, l’abonnement devient vite la décision la plus simple.',
+    ],
+    bullets: [
+      'Repartir avec un autre pack si le besoin est exceptionnel',
+      'Passer à Pro si le volume devient récurrent',
+      'Reprendre sans perdre votre historique',
+    ],
+    ctaLabel: 'Choisir ma suite',
+    ctaUrl: pricingUrl,
+  };
+}
+
+function buildInactive7dEmail(createUrl: string): EmailContent {
+  return {
+    subject: 'Vous aviez commencé quelque chose avec SlideAI',
+    preview: 'Le plus utile maintenant est de reprendre un deck réel, pas de relire la doc.',
+    badge: 'Réactivation',
+    title: 'Reprenez là où vous vous étiez arrêté',
+    intro: 'Vous avez déjà utilisé SlideAI, puis votre usage s’est arrêté. Le plus efficace est de le remettre sur un vrai cas pendant que la logique du produit vous est encore familière.',
+    stats: [
+      { value: '1 reprise', label: 'Suffit pour se remettre dedans' },
+      { value: 'Un cas réel', label: 'Toujours le meilleur test' },
+      { value: 'Rapide', label: 'Retour en main en quelques minutes' },
+    ],
+    spotlight: {
+      tone: 'info',
+      title: 'Le bon réflexe',
+      body: 'Ne cherchez pas à “retester le produit”. Reprenez simplement un deck ou un brief concret et voyez si le gain de temps revient immédiatement.',
+    },
+    body: [
+      'Les outils qui finissent dans un workflow sont souvent ceux que l’on réessaie sur un cas réel au bon moment.',
+      'Si vous avez un livrable en attente, c’est probablement le meilleur moment pour remettre SlideAI en jeu.',
+    ],
+    bullets: [
+      'Reprendre un deck concret',
+      'Retrouver rapidement vos repères',
+      'Mesurer si l’outil mérite une place durable',
+    ],
+    ctaLabel: 'Reprendre avec SlideAI',
+    ctaUrl: createUrl,
+  };
+}
+
+function buildInactive14dEmail(createUrl: string): EmailContent {
+  return {
+    subject: 'Un deck que vous pourriez sortir plus vite cette semaine',
+    preview: 'Pensez à votre prochain support client, pas au produit lui-même.',
+    badge: 'Retour à l’usage',
+    title: 'Réactivez SlideAI sur un livrable précis',
+    intro: 'Si vous n’êtes pas revenu depuis quelque temps, le plus simple est de penser à un livrable bien défini que vous devez sortir cette semaine.',
+    stats: [
+      { value: '1 deck', label: 'Bien choisi vaut mieux que 10 tests' },
+      { value: 'Moins de friction', label: 'Quand le sujet est concret' },
+      { value: 'Plus clair', label: 'Pour juger la valeur réelle' },
+    ],
+    spotlight: {
+      tone: 'info',
+      title: 'Exemples qui marchent bien',
+      body: 'Reco client, support de rendez-vous, pitch, audit ou reporting. Les usages les plus concrets sont souvent ceux qui révèlent le plus vite la valeur.',
+    },
+    body: [
+      'Quand un outil semble “en pause”, ce n’est pas toujours un problème produit. C’est souvent un problème de timing ou de cas d’usage.',
+      'Revenez avec un sujet très précis, et jugez-le sur le résultat obtenu.',
+    ],
+    bullets: [
+      'Choisir un besoin concret',
+      'Relancer un test utile',
+      'Voir vite si SlideAI mérite de rester dans votre stack',
+    ],
+    ctaLabel: 'Relancer un deck',
+    ctaUrl: createUrl,
+  };
+}
+
+function buildInactive21dOfferEmail(pricingUrl: string): EmailContent {
+  return {
+    subject: 'Dernière relance avant de laisser SlideAI de côté',
+    preview: 'Si vous pensez encore que SlideAI peut vous faire gagner du temps, c’est le moment de revenir.',
+    badge: 'Dernière relance',
+    title: 'Soit vous le remettez dans votre workflow, soit vous passez à autre chose',
+    intro: 'Après plusieurs semaines sans activité, il reste surtout une question utile: est-ce que SlideAI mérite encore une vraie place dans votre manière de produire ?',
+    stats: [
+      { value: '21 jours', label: 'Sans activité récente' },
+      { value: 'Un seul test', label: 'Peut suffire pour décider' },
+      { value: 'Décision claire', label: 'Reprendre ou laisser tomber' },
+    ],
+    spotlight: {
+      tone: 'warning',
+      title: 'La bonne décision',
+      body: 'Revenez sur un vrai besoin si vous pensez qu’il y a encore un gain de temps à capturer. Sinon, ignorez simplement cet email.',
+    },
+    body: [
+      'Le but n’est pas de vous convaincre artificiellement. Le but est de vous aider à trancher proprement.',
+      'Si vous voyez encore un usage concret pour SlideAI, revenez dessus maintenant. Sinon, inutile de garder le sujet ouvert dans un coin de votre tête.',
+    ],
+    bullets: [
+      'Un dernier test sur un vrai cas',
+      'Une décision nette ensuite',
+      'Aucun bruit inutile après',
+    ],
+    ctaLabel: 'Revoir SlideAI',
+    ctaUrl: pricingUrl,
+  };
+}
+
+function buildCancelConfirmationEmail(pricingUrl: string): EmailContent {
+  return {
+    subject: 'Votre annulation est bien prise en compte',
+    preview: 'Votre accès continue jusqu’à la fin de la période en cours.',
+    badge: 'Annulation confirmée',
+    title: 'Votre abonnement s’arrêtera à la fin de la période',
+    intro: 'Votre demande est enregistrée. Votre accès actuel continue jusqu’à la fin de votre période en cours.',
+    stats: [
+      { value: 'Accès actif', label: 'Jusqu’à la fin de période' },
+      { value: 'Aucune coupure', label: 'Immédiate aujourd’hui' },
+      { value: 'Réversible', label: 'Tant que la période n’est pas terminée' },
+    ],
+    spotlight: {
+      tone: 'info',
+      title: 'Ce que vous pouvez faire d’ici là',
+      body: 'Continuer à utiliser SlideAI normalement, puis décider calmement si vous voulez réellement laisser l’outil sortir de votre workflow.',
+    },
+    body: [
+      'Merci d’avoir utilisé SlideAI. Si votre besoin est simplement en pause, il n’y a aucune urgence à décider définitivement aujourd’hui.',
+      'Le plus rationnel est de juger l’outil sur vos prochains decks, pas sur une impression générale.',
+    ],
+    bullets: [
+      'Garder l’accès jusqu’à la fin de période',
+      'Continuer à produire normalement d’ici là',
+      'Réévaluer la décision sur vos vrais usages',
+    ],
+    ctaLabel: 'Revoir mon abonnement',
+    ctaUrl: pricingUrl,
+  };
+}
+
+function buildCancelDay3WinbackEmail(pricingUrl: string): EmailContent {
+  return {
+    subject: 'Avant de laisser SlideAI sortir de votre workflow',
+    preview: 'Si le besoin n’a pas disparu, vous pouvez encore éviter la coupure.',
+    badge: 'Save offer',
+    title: 'La vraie question n’est pas “est-ce que j’annule ?”',
+    intro: 'La vraie question est plutôt: est-ce que vos prochains decks seront plus simples avec SlideAI que sans SlideAI ?',
+    stats: [
+      { value: 'Workflow', label: 'C’est souvent là que la décision se joue' },
+      { value: 'Sans rupture', label: 'Si vous revenez maintenant' },
+      { value: 'Simple', label: 'Une action suffit' },
+    ],
+    spotlight: {
+      tone: 'warning',
+      title: 'Le coût caché de l’annulation',
+      body: 'Pas seulement le logiciel perdu. Surtout le retour à un rythme de production plus lent si l’outil vous aidait déjà réellement.',
+    },
+    body: [
+      'Si votre usage était occasionnel, l’annulation est peut-être la bonne décision.',
+      'Mais si SlideAI vous aidait déjà sur vos livrables, il vaut mieux éviter une coupure simplement parce que la décision a été prise trop vite.',
+    ],
+    bullets: [
+      'Réévaluer la décision sur vos usages réels',
+      'Éviter une coupure inutile',
+      'Garder le rythme si l’outil vous aide déjà',
+    ],
+    ctaLabel: 'Garder mon accès',
+    ctaUrl: pricingUrl,
+  };
+}
+
+function buildFailedPaymentEmail(pricingUrl: string): EmailContent {
+  return {
+    subject: 'Votre paiement SlideAI n’a pas abouti',
+    preview: 'Mettez à jour votre paiement pour éviter toute interruption.',
+    badge: 'Paiement à mettre à jour',
+    title: 'Votre accès peut être interrompu si rien ne change',
+    intro: 'Nous n’avons pas pu finaliser votre paiement. Le plus simple est de mettre à jour votre moyen de paiement maintenant pour éviter toute interruption.',
+    stats: [
+      { value: 'Échec paiement', label: 'Action requise' },
+      { value: 'Rapide', label: 'Quelques clics suffisent' },
+      { value: 'Sans coupure', label: 'Si vous corrigez vite' },
+    ],
+    spotlight: {
+      tone: 'warning',
+      title: 'Le bon réflexe',
+      body: 'Régler le moyen de paiement avant que cela ne devienne un problème d’accès ou de continuité de travail.',
+    },
+    body: [
+      'Si SlideAI fait déjà partie de votre manière de produire, le plus rationnel est de corriger cela maintenant plutôt que d’attendre une interruption.',
+      'Une mise à jour rapide suffit généralement à repartir normalement.',
+    ],
+    bullets: [
+      'Mettre à jour votre paiement',
+      'Conserver votre accès',
+      'Éviter une coupure dans votre workflow',
+    ],
+    ctaLabel: 'Mettre à jour mon paiement',
     ctaUrl: pricingUrl,
   };
 }
@@ -616,11 +990,21 @@ export function buildTrialEmailContent(params: {
   const appUrl = process.env.FRONTEND_URL || 'https://slideai.fr';
   const pricingUrl = `${appUrl.replace(/\/$/, '')}/pricing`;
   const createUrl = `${appUrl.replace(/\/$/, '')}/create`;
+  const examplesUrl = `${appUrl.replace(/\/$/, '')}/examples`;
   const daysLeft = Math.max(0, Math.ceil((new Date(params.trialEndsAt).getTime() - Date.now()) / DAY_MS));
 
   let content: EmailContent | null = null;
 
   switch (params.emailType) {
+    case 'signup_day1_no_presentation':
+      content = buildSignupDay1NoPresentationEmail(createUrl);
+      break;
+    case 'signup_day3_no_presentation':
+      content = buildSignupDay3NoPresentationEmail(examplesUrl);
+      break;
+    case 'signup_day5_activated':
+      content = buildSignupDay5ActivatedEmail(createUrl, params.presentationCount);
+      break;
     case 'trial_welcome':
       content = buildWelcomeEmail(createUrl);
       break;
@@ -638,6 +1022,33 @@ export function buildTrialEmailContent(params: {
       break;
     case 'trial_winback_day2':
       content = buildWinbackEmail(pricingUrl, params.presentationCount, params.winbackOffer);
+      break;
+    case 'pack_purchase_confirmation':
+      content = buildPackPurchaseConfirmationEmail(createUrl);
+      break;
+    case 'pack_low_balance':
+      content = buildPackLowBalanceEmail(pricingUrl);
+      break;
+    case 'pack_exhausted':
+      content = buildPackExhaustedEmail(pricingUrl);
+      break;
+    case 'inactive_7d':
+      content = buildInactive7dEmail(createUrl);
+      break;
+    case 'inactive_14d':
+      content = buildInactive14dEmail(createUrl);
+      break;
+    case 'inactive_21d_offer':
+      content = buildInactive21dOfferEmail(pricingUrl);
+      break;
+    case 'cancel_confirmation':
+      content = buildCancelConfirmationEmail(pricingUrl);
+      break;
+    case 'cancel_day3_winback':
+      content = buildCancelDay3WinbackEmail(pricingUrl);
+      break;
+    case 'failed_payment_day0':
+      content = buildFailedPaymentEmail(pricingUrl);
       break;
     default:
       return null;

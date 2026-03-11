@@ -135,6 +135,15 @@ export class SubscriptionService {
     return sub.stripeCustomerId ?? null;
   }
 
+  async scheduleCancellationEmails(userId: string, userEmail?: string) {
+    const user = await this.ensureLocalUser(userId, userEmail);
+    await this.lifecycleEmailService.scheduleCancellationEmails({
+      userId,
+      email: user.email,
+      canceledAt: new Date(),
+    });
+  }
+
   async canGenerate(userId: string, userEmail?: string): Promise<boolean> {
     if (process.env.NODE_ENV === 'development') {
       this.logger.log('DEV MODE: skipping credit check');
@@ -167,7 +176,8 @@ export class SubscriptionService {
   }
 
   async consumeCredit(userId: string, userEmail?: string): Promise<void> {
-    const sub = await this.getOrCreateSubscriptionRecord(userId, userEmail);
+    const user = await this.ensureLocalUser(userId, userEmail);
+    const sub = await this.getOrCreateSubscriptionRecord(userId, user.email);
     const entitlements = this.resolveEntitlements(sub);
 
     if (entitlements.accessState === 'trial_expired') {
@@ -178,13 +188,37 @@ export class SubscriptionService {
       return;
     }
 
-    await this.prisma.subscription.update({
+    const updated = await this.prisma.subscription.update({
       where: { userId },
       data: {
         creditsRemaining: { decrement: 1 },
         updatedAt: new Date(),
       },
     });
+
+    await this.lifecycleEmailService.scheduleInactivityReactivationEmails({
+      userId,
+      email: user.email,
+      activityAt: new Date(),
+    });
+
+    if (!updated.legacyFree && updated.plan === 'free') {
+      if (updated.creditsRemaining <= 0) {
+        await this.lifecycleEmailService.schedulePackBalanceAlert({
+          userId,
+          email: user.email,
+          emailType: 'pack_exhausted',
+          creditsRemaining: updated.creditsRemaining,
+        });
+      } else if (updated.creditsRemaining <= 2) {
+        await this.lifecycleEmailService.schedulePackBalanceAlert({
+          userId,
+          email: user.email,
+          emailType: 'pack_low_balance',
+          creditsRemaining: updated.creditsRemaining,
+        });
+      }
+    }
   }
 
   async hasFeature(userId: string, feature: string): Promise<boolean> {
@@ -316,6 +350,25 @@ export class SubscriptionService {
             });
           }
         }
+        break;
+      }
+
+      case 'invoice.payment_failed': {
+        const invoice = event.data.object;
+        const userId = await this.getUserIdByStripeCustomerId(invoice.customer);
+
+        if (!userId) {
+          return;
+        }
+
+        const user = await this.ensureLocalUser(userId, invoice.customer_email);
+        await this.lifecycleEmailService.scheduleFailedPaymentEmail({
+          userId,
+          email: user.email,
+          invoiceId: invoice.id,
+          amountDue: invoice.amount_due ?? null,
+          currency: invoice.currency ?? null,
+        });
         break;
       }
     }
@@ -646,6 +699,12 @@ export class SubscriptionService {
       legacyFree: false,
     });
 
+    await this.lifecycleEmailService.scheduleSignupOnboardingEmails({
+      userId: user.id,
+      email: user.email,
+      signupAt: user.createdAt,
+    });
+
     return subscription;
   }
 
@@ -824,7 +883,8 @@ export class SubscriptionService {
     const freeLimit = PLAN_LIMITS.free.creditsPerMonth;
     const baseCredits = sub.legacyFree ? Math.max(sub.creditsRemaining, freeLimit) : Math.max(sub.creditsRemaining, 0);
 
-    await this.prisma.subscription.update({
+    const now = new Date();
+    const updated = await this.prisma.subscription.update({
       where: { userId },
       data: {
         plan: 'free',
@@ -832,8 +892,17 @@ export class SubscriptionService {
         creditsRemaining: baseCredits + creditsToAdd,
         creditsResetAt: sub.legacyFree ? sub.creditsResetAt || this.buildNextMonthlyResetAt(new Date()) : null,
         requiresPayment: sub.legacyFree ? false : true,
-        updatedAt: new Date(),
+        updatedAt: now,
       },
+    });
+
+    await this.lifecycleEmailService.schedulePackPurchaseConfirmation({
+      userId,
+      email: user.email,
+      purchasedAt: now,
+      packType,
+      creditsPurchased: creditsToAdd,
+      creditsBalance: updated.creditsRemaining,
     });
 
     this.logger.log(`[Stripe Webhook] Added ${creditsToAdd} pack credits to ${userId}`);

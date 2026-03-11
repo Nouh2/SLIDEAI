@@ -30,11 +30,15 @@ export class StripeService implements OnModuleInit {
         plan: string,
         origin?: string,
         stripeCustomerId?: string | null,
+        promotionCode?: string,
     ) {
         if (!this.stripe) throw new Error('Stripe is not initialized');
 
         // Use the request origin if permitted (handled by CORS in main.ts), otherwise fallback to env
         const frontendUrl = origin || this.configService.get('FRONTEND_URL');
+        const appliedPromotionCodeId = promotionCode
+            ? await this.resolvePromotionCodeId(promotionCode)
+            : null;
 
         const session = await this.stripe.checkout.sessions.create({
             payment_method_types: ['card'],
@@ -52,7 +56,8 @@ export class StripeService implements OnModuleInit {
             metadata: {
                 plan,
             },
-            allow_promotion_codes: true,
+            allow_promotion_codes: !appliedPromotionCodeId,
+            ...(appliedPromotionCodeId ? { discounts: [{ promotion_code: appliedPromotionCodeId }] } : {}),
         });
 
         return { url: session.url };
@@ -108,5 +113,26 @@ export class StripeService implements OnModuleInit {
         return await this.stripe.subscriptions.update(subscriptionId, {
             cancel_at_period_end: true,
         });
+    }
+
+    private async resolvePromotionCodeId(code: string): Promise<string | null> {
+        const normalizedCode = code.trim();
+        if (!normalizedCode) {
+            return null;
+        }
+
+        const promotionCodes = await this.stripe.promotionCodes.list({
+            code: normalizedCode,
+            active: true,
+            limit: 1,
+        });
+
+        const promotionCode = promotionCodes.data[0];
+
+        if (!promotionCode) {
+            throw new Error('Code promo invalide ou expiré.');
+        }
+
+        return promotionCode.id;
     }
 }

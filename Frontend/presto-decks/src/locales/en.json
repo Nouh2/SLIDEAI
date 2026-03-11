@@ -1216,6 +1216,7 @@
     "secondarySectionTitle": "Need it occasionally?",
     "secondarySectionSubtitle": "Packs fit one-off needs. They include PDF/PPTX export, but not the rest of Pro's advanced features.",
     "packRule": "Packs add one-shot generations and PDF/PPTX export without unlocking all Pro features.",
+    "winbackCodeApplied": "Win-back offer detected: code {{code}} will be applied at checkout.",
     "questions": "Questions?",
     "contactUs": "Contact us",
     "errors": {

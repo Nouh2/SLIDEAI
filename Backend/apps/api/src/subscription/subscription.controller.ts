@@ -29,7 +29,7 @@ export class SubscriptionController {
      */
     @Post('checkout')
     @UseGuards(SupabaseGuard)
-    async createCheckout(@Req() req: any, @Body() body: { priceId: string; plan: string }, @Headers('origin') origin: string) {
+    async createCheckout(@Req() req: any, @Body() body: { priceId: string; plan: string; promotionCode?: string }, @Headers('origin') origin: string) {
         const userId = req.user.sub;
         const userEmail = req.user.email;
 
@@ -37,7 +37,15 @@ export class SubscriptionController {
         if (!body.plan) throw new ForbiddenException('plan is required');
 
         const stripeCustomerId = await this.subscriptionService.getStripeCustomerIdForCheckout(userId, userEmail);
-        return this.stripeService.createCheckoutSession(userId, userEmail, body.priceId, body.plan, origin, stripeCustomerId);
+        return this.stripeService.createCheckoutSession(
+            userId,
+            userEmail,
+            body.priceId,
+            body.plan,
+            origin,
+            stripeCustomerId,
+            body.promotionCode,
+        );
     }
 
     @Post('start-trial')

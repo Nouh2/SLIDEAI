@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -17,7 +17,9 @@ export default function Pricing() {
   const [currentPlan, setCurrentPlan] = useState<string | null>(null);
   const [subscription, setSubscription] = useState<any>(null);
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { user } = useAuth();
+  const promotionCode = searchParams.get("promo")?.trim() || "";
 
   const isPackActive = Boolean(subscription?.packActive);
   const packCreditsRemaining = subscription?.packCreditsRemaining ?? 0;
@@ -134,6 +136,7 @@ export default function Pricing() {
         body: JSON.stringify({
           priceId,
           plan: planName.toLowerCase(),
+          promotionCode: promotionCode || undefined,
         }),
       });
 
@@ -440,6 +443,14 @@ export default function Pricing() {
               {t("pricing.tryFree")}
             </Button>
             <p className="text-sm text-muted-foreground">{t("pricing.noSubscription")}</p>
+            {promotionCode && (
+              <div className="rounded-full border border-emerald-300/50 bg-emerald-50 px-4 py-2 text-sm font-medium text-emerald-700">
+                {t("pricing.winbackCodeApplied", {
+                  defaultValue: "Offre de relance détectée : le code {{code}} sera appliqué au checkout.",
+                  code: promotionCode,
+                })}
+              </div>
+            )}
           </div>
         </div>
 

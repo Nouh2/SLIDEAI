@@ -1284,7 +1284,8 @@
         "cta": "Acheter le pack"
       }
     },
-    "trialLine": "Essai gratuit 7 jours sur Starter et Pro, sans carte bancaire."
+    "trialLine": "Essai gratuit 7 jours sur Starter et Pro, sans carte bancaire.",
+    "winbackCodeApplied": "Offre de relance détectée : le code {{code}} sera appliqué au checkout."
   },
   "home": {
     "freeNote": "Essai 7 jours gratuit | sans carte bancaire"

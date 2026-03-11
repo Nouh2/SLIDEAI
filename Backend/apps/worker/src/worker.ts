@@ -13,9 +13,11 @@ import PptxGenJS from 'pptxgenjs';
 import * as fs from 'fs';
 import * as path from 'path';
 import { createClient } from '@supabase/supabase-js';
+import Stripe from 'stripe';
 import {
   buildTrialEmailContent as buildLifecycleEmailContent,
   sendLifecycleEmail as deliverLifecycleEmail,
+  type WinbackOffer,
 } from './lifecycle-email.js';
 
 // Local modules
@@ -113,6 +115,12 @@ const bucket = process.env.R2_BUCKET ?? 'slideai-exports';
 // Gemini AI client
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
 const model = process.env.GEMINI_MODEL || 'gemini-3-flash-preview';
+const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
+const stripe = stripeSecretKey
+  ? new Stripe(stripeSecretKey, {
+      apiVersion: '2024-12-18.acacia' as any,
+    })
+  : null;
 
 // Supabase Client
 const supabaseUrl = process.env.SUPABASE_URL;
@@ -323,6 +331,23 @@ async function getLifecycleEmailStatus(dedupeKey: string): Promise<string | null
   return (data as { status?: string } | null)?.status || null;
 }
 
+async function getLifecycleEmailLog(dedupeKey: string): Promise<{ status?: string; payload?: any } | null> {
+  if (!supabase) return null;
+
+  const { data, error } = await supabase
+    .from('LifecycleEmailLog')
+    .select('status, payload')
+    .eq('dedupeKey', dedupeKey)
+    .maybeSingle();
+
+  if (error) {
+    console.error('[LifecycleEmail] Failed to load lifecycle log details:', error.message);
+    return null;
+  }
+
+  return (data as { status?: string; payload?: any } | null) || null;
+}
+
 async function setLifecycleEmailStatus(dedupeKey: string, status: 'sent' | 'skipped') {
   if (!supabase) return;
 
@@ -343,6 +368,102 @@ async function setLifecycleEmailStatus(dedupeKey: string, status: 'sent' | 'skip
   if (error) {
     console.error('[LifecycleEmail] Failed to update lifecycle log:', error.message);
   }
+}
+
+async function mergeLifecycleEmailPayload(dedupeKey: string, payloadPatch: Record<string, any>) {
+  if (!supabase) return;
+
+  const existing = await getLifecycleEmailLog(dedupeKey);
+  const nextPayload = {
+    ...(existing?.payload || {}),
+    ...payloadPatch,
+  };
+
+  const { error } = await supabase
+    .from('LifecycleEmailLog')
+    .update({
+      payload: nextPayload,
+      updatedAt: new Date().toISOString(),
+    })
+    .eq('dedupeKey', dedupeKey);
+
+  if (error) {
+    console.error('[LifecycleEmail] Failed to merge lifecycle payload:', error.message);
+  }
+}
+
+function buildWinbackPromoCode() {
+  return `TRIAL20-${ulid().slice(-6).toUpperCase()}`;
+}
+
+async function ensureWinbackOffer(params: {
+  dedupeKey: string;
+  userId: string;
+  email: string;
+}): Promise<WinbackOffer | null> {
+  if (!stripe) {
+    console.warn('[LifecycleEmail] STRIPE_SECRET_KEY missing, winback promo will not be generated');
+    return null;
+  }
+
+  const existing = await getLifecycleEmailLog(params.dedupeKey);
+  const existingOffer = existing?.payload?.winbackOffer as WinbackOffer | undefined;
+
+  if (existingOffer?.code && existingOffer?.expiresAt && new Date(existingOffer.expiresAt).getTime() > Date.now()) {
+    return existingOffer;
+  }
+
+  const percentOff = Number(process.env.STRIPE_WINBACK_PERCENT_OFF || 20);
+  const expiresInHours = Number(process.env.STRIPE_WINBACK_EXPIRY_HOURS || 72);
+  const expiresAt = new Date(Date.now() + expiresInHours * 60 * 60 * 1000);
+  const code = buildWinbackPromoCode();
+
+  const coupon = await stripe.coupons.create({
+    percent_off: percentOff,
+    duration: 'once',
+    name: `SlideAI trial winback ${percentOff}%`,
+    metadata: {
+      managedBy: 'slideai-worker',
+      dedupeKey: params.dedupeKey,
+      userId: params.userId,
+      email: params.email,
+      offerType: 'trial_winback_day2',
+    },
+  });
+
+  const promotionCode = await stripe.promotionCodes.create({
+    promotion: {
+      type: 'coupon',
+      coupon: coupon.id,
+    },
+    code,
+    expires_at: Math.floor(expiresAt.getTime() / 1000),
+    max_redemptions: 1,
+    metadata: {
+      managedBy: 'slideai-worker',
+      dedupeKey: params.dedupeKey,
+      userId: params.userId,
+      email: params.email,
+      offerType: 'trial_winback_day2',
+    },
+  });
+
+  const offer: WinbackOffer = {
+    code: promotionCode.code,
+    expiresAt: expiresAt.toISOString(),
+    percentOff,
+    expiresInHours,
+  };
+
+  await mergeLifecycleEmailPayload(params.dedupeKey, {
+    winbackOffer: {
+      ...offer,
+      couponId: coupon.id,
+      promotionCodeId: promotionCode.id,
+    },
+  });
+
+  return offer;
 }
 
 function buildTrialEmailContent(params: {
@@ -1539,11 +1660,21 @@ const lifecycleEmailWorker = new Worker(
       return { dedupeKey, status: 'skipped' };
     }
 
+    const winbackOffer =
+      emailType === 'trial_winback_day2'
+        ? (await ensureWinbackOffer({
+            dedupeKey,
+            userId,
+            email,
+          })) || undefined
+        : undefined;
+
     const content = buildLifecycleEmailContent({
       emailType,
       legacyFree,
       trialEndsAt,
       presentationCount,
+      winbackOffer,
     });
 
     if (!content) {

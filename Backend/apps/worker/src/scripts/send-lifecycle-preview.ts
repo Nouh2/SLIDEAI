@@ -18,6 +18,14 @@ const content = buildTrialEmailContent({
   legacyFree,
   presentationCount,
   trialEndsAt,
+  winbackOffer: emailType === 'trial_winback_day2'
+    ? {
+        code: 'TRIAL20-PREVIEW',
+        expiresAt: new Date(Date.now() + 72 * 60 * 60 * 1000).toISOString(),
+        percentOff: 20,
+        expiresInHours: 72,
+      }
+    : undefined,
 });
 
 if (!content) {

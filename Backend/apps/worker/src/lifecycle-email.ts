@@ -44,6 +44,13 @@ type EmailContent = {
   note?: string;
 };
 
+export type WinbackOffer = {
+  code: string;
+  expiresAt: string;
+  percentOff: number;
+  expiresInHours: number;
+};
+
 function getSpotlightColors(tone: Tone) {
   if (tone === 'warning') {
     return {
@@ -555,12 +562,16 @@ function buildExpiredEmail(pricingUrl: string, legacyFree: boolean, presentation
   };
 }
 
-function buildWinbackEmail(pricingUrl: string, presentationCount: number): EmailContent {
+function buildWinbackEmail(pricingUrl: string, presentationCount: number, offer?: WinbackOffer): EmailContent {
   const activated = presentationCount > 0;
+  const promoCode = offer?.code || 'TRIAL20';
+  const percentOff = offer?.percentOff ?? 20;
+  const expiresInHours = offer?.expiresInHours ?? 72;
+  const ctaUrl = `${pricingUrl}${pricingUrl.includes('?') ? '&' : '?'}promo=${encodeURIComponent(promoCode)}`;
 
   return {
-    subject: 'Reprenez SlideAI avec -20% sur votre premier mois',
-    preview: 'Votre offre de relance expire sous 72 heures.',
+    subject: `Reprenez SlideAI avec -${percentOff}% sur votre premier mois`,
+    preview: `Votre offre de relance expire sous ${expiresInHours} heures.`,
     badge: 'Offre de relance',
     title: activated
       ? 'Vous avez d\u00e9j\u00e0 vu la valeur. Voici une raison concr\u00e8te de reprendre.'
@@ -569,14 +580,14 @@ function buildWinbackEmail(pricingUrl: string, presentationCount: number): Email
       ? 'Vous avez d\u00e9j\u00e0 test\u00e9 SlideAI sur de vraies pr\u00e9sentations. Cette offre est l\u00e0 pour vous aider \u00e0 reprendre sans trop h\u00e9siter.'
       : 'Vous n\u2019avez peut-\u00eatre pas eu le bon moment pour tester SlideAI correctement. Voici une derni\u00e8re occasion de le reprendre dans de bonnes conditions.',
     stats: [
-      { value: '-20%', label: 'Sur votre premier mois' },
-      { value: 'TRIAL20', label: 'Code \u00e0 utiliser au checkout' },
-      { value: '72h', label: 'Fen\u00eatre limit\u00e9e' },
+      { value: `-${percentOff}%`, label: 'Sur votre premier mois' },
+      { value: promoCode, label: 'Code \u00e0 utiliser au checkout' },
+      { value: `${expiresInHours}h`, label: 'Fen\u00eatre limit\u00e9e' },
     ],
     spotlight: {
       tone: 'success',
       title: 'Offre temporaire',
-      body: 'Le code <strong>TRIAL20</strong> vous donne -20% sur votre premier mois. C\u2019est une relance simple, limit\u00e9e dans le temps, pour reprendre sans friction.',
+      body: `Le code <strong>${promoCode}</strong> vous donne -${percentOff}% sur votre premier mois. C\u2019est une relance simple, limit\u00e9e dans le temps, pour reprendre sans friction.`,
     },
     body: [
       activated
@@ -590,8 +601,8 @@ function buildWinbackEmail(pricingUrl: string, presentationCount: number): Email
       'Reprise rapide de votre acc\u00e8s Pro',
     ],
     ctaLabel: 'Activer mon offre',
-    ctaUrl: pricingUrl,
-    note: 'Utilisez le code TRIAL20 au moment du paiement.',
+    ctaUrl,
+    note: `Utilisez le code ${promoCode} au moment du paiement. L'offre expire dans ${expiresInHours} heures.`,
   };
 }
 
@@ -600,6 +611,7 @@ export function buildTrialEmailContent(params: {
   legacyFree: boolean;
   trialEndsAt: string;
   presentationCount: number;
+  winbackOffer?: WinbackOffer;
 }) {
   const appUrl = process.env.FRONTEND_URL || 'https://slideai.fr';
   const pricingUrl = `${appUrl.replace(/\/$/, '')}/pricing`;
@@ -625,7 +637,7 @@ export function buildTrialEmailContent(params: {
       content = buildExpiredEmail(pricingUrl, params.legacyFree, params.presentationCount);
       break;
     case 'trial_winback_day2':
-      content = buildWinbackEmail(pricingUrl, params.presentationCount);
+      content = buildWinbackEmail(pricingUrl, params.presentationCount, params.winbackOffer);
       break;
     default:
       return null;

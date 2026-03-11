@@ -49,82 +49,72 @@ export class OpsService {
     const since7d = new Date(now.getTime() - 7 * DAY_MS);
     const since30d = new Date(now.getTime() - 30 * DAY_MS);
 
-    const [
-      totalUsers,
-      newUsers7d,
-      newUsers30d,
-      totalPresentations,
-      presentations7d,
-      presentations30d,
-      trialingCount,
-      paidSubscriptions,
-      legacyFreeCount,
-      trialExpiredCount,
-      packActiveCount,
-      sentLogs30d,
-      pendingLogs,
-      skippedLogs30d,
-      recentPresentingUsers,
-      activatedUsers30d,
-      gaOverview,
-    ] = await Promise.all([
-      this.prisma.user.count(),
-      this.prisma.user.count({ where: { createdAt: { gte: since7d } } }),
-      this.prisma.user.count({ where: { createdAt: { gte: since30d } } }),
-      this.prisma.presentations.count(),
-      this.prisma.presentations.count({ where: { created_at: { gte: since7d } } }),
-      this.prisma.presentations.count({ where: { created_at: { gte: since30d } } }),
-      this.prisma.subscription.count({ where: { status: 'trialing', trialEndsAt: { gt: now } } }),
-      this.prisma.subscription.findMany({
-        where: {
-          stripeSubscriptionId: { not: null },
-          status: { in: ['active', 'trialing'] },
-        },
-        select: {
-          stripeSubscriptionId: true,
-        },
-      }),
-      this.prisma.subscription.count({ where: { legacyFree: true, plan: 'free' } }),
-      this.prisma.subscription.count({ where: { status: 'trial_expired' } }),
-      this.prisma.subscription.count({
-        where: {
-          plan: 'free',
-          legacyFree: false,
-          stripeSubscriptionId: null,
-          creditsRemaining: { gt: 0 },
-        },
-      }),
-      this.prisma.lifecycleEmailLog.count({
-        where: {
-          status: 'sent',
-          createdAt: { gte: since30d },
-        },
-      }),
-      this.prisma.lifecycleEmailLog.count({
-        where: {
-          status: 'pending',
-        },
-      }),
-      this.prisma.lifecycleEmailLog.count({
-        where: {
-          status: 'skipped',
-          createdAt: { gte: since30d },
-        },
-      }),
-      this.prisma.presentations.findMany({
-        where: { created_at: { gte: since7d } },
-        select: { user_id: true },
-        distinct: ['user_id'],
-      }),
-      this.prisma.user.findMany({
-        where: { createdAt: { gte: since30d } },
-        select: {
-          id: true,
-          createdAt: true,
-        },
-      }),
-      this.fetchGaOverview(),
-    ]);
+    const totalUsers = await this.prisma.user.count();
+    const newUsers7d = await this.prisma.user.count({ where: { createdAt: { gte: since7d } } });
+    const newUsers30d = await this.prisma.user.count({ where: { createdAt: { gte: since30d } } });
+    const totalPresentations = await this.prisma.presentations.count();
+    const presentations7d = await this.prisma.presentations.count({ where: { created_at: { gte: since7d } } });
+    const presentations30d = await this.prisma.presentations.count({ where: { created_at: { gte: since30d } } });
+    const trialingCount = await this.prisma.subscription.count({
+      where: { status: 'trialing', trialEndsAt: { gt: now } },
+    });
+    const paidSubscriptions = await this.prisma.subscription.findMany({
+      where: {
+        stripeSubscriptionId: { not: null },
+        status: { in: ['active', 'trialing'] },
+      },
+      select: {
+        stripeSubscriptionId: true,
+      },
+    });
+    const legacyFreeCount = await this.prisma.subscription.count({
+      where: { legacyFree: true, plan: 'free' },
+    });
+    const trialExpiredCount = await this.prisma.subscription.count({
+      where: { status: 'trial_expired' },
+    });
+    const packActiveCount = await this.prisma.subscription.count({
+      where: {
+        plan: 'free',
+        legacyFree: false,
+        stripeSubscriptionId: null,
+        creditsRemaining: { gt: 0 },
+      },
+    });
+    const sentLogs30d = await this.prisma.lifecycleEmailLog.count({
+      where: {
+        status: 'sent',
+        createdAt: { gte: since30d },
+      },
+    });
+    const pendingLogs = await this.prisma.lifecycleEmailLog.count({
+      where: {
+        status: 'pending',
+      },
+    });
+    const skippedLogs30d = await this.prisma.lifecycleEmailLog.count({
+      where: {
+        status: 'skipped',
+        createdAt: { gte: since30d },
+      },
+    });
+    const recentPresentingUsers = await this.prisma.presentations.findMany({
+      where: { created_at: { gte: since7d } },
+      select: { user_id: true },
+      distinct: ['user_id'],
+    });
+    const activatedUsers30d = await this.prisma.user.findMany({
+      where: { createdAt: { gte: since30d } },
+      select: {
+        id: true,
+        createdAt: true,
+      },
+    });
+    const gaOverview = await this.fetchGaOverview().catch((error) => ({
+      configured: false,
+      source: 'ga4',
+      error: error instanceof Error ? error.message : 'ga_fetch_failed',
+    }));
 
     const paidSubscriptionIds = paidSubscriptions
       .map((item) => item.stripeSubscriptionId)

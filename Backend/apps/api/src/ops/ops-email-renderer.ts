@@ -249,8 +249,14 @@ function wrapEmail(content: EmailContent) {
                 <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
                   <tr>
                     <td valign="top">
-                      <div style="display: inline-block; width: 42px; height: 42px; border-radius: 12px; background: rgba(255,255,255,0.18); color: #ffffff; font-size: 22px; line-height: 42px; font-weight: 900; text-align: center;">
-                        S
+                      <div style="display: inline-block; width: 42px; height: 42px; border-radius: 12px; background: rgba(255,255,255,0.18); text-align: center; overflow: hidden;">
+                        <img
+                          src="https://www.slideai.fr/favicon.svg"
+                          alt="SlideAI"
+                          width="42"
+                          height="42"
+                          style="display: block; width: 42px; height: 42px; border: 0;"
+                        />
                       </div>
                       <div style="margin-top: 14px; font-size: 13px; line-height: 18px; color: #e0f2fe; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase;">
                         SlideAI

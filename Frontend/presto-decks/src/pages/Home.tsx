@@ -11,7 +11,6 @@ import { HowItWorks } from "@/components/home/HowItWorks";
 import { OfferSection } from "@/components/home/OfferSection";
 import { SubscriptionSection } from "@/components/home/SubscriptionSection";
 import { FaqSection } from "@/components/home/FaqSection";
-import { SocialProofSection } from "@/components/home/SocialProofSection";
 import { DemoFlowSection } from "@/components/home/DemoFlowSection";
 import { BeforeAfterSection } from "@/components/home/BeforeAfterSection";
 import { StickyTrialCta } from "@/components/home/StickyTrialCta";
@@ -154,7 +153,6 @@ export default function Home() {
         <ProductShowcase />
       </div>
 
-      <SocialProofSection />
       <BeforeAfterSection />
 
       {/* Offre essai 7 jours */}

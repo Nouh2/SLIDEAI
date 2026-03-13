@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowRight, Sparkles } from "lucide-react";
 import { motion, Variants } from "framer-motion";
 import { DeckPreview } from "@/components/home/DeckPreview";
+import { SocialProofSection } from "@/components/home/SocialProofSection";
 import { Analytics, ANALYTICS_EVENTS } from "@/lib/analytics";
 
 type HeroVariant = "time" | "quality";
@@ -147,6 +148,10 @@ export function Hero() {
                             </a>
                         ))}
                     </div>
+                </motion.div>
+
+                <motion.div variants={itemVariants}>
+                    <SocialProofSection />
                 </motion.div>
 
                 {/* CTA Buttons */}

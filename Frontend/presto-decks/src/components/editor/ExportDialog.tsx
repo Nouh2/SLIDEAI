@@ -41,6 +41,7 @@ interface ExportDialogProps {
         slides: any[];
         theme: string;
         colorScheme?: any;
+        fontConfig?: any;
         brandLogoUrl?: string;
         templateOverlay?: TemplateOverlayType;
     };
@@ -53,8 +54,11 @@ export function ExportDialog({ open, onOpenChange, presentation, accessToken }: 
     const [pptxMode, setPptxMode] = useState<'pixel-perfect' | 'editable'>('pixel-perfect');
     const [previewDeck, setPreviewDeck] = useState<any>(null);
     const hiddenSlidesRef = useRef<HTMLDivElement>(null);
-    const { t } = useTranslation();
+    const { t, i18n } = useTranslation();
     const navigate = useNavigate();
+    const editableModeDescription = i18n.language.startsWith('fr')
+        ? 'Export PowerPoint editable pour les layouts pris en charge, avec fallback image automatique pour le reste.'
+        : 'Editable PowerPoint export for supported layouts, with automatic image fallback for the rest.';
 
     const pollTranslationStatus = async (traceId: string): Promise<any> => {
         return new Promise((resolve, reject) => {
@@ -186,15 +190,17 @@ export function ExportDialog({ open, onOpenChange, presentation, accessToken }: 
             }
 
             const exportDeck = normalizeExportDeck(exportDeckRaw);
+            await new Promise(resolve => setTimeout(resolve, 500));
+            const slideElements = hiddenSlidesRef.current.querySelectorAll('[data-slide-export]');
 
             if (pptxMode === 'editable') {
-                await exportToPPTX(exportDeck, setExportProgress);
+                await exportToPPTX(
+                    exportDeck,
+                    Array.from(slideElements) as HTMLElement[],
+                    setExportProgress
+                );
             } else {
                 // Get all rendered slide elements from the hidden container
-                await new Promise(resolve => setTimeout(resolve, 500));
-
-                const slideElements = hiddenSlidesRef.current.querySelectorAll('[data-slide-export]');
-
                 if (slideElements.length === 0) {
                     throw new Error(t('export.noSlides'));
                 }
@@ -379,7 +385,7 @@ export function ExportDialog({ open, onOpenChange, presentation, accessToken }: 
                                 <p className="text-xs text-muted-foreground text-center">
                                     {pptxMode === 'pixel-perfect'
                                         ? t('export.pptxDescription')
-                                        : t('export.pptxDescriptionEditable')}
+                                        : editableModeDescription}
                                 </p>
                             </button>
 

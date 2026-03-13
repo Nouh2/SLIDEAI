@@ -6919,7 +6919,16 @@ export const ModernSlideRenderer = ({
         colors.bg.toLowerCase().startsWith('#1') ||
         colors.bg.toLowerCase().startsWith('#2') : false;
 
+    let resolvedExportFamily = '';
+    let resolvedExportVariation = '';
+
     const renderLayout = () => {
+        const withExportMeta = (family: string, variation: string, node: React.ReactNode) => {
+            resolvedExportFamily = family;
+            resolvedExportVariation = variation;
+            return node;
+        };
+
         const getComparisonVariation = (): ComparisonVariation => {
             // 0. Manual Override
             if (slide.variation === 'split') return 'balanced-split';
@@ -7485,43 +7494,43 @@ export const ModernSlideRenderer = ({
         // PRIORITY 0: Specialized consulting layouts (exact data structure match)
         if (hasSWOT) {
             const swotVar = getSWOTVariation();
-            return <SWOTLayout showPageNumber={finalShowPageNumber} slide={slide} colors={colors} variation={swotVar} onSelect={onElementSelect} selectedId={selectedElementId} titleFontScale={titleFontScale} textFontScale={textFontScale} />;
+            return withExportMeta('swot', swotVar, <SWOTLayout showPageNumber={finalShowPageNumber} slide={slide} colors={colors} variation={swotVar} onSelect={onElementSelect} selectedId={selectedElementId} titleFontScale={titleFontScale} textFontScale={textFontScale} />);
         }
         if (hasExecutiveSummary && (normalizedType.includes('executive') || normalizedType.includes('exec') || normalizedType.includes('summary'))) {
             const execVar = getExecSummaryVariation();
-            return <ExecutiveSummaryLayout showPageNumber={finalShowPageNumber} slide={slide} colors={colors} variation={execVar} onSelect={onElementSelect} selectedId={selectedElementId} titleFontScale={titleFontScale} textFontScale={textFontScale} />;
+            return withExportMeta('executive', execVar, <ExecutiveSummaryLayout showPageNumber={finalShowPageNumber} slide={slide} colors={colors} variation={execVar} onSelect={onElementSelect} selectedId={selectedElementId} titleFontScale={titleFontScale} textFontScale={textFontScale} />);
         }
 
         // PRIORITY 1: Content-based detection (what data actually exists)
         if (hasChart) {
-
-            return <ChartLayout showPageNumber={finalShowPageNumber} slide={slide} colors={colors} variation={getChartVariation()} onSelect={onElementSelect} selectedId={selectedElementId} titleFontScale={titleFontScale} textFontScale={textFontScale} />;
+            const chartVar = getChartVariation();
+            return withExportMeta('chart', chartVar, <ChartLayout showPageNumber={finalShowPageNumber} slide={slide} colors={colors} variation={chartVar} onSelect={onElementSelect} selectedId={selectedElementId} titleFontScale={titleFontScale} textFontScale={textFontScale} />);
         } else if (hasInfographic) {
-
-            return <InfographicLayout showPageNumber={finalShowPageNumber} slide={slide} colors={colors} variation={getInfographicVariation()} onSelect={onElementSelect} selectedId={selectedElementId} titleFontScale={titleFontScale} textFontScale={textFontScale} />;
+            const picked = getInfographicVariation();
+            return withExportMeta('infographic', picked, <InfographicLayout showPageNumber={finalShowPageNumber} slide={slide} colors={colors} variation={picked} onSelect={onElementSelect} selectedId={selectedElementId} titleFontScale={titleFontScale} textFontScale={textFontScale} />);
         } else if (hasTimeline) {
-
-            return <TimelineLayout showPageNumber={finalShowPageNumber} slide={slide} colors={colors} variation={getTimelineVariation()} onSelect={onElementSelect} selectedId={selectedElementId} titleFontScale={titleFontScale} textFontScale={textFontScale} />;
+            const picked = getTimelineVariation();
+            return withExportMeta('timeline', picked, <TimelineLayout showPageNumber={finalShowPageNumber} slide={slide} colors={colors} variation={picked} onSelect={onElementSelect} selectedId={selectedElementId} titleFontScale={titleFontScale} textFontScale={textFontScale} />);
         }
         if (hasTable) {
-
-            return <TableLayout showPageNumber={finalShowPageNumber} slide={slide} colors={colors} variation={getTableVariation()} onSelect={onElementSelect} selectedId={selectedElementId} titleFontScale={titleFontScale} textFontScale={textFontScale} />;
+            const picked = getTableVariation();
+            return withExportMeta('table', picked, <TableLayout showPageNumber={finalShowPageNumber} slide={slide} colors={colors} variation={picked} onSelect={onElementSelect} selectedId={selectedElementId} titleFontScale={titleFontScale} textFontScale={textFontScale} />);
         }
         if (hasComparison) {
-
-            return <ComparisonLayout showPageNumber={finalShowPageNumber} slide={slide} colors={colors} variation={getComparisonVariation()} onSelect={onElementSelect} selectedId={selectedElementId} titleFontScale={titleFontScale} textFontScale={textFontScale} />;
+            const picked = getComparisonVariation();
+            return withExportMeta('comparison', picked, <ComparisonLayout showPageNumber={finalShowPageNumber} slide={slide} colors={colors} variation={picked} onSelect={onElementSelect} selectedId={selectedElementId} titleFontScale={titleFontScale} textFontScale={textFontScale} />);
         }
         if (hasStats) {
-
-            return <StatsLayout showPageNumber={finalShowPageNumber} slide={slide} colors={colors} variation={getStatsVariation()} onSelect={onElementSelect} selectedId={selectedElementId} titleFontScale={titleFontScale} textFontScale={textFontScale} />;
+            const statsVar = getStatsVariation();
+            return withExportMeta('stats', statsVar, <StatsLayout showPageNumber={finalShowPageNumber} slide={slide} colors={colors} variation={statsVar} onSelect={onElementSelect} selectedId={selectedElementId} titleFontScale={titleFontScale} textFontScale={textFontScale} />);
         }
         if (hasTextColumns) {
-
-            return <ThreeColumnTextLayout showPageNumber={finalShowPageNumber} slide={slide} colors={colors} variation={getMultiColumnVariation()} onSelect={onElementSelect} selectedId={selectedElementId} titleFontScale={titleFontScale} textFontScale={textFontScale} />;
+            const picked = getMultiColumnVariation();
+            return withExportMeta('text-columns', picked, <ThreeColumnTextLayout showPageNumber={finalShowPageNumber} slide={slide} colors={colors} variation={picked} onSelect={onElementSelect} selectedId={selectedElementId} titleFontScale={titleFontScale} textFontScale={textFontScale} />);
         }
         if (hasItems && (normalizedType.includes('bento') || normalizedType.includes('grid'))) {
-
-            return <BentoGridLayout showPageNumber={finalShowPageNumber} slide={slide} colors={colors} variation={getBentoVariation()} onSelect={onElementSelect} selectedId={selectedElementId} titleFontScale={titleFontScale} textFontScale={textFontScale} />;
+            const bentoVar = getBentoVariation();
+            return withExportMeta('bento', bentoVar, <BentoGridLayout showPageNumber={finalShowPageNumber} slide={slide} colors={colors} variation={bentoVar} onSelect={onElementSelect} selectedId={selectedElementId} titleFontScale={titleFontScale} textFontScale={textFontScale} />);
         }
         const itemsArray = slide.content?.items || [];
         if (hasItems && itemsArray.length >= 3) {
@@ -7534,8 +7543,8 @@ export const ModernSlideRenderer = ({
             }
             const shouldUseBento = normalizedType.includes('feature') || (Math.abs(bentoHash) % 10) >= 7;
             if (shouldUseBento) {
-
-                return <BentoGridLayout showPageNumber={finalShowPageNumber} slide={slide} colors={colors} variation={getBentoVariation()} onSelect={onElementSelect} selectedId={selectedElementId} titleFontScale={titleFontScale} textFontScale={textFontScale} />;
+                const bentoVar = getBentoVariation();
+                return withExportMeta('bento', bentoVar, <BentoGridLayout showPageNumber={finalShowPageNumber} slide={slide} colors={colors} variation={bentoVar} onSelect={onElementSelect} selectedId={selectedElementId} titleFontScale={titleFontScale} textFontScale={textFontScale} />);
             }
         }
         if (hasQuote) {
@@ -7545,8 +7554,8 @@ export const ModernSlideRenderer = ({
 
         // PRIORITY 2: Layout type string matching (fallback)
         if (normalizedType.includes('showcase') || normalizedType.includes('product')) {
-
-            return <ProductShowcaseLayout showPageNumber={finalShowPageNumber} slide={slide} colors={colors} variation={getShowcaseVariation()} onSelect={onElementSelect} selectedId={selectedElementId} titleFontScale={titleFontScale} textFontScale={textFontScale} />;
+            const showcaseVar = getShowcaseVariation();
+            return withExportMeta('showcase', showcaseVar, <ProductShowcaseLayout showPageNumber={finalShowPageNumber} slide={slide} colors={colors} variation={showcaseVar} onSelect={onElementSelect} selectedId={selectedElementId} titleFontScale={titleFontScale} textFontScale={textFontScale} />);
         }
 
         // Smart Injection: If theme is 'tech' or 'product' and has items, use Showcase occasionally
@@ -7559,8 +7568,8 @@ export const ModernSlideRenderer = ({
             }
             const shouldUseShowcase = (Math.abs(showcaseHash) % 10) >= 6;
             if (shouldUseShowcase) {
-
-                return <ProductShowcaseLayout showPageNumber={finalShowPageNumber} slide={slide} colors={colors} variation={getShowcaseVariation()} onSelect={onElementSelect} selectedId={selectedElementId} titleFontScale={titleFontScale} textFontScale={textFontScale} />;
+                const showcaseVar = getShowcaseVariation();
+                return withExportMeta('showcase', showcaseVar, <ProductShowcaseLayout showPageNumber={finalShowPageNumber} slide={slide} colors={colors} variation={showcaseVar} onSelect={onElementSelect} selectedId={selectedElementId} titleFontScale={titleFontScale} textFontScale={textFontScale} />);
             }
         }
 
@@ -7614,7 +7623,7 @@ export const ModernSlideRenderer = ({
             }
 
 
-            return <MasterContentLayout showPageNumber={finalShowPageNumber} slide={slide} colors={colors} variation={picked} onSelect={onElementSelect} selectedId={selectedElementId} titleFontScale={titleFontScale} textFontScale={textFontScale} />;
+            return withExportMeta('content', picked, <MasterContentLayout showPageNumber={finalShowPageNumber} slide={slide} colors={colors} variation={picked} onSelect={onElementSelect} selectedId={selectedElementId} titleFontScale={titleFontScale} textFontScale={textFontScale} />);
         }
 
         // Cover / Hero layouts
@@ -7673,20 +7682,20 @@ export const ModernSlideRenderer = ({
             }
 
 
-            return <MasterCoverLayout showPageNumber={finalShowPageNumber} slide={slide} colors={colors} variation={picked} onSelect={onElementSelect} selectedId={selectedElementId} titleFontScale={titleFontScale} textFontScale={textFontScale} fontScale={fontScale} />;
+            return withExportMeta('cover', picked, <MasterCoverLayout showPageNumber={finalShowPageNumber} slide={slide} colors={colors} variation={picked} onSelect={onElementSelect} selectedId={selectedElementId} titleFontScale={titleFontScale} textFontScale={textFontScale} fontScale={fontScale} />);
         }
 
         // Section divider
         if (normalizedType.includes('section') || normalizedType.includes('divider')) {
-
-            return <SectionDividerLayout showPageNumber={finalShowPageNumber} slide={slide} colors={colors} variation={getSectionVariation()} onSelect={onElementSelect} selectedId={selectedElementId} titleFontScale={titleFontScale} textFontScale={textFontScale} />;
+            const sectionVar = getSectionVariation();
+            return withExportMeta('section', sectionVar, <SectionDividerLayout showPageNumber={finalShowPageNumber} slide={slide} colors={colors} variation={sectionVar} onSelect={onElementSelect} selectedId={selectedElementId} titleFontScale={titleFontScale} textFontScale={textFontScale} />);
         }
 
         // Stats/Metrics by type - STRICT CHECK
         if (normalizedType.includes('stat') || normalizedType.includes('metric') || normalizedType.includes('kpi')) {
             if (hasStats) {
-
-                return <StatsLayout showPageNumber={finalShowPageNumber} slide={slide} colors={colors} variation={getStatsVariation()} onSelect={onElementSelect} selectedId={selectedElementId} titleFontScale={titleFontScale} textFontScale={textFontScale} />;
+                const statsVar = getStatsVariation();
+                return withExportMeta('stats', statsVar, <StatsLayout showPageNumber={finalShowPageNumber} slide={slide} colors={colors} variation={statsVar} onSelect={onElementSelect} selectedId={selectedElementId} titleFontScale={titleFontScale} textFontScale={textFontScale} />);
             }
 
         }
@@ -7694,8 +7703,8 @@ export const ModernSlideRenderer = ({
         // Chart by type - STRICT CHECK: Only if data exists, otherwise fallback to text
         if (normalizedType.includes('chart') || (normalizedType.includes('graph') && !normalizedType.includes('infographic'))) {
             if (hasChart) {
-
-                return <ChartLayout showPageNumber={finalShowPageNumber} slide={slide} colors={colors} variation={getChartVariation()} onSelect={onElementSelect} selectedId={selectedElementId} titleFontScale={titleFontScale} textFontScale={textFontScale} />;
+                const chartVar = getChartVariation();
+                return withExportMeta('chart', chartVar, <ChartLayout showPageNumber={finalShowPageNumber} slide={slide} colors={colors} variation={chartVar} onSelect={onElementSelect} selectedId={selectedElementId} titleFontScale={titleFontScale} textFontScale={textFontScale} />);
             } else {
 
                 // Fall through to default content handler
@@ -7705,10 +7714,11 @@ export const ModernSlideRenderer = ({
         // Timeline/Process by type - STRICT CHECK
         if (normalizedType.includes('timeline') || normalizedType.includes('roadmap') || normalizedType.includes('process')) {
             if (hasTimeline) {
-
-                return <TimelineLayout showPageNumber={finalShowPageNumber} slide={slide} colors={colors} variation={getTimelineVariation()} onSelect={onElementSelect} selectedId={selectedElementId} titleFontScale={titleFontScale} textFontScale={textFontScale} />;
+                const picked = getTimelineVariation();
+                return withExportMeta('timeline', picked, <TimelineLayout showPageNumber={finalShowPageNumber} slide={slide} colors={colors} variation={picked} onSelect={onElementSelect} selectedId={selectedElementId} titleFontScale={titleFontScale} textFontScale={textFontScale} />);
             } else if (hasInfographic) {
-                return <InfographicLayout showPageNumber={finalShowPageNumber} slide={slide} colors={colors} variation={getInfographicVariation()} onSelect={onElementSelect} selectedId={selectedElementId} titleFontScale={titleFontScale} textFontScale={textFontScale} />;
+                const picked = getInfographicVariation();
+                return withExportMeta('infographic', picked, <InfographicLayout showPageNumber={finalShowPageNumber} slide={slide} colors={colors} variation={picked} onSelect={onElementSelect} selectedId={selectedElementId} titleFontScale={titleFontScale} textFontScale={textFontScale} />);
             }
             // Fallback if no timeline data
 
@@ -7716,23 +7726,26 @@ export const ModernSlideRenderer = ({
 
         // Comparison - STRICT CHECK
         if (normalizedType.includes('comparison') || normalizedType.includes('versus') || normalizedType.includes('before')) {
-            return <ComparisonLayout showPageNumber={finalShowPageNumber} slide={slide} colors={colors} variation={getComparisonVariation()} onSelect={onElementSelect} selectedId={selectedElementId} titleFontScale={titleFontScale} textFontScale={textFontScale} />;
+            const picked = getComparisonVariation();
+            return withExportMeta('comparison', picked, <ComparisonLayout showPageNumber={finalShowPageNumber} slide={slide} colors={colors} variation={picked} onSelect={onElementSelect} selectedId={selectedElementId} titleFontScale={titleFontScale} textFontScale={textFontScale} />);
         }
 
         // Infographic
         if (normalizedType.includes('infographic') || normalizedType.includes('funnel') || normalizedType.includes('pyramid')) {
-
-            return <InfographicLayout showPageNumber={finalShowPageNumber} slide={slide} colors={colors} variation={getInfographicVariation()} onSelect={onElementSelect} selectedId={selectedElementId} titleFontScale={titleFontScale} textFontScale={textFontScale} />;
+            const picked = getInfographicVariation();
+            return withExportMeta('infographic', picked, <InfographicLayout showPageNumber={finalShowPageNumber} slide={slide} colors={colors} variation={picked} onSelect={onElementSelect} selectedId={selectedElementId} titleFontScale={titleFontScale} textFontScale={textFontScale} />);
         }
 
         // SWOT Analysis by type
         if (normalizedType.includes('swot')) {
-            return <SWOTLayout showPageNumber={finalShowPageNumber} slide={slide} colors={colors} variation={getSWOTVariation()} onSelect={onElementSelect} selectedId={selectedElementId} titleFontScale={titleFontScale} textFontScale={textFontScale} />;
+            const swotVar = getSWOTVariation();
+            return withExportMeta('swot', swotVar, <SWOTLayout showPageNumber={finalShowPageNumber} slide={slide} colors={colors} variation={swotVar} onSelect={onElementSelect} selectedId={selectedElementId} titleFontScale={titleFontScale} textFontScale={textFontScale} />);
         }
 
         // Executive Summary by type
         if (normalizedType.includes('executive') || normalizedType.includes('exec-summary') || normalizedType.includes('executive-summary')) {
-            return <ExecutiveSummaryLayout showPageNumber={finalShowPageNumber} slide={slide} colors={colors} variation={getExecSummaryVariation()} onSelect={onElementSelect} selectedId={selectedElementId} titleFontScale={titleFontScale} textFontScale={textFontScale} />;
+            const execVar = getExecSummaryVariation();
+            return withExportMeta('executive', execVar, <ExecutiveSummaryLayout showPageNumber={finalShowPageNumber} slide={slide} colors={colors} variation={execVar} onSelect={onElementSelect} selectedId={selectedElementId} titleFontScale={titleFontScale} textFontScale={textFontScale} />);
         }
 
         // Quote - Use dedicated QuoteLayout
@@ -7747,47 +7760,51 @@ export const ModernSlideRenderer = ({
             }
             const quoteVariation = quoteVariations[Math.abs(hash) % quoteVariations.length];
 
-            return <QuoteLayout showPageNumber={finalShowPageNumber} slide={slide} colors={colors} variation={quoteVariation} onSelect={onElementSelect} selectedId={selectedElementId} titleFontScale={titleFontScale} textFontScale={textFontScale} />;
+            return withExportMeta('quote', quoteVariation, <QuoteLayout showPageNumber={finalShowPageNumber} slide={slide} colors={colors} variation={quoteVariation} onSelect={onElementSelect} selectedId={selectedElementId} titleFontScale={titleFontScale} textFontScale={textFontScale} />);
         }
 
         // Bento grid
         if (normalizedType.includes('bento') || normalizedType.includes('grid') || normalizedType.includes('feature')) {
-
-            return <BentoGridLayout showPageNumber={finalShowPageNumber} slide={slide} colors={colors} variation={getBentoVariation()} onSelect={onElementSelect} selectedId={selectedElementId} titleFontScale={titleFontScale} textFontScale={textFontScale} />;
+            const bentoVar = getBentoVariation();
+            return withExportMeta('bento', bentoVar, <BentoGridLayout showPageNumber={finalShowPageNumber} slide={slide} colors={colors} variation={bentoVar} onSelect={onElementSelect} selectedId={selectedElementId} titleFontScale={titleFontScale} textFontScale={textFontScale} />);
         }
 
         // Showcase / Product
         if (normalizedType.includes('showcase') || normalizedType.includes('product')) {
-            return <ProductShowcaseLayout showPageNumber={finalShowPageNumber} slide={slide} colors={colors} variation={getShowcaseVariation()} onSelect={onElementSelect} selectedId={selectedElementId} titleFontScale={titleFontScale} textFontScale={textFontScale} />;
+            const showcaseVar = getShowcaseVariation();
+            return withExportMeta('showcase', showcaseVar, <ProductShowcaseLayout showPageNumber={finalShowPageNumber} slide={slide} colors={colors} variation={showcaseVar} onSelect={onElementSelect} selectedId={selectedElementId} titleFontScale={titleFontScale} textFontScale={textFontScale} />);
         }
 
         // Image focus / Gallery / Splash
         if (hasImage || hasGallery) {
-            return <ImageFocusLayout showPageNumber={finalShowPageNumber} slide={slide} colors={colors} variation={getImageFocusVariation()} onSelect={onElementSelect} selectedId={selectedElementId} titleFontScale={titleFontScale} textFontScale={textFontScale} />;
+            const imageVar = getImageFocusVariation();
+            return withExportMeta('image', imageVar, <ImageFocusLayout showPageNumber={finalShowPageNumber} slide={slide} colors={colors} variation={imageVar} onSelect={onElementSelect} selectedId={selectedElementId} titleFontScale={titleFontScale} textFontScale={textFontScale} />);
         }
 
         // Text Columns (explicit type match fallback)
         if (normalizedType.includes('text') && normalizedType.includes('column')) {
-
-            return <ThreeColumnTextLayout showPageNumber={finalShowPageNumber} slide={slide} colors={colors} variation={getMultiColumnVariation()} onSelect={onElementSelect} selectedId={selectedElementId} titleFontScale={titleFontScale} textFontScale={textFontScale} />;
+            const picked = getMultiColumnVariation();
+            return withExportMeta('text-columns', picked, <ThreeColumnTextLayout showPageNumber={finalShowPageNumber} slide={slide} colors={colors} variation={picked} onSelect={onElementSelect} selectedId={selectedElementId} titleFontScale={titleFontScale} textFontScale={textFontScale} />);
         }
 
         // Columns layout (legacy support) - Strict exclusion of text-columns
         if (normalizedType.includes('column') && !normalizedType.includes('text')) {
-
-            return <ComparisonLayout showPageNumber={finalShowPageNumber} slide={slide} colors={colors} variation={getComparisonVariation()} onSelect={onElementSelect} selectedId={selectedElementId} titleFontScale={titleFontScale} textFontScale={textFontScale} />;
+            const picked = getComparisonVariation();
+            return withExportMeta('comparison', picked, <ComparisonLayout showPageNumber={finalShowPageNumber} slide={slide} colors={colors} variation={picked} onSelect={onElementSelect} selectedId={selectedElementId} titleFontScale={titleFontScale} textFontScale={textFontScale} />);
         }
 
         // Bento fallback for items
         if (hasItems) {
-
-            return <BentoGridLayout showPageNumber={finalShowPageNumber} slide={slide} colors={colors} variation={getBentoVariation()} onSelect={onElementSelect} selectedId={selectedElementId} titleFontScale={titleFontScale} textFontScale={textFontScale} />;
+            const bentoVar = getBentoVariation();
+            return withExportMeta('bento', bentoVar, <BentoGridLayout showPageNumber={finalShowPageNumber} slide={slide} colors={colors} variation={bentoVar} onSelect={onElementSelect} selectedId={selectedElementId} titleFontScale={titleFontScale} textFontScale={textFontScale} />);
         }
 
         // Default: Content with bullets
 
         return <ContentBulletsLayout showPageNumber={finalShowPageNumber} slide={slide} colors={colors} onSelect={onElementSelect} selectedId={selectedElementId} titleFontScale={titleFontScale} textFontScale={textFontScale} />;
     };
+
+    const renderedLayout = renderLayout();
 
     return (
         <TemplateOverlay
@@ -7799,6 +7816,8 @@ export const ModernSlideRenderer = ({
         >
             <div
                 className={cn("w-full h-full relative overflow-hidden slide-container", className)}
+                data-export-family={resolvedExportFamily || undefined}
+                data-export-variation={resolvedExportVariation || undefined}
                 style={{
                     backgroundColor: colors.bg,
                     color: colors.text,
@@ -7812,7 +7831,7 @@ export const ModernSlideRenderer = ({
                     '--slide-font-scale': fontScale.toString(),
                 } as React.CSSProperties}
             >
-                {renderLayout()}
+                {renderedLayout}
 
                 {/* Custom Floating Elements Layer */}
                 {slide.elements && slide.elements.map((el: any) => (

@@ -7,6 +7,11 @@ export interface ExportThemeContract {
     textFontScale: number;
 }
 
+export interface ExportFontContract {
+    heading?: string;
+    body?: string;
+}
+
 export interface ExportSlideContract {
     id: string;
     type: string;
@@ -14,6 +19,8 @@ export interface ExportSlideContract {
     title?: string;
     subtitle?: string;
     variation?: string;
+    index?: number;
+    totalSlides?: number;
     [key: string]: any;
 }
 
@@ -23,6 +30,7 @@ export interface ExportDeckContract {
     subtitle?: string;
     theme: string;
     themeConfig: ExportThemeContract;
+    fontConfig?: ExportFontContract;
     colorScheme?: any;
     slides: ExportSlideContract[];
     brandLogoUrl?: string;
@@ -120,6 +128,7 @@ const normalizeSlide = (slide: any, index: number): ExportSlideContract => {
         id: String(slide?.id || `slide-${index + 1}`),
         type,
         layout,
+        index,
         ...(variation ? { variation } : {}),
     };
 };
@@ -137,8 +146,12 @@ export const normalizeExportDeck = (deck: any): ExportDeckContract => {
             id: themeId,
             ...themeScale,
         },
+        fontConfig: deck?.fontConfig,
         colorScheme: deck?.colorScheme,
-        slides: (deck?.slides || []).map((slide: any, index: number) => normalizeSlide(slide, index)),
+        slides: (deck?.slides || []).map((slide: any, index: number, slides: any[]) => ({
+            ...normalizeSlide(slide, index),
+            totalSlides: slides.length,
+        })),
         brandLogoUrl: deck?.brandLogoUrl,
         templateOverlay: normalizeTemplateOverlay(deck?.templateOverlay),
     };

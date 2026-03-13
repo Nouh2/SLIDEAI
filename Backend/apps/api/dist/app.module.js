@@ -24,6 +24,7 @@ import { LibraryModule } from './library/library.module.js';
 import { CommentsModule } from './comments/comments.module.js';
 import { OrgModule } from './org/org.module.js';
 import { AiModule } from './ai/ai.module.js';
+import { OpsModule } from './ops/ops.module.js';
 let AppModule = class AppModule {
     configure(consumer) {
         consumer.apply(AuditMiddleware).forRoutes('*');
@@ -44,6 +45,7 @@ AppModule = __decorate([
             CommentsModule,
             OrgModule,
             AiModule,
+            OpsModule,
         ],
         controllers: [
             HealthController,

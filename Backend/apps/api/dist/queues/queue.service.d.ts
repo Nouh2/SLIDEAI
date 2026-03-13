@@ -22,4 +22,7 @@ export declare class QueueService {
     readonly analyzeImageQueue: Queue<any, any, string, any, any, string>;
     readonly analyzeImageEvents: QueueEvents;
     addAnalyzeImage(payload: any, opts?: JobsOptions): Promise<import("bullmq").Job<any, any, string>>;
+    readonly lifecycleEmailQueue: Queue<any, any, string, any, any, string>;
+    readonly lifecycleEmailEvents: QueueEvents;
+    addLifecycleEmail(payload: any, opts?: JobsOptions): Promise<import("bullmq").Job<any, any, string>>;
 }

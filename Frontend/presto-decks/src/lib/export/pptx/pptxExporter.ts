@@ -5,6 +5,8 @@ import pptxgen from 'pptxgenjs';
 import { getAdapter } from './adapters';
 import { PresentationData, ColorPalette, SLIDE_WIDTH, SLIDE_HEIGHT, toHex } from './types';
 import { ExportProgressCallback } from '../types';
+import { buildEditableSlideScene } from './scene/builders';
+import { renderSceneToPptx } from './scene/renderScene';
 
 // Default color palette if none provided
 const DEFAULT_COLORS: ColorPalette = {
@@ -48,6 +50,7 @@ const getLogoPosition = (position: string, size: string) => {
  */
 export const exportToPPTX = async (
     presentation: PresentationData,
+    slideElements?: HTMLElement[],
     onProgress?: ExportProgressCallback
 ): Promise<void> => {
     if (!presentation.slides || presentation.slides.length === 0) {
@@ -90,6 +93,16 @@ export const exportToPPTX = async (
     // Process each slide
     for (let i = 0; i < processedSlides.length; i++) {
         const slideData = processedSlides[i];
+        const slideElement = slideElements?.[i];
+        const sceneMetaElement = slideElement?.matches?.('[data-export-family]')
+            ? slideElement
+            : slideElement?.querySelector?.('[data-export-family]');
+        const forcedLayout = sceneMetaElement
+            ? {
+                family: sceneMetaElement.getAttribute('data-export-family') || undefined,
+                variation: sceneMetaElement.getAttribute('data-export-variation') || undefined,
+            }
+            : undefined;
 
         onProgress?.({
             current: i,
@@ -101,12 +114,27 @@ export const exportToPPTX = async (
         // Create new slide
         const pptxSlide = pptx.addSlide();
 
-        // Get appropriate adapter
-        const adapter = getAdapter(slideData);
+        let renderedAsFallbackImage = false;
+        const sceneResult = buildEditableSlideScene(slideData, presentation, colors, forcedLayout);
 
-        // Render slide using adapter
         try {
-            await adapter.render(slideData, pptxSlide, colors, pptx);
+            if (sceneResult.supported && sceneResult.scene) {
+                renderSceneToPptx(pptxSlide, sceneResult.scene);
+            } else if (slideElements?.[i]) {
+                const { captureSlide } = await import('../pdfExporter');
+                const imageData = await captureSlide(slideElements[i], 2.8);
+                pptxSlide.addImage({
+                    data: imageData,
+                    x: 0,
+                    y: 0,
+                    w: '100%',
+                    h: '100%',
+                });
+                renderedAsFallbackImage = true;
+            } else {
+                const adapter = getAdapter(slideData);
+                await adapter.render(slideData, pptxSlide, colors, pptx);
+            }
         } catch (error) {
             console.error(`Error rendering slide ${i + 1}:`, error);
             // Add error placeholder
@@ -124,6 +152,10 @@ export const exportToPPTX = async (
         }
 
         // === CUSTOM TEMPLATE ELEMENTS ===
+        if (renderedAsFallbackImage) {
+            continue;
+        }
+
         if (presentation.templateOverlay) {
             const { logo, footer } = presentation.templateOverlay;
             const isCover = i === 0 || slideData.layout === 'cover';

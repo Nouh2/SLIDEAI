@@ -139,6 +139,25 @@ let QueueService = class QueueService {
             throw error;
         }
     }
+    // === LIFECYCLE EMAIL ===
+    lifecycleEmailQueue = new Queue('lifecycle-email', { connection });
+    lifecycleEmailEvents = new QueueEvents('lifecycle-email', { connection });
+    async addLifecycleEmail(payload, opts = {}) {
+        console.log('[QueueService] Adding job to lifecycle-email queue...');
+        try {
+            const job = await this.lifecycleEmailQueue.add('lifecycle-email', payload, {
+                attempts: 3,
+                removeOnComplete: 1000,
+                ...opts,
+            });
+            console.log('[QueueService] Lifecycle email job added:', job.id);
+            return job;
+        }
+        catch (error) {
+            console.error('[QueueService] Error adding lifecycle-email job:', error.message);
+            throw error;
+        }
+    }
 };
 QueueService = __decorate([
     Injectable()

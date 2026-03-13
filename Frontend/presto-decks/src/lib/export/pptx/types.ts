@@ -17,12 +17,14 @@ export interface SlideData {
     layout?: string;
     title?: string;
     subtitle?: string;
+    text?: string;
     bullets?: string[];
     stats?: Array<{ value: string; label: string; description?: string }>;
     metrics?: Array<{ value: string; label: string }>;
     chart?: {
         type?: string;
         data?: any[];
+        series?: Array<{ name?: string; data?: any[] }>;
         categories?: string[];
         labels?: string[];
         datasets?: any[];
@@ -45,8 +47,12 @@ export interface SlideData {
     columns?: Array<{ title?: string; description?: string; icon?: string }>;
     content?: any;
     backgroundImage?: string;
+    images?: string[];
     imageSearchQuery?: string;
     variation?: string;
+    index?: number;
+    totalSlides?: number;
+    isChartImage?: boolean;
 }
 
 export interface PresentationData {
@@ -55,6 +61,16 @@ export interface PresentationData {
     subtitle?: string;
     slides: SlideData[];
     theme: string;
+    themeConfig?: {
+        id?: string;
+        fontScale?: number;
+        titleFontScale?: number;
+        textFontScale?: number;
+    };
+    fontConfig?: {
+        heading?: string;
+        body?: string;
+    };
     colorScheme?: ColorPalette;
     // Template Branding
     brandLogoUrl?: string;

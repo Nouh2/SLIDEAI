@@ -29,12 +29,12 @@
   },
   "hero": {
     "badge": "SlideAI v2.0",
-    "title": "Le générateur PowerPoint IA pour créer vos présentations automatiquement",
-    "subtitle": "SlideAI est l'outil IA présentation pour créer un PowerPoint avec IA, générer une présentation automatiquement et livrer vos slides plus vite.",
+    "title": "Une présentation client-ready en 40 secondes.",
+    "subtitle": "Importez votre brief, votre audit ou vos données client. SlideAI génère la structure, le contenu et le design. Vous livrez.",
     "cta": "Démarrer l'essai 7 jours",
     "microProofs": {
       "target": "Conçu pour cabinets de conseil, audit, marketing et freelances",
-      "roi": "Jusqu'à plusieurs heures gagnées par mission",
+      "roi": "Plusieurs heures gagnées par mission",
       "features": "Export PDF/PPTX | Partage client | Design pro"
     },
     "trialNote": "Essai gratuit 7 jours. Sans carte bancaire. Compte requis pour sauvegarder vos decks.",
@@ -48,7 +48,7 @@
       "createWithAI": "Comment créer un PowerPoint avec IA",
       "whyTool": "Pourquoi utiliser un outil IA présentation",
       "autoGenerate": "Générer une présentation automatiquement",
-      "startNow": "Créez votre première présentation en 30 secondes"
+      "startNow": "Créer ma première présentation"
     }
   },
   "livrables": {
@@ -74,7 +74,7 @@
     }
   },
   "howItWorks": {
-    "title": "Comment créer un PowerPoint avec IA en 30 secondes",
+    "title": "Comment créer un PowerPoint avec IA en 40 secondes",
     "steps": {
       "1": {
         "title": "Importez votre document client",
@@ -182,9 +182,9 @@
     }
   },
   "finalCta": {
-    "title": "Créez votre première presentation en 30 secondes",
+    "title": "Votre prochaine présentation client, prête en 40 secondes.",
     "subtitle": "Démarrez votre essai gratuit de 7 jours.\nSans carte bancaire. Sans engagement.",
-    "button": "Demarrer mon essai 7 jours"
+    "button": "Démarrer mon essai 7 jours"
   },
   "dashboard": {
     "title": "Tableau de bord",

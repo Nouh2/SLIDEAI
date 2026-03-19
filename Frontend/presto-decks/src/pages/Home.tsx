@@ -17,14 +17,15 @@ import { StickyTrialCta } from "@/components/home/StickyTrialCta";
 import { BusinessSeoSection } from "@/components/home/BusinessSeoSection";
 import { SEO } from "@/components/common/SEO";
 import { Analytics, ANALYTICS_EVENTS } from "@/lib/analytics";
+import { toAbsoluteUrl } from "@/lib/localeRouting";
 
 export default function Home() {
   const navigate = useNavigate();
   const { t, i18n } = useTranslation();
   const isFr = i18n.language.startsWith("fr");
   const seoTitle = isFr
-    ? "Générateur PowerPoint IA | Créez vos présentations en 30 secondes"
-    : "AI PowerPoint Generator | Create presentations in 30 seconds";
+    ? "Générateur PowerPoint IA | Créez vos présentations en 40 secondes"
+    : "AI PowerPoint Generator | Create presentations in 40 seconds";
   const seoDescription = isFr
     ? "Le générateur PowerPoint IA pour créer un PowerPoint avec IA, générer une présentation automatiquement et livrer plus vite. Essai 7 jours sans carte bancaire."
     : "Use AI to create presentations automatically from your client docs. Start a 7-day trial with no credit card.";
@@ -98,8 +99,18 @@ export default function Home() {
     "@context": "https://schema.org",
     "@type": "WebSite",
     name: "SlideAI",
-    url: "https://www.slideai.fr/",
+    url: toAbsoluteUrl("/", isFr ? "fr" : "en"),
     inLanguage: isFr ? "fr-FR" : "en-US",
+  };
+  const organizationSchema = {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    name: "SlideAI",
+    url: "https://www.slideai.fr",
+    logo: {
+      "@type": "ImageObject",
+      url: "https://www.slideai.fr/logo.png",
+    },
   };
   const handleBottomCta = () => {
     Analytics.trackEvent(
@@ -117,9 +128,11 @@ export default function Home() {
         description={seoDescription}
         keywords={seoKeywords}
         url="/"
+        alternates={{ fr: "/", en: "/", "x-default": "/" }}
       />
 
       <Helmet>
+        <script type="application/ld+json">{JSON.stringify(organizationSchema)}</script>
         <script type="application/ld+json">{JSON.stringify(softwareSchema)}</script>
         <script type="application/ld+json">{JSON.stringify(faqSchema)}</script>
         <script type="application/ld+json">{JSON.stringify(websiteSchema)}</script>

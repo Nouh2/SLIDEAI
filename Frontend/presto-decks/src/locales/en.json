@@ -29,12 +29,12 @@
   },
   "hero": {
     "badge": "SlideAI v2.0",
-    "title": "AI PowerPoint generator to create presentations automatically",
-    "subtitle": "SlideAI helps consulting, audit, marketing teams, and freelancers create PowerPoint decks with AI and generate presentations automatically.",
+    "title": "A client-ready presentation in 40 seconds.",
+    "subtitle": "Upload your brief, audit, or client data. SlideAI generates the structure, content, and design. You deliver.",
     "cta": "Start 7-day trial",
     "microProofs": {
       "target": "Built for consulting, audit, marketing teams and freelancers",
-      "roi": "Save multiple hours per mission",
+      "roi": "Save hours per mission",
       "features": "PDF/PPTX Export | Client Sharing | Pro Design"
     },
     "trialNote": "7-day free trial. No credit card required. Account required to save decks.",
@@ -48,7 +48,7 @@
       "createWithAI": "How to create a PowerPoint with AI",
       "whyTool": "Why use an AI presentation tool",
       "autoGenerate": "Generate a presentation automatically",
-      "startNow": "Create your first presentation in 30 seconds"
+      "startNow": "Create my first presentation"
     }
   },
   "livrables": {
@@ -74,7 +74,7 @@
     }
   },
   "howItWorks": {
-    "title": "How to create a PowerPoint with AI in 30 seconds",
+    "title": "How to create a PowerPoint with AI in 40 seconds",
     "steps": {
       "1": {
         "title": "Import your client document",
@@ -949,7 +949,7 @@
     }
   },
   "finalCta": {
-    "title": "Create your first presentation in 30 seconds",
+    "title": "Your next client presentation, ready in 40 seconds.",
     "subtitle": "Start your 7-day free trial.\nNo credit card. No commitment.",
     "button": "Start my 7-day trial"
   },

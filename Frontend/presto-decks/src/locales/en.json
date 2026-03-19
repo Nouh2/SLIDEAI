@@ -195,7 +195,8 @@
     "plan": "Plan",
     "proTrial": "Pro trial",
     "trialExpired": "Trial expired",
-    "freeLegacy": "Free plan",
+    "freeLegacy": "Legacy access",
+    "generations": "generation(s)",
     "paymentRequired": "Subscription required to continue",
     "unlimitedPresentations": "Unlimited Presentations",
     "presentations": "presentations",
@@ -436,7 +437,8 @@
     "packBadge": "One-shot credits",
     "packActiveNote": "Your pack adds one-shot generations and PDF/PPTX export. Advanced features remain reserved for Pro.",
     "packActiveTitle": "One-shot generations available",
-    "packActiveDetail": "This pack lets you keep generating occasionally and export to PDF/PPTX while keeping the rest of the free-plan feature set.",
+    "packActiveDetail": "This pack lets you generate occasionally and export to PDF/PPTX without unlocking Pro's advanced features.",
+    "legacyAccess": "Legacy access",
     "buyAnotherPack": "Buy another pack",
     "packFooter": "Packs are one-shot purchases. Pro remains the best fit for regular usage.",
     "recentPresentations": "Recent presentations",
@@ -922,7 +924,7 @@
     "questions": {
       "subscription": {
         "q": "Is there a mandatory subscription?",
-        "a": "No. You can use the free plan, start a 7-day no-card trial, or buy a one-time pack."
+        "a": "No. You can start a 7-day no-card trial, then choose a subscription or buy a one-time pack."
       },
       "deliver": {
         "q": "Can I really deliver these slides to clients?",
@@ -1249,40 +1251,42 @@
       },
       "starter": {
         "name": "Starter",
-        "description": "For consultants and teams delivering regularly.",
+        "description": "For consultants and freelancers delivering regularly.",
         "cta": "Start Starter trial",
         "features": {
-          "presentations": "Unlimited presentations",
+          "generations": "15 generations per month",
           "pdfImport": "PDF Import (Advanced)",
-          "storage": "1 GB Storage",
-          "aiSlides": "Standard AI Generation",
-          "aiRegen": "Unlimited AI Regeneration",
-          "export": "PDF & PowerPoint Export",
-          "sharing": "Private Sharing"
+          "export": "PDF and image-based PowerPoint export",
+          "sharing": "Link sharing",
+          "noWatermark": "No watermark on exports"
+        },
+        "limitations": {
+          "brandKit": "Brand kit available on Pro"
         }
       },
       "pro": {
         "name": "Pro",
-        "description": "For teams needing higher volume, speed, and premium output.",
+        "description": "For teams that need brand control and premium deliverables.",
         "features": {
           "unlimitedGen": "Unlimited Generation",
           "pdfImport": "PDF to PowerPoint (Pro)",
-          "storage": "10 GB Storage",
-          "unlimitedSlides": "Unlimited Slides",
-          "export": "Priority Export",
+          "brandKit": "Unlimited brand kits",
+          "export": "Priority PDF/PPTX export",
           "support": "Priority Support",
-          "beta": "Access to Beta features"
+          "editableExport": "Editable PowerPoint export"
         }
       },
       "business": {
-        "name": "Business",
-        "description": "For teams and organizations.",
+        "name": "Team",
+        "description": "For agencies and teams sharing one workspace.",
+        "badge": "Sales assisted",
+        "billingNote": "Billed yearly, 3-seat minimum",
+        "billingNoteMonthly": "Billed monthly, 3-seat minimum",
         "features": {
           "allPro": "All Pro features",
-          "collab": "Team Collaboration",
-          "support": "Dedicated Support",
-          "analytics": "Advanced Analytics",
-          "sso": "SSO & Security"
+          "workspace": "Shared team workspace",
+          "members": "Member management",
+          "billing": "Centralized billing"
         }
       }
     },
@@ -1306,7 +1310,59 @@
         "cta": "Buy Pack"
       }
     },
-    "trialLine": "7-day free trial on Starter and Pro, no credit card required."
+    "trialLine": "Start with a 7-day no-card trial before choosing Starter or Pro.",
+    "heroBadge": "One-time payment • No commitment",
+    "heroTitle": "Pay for what you use.",
+    "heroTagline": "A pack for one project, a subscription for regular use. Your account stays active forever.",
+    "packsSectionBadge": "Recommended",
+    "packsTitle": "One-shot packs",
+    "packsSubtitle": "Ideal for consultants delivering one project every 2–3 months.",
+    "packsTjmLine": "Less than 0.1% of your daily rate per deliverable.",
+    "packMission": {
+      "badge": "Pack",
+      "name": "Mission Pack",
+      "subtitle": "For a mission, a bid, an audit",
+      "keyLine": "5 generations",
+      "validity": "Valid for 3 months",
+      "features": [
+        "5 presentation generations",
+        "PDF + PowerPoint export",
+        "Document import (PDF, DOCX, TXT)",
+        "Slide editing included",
+        "No subscription"
+      ],
+      "cta": "Buy this pack"
+    },
+    "packTrimestre": {
+      "badge": "Best value",
+      "name": "Quarter Pack",
+      "subtitle": "For multiple missions over 6 months",
+      "keyLine": "15 generations",
+      "validity": "Valid for 6 months",
+      "features": [
+        "15 presentation generations",
+        "PDF + editable PowerPoint export",
+        "Document import (PDF, DOCX, TXT)",
+        "Brand kit included",
+        "Priority support",
+        "No subscription"
+      ],
+      "cta": "Buy this pack"
+    },
+    "packOneShot": "One-time payment • No subscription",
+    "subscriptionSectionBadge": "Regular usage",
+    "subscriptionTitle": "Subscriptions",
+    "subscriptionSubtitle": "For weekly usage, team brand kits, and unlimited exports.",
+    "freeAccessTitle": "Your account stays active forever",
+    "freeAccessSubtitle": "Even without an active pack or subscription, you keep access to your presentations.",
+    "freeAccessFeatures": [
+      "View your presentations",
+      "Edit slide text",
+      "PDF export with watermark",
+      "Read-only link sharing",
+      "AI slide translation",
+      "AI content regeneration"
+    ]
   },
   "view": {
     "presentationDefaultTitle": "Presentation",

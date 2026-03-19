@@ -157,7 +157,7 @@
     "questions": {
       "subscription": {
         "q": "Y a-t-il un abonnement obligatoire ?",
-        "a": "Non. Vous pouvez utiliser le plan gratuit, démarrer un essai 7 jours sans carte, ou acheter un pack en paiement unique."
+        "a": "Non. Vous pouvez démarrer un essai 7 jours sans carte, puis choisir un abonnement ou acheter un pack en paiement unique."
       },
       "deliver": {
         "q": "Puis-je vraiment livrer ces slides à un client ?",
@@ -221,7 +221,8 @@
     "plan": "Plan",
     "proTrial": "Essai Pro",
     "trialExpired": "Essai expiré",
-    "freeLegacy": "Plan gratuit",
+    "freeLegacy": "Accès hérité",
+    "generations": "génération(s)",
     "paymentRequired": "Abonnement requis pour continuer",
     "unlimitedPresentations": "Présentations illimitées",
     "presentations": "présentations",
@@ -463,7 +464,8 @@
     "packBadge": "Crédits one-shot",
     "packActiveNote": "Votre pack ajoute des générations ponctuelles et l'export PDF/PPTX. Les fonctionnalités avancées restent réservées à Pro.",
     "packActiveTitle": "Générations ponctuelles disponibles",
-    "packActiveDetail": "Ce pack vous permet de continuer à générer ponctuellement et à exporter en PDF/PPTX, tout en gardant le reste des fonctionnalités du plan gratuit.",
+    "packActiveDetail": "Ce pack vous permet de générer ponctuellement et d'exporter en PDF/PPTX, sans débloquer les fonctionnalités avancées de Pro.",
+    "legacyAccess": "Accès hérité",
     "buyAnotherPack": "Acheter un autre pack",
     "packFooter": "Les packs sont des achats one-shot. L'abonnement Pro reste recommandé pour un usage régulier.",
     "recentPresentations": "Présentations récentes",
@@ -1186,7 +1188,7 @@
     "monthly": "Mensuel",
     "yearly": "Annuel",
     "discount": "-20%",
-    "allCardsAccepted": "Paiement sécurisé si vous continuez apres l'essai.",
+    "allCardsAccepted": "Paiement sécurisé uniquement si vous continuez après l'essai.",
     "noSubscription": "Essai 7 jours sans carte bancaire",
     "packActiveBannerLabel": "Pack actif",
     "packActiveBannerTitle": "Vous avez encore {{count}} génération(s) ponctuelle(s)",
@@ -1227,40 +1229,42 @@
       },
       "starter": {
         "name": "Starter",
-        "description": "Pour consultants et equipes qui livrent regulierement.",
+        "description": "Pour consultants et freelances qui livrent régulièrement.",
         "cta": "Demarrer essai Starter",
         "features": {
-          "presentations": "Présentations illimitées",
+          "generations": "15 générations par mois",
           "pdfImport": "Import PDF (Avancé)",
-          "storage": "1 Go de stockage",
-          "aiSlides": "Génération IA Standard",
-          "aiRegen": "Régénération IA Illimitée",
-          "export": "Export PDF & PowerPoint",
-          "sharing": "Partage Privé"
+          "export": "Export PDF et PowerPoint image",
+          "sharing": "Partage par lien",
+          "noWatermark": "Exports sans filigrane"
+        },
+        "limitations": {
+          "brandKit": "Brand kit réservé à Pro"
         }
       },
       "pro": {
         "name": "Pro",
-        "description": "Pour les equipes qui veulent du volume, de la vitesse et un rendu premium.",
+        "description": "Pour les équipes qui veulent leur identité de marque et un livrable premium.",
         "features": {
           "unlimitedGen": "Génération Illimitée",
           "pdfImport": "PDF vers PowerPoint (Pro)",
-          "storage": "10 Go de stockage",
-          "unlimitedSlides": "Slides Illimitées",
-          "export": "Export Prioritaire",
+          "brandKit": "Brand kits illimités",
+          "export": "Export prioritaire PDF/PPTX",
           "support": "Support Prioritaire",
-          "beta": "Accès aux fonctionnalités Beta"
+          "editableExport": "Export PowerPoint éditable"
         }
       },
       "business": {
-        "name": "Business",
-        "description": "Pour les équipes et organisations.",
+        "name": "Team",
+        "description": "Pour cabinets, agences et équipes qui partagent un workspace.",
+        "badge": "Accompagnement",
+        "billingNote": "Facturé annuellement, minimum 3 sièges",
+        "billingNoteMonthly": "Facturé mensuellement, minimum 3 sièges",
         "features": {
           "allPro": "Toutes les fonctionnalités Pro",
-          "collab": "Collaboration d'équipe",
-          "support": "Support Dédié",
-          "analytics": "Analytiques Avancées",
-          "sso": "SSO & Sécurité"
+          "workspace": "Workspace d'équipe partagé",
+          "members": "Gestion des membres",
+          "billing": "Facturation centralisée"
         }
       }
     },
@@ -1284,8 +1288,60 @@
         "cta": "Acheter le pack"
       }
     },
-    "trialLine": "Essai gratuit 7 jours sur Starter et Pro, sans carte bancaire.",
-    "winbackCodeApplied": "Offre de relance détectée : le code {{code}} sera appliqué au checkout."
+    "trialLine": "Essai 7 jours sans carte bancaire avant de choisir Starter ou Pro.",
+    "winbackCodeApplied": "Offre de relance détectée : le code {{code}} sera appliqué au checkout.",
+    "heroBadge": "Paiement unique • Sans engagement",
+    "heroTitle": "Payez ce que vous utilisez.",
+    "heroTagline": "Un pack pour un projet, un abonnement pour un usage régulier. Votre compte reste actif à vie.",
+    "packsSectionBadge": "Recommandé",
+    "packsTitle": "Packs ponctuels",
+    "packsSubtitle": "Idéal pour les consultants qui livrent un projet tous les 2-3 mois.",
+    "packsTjmLine": "Moins de 0,1 % de votre TJM par livrable.",
+    "packMission": {
+      "badge": "Pack",
+      "name": "Pack Mission",
+      "subtitle": "Pour une mission, un appel d'offres, un audit",
+      "keyLine": "5 générations",
+      "validity": "Valables 3 mois",
+      "features": [
+        "5 générations de présentation",
+        "Export PDF + PowerPoint",
+        "Import de documents (PDF, DOCX, TXT)",
+        "Édition des slides incluse",
+        "Sans abonnement"
+      ],
+      "cta": "Acheter ce pack"
+    },
+    "packTrimestre": {
+      "badge": "Meilleur rapport qualité/prix",
+      "name": "Pack Trimestre",
+      "subtitle": "Pour plusieurs missions sur 6 mois",
+      "keyLine": "15 générations",
+      "validity": "Valables 6 mois",
+      "features": [
+        "15 générations de présentation",
+        "Export PDF + PowerPoint éditable",
+        "Import de documents (PDF, DOCX, TXT)",
+        "Brand kit inclus",
+        "Support prioritaire",
+        "Sans abonnement"
+      ],
+      "cta": "Acheter ce pack"
+    },
+    "packOneShot": "Paiement unique • Pas d'abonnement",
+    "subscriptionSectionBadge": "Usage régulier",
+    "subscriptionTitle": "Abonnements",
+    "subscriptionSubtitle": "Pour un usage hebdomadaire, des brand kits d'équipe et des exports illimités.",
+    "freeAccessTitle": "Votre compte reste actif à vie",
+    "freeAccessSubtitle": "Même sans pack ni abonnement actif, vous gardez accès à vos présentations.",
+    "freeAccessFeatures": [
+      "Visualisation de vos présentations",
+      "Édition du texte des slides",
+      "Export PDF avec filigrane",
+      "Partage par lien (lecture seule)",
+      "Traduction IA des slides",
+      "Régénération de contenu IA"
+    ]
   },
   "home": {
     "freeNote": "Essai 7 jours gratuit | sans carte bancaire"

@@ -95,6 +95,7 @@ import { ExportDialog } from "@/components/editor/ExportDialog";
 import { TemplateOverlay } from "@/components/slides/TemplateOverlay";
 import { ToastAction } from "@/components/ui/toast";
 import { parseClipboardData, createSlideFromTable } from "@/lib/smartPaste";
+import { hasFeature, isExpiredTrialSubscription } from "@/lib/subscription";
 
 const isPlainObject = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value);
@@ -227,6 +228,7 @@ export default function Editor() {
   const [error, setError] = useState<string | null>(null);
   const [isExportDialogOpen, setIsExportDialogOpen] = useState(false);
   const [accessToken, setAccessToken] = useState<string | null>(null);
+  const [subscription, setSubscription] = useState<any>(null);
   const [showWatermark, setShowWatermark] = useState(false);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
   const [isImageModalOpen, setIsImageModalOpen] = useState(false);
@@ -313,6 +315,14 @@ export default function Editor() {
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const pendingSaveRef = useRef<any>(null);
   const projectRef = useRef<any>(null); // Ref to access latest project state in event listeners
+  const canShareByLink = hasFeature(subscription, "public_link");
+  const canExportAnything = hasFeature(subscription, "export_pdf") || hasFeature(subscription, "export_pptx");
+  const shareDisabledReason = canShareByLink
+    ? undefined
+    : t("editorPage.shareUpgrade");
+  const exportDisabledReason = canExportAnything
+    ? undefined
+    : t("editorPage.exportUpgrade");
 
   // Sync projectRef with currentProject
   useEffect(() => {
@@ -331,6 +341,16 @@ export default function Editor() {
     };
     getToken();
   }, []);
+
+  useEffect(() => {
+    if (!accessToken) {
+      return;
+    }
+
+    api.getMySubscription(accessToken)
+      .then((data) => setSubscription(data))
+      .catch((error) => console.error("Failed to load subscription", error));
+  }, [accessToken]);
 
   // Keyboard navigation
   useEffect(() => {
@@ -1238,6 +1258,8 @@ export default function Editor() {
                   <ShareDialog
                     presentationId={currentProject.id}
                     accessToken={accessToken}
+                    disabled={!canShareByLink}
+                    disabledReason={shareDisabledReason}
                   />
                 )}
                 {currentProject && accessToken && (
@@ -1326,6 +1348,8 @@ export default function Editor() {
                 <Button
                   variant="ghost"
                   onClick={() => setIsExportDialogOpen(true)}
+                  disabled={!canExportAnything}
+                  title={exportDisabledReason}
                   className="h-9 w-9 md:w-auto px-0 md:px-4 rounded-lg hover:text-primary hover:bg-primary/5 transition-all duration-300 hover:scale-105 hover:-translate-y-0.5"
                 >
                   <Download className="w-4 h-4 md:mr-2" />
@@ -1865,6 +1889,7 @@ export default function Editor() {
           onOpenChange={setIsExportDialogOpen}
           presentation={currentProject}
           accessToken={accessToken}
+          subscription={subscription}
         />
 
         {/* Image Replacement Modal */}

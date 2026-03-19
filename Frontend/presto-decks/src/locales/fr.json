@@ -926,17 +926,17 @@
     "footer": "📊 Design Moderne • 🎨 Thèmes Prédéfinis • ✨ Animations Fluides • 🚀 Prêt à Présenter"
   },
   "outOfCredits": {
-    "title": "Plus de crédits disponibles",
-    "description": "Vous avez utilisé toutes vos générations disponibles. Passez à l'abonnement pour un usage régulier, ou achetez un pack si votre besoin est ponctuel et que vous voulez continuer à exporter.",
+    "title": "Générations épuisées",
+    "description": "Vos générations disponibles sont utilisées. Votre compte reste actif — consultation, édition et export PDF toujours disponibles.",
     "packs": {
-      "title": "Packs one-shot",
-      "desc": "Achetez des générations ponctuelles, sans abonnement, avec export PDF/PPTX inclus."
+      "title": "Pack Mission — 19 €",
+      "desc": "5 générations valables 3 mois, sans abonnement. Idéal pour un besoin ponctuel."
     },
     "subscriptions": {
-      "title": "Abonnements",
-      "desc": "Pour un usage régulier, des fonctionnalités avancées et jusqu'à des générations illimitées."
+      "title": "Pro — 14 €/mois",
+      "desc": "Générations illimitées, brand kits, export PPTX éditable. Pour un usage régulier."
     },
-    "seeOptions": "Voir les options",
+    "seeOptions": "Voir les packs",
     "later": "Plus tard"
   },
   "templateSelector": {
@@ -1039,6 +1039,8 @@
     }
   },
   "editorPage": {
+    "shareUpgrade": "Votre essai est terminé. Prenez un pack ou un abonnement pour partager par lien.",
+    "exportUpgrade": "Votre essai est terminé. Prenez un pack ou un abonnement pour exporter ce deck.",
     "errors": {
       "authRequired": "Connexion requise",
       "loading": "Erreur lors du chargement",
@@ -1190,6 +1192,9 @@
     "discount": "-20%",
     "allCardsAccepted": "Paiement sécurisé uniquement si vous continuez après l'essai.",
     "noSubscription": "Essai 7 jours sans carte bancaire",
+    "trialStarted": "Votre essai Pro 7 jours est maintenant actif.",
+    "continueTrial": "Continuer l'essai",
+    "choosePro": "Choisir Pro",
     "packActiveBannerLabel": "Pack actif",
     "packActiveBannerTitle": "Vous avez encore {{count}} génération(s) ponctuelle(s)",
     "packActiveBannerDesc": "Les packs ajoutent des générations one-shot avec export PDF/PPTX. Pour débloquer les fonctionnalités avancées et un usage régulier, passez à Pro.",

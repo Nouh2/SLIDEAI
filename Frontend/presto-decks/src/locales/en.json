@@ -969,17 +969,17 @@
     "footer": "📊 Modern Design • 🎨 Preset Themes • ✨ Fluid Animations • 🚀 Ready to Present"
   },
   "outOfCredits": {
-    "title": "Out of credits",
-    "description": "You have used all available generations. Upgrade for regular usage, or buy a pack if your need is occasional and you still want export.",
+    "title": "No more generations",
+    "description": "Your generations are used up. Your account stays active — viewing, editing, and PDF export are still available.",
     "packs": {
-      "title": "One-shot packs",
-      "desc": "Buy one-shot generations with no subscription, with PDF/PPTX export included."
+      "title": "Pack Mission — €19",
+      "desc": "5 generations valid for 3 months, no subscription. Perfect for occasional needs."
     },
     "subscriptions": {
-      "title": "Subscriptions",
-      "desc": "For regular usage, advanced features, and up to unlimited generations."
+      "title": "Pro — €14/month",
+      "desc": "Unlimited generations, brand kits, editable PPTX export. For regular usage."
     },
-    "seeOptions": "See options",
+    "seeOptions": "See packs",
     "later": "Later"
   },
   "templateSelector": {
@@ -1082,6 +1082,8 @@
     }
   },
   "editorPage": {
+    "shareUpgrade": "Your trial has ended. Get a pack or subscription to share by link.",
+    "exportUpgrade": "Your trial has ended. Get a pack or subscription to export this deck.",
     "errors": {
       "authRequired": "Login required",
       "loading": "Error loading presentation",
@@ -1211,6 +1213,9 @@
     "discount": "-20%",
     "allCardsAccepted": "Secure payment only if you continue after trial.",
     "noSubscription": "7-day free trial with no credit card",
+    "trialStarted": "Your 7-day Pro trial is now active.",
+    "continueTrial": "Continue trial",
+    "choosePro": "Choose Pro",
     "packActiveBannerLabel": "Active pack",
     "packActiveBannerTitle": "You still have {{count}} one-shot generation(s)",
     "packActiveBannerDesc": "Packs add one-shot generations with PDF/PPTX export. Upgrade to Pro for advanced features and regular usage.",

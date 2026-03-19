@@ -7,7 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Search, FolderOpen, Copy, Trash2, Calendar, Loader2, Users, Zap } from "lucide-react";
+import { Plus, Search, FolderOpen, Copy, Trash2, Calendar, Loader2, Users, Zap, ArrowRight, Sparkles } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/contexts/AuthContext";
 import { api } from "@/lib/api";
@@ -22,6 +22,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { getPlanDisplayKey, isLegacySubscription, isPackSubscription, isTrialingSubscription } from "@/lib/subscription";
 
 interface Presentation {
   id: string;
@@ -143,10 +144,11 @@ export default function Dashboard() {
     ];
 
   const totalSharedCount = sharedPresentations.length + viewOnlyPresentations.length;
-  const isPackActive = Boolean(subscription?.packActive);
-  const isTrialing = subscription?.accessState === "trialing";
+  const isPackActive = isPackSubscription(subscription);
+  const isTrialing = isTrialingSubscription(subscription);
   const isExpiredTrial = subscription?.accessState === "trial_expired";
-  const isLegacyFree = subscription?.accessState === "legacy_free";
+  const isLegacyFree = isLegacySubscription(subscription);
+  const displayPlanKey = getPlanDisplayKey(subscription);
   const planLabel = isPackActive
     ? t("dashboard.packActive", { defaultValue: "Pack actif" })
     : isTrialing
@@ -154,8 +156,10 @@ export default function Dashboard() {
       : isExpiredTrial
         ? t("dashboard.trialExpired", { defaultValue: "Essai expiré" })
         : isLegacyFree
-          ? t("dashboard.freeLegacy", { defaultValue: "Plan gratuit" })
-          : `${t("dashboard.plan")} ${subscription?.plan}`;
+          ? t("dashboard.freeLegacy", { defaultValue: "Acces herite" })
+          : displayPlanKey
+            ? `${t("dashboard.plan")} ${t(`pricing.plans.${displayPlanKey}.name`)}`
+            : t("dashboard.plan");
 
   const planMeta = isTrialing
     ? (i18n.language === "fr"
@@ -170,7 +174,7 @@ export default function Dashboard() {
             defaultValue: "{{count}} generation(s) ponctuelle(s) restante(s)",
             count: subscription?.packCreditsRemaining ?? subscription?.creditsRemaining ?? 0,
           })
-        : `${subscription?.creditsRemaining ?? 0} ${t("dashboard.presentations")}`;
+        : `${subscription?.creditsRemaining ?? 0} ${t("dashboard.generations", { defaultValue: "génération(s)" })}`;
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -251,6 +255,30 @@ export default function Dashboard() {
           </Link>
         </Button>
       </div>
+
+      {isExpiredTrial && (
+        <div className="rounded-2xl border border-primary/30 bg-primary/5 px-5 py-4 flex flex-col sm:flex-row sm:items-center gap-4">
+          <div className="flex-1 space-y-1">
+            <p className="text-sm font-bold text-foreground">
+              {i18n.language.startsWith("fr")
+                ? "Votre compte reste actif — vos présentations aussi."
+                : "Your account is still active — your presentations too."}
+            </p>
+            <p className="text-sm text-muted-foreground">
+              {i18n.language.startsWith("fr")
+                ? "Consultation, édition et export PDF (avec filigrane) sont toujours disponibles. Pour générer de nouveaux decks, prenez un Pack Mission à 19 €."
+                : "Viewing, editing, and PDF export (with watermark) are still available. To generate new decks, get a Pack Mission for €19."}
+            </p>
+          </div>
+          <Button size="sm" variant="solid" asChild className="shrink-0">
+            <Link to="/pricing">
+              <Sparkles className="mr-1.5 h-4 w-4" />
+              {i18n.language.startsWith("fr") ? "Voir les packs" : "See packs"}
+              <ArrowRight className="ml-1.5 h-4 w-4" />
+            </Link>
+          </Button>
+        </div>
+      )}
 
       <div className="flex gap-2 border-b border-border pb-2 overflow-x-auto scrollbar-hide -mx-4 px-4 md:mx-0 md:px-0">
         <Button variant={activeTab === "owned" ? "solid" : "ghost"} onClick={() => setActiveTab("owned")} className="rounded-b-none">

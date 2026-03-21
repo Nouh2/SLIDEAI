@@ -24,7 +24,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { getPlanDisplayKey, isLegacySubscription, isPackSubscription, isTrialingSubscription } from "@/lib/subscription";
 import { HearAboutUsDialog } from "@/components/common/HearAboutUsDialog";
-import { FeatureDiscoveryCard } from "@/components/common/FeatureDiscoveryCard";
+import { FeatureDiscoveryCard, PlanType } from "@/components/common/FeatureDiscoveryCard";
 
 interface Presentation {
   id: string;
@@ -219,7 +219,15 @@ export default function Dashboard() {
         <HearAboutUsDialog userId={currentUserId} userEmail={currentUserEmail ?? undefined} />
       )}
       {currentUserId && (
-        <FeatureDiscoveryCard userId={currentUserId} isPayingUser={isPackActive || !!getPlanDisplayKey(subscription)} isPack={isPackActive} />
+        <FeatureDiscoveryCard
+          userId={currentUserId}
+          planType={
+            isPackActive ? "pack"
+            : subscription?.plan === "business" ? "business"
+            : getPlanDisplayKey(subscription) ? "pro"
+            : null
+          }
+        />
       )}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 animate-fade-in-up">
         <div>

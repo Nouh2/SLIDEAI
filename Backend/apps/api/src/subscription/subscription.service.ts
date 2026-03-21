@@ -999,8 +999,9 @@ export class SubscriptionService {
         plan: 'free',
         status: 'active',
         creditsRemaining: baseCredits + creditsToAdd,
-        creditsResetAt: sub.legacyFree ? sub.creditsResetAt || this.buildNextMonthlyResetAt(new Date()) : null,
-        requiresPayment: sub.legacyFree ? false : true,
+        legacyFree: false,
+        creditsResetAt: null,
+        requiresPayment: false,
         updatedAt: now,
       },
     });

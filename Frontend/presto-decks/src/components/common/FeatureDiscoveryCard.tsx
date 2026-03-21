@@ -18,7 +18,7 @@ export function FeatureDiscoveryCard({ userId, isPayingUser }: FeatureDiscoveryC
         if (!userId || !isPayingUser) return;
         const dismissed = localStorage.getItem(STORAGE_KEY(userId));
         if (!dismissed) setVisible(true);
-    }, [userId, isPackUser]);
+    }, [userId, isPayingUser]);
 
     const dismiss = () => {
         localStorage.setItem(STORAGE_KEY(userId), "1");

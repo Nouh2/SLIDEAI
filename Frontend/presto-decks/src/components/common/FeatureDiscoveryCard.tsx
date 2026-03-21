@@ -7,15 +7,15 @@ const STORAGE_KEY = (userId: string) => `slideai-feature-discovery-dismissed-${u
 
 interface FeatureDiscoveryCardProps {
     userId: string;
-    isPackUser: boolean;
+    isPayingUser: boolean;
 }
 
-export function FeatureDiscoveryCard({ userId, isPackUser }: FeatureDiscoveryCardProps) {
+export function FeatureDiscoveryCard({ userId, isPayingUser }: FeatureDiscoveryCardProps) {
     const navigate = useNavigate();
     const [visible, setVisible] = useState(false);
 
     useEffect(() => {
-        if (!userId || !isPackUser) return;
+        if (!userId || !isPayingUser) return;
         const dismissed = localStorage.getItem(STORAGE_KEY(userId));
         if (!dismissed) setVisible(true);
     }, [userId, isPackUser]);

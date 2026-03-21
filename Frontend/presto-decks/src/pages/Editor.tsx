@@ -1441,7 +1441,7 @@ export default function Editor() {
                               </div>
 
                               {/* Drag Handle Overlay */}
-                              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors flex justify-end gap-1 p-2 opacity-0 group-hover:opacity-100">
+                              <div className={`absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors flex justify-end gap-1 p-2 ${selectedSlide === idx ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>
                                 {/* Regenerate Button */}
                                 {accessToken && (
                                   <RegenerateSlideDialog
@@ -1473,7 +1473,7 @@ export default function Editor() {
                                     <Button
                                       variant="ghost"
                                       size="icon"
-                                      className="h-6 w-6 rounded shadow-sm opacity-0 group-hover:opacity-100 transition-opacity z-10 bg-white text-black hover:bg-gray-100"
+                                      className="h-6 w-6 rounded shadow-sm transition-opacity z-10 bg-white text-black hover:bg-gray-100"
                                       onClick={(e) => e.stopPropagation()}
                                       title={t('editorPage.actions.regenerateSlide')}
                                     >
@@ -1484,7 +1484,7 @@ export default function Editor() {
                                 <Button
                                   variant="destructive"
                                   size="icon"
-                                  className="h-6 w-6 rounded shadow-sm opacity-0 group-hover:opacity-100 transition-opacity z-10"
+                                  className="h-6 w-6 rounded shadow-sm transition-opacity z-10"
                                   onClick={(e) => handleDeleteSlide(idx, e)}
                                   title={t('editorPage.actions.deleteSlide')}
                                 >

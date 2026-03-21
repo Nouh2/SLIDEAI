@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { getPlanDisplayKey, isLegacySubscription, isPackSubscription, isTrialingSubscription } from "@/lib/subscription";
 import { HearAboutUsDialog } from "@/components/common/HearAboutUsDialog";
+import { FeatureDiscoveryCard } from "@/components/common/FeatureDiscoveryCard";
 
 interface Presentation {
   id: string;
@@ -216,6 +217,9 @@ export default function Dashboard() {
     <div className="container py-12 space-y-8">
       {currentUserId && (
         <HearAboutUsDialog userId={currentUserId} userEmail={currentUserEmail ?? undefined} />
+      )}
+      {currentUserId && (
+        <FeatureDiscoveryCard userId={currentUserId} isPackUser={isPackActive} />
       )}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 animate-fade-in-up">
         <div>

@@ -21,11 +21,13 @@ interface ShareDialogProps {
     accessToken: string;
     canShareByLink?: boolean;
     canShareCollaborative?: boolean;
+    showPulse?: boolean;
+    onPulseSeen?: () => void;
 }
 
 type ShareMode = "edit" | "view";
 
-export function ShareDialog({ presentationId, accessToken, canShareByLink = true, canShareCollaborative = true }: ShareDialogProps) {
+export function ShareDialog({ presentationId, accessToken, canShareByLink = true, canShareCollaborative = true, showPulse = false, onPulseSeen }: ShareDialogProps) {
     const navigate = useNavigate();
     const [isOpen, setIsOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
@@ -91,9 +93,14 @@ export function ShareDialog({ presentationId, accessToken, canShareByLink = true
     return (
         <Dialog open={isOpen} onOpenChange={handleOpenChange}>
             <DialogTrigger asChild>
-                <Button variant="ghost" size="sm" title="Partager">
-                    <Share2 className="h-4 w-4" />
-                </Button>
+                <div className="relative inline-flex">
+                    {showPulse && (
+                        <span className="absolute inset-0 rounded-md animate-ping bg-primary/30 pointer-events-none" />
+                    )}
+                    <Button variant="ghost" size="sm" title="Partagez votre présentation avec vos clients" onClick={onPulseSeen}>
+                        <Share2 className="h-4 w-4" />
+                    </Button>
+                </div>
             </DialogTrigger>
             <DialogContent className="sm:max-w-md border-border bg-background/95 backdrop-blur-xl shadow-2xl">
                 <DialogHeader>

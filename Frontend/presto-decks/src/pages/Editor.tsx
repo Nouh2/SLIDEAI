@@ -236,6 +236,8 @@ export default function Editor() {
   const [isLibraryOpen, setIsLibraryOpen] = useState(false);
   const [isCommentsOpen, setIsCommentsOpen] = useState(false);
   const [currentUserEmail, setCurrentUserEmail] = useState<string | null>(null);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [showSharePulse, setShowSharePulse] = useState(false);
 
   // D&D Sensors
   const sensors = useSensors(
@@ -338,6 +340,9 @@ export default function Editor() {
       if (session) {
         setAccessToken(session.access_token);
         setCurrentUserEmail(session.user.email || null);
+        setCurrentUserId(session.user.id);
+        const pulseKey = `slideai-share-pulse-seen-${session.user.id}`;
+        if (!localStorage.getItem(pulseKey)) setShowSharePulse(true);
       }
     };
     getToken();
@@ -1261,6 +1266,11 @@ export default function Editor() {
                     accessToken={accessToken}
                     canShareByLink={canShareByLink}
                     canShareCollaborative={canShareCollaborative}
+                    showPulse={showSharePulse && canShareByLink}
+                    onPulseSeen={() => {
+                      setShowSharePulse(false);
+                      if (currentUserId) localStorage.setItem(`slideai-share-pulse-seen-${currentUserId}`, "1");
+                    }}
                   />
                 )}
                 {currentProject && accessToken && (

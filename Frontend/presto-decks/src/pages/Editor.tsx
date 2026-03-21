@@ -1441,46 +1441,7 @@ export default function Editor() {
                               </div>
 
                               {/* Drag Handle Overlay */}
-                              <div className={`absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors flex justify-end gap-1 p-2 ${selectedSlide === idx ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>
-                                {/* Regenerate Button */}
-                                {accessToken && (
-                                  <RegenerateSlideDialog
-                                    presentationId={currentProject.id}
-                                    slideIndex={idx}
-                                    slideTitle={slide.title}
-                                    accessToken={accessToken}
-                                    onSuccess={(newSlide) => {
-                                      // Replace the slide at this index
-                                      const newSlides = [...currentProject.slides];
-                                      newSlides[idx] = {
-                                        ...newSlide,
-                                        id: newSlide.id || `slide-${idx}-${Date.now()}`,
-                                        bullets: newSlide.bullets || newSlide.content?.bullets || [],
-                                        chart: newSlide.chart || newSlide.content?.chart,
-                                        table: newSlide.table || newSlide.content?.table,
-                                        timeline: newSlide.timeline || newSlide.content?.timeline,
-                                        infographic: newSlide.infographic || newSlide.content?.infographic,
-                                        comparison: newSlide.comparison || newSlide.content?.comparison,
-                                        stats: newSlide.stats || newSlide.content?.stats,
-                                        items: newSlide.items || newSlide.content?.items,
-                                        content: newSlide.content,
-                                      };
-                                      const updatedProject = { ...currentProject, slides: newSlides };
-                                      setCurrentProject(updatedProject);
-                                      triggerAutoSave(updatedProject);
-                                    }}
-                                  >
-                                    <Button
-                                      variant="ghost"
-                                      size="icon"
-                                      className="h-6 w-6 rounded shadow-sm transition-opacity z-10 bg-white text-black hover:bg-gray-100"
-                                      onClick={(e) => e.stopPropagation()}
-                                      title={t('editorPage.actions.regenerateSlide')}
-                                    >
-                                      <Wand2 className="h-3 w-3" />
-                                    </Button>
-                                  </RegenerateSlideDialog>
-                                )}
+                              <div className={`absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors flex justify-end gap-1 p-2 opacity-0 group-hover:opacity-100`}>
                                 <Button
                                   variant="destructive"
                                   size="icon"
@@ -1569,6 +1530,44 @@ export default function Editor() {
                   )}
 
                   {/* Render Slide - Wrapper ensures the scaled slide doesn't overflow */}
+                  <div className="flex flex-col items-center gap-2">
+                  {!isFullscreen && accessToken && (
+                    <RegenerateSlideDialog
+                      presentationId={currentProject.id}
+                      slideIndex={selectedSlide}
+                      slideTitle={currentProject.slides[selectedSlide]?.title}
+                      accessToken={accessToken}
+                      onSuccess={(newSlide) => {
+                        const newSlides = [...currentProject.slides];
+                        newSlides[selectedSlide] = {
+                          ...newSlide,
+                          id: newSlide.id || `slide-${selectedSlide}-${Date.now()}`,
+                          bullets: newSlide.bullets || newSlide.content?.bullets || [],
+                          chart: newSlide.chart || newSlide.content?.chart,
+                          table: newSlide.table || newSlide.content?.table,
+                          timeline: newSlide.timeline || newSlide.content?.timeline,
+                          infographic: newSlide.infographic || newSlide.content?.infographic,
+                          comparison: newSlide.comparison || newSlide.content?.comparison,
+                          stats: newSlide.stats || newSlide.content?.stats,
+                          items: newSlide.items || newSlide.content?.items,
+                          content: newSlide.content,
+                        };
+                        const updatedProject = { ...currentProject, slides: newSlides };
+                        setCurrentProject(updatedProject);
+                        triggerAutoSave(updatedProject);
+                      }}
+                    >
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="gap-1.5 rounded-full bg-background/80 backdrop-blur shadow-sm border-border hover:bg-primary hover:text-white hover:border-primary transition-all text-xs font-medium"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <Wand2 className="h-3.5 w-3.5" />
+                        {t('editorPage.actions.regenerateSlide')}
+                      </Button>
+                    </RegenerateSlideDialog>
+                  )}
                   <div
                     style={{
                       width: `${1920 * slideScale}px`,
@@ -1608,6 +1607,7 @@ export default function Editor() {
                       </TemplateOverlay>
                     </div>
                   </div>
+                  </div>{/* end flex-col slide+button wrapper */}
 
                   {/* Navigation Controls (Floating) */}
                   {!isFullscreen && (

@@ -219,7 +219,7 @@ export default function Dashboard() {
         <HearAboutUsDialog userId={currentUserId} userEmail={currentUserEmail ?? undefined} />
       )}
       {currentUserId && (
-        <FeatureDiscoveryCard userId={currentUserId} isPayingUser={isPackActive || !!getPlanDisplayKey(subscription)} />
+        <FeatureDiscoveryCard userId={currentUserId} isPayingUser={isPackActive || !!getPlanDisplayKey(subscription)} isPack={isPackActive} />
       )}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 animate-fade-in-up">
         <div>

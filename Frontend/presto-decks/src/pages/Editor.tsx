@@ -1259,8 +1259,7 @@ export default function Editor() {
                   <ShareDialog
                     presentationId={currentProject.id}
                     accessToken={accessToken}
-                    disabled={!canShareByLink}
-                    disabledReason={shareDisabledReason}
+                    canShareByLink={canShareByLink}
                     canShareCollaborative={canShareCollaborative}
                   />
                 )}

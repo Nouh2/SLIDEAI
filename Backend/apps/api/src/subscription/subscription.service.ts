@@ -956,6 +956,7 @@ export class SubscriptionService {
       isLegacyAccess: subscription.legacyFree,
       packActive,
       packCreditsRemaining: packActive ? subscription.creditsRemaining : 0,
+      hearAboutAnswered: !!subscription.hearAboutUs,
       packFeaturesMode: packActive ? 'generation_and_export' : null,
     };
   }
@@ -1038,6 +1039,14 @@ export class SubscriptionService {
 
   private isUnlimitedPlan(plan: string) {
     return (PLAN_LIMITS[plan]?.creditsPerMonth ?? 0) === -1;
+  }
+
+  async saveHearAboutUs(userId: string, source: string) {
+    await this.prisma.subscription.update({
+      where: { userId },
+      data: { hearAboutUs: source, updatedAt: new Date() },
+    });
+    return { ok: true };
   }
 
   private isPackActive(subscription: PrismaSubscription) {

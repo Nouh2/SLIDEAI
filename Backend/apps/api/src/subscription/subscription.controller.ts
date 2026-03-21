@@ -112,6 +112,13 @@ export class SubscriptionController {
      * POST /subscription/cancel
      * Résilie l'abonnement en cours (à la fin de la période).
      */
+    @Post('hear-about-us')
+    @UseGuards(SupabaseGuard)
+    async saveHearAboutUs(@Req() req: any, @Body() body: { source: string }) {
+        const userId = req.user.sub;
+        return this.subscriptionService.saveHearAboutUs(userId, body.source);
+    }
+
     @Post('cancel')
     @UseGuards(SupabaseGuard)
     async cancelSubscription(@Req() req: any) {

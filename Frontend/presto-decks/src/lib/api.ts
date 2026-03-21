@@ -674,6 +674,14 @@ export const api = {
     return response.json();
   },
 
+  async saveHearAboutUs(source: string, accessToken: string): Promise<void> {
+    await fetch(`${API_BASE_URL}/subscription/hear-about-us`, {
+      method: 'POST',
+      headers: buildHeaders(accessToken),
+      body: JSON.stringify({ source }),
+    });
+  },
+
   async startTrial(accessToken: string): Promise<any> {
     const response = await fetch(`${API_BASE_URL}/subscription/start-trial`, {
       method: 'POST',

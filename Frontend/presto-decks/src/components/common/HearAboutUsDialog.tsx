@@ -9,6 +9,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
+import { api } from "@/lib/api";
 
 const STORAGE_KEY = (userId: string) => `slideai-heard-about-us-${userId}`;
 
@@ -25,6 +26,7 @@ const SOURCES = [
     { id: "reddit", label: "Reddit", emoji: "🤖" },
     { id: "producthunt", label: "Product Hunt", emoji: "🚀" },
     { id: "bouche_a_oreille", label: "Bouche à oreille", emoji: "👥" },
+    { id: "shared_link", label: "Lien partagé par quelqu'un", emoji: "🔗" },
     { id: "newsletter", label: "Newsletter / Email", emoji: "📧" },
     { id: "other", label: "Autre", emoji: "✏️" },
 ];
@@ -32,9 +34,11 @@ const SOURCES = [
 interface HearAboutUsDialogProps {
     userId: string;
     userEmail?: string;
+    accessToken: string;
+    hearAboutAnswered?: boolean;
 }
 
-export function HearAboutUsDialog({ userId, userEmail }: HearAboutUsDialogProps) {
+export function HearAboutUsDialog({ userId, userEmail, accessToken, hearAboutAnswered }: HearAboutUsDialogProps) {
     const [open, setOpen] = useState(false);
     const [selected, setSelected] = useState<string | null>(null);
     const [otherText, setOtherText] = useState("");
@@ -42,9 +46,14 @@ export function HearAboutUsDialog({ userId, userEmail }: HearAboutUsDialogProps)
 
     useEffect(() => {
         if (!userId) return;
+        // If DB says already answered, cache locally and don't show
+        if (hearAboutAnswered) {
+            localStorage.setItem(STORAGE_KEY(userId), "answered");
+            return;
+        }
         const already = localStorage.getItem(STORAGE_KEY(userId));
         if (!already) setOpen(true);
-    }, [userId]);
+    }, [userId, hearAboutAnswered]);
 
     const canSubmit = selected !== null && (selected !== "other" || otherText.trim().length > 0);
 
@@ -76,6 +85,9 @@ export function HearAboutUsDialog({ userId, userEmail }: HearAboutUsDialogProps)
         } catch {
             // Silent — don't block UX on network failure
         }
+
+        // Persist to DB (fire-and-forget, don't block UX)
+        api.saveHearAboutUs(label, accessToken).catch(() => {});
 
         localStorage.setItem(STORAGE_KEY(userId), label);
         setSending(false);

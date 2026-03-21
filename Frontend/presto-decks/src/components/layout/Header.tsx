@@ -146,12 +146,6 @@ export const Header = () => {
               // Logged in state
               <>
                 <Button variant="ghost" size="sm" asChild className="text-zinc-950 hover:text-zinc-950">
-                  <Link to="/dashboard" className="flex items-center gap-2">
-                    <LayoutDashboard className="h-4 w-4" />
-                    {t('header.dashboard')}
-                  </Link>
-                </Button>
-                <Button variant="ghost" size="sm" asChild className="text-zinc-950 hover:text-zinc-950">
                   <Link to="/account" className="flex items-center gap-2">
                     <UserIcon className="h-4 w-4" />
                     {t('header.myAccount')}

@@ -1,1 +1,1 @@
-ALTER TABLE "public"."Subscription" ADD COLUMN "hearAboutUs" TEXT;
+ALTER TABLE "public"."Subscription" ADD COLUMN IF NOT EXISTS "hearAboutUs" TEXT;

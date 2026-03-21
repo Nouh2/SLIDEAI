@@ -4,9 +4,11 @@ import { BlogCategorySummary, BlogPersonaSummary, BlogPost, getAllCategories, ge
 import { ArrowRight, Calendar, User } from "lucide-react";
 import { SEO } from "@/components/common/SEO";
 import { useTranslation } from "react-i18next";
+import { useLocalePath } from "@/hooks/use-locale-path";
 
 export default function Blog() {
     const { t, i18n } = useTranslation();
+    const { locale, localize } = useLocalePath();
     const [posts, setPosts] = useState<BlogPost[]>([]);
     const [categories, setCategories] = useState<BlogCategorySummary[]>([]);
     const [personas, setPersonas] = useState<BlogPersonaSummary[]>([]);
@@ -17,9 +19,9 @@ export default function Blog() {
             try {
                 setLoading(true);
                 const [data, categoryData, personaData] = await Promise.all([
-                    getAllPosts(i18n.language),
-                    getAllCategories(i18n.language),
-                    getAllPersonas(i18n.language),
+                    getAllPosts(locale),
+                    getAllCategories(locale),
+                    getAllPersonas(locale),
                 ]);
                 setPosts(data);
                 setCategories(categoryData);
@@ -31,7 +33,7 @@ export default function Blog() {
             }
         };
         loadPosts();
-    }, [i18n.language]);
+    }, [i18n.language, locale]);
 
     return (
         <div className="min-h-screen pt-24 pb-16 px-4">
@@ -39,6 +41,7 @@ export default function Blog() {
                 title={t('blog.title', "Blog SlideAI - Conseils et Astuces pour vos présentations")}
                 description={t('blog.subtitle', "Découvrez nos guides, tutoriels et articles sur l'intelligence artificielle et la création de présentations impactantes.")}
                 url="/blog"
+                alternates={{ fr: "/blog", en: "/blog", "x-default": "/blog" }}
             />
 
             <div className="max-w-6xl mx-auto space-y-12">
@@ -54,14 +57,18 @@ export default function Blog() {
                 {!loading && personas.length > 0 && (
                     <section className="space-y-5">
                         <div>
-                            <h2 className="text-2xl md:text-3xl font-bold">Metiers</h2>
-                            <p className="text-muted-foreground">Pages hub pour chaque profil qui cree des PowerPoint toute la journee.</p>
+                            <h2 className="text-2xl md:text-3xl font-bold">{locale === "fr" ? "Metiers" : "Roles"}</h2>
+                            <p className="text-muted-foreground">
+                                {locale === "fr"
+                                    ? "Pages hub pour chaque profil qui cree des PowerPoint toute la journee."
+                                    : "Hub pages for each profile creating PowerPoint decks all day long."}
+                            </p>
                         </div>
                         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
                             {personas.map((persona) => (
                                 <Link
                                     key={persona.slug}
-                                    to={`/blog/metier/${persona.slug}`}
+                                    to={localize(`/blog/metier/${persona.slug}`)}
                                     className="rounded-2xl border border-border/50 bg-card/60 p-5 transition-all hover:border-primary/40 hover:-translate-y-1"
                                 >
                                     <div className="flex items-center justify-between gap-4">
@@ -71,7 +78,9 @@ export default function Blog() {
                                         </span>
                                     </div>
                                     <p className="mt-3 text-sm text-muted-foreground">
-                                        Voir tous les guides pour {persona.label.toLowerCase()}.
+                                        {locale === "fr"
+                                            ? `Voir tous les guides pour ${persona.label.toLowerCase()}.`
+                                            : `Browse every guide for ${persona.label.toLowerCase()}.`}
                                     </p>
                                 </Link>
                             ))}
@@ -83,15 +92,19 @@ export default function Blog() {
                     <section className="space-y-5">
                         <div className="flex items-end justify-between gap-4">
                             <div>
-                                <h2 className="text-2xl md:text-3xl font-bold">Clusters blog</h2>
-                                <p className="text-muted-foreground">Des hubs thematiques pour renforcer le maillage interne et la navigation SEO.</p>
+                                <h2 className="text-2xl md:text-3xl font-bold">{locale === "fr" ? "Clusters blog" : "Blog clusters"}</h2>
+                                <p className="text-muted-foreground">
+                                    {locale === "fr"
+                                        ? "Des hubs thematiques pour renforcer le maillage interne et la navigation SEO."
+                                        : "Topic hubs built to strengthen internal linking and SEO navigation."}
+                                </p>
                             </div>
                         </div>
                         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
                             {categories.map((category) => (
                                 <Link
                                     key={category.slug}
-                                    to={`/blog/c/${category.slug}`}
+                                    to={localize(`/blog/c/${category.slug}`)}
                                     className="rounded-2xl border border-border/50 bg-card/60 p-5 transition-all hover:border-primary/40 hover:-translate-y-1"
                                 >
                                     <div className="flex items-center justify-between gap-4">
@@ -101,7 +114,9 @@ export default function Blog() {
                                         </span>
                                     </div>
                                     <p className="mt-3 text-sm text-muted-foreground">
-                                        Voir tous les contenus relies a {category.label.toLowerCase()}.
+                                        {locale === "fr"
+                                            ? `Voir tous les contenus relies a ${category.label.toLowerCase()}.`
+                                            : `Browse every article related to ${category.label.toLowerCase()}.`}
                                     </p>
                                 </Link>
                             ))}
@@ -118,7 +133,7 @@ export default function Blog() {
                         {posts.map((post) => (
                             <Link
                                 key={post.slug}
-                                to={`/blog/${post.slug}`}
+                                to={localize(`/blog/${post.slug}`)}
                                 className="group flex flex-col bg-card border border-border/50 rounded-2xl overflow-hidden hover:shadow-2xl hover:shadow-primary/10 transition-all duration-300 transform hover:-translate-y-1"
                             >
                                 <div className="aspect-video relative overflow-hidden bg-muted">

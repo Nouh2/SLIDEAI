@@ -54,17 +54,20 @@ let SupabaseGuard = class SupabaseGuard {
             // Check for x-org-id header for context switching
             const orgIdHeader = req.headers['x-org-id'];
             if (orgIdHeader) {
-                // Validate that the user is a member of this organization
-                const membership = await this.prisma.membership.findFirst({
-                    where: {
-                        userId: userId,
-                        orgId: orgIdHeader,
-                    },
-                });
-                if (!membership) {
-                    throw new UnauthorizedException('User is not a member of the specified organization');
+                const canUseTeamWorkspace = await this.canUseTeamWorkspace(userId);
+                if (canUseTeamWorkspace) {
+                    // Validate that the user is a member of this organization
+                    const membership = await this.prisma.membership.findFirst({
+                        where: {
+                            userId: userId,
+                            orgId: orgIdHeader,
+                        },
+                    });
+                    if (!membership) {
+                        throw new UnauthorizedException('User is not a member of the specified organization');
+                    }
+                    orgId = orgIdHeader;
                 }
-                orgId = orgIdHeader;
             }
             req.user = {
                 sub: userId,
@@ -82,6 +85,23 @@ let SupabaseGuard = class SupabaseGuard {
             console.error('[SupabaseGuard] Token verification failed:', err.message);
             throw new UnauthorizedException('Invalid or expired token');
         }
+    }
+    async canUseTeamWorkspace(userId) {
+        const subscription = await this.prisma.subscription.findUnique({
+            where: { userId },
+            select: {
+                plan: true,
+                status: true,
+                requiresPayment: true,
+            },
+        });
+        if (!subscription) {
+            return false;
+        }
+        if (subscription.requiresPayment) {
+            return false;
+        }
+        return subscription.plan === 'business' && subscription.status !== 'trial_expired';
     }
 };
 SupabaseGuard = __decorate([

@@ -15,6 +15,8 @@ import {
 } from "@/components/ui/sheet";
 import { useState } from "react";
 import { Analytics, ANALYTICS_EVENTS } from "@/lib/analytics";
+import { useLocalePath } from "@/hooks/use-locale-path";
+import { stripLocalePrefix } from "@/lib/localeRouting";
 
 export const Header = () => {
   const navigate = useNavigate();
@@ -22,12 +24,13 @@ export const Header = () => {
   const { t } = useTranslation();
   const { user, loading, signOut } = useAuth();
   const [open, setOpen] = useState(false);
-  const isLandingForLoggedOut = !user && location.pathname === "/";
+  const { localize } = useLocalePath();
+  const isLandingForLoggedOut = !user && stripLocalePrefix(location.pathname) === "/";
   const createCtaPath = user ? "/create" : `/auth?returnTo=${encodeURIComponent("/create")}`;
 
   const handleSignOut = async () => {
     await signOut();
-    navigate("/");
+    navigate(localize("/"));
   };
   const handleHeaderTrial = () => {
     Analytics.trackEvent(
@@ -70,7 +73,7 @@ export const Header = () => {
       )}
       {!user && (
         <Link
-          to="/examples"
+          to={localize("/examples")}
           className="text-sm font-medium text-zinc-950 hover:text-[#1fb6ff] transition-colors"
           onClick={() => setOpen(false)}
         >
@@ -78,7 +81,7 @@ export const Header = () => {
         </Link>
       )}
       <Link
-        to="/pricing"
+        to={localize("/pricing")}
         className="text-sm font-medium text-zinc-950 hover:text-[#1fb6ff] transition-colors"
         onClick={() => setOpen(false)}
       >
@@ -86,7 +89,7 @@ export const Header = () => {
       </Link>
       {(!user || !isLandingForLoggedOut) && (
         <Link
-          to="/blog"
+          to={localize("/blog")}
           className="text-sm font-medium text-zinc-950 hover:text-[#1fb6ff] transition-colors"
           onClick={() => setOpen(false)}
         >
@@ -119,14 +122,14 @@ export const Header = () => {
             </Link>
           )}
           {!user && (
-            <Link to="/examples" className="text-sm font-medium text-zinc-950 hover:text-[#1fb6ff] transition-colors">
+            <Link to={localize("/examples")} className="text-sm font-medium text-zinc-950 hover:text-[#1fb6ff] transition-colors">
               {t('header.examples')}
             </Link>
           )}
-          <Link to="/pricing" className="text-sm font-medium text-zinc-950 hover:text-[#1fb6ff] transition-colors">
+          <Link to={localize("/pricing")} className="text-sm font-medium text-zinc-950 hover:text-[#1fb6ff] transition-colors">
             {t('header.pricing')}
           </Link>
-          <Link to="/blog" className="text-sm font-medium text-zinc-950 hover:text-[#1fb6ff] transition-colors">
+          <Link to={localize("/blog")} className="text-sm font-medium text-zinc-950 hover:text-[#1fb6ff] transition-colors">
             Blog
           </Link>
         </nav>

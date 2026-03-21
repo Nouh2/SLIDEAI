@@ -42,6 +42,73 @@ const getLogoPosition = (position: string, size: string) => {
     return { x, y, w, h };
 };
 
+const addBaseSlideFooter = (
+    pptxSlide: pptxgen.Slide,
+    slideTitle: string,
+    slideNumber: number,
+    showPageNumber: boolean,
+    colors: ColorPalette
+) => {
+    const primary = toHex(colors.primary || DEFAULT_COLORS.primary);
+    const text = toHex(colors.text || DEFAULT_COLORS.text);
+
+    pptxSlide.addShape('line', {
+        x: 0.45,
+        y: SLIDE_HEIGHT - 0.56,
+        w: SLIDE_WIDTH - 0.9,
+        h: 0,
+        line: {
+            color: primary,
+            transparency: 80,
+            width: 0.6,
+        },
+    });
+
+    if (showPageNumber) {
+        pptxSlide.addText(String(slideNumber), {
+            x: 0.48,
+            y: SLIDE_HEIGHT - 0.42,
+            w: 0.45,
+            h: 0.18,
+            fontSize: 11,
+            fontFace: 'Arial',
+            bold: true,
+            color: primary,
+            align: 'left',
+            margin: 0,
+        });
+    }
+
+    if (slideTitle) {
+        pptxSlide.addText(slideTitle, {
+            x: 4.3,
+            y: SLIDE_HEIGHT - 0.43,
+            w: 4.7,
+            h: 0.18,
+            fontSize: 9.5,
+            fontFace: 'Arial',
+            color: text,
+            transparency: 38,
+            align: 'center',
+            margin: 0,
+            fit: 'shrink',
+        });
+    }
+
+    pptxSlide.addText('2025', {
+        x: SLIDE_WIDTH - 0.9,
+        y: SLIDE_HEIGHT - 0.42,
+        w: 0.42,
+        h: 0.18,
+        fontSize: 10.5,
+        fontFace: 'Arial',
+        color: text,
+        transparency: 46,
+        align: 'right',
+        margin: 0,
+    });
+};
+
 /**
  * Export presentation to PowerPoint format
  * 
@@ -119,7 +186,7 @@ export const exportToPPTX = async (
 
         try {
             if (sceneResult.supported && sceneResult.scene) {
-                renderSceneToPptx(pptxSlide, sceneResult.scene);
+                await renderSceneToPptx(pptxSlide, sceneResult.scene);
             } else if (slideElements?.[i]) {
                 const { captureSlide } = await import('../pdfExporter');
                 const imageData = await captureSlide(slideElements[i], 2.8);
@@ -156,6 +223,17 @@ export const exportToPPTX = async (
             continue;
         }
 
+        const showBasePageNumber = presentation.templateOverlay?.footer?.showPageNumber !== undefined
+            ? presentation.templateOverlay.footer.showPageNumber
+            : true;
+        addBaseSlideFooter(
+            pptxSlide,
+            typeof slideData.title === 'string' ? slideData.title : '',
+            i + 1,
+            showBasePageNumber,
+            colors
+        );
+
         if (presentation.templateOverlay) {
             const { logo, footer } = presentation.templateOverlay;
             const isCover = i === 0 || slideData.layout === 'cover';
@@ -178,55 +256,33 @@ export const exportToPPTX = async (
                 if (footer.text) {
                     pptxSlide.addText(footer.text, {
                         x: 0.5,
-                        y: SLIDE_HEIGHT - 0.5,
+                        y: SLIDE_HEIGHT - 0.28,
                         w: SLIDE_WIDTH * 0.6,
-                        h: 0.3,
-                        fontSize: 10,
+                        h: 0.16,
+                        fontSize: 8.5,
                         fontFace: 'Arial',
-                        color: toHex(colors.text), // Use text color, maybe opacity?
-                        transparency: 50,
+                        color: toHex(colors.text),
+                        transparency: 38,
                         align: 'left',
+                        margin: 0,
                     });
                 }
 
                 // Page Number (Override default if configured)
                 if (footer.showPageNumber) {
-                    pptxSlide.addText(String(i + 1), {
-                        x: SLIDE_WIDTH - 0.8,
-                        y: SLIDE_HEIGHT - 0.5,
-                        w: 0.5,
-                        h: 0.3,
-                        fontSize: 10,
+                    pptxSlide.addText(`${i + 1} / ${processedSlides.length}`, {
+                        x: SLIDE_WIDTH - 1.15,
+                        y: SLIDE_HEIGHT - 0.28,
+                        w: 0.72,
+                        h: 0.16,
+                        fontSize: 8.5,
                         fontFace: 'Arial',
                         color: toHex(colors.text),
                         align: 'right',
+                        margin: 0,
                     });
                 }
-            } else {
-                // Default page number if no footer config
-                pptxSlide.addText(String(i + 1), {
-                    x: SLIDE_WIDTH - 0.8,
-                    y: SLIDE_HEIGHT - 0.5,
-                    w: 0.5,
-                    h: 0.3,
-                    fontSize: 10,
-                    fontFace: 'Arial',
-                    color: toHex(colors.text),
-                    align: 'right',
-                });
             }
-        } else {
-            // Default page number logic (fallback)
-            pptxSlide.addText(String(i + 1), {
-                x: SLIDE_WIDTH - 0.8,
-                y: SLIDE_HEIGHT - 0.5,
-                w: 0.5,
-                h: 0.3,
-                fontSize: 10,
-                fontFace: 'Arial',
-                color: toHex(colors.text),
-                align: 'right',
-            });
         }
     }
 

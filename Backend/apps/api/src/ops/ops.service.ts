@@ -7,9 +7,11 @@ import {
   OPS_EMAIL_TEMPLATE_MAP,
 } from './ops-email-catalog.js';
 import {
+  buildBroadcastEmailContent,
   buildLifecycleEmailModel,
   buildTrialEmailContent,
   sendLifecycleEmail,
+  type BroadcastEmailParams,
   type EmailContentPatch,
   type WinbackOffer,
 } from './ops-email-renderer.js';
@@ -431,6 +433,144 @@ export class OpsService {
     }
 
     return `${baseUrl.replace(/\/$/, '')}/v1/ops/unsubscribe/${preference.unsubscribeToken}`;
+  }
+
+  async broadcastGetUsers(segment: 'all' | 'trialing' | 'trial_expired' | 'legacy_free' | 'paid') {
+    const where = this.broadcastSegmentWhere(segment);
+    const users = await this.prisma.user.findMany({
+      where,
+      select: { id: true, email: true },
+      orderBy: { createdAt: 'asc' },
+    });
+
+    const optedIn = await Promise.all(
+      users.map(async (user) => {
+        const allowed = await this.isMarketingAllowed(user.id);
+        return { ...user, marketingOptIn: allowed };
+      }),
+    );
+
+    return {
+      total: users.length,
+      eligible: optedIn.filter((u) => u.marketingOptIn).length,
+      users: optedIn,
+    };
+  }
+
+  async broadcastPreview(params: Omit<BroadcastEmailParams, 'unsubscribeUrl' | 'footerReason'>) {
+    const appUrl = process.env.FRONTEND_URL || 'https://slideai.fr';
+    return buildBroadcastEmailContent({
+      ...params,
+      unsubscribeUrl: `${appUrl.replace(/\/$/, '')}/account`,
+      footerReason: 'Vous recevez cet email car vous utilisez SlideAI et avez accepte les emails marketing.',
+    });
+  }
+
+  async broadcastSend(
+    params: Omit<BroadcastEmailParams, 'unsubscribeUrl' | 'footerReason'> & {
+      segment: 'all' | 'trialing' | 'trial_expired' | 'legacy_free' | 'paid';
+    },
+    adminEmail: string,
+  ) {
+    const { segment, ...emailParams } = params;
+    const where = this.broadcastSegmentWhere(segment);
+
+    const users = await this.prisma.user.findMany({
+      where,
+      select: { id: true, email: true },
+    });
+
+    const broadcastId = `broadcast_${Date.now()}`;
+    const now = new Date();
+    let sent = 0;
+    let skipped = 0;
+    const errors: { email: string; error: string }[] = [];
+
+    for (const user of users) {
+      const allowed = await this.isMarketingAllowed(user.id);
+      const dedupeKey = `${broadcastId}_${user.id}`;
+
+      if (!allowed) {
+        await this.prisma.lifecycleEmailLog.create({
+          data: {
+            dedupeKey,
+            userId: user.id,
+            emailType: 'broadcast',
+            flowSlug: 'broadcast',
+            scheduledFor: now,
+            sentAt: now,
+            status: 'skipped',
+            payload: { broadcastId, segment, adminEmail, reason: 'marketing_opt_out' },
+          },
+        });
+        skipped++;
+        continue;
+      }
+
+      const unsubscribeUrl = await this.getUnsubscribeUrl(user.id);
+      const appUrl = process.env.FRONTEND_URL || 'https://slideai.fr';
+      const { subject, html } = buildBroadcastEmailContent({
+        ...emailParams,
+        unsubscribeUrl: unsubscribeUrl || `${appUrl.replace(/\/$/, '')}/account`,
+        footerReason: 'Vous recevez cet email car vous utilisez SlideAI et avez accepte les emails marketing.',
+      });
+
+      try {
+        await sendLifecycleEmail({ to: user.email, subject, html });
+        await this.prisma.lifecycleEmailLog.create({
+          data: {
+            dedupeKey,
+            userId: user.id,
+            emailType: 'broadcast',
+            flowSlug: 'broadcast',
+            scheduledFor: now,
+            sentAt: now,
+            status: 'sent',
+            payload: { broadcastId, segment, adminEmail },
+          },
+        });
+        sent++;
+      } catch (err) {
+        const message = err instanceof Error ? err.message : String(err);
+        errors.push({ email: user.email, error: message });
+        await this.prisma.lifecycleEmailLog.create({
+          data: {
+            dedupeKey,
+            userId: user.id,
+            emailType: 'broadcast',
+            flowSlug: 'broadcast',
+            scheduledFor: now,
+            sentAt: now,
+            status: 'failed',
+            payload: { broadcastId, segment, adminEmail, error: message },
+          },
+        });
+      }
+    }
+
+    return { broadcastId, segment, total: users.length, sent, skipped, errors };
+  }
+
+  private broadcastSegmentWhere(segment: 'all' | 'trialing' | 'trial_expired' | 'legacy_free' | 'paid') {
+    if (segment === 'all') return {};
+
+    if (segment === 'trialing') {
+      return { Subscription: { status: 'trialing' } };
+    }
+
+    if (segment === 'trial_expired') {
+      return { Subscription: { status: 'trial_expired' } };
+    }
+
+    if (segment === 'legacy_free') {
+      return { Subscription: { legacyFree: true, plan: 'free' } };
+    }
+
+    if (segment === 'paid') {
+      return { Subscription: { stripeSubscriptionId: { not: null }, status: { in: ['active', 'trialing'] } } };
+    }
+
+    return {};
   }
 
   private async ensureCatalog() {

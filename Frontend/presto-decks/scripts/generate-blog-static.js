@@ -12,33 +12,44 @@ const __dirname = path.dirname(__filename);
 const DOMAIN = "https://www.slideai.fr";
 const CONTENT_DIR = path.join(__dirname, "../src/content/blog");
 const DIST_DIR = path.join(__dirname, "../dist");
-const BLOG_DIST_DIR = path.join(DIST_DIR, "blog");
 const DEFAULT_OG_IMAGE = `${DOMAIN}/og-image.png`;
 
 const CATEGORY_LABELS = {
-  consulting: "Conseil",
-  marketing: "Marketing",
-  sales: "Commercial",
-  finance: "Finance",
-  "powerpoint-ia": "PowerPoint IA",
-  "pitch-deck": "Pitch deck",
-  competitive: "Alternatives et comparatifs",
-  productivity: "Productivite",
-  tutorials: "Tutorials",
-  tutoriels: "Tutoriels",
+  consulting: { fr: "Conseil", en: "Consulting" },
+  marketing: { fr: "Marketing", en: "Marketing" },
+  sales: { fr: "Commercial", en: "Sales" },
+  finance: { fr: "Finance", en: "Finance" },
+  "powerpoint-ia": { fr: "PowerPoint IA", en: "AI PowerPoint" },
+  "pitch-deck": { fr: "Pitch deck", en: "Pitch deck" },
+  competitive: { fr: "Alternatives et comparatifs", en: "Alternatives and comparisons" },
+  productivity: { fr: "Productivite", en: "Productivity" },
+  tutorials: { fr: "Tutoriels", en: "Tutorials" },
+  tutoriels: { fr: "Tutoriels", en: "Tutorials" },
 };
 
 const PERSONA_LABELS = {
-  "consultant-rh": "Consultant RH",
-  "consultant-seo": "Consultant SEO",
-  "consultant-strategie": "Consultant strategie",
-  "directeur-marketing": "Directeur marketing",
-  "directeur-commercial": "Directeur commercial",
-  "analyste-financier": "Analyste financier",
-  freelance: "Freelance",
-  "product-manager": "Product manager",
-  "sales-manager": "Sales manager",
+  "consultant-rh": { fr: "Consultant RH", en: "HR consultant" },
+  "consultant-seo": { fr: "Consultant SEO", en: "SEO consultant" },
+  "consultant-strategie": { fr: "Consultant strategie", en: "Strategy consultant" },
+  "directeur-marketing": { fr: "Directeur marketing", en: "Marketing director" },
+  "directeur-commercial": { fr: "Directeur commercial", en: "Sales director" },
+  "analyste-financier": { fr: "Analyste financier", en: "Financial analyst" },
+  freelance: { fr: "Freelance", en: "Freelancer" },
+  "product-manager": { fr: "Product manager", en: "Product manager" },
+  "sales-manager": { fr: "Sales manager", en: "Sales manager" },
 };
+
+function normalizeLocale(value) {
+  return String(value || "fr").toLowerCase().startsWith("en") ? "en" : "fr";
+}
+
+function localizePath(routePath, locale) {
+  return locale === "en" ? (routePath === "/" ? "/en" : `/en${routePath}`) : routePath;
+}
+
+function toAbsoluteUrl(routePath, locale) {
+  return `${DOMAIN}${localizePath(routePath, locale)}`;
+}
 
 function escapeHtml(value) {
   return String(value)
@@ -62,20 +73,20 @@ function ensureDir(dirPath) {
   fs.mkdirSync(dirPath, { recursive: true });
 }
 
-function formatDate(dateValue) {
+function formatDate(dateValue, locale) {
   const date = new Date(dateValue);
   if (Number.isNaN(date.getTime())) {
     return "";
   }
 
-  return new Intl.DateTimeFormat("fr-FR", {
+  return new Intl.DateTimeFormat(locale === "en" ? "en-US" : "fr-FR", {
     year: "numeric",
     month: "long",
     day: "numeric",
   }).format(date);
 }
 
-function deriveExcerpt(content, fallback = "Article du blog SlideAI.") {
+function deriveExcerpt(content, fallback = "SlideAI blog article.") {
   const cleaned = String(content)
     .replace(/^---[\s\S]*?---/, "")
     .replace(/^# .+$/m, "")
@@ -96,17 +107,49 @@ function stripLeadingHeading(content) {
   return String(content).replace(/^# .+\n+/, "").trim();
 }
 
-function getCategoryLabel(slug) {
-  return CATEGORY_LABELS[slug] || slug;
+function getCategoryLabel(slug, locale) {
+  return CATEGORY_LABELS[slug]?.[locale] || slug;
 }
 
-function getPersonaLabel(slug) {
-  return PERSONA_LABELS[slug] || slug;
+function getPersonaLabel(slug, locale) {
+  return PERSONA_LABELS[slug]?.[locale] || slug;
 }
 
-function getPersonaDescription(slug) {
-  const label = getPersonaLabel(slug);
-  return `Guides SlideAI pour ${label.toLowerCase()} qui cree des presentations PowerPoint dans un contexte B2B.`;
+function getPersonaDescription(slug, locale) {
+  const label = getPersonaLabel(slug, locale);
+  return locale === "en"
+    ? `SlideAI guides for ${label.toLowerCase()} creating PowerPoint presentations in a B2B context.`
+    : `Guides SlideAI pour ${label.toLowerCase()} qui cree des presentations PowerPoint dans un contexte B2B.`;
+}
+
+function getLocaleCopy(locale) {
+  return locale === "en"
+    ? {
+        home: "Home",
+        blog: "Blog",
+        pricing: "Pricing",
+        generator: "AI PowerPoint Generator",
+        footer: "Static page optimized for Google indexing.",
+        blogTitle: "SlideAI Blog",
+        blogDescription: "Guides, comparisons, and practical advice to create better presentations with AI.",
+        personas: "Job hubs",
+        categories: "Categories",
+        articles: "Articles",
+        related: "Related articles",
+      }
+    : {
+        home: "Accueil",
+        blog: "Blog",
+        pricing: "Tarifs",
+        generator: "Generateur PowerPoint IA",
+        footer: "Page statique optimisee pour l'indexation Google.",
+        blogTitle: "Blog SlideAI",
+        blogDescription: "Guides, comparatifs et conseils concrets pour creer des presentations PowerPoint plus vite avec l'IA.",
+        personas: "Pages metier",
+        categories: "Categories",
+        articles: "Articles",
+        related: "Articles lies",
+      };
 }
 
 function parsePosts() {
@@ -116,6 +159,7 @@ function parsePosts() {
     const slug = file.replace(".md", "");
     const raw = fs.readFileSync(path.join(CONTENT_DIR, file), "utf-8");
     const { data, content } = matter(raw);
+    const locale = normalizeLocale(data.language);
     const categorySlug = data.category ? slugify(data.category) : "powerpoint-ia";
     const personaSlug = data.persona ? slugify(data.persona) : "";
 
@@ -124,13 +168,11 @@ function parsePosts() {
       title: data.title || slug,
       date: data.date || "",
       author: data.author || "SlideAI",
-      excerpt: data.excerpt || deriveExcerpt(content),
+      excerpt: data.excerpt || deriveExcerpt(content, locale === "en" ? "SlideAI blog article." : "Article du blog SlideAI."),
       coverImage: data.coverImage || "",
-      language: data.language || "fr",
+      language: locale,
       category: categorySlug,
-      categoryLabel: getCategoryLabel(categorySlug),
       persona: personaSlug,
-      personaLabel: personaSlug ? getPersonaLabel(personaSlug) : "",
       content: stripLeadingHeading(content),
     };
   });
@@ -148,8 +190,18 @@ function buildJsonLd(value) {
   return `<script type="application/ld+json">${JSON.stringify(value)}</script>`;
 }
 
+function buildAlternateLinks(alternates) {
+  if (!alternates?.length) {
+    return "";
+  }
+
+  return alternates
+    .map((alternate) => `<link rel="alternate" hrefLang="${alternate.hrefLang}" href="${escapeHtml(alternate.href)}" />`)
+    .join("\n  ");
+}
+
 function buildDocument({
-  lang = "fr",
+  lang,
   title,
   description,
   canonicalUrl,
@@ -157,8 +209,11 @@ function buildDocument({
   type = "website",
   body,
   jsonLd = [],
+  alternates = [],
 }) {
   const jsonLdMarkup = jsonLd.join("\n  ");
+  const alternateMarkup = buildAlternateLinks(alternates);
+  const localeCopy = getLocaleCopy(lang);
 
   return `<!doctype html>
 <html lang="${escapeHtml(lang)}">
@@ -169,6 +224,7 @@ function buildDocument({
   <meta name="description" content="${escapeHtml(description)}" />
   <meta name="robots" content="index,follow,max-image-preview:large" />
   <link rel="canonical" href="${escapeHtml(canonicalUrl)}" />
+  ${alternateMarkup}
   <meta property="og:type" content="${escapeHtml(type)}" />
   <meta property="og:title" content="${escapeHtml(title)} | SlideAI" />
   <meta property="og:description" content="${escapeHtml(description)}" />
@@ -222,29 +278,29 @@ function buildDocument({
 <body>
   <div class="shell">
     <div class="topbar">
-      <a class="brand" href="${DOMAIN}/">SlideAI</a>
+      <a class="brand" href="${toAbsoluteUrl("/", lang)}">SlideAI</a>
       <nav class="nav">
-        <a href="${DOMAIN}/">Accueil</a>
-        <a href="${DOMAIN}/blog">Blog</a>
-        <a href="${DOMAIN}/pricing">Tarifs</a>
-        <a href="${DOMAIN}/generateur-powerpoint-ia">Generateur PowerPoint IA</a>
+        <a href="${toAbsoluteUrl("/", lang)}">${localeCopy.home}</a>
+        <a href="${toAbsoluteUrl("/blog", lang)}">${localeCopy.blog}</a>
+        <a href="${toAbsoluteUrl("/pricing", lang)}">${localeCopy.pricing}</a>
+        <a href="${toAbsoluteUrl("/generateur-powerpoint-ia", "fr")}">${localeCopy.generator}</a>
       </nav>
     </div>
     ${body}
-    <p class="footer">Page statique optimisee pour l'indexation Google.</p>
+    <p class="footer">${localeCopy.footer}</p>
   </div>
 </body>
 </html>`;
 }
 
-function renderHubCards(items, prefix) {
+function renderHubCards(items, prefix, locale) {
   if (items.length === 0) {
     return "";
   }
 
   return `<div class="grid">${items
     .map(
-      (item) => `<a class="card" href="${DOMAIN}${prefix}/${item.slug}">
+      (item) => `<a class="card" href="${toAbsoluteUrl(`${prefix}/${item.slug}`, locale)}">
   <h3>${escapeHtml(item.label)}</h3>
   <p>${escapeHtml(item.description)}</p>
 </a>`
@@ -252,35 +308,49 @@ function renderHubCards(items, prefix) {
     .join("\n")}</div>`;
 }
 
-function renderPostCards(posts) {
+function renderPostCards(posts, locale) {
   return `<div class="list">${posts
     .map((post) => {
       const image = post.coverImage
         ? `<img src="${escapeHtml(post.coverImage)}" alt="${escapeHtml(post.title)}" />`
         : "";
       const personaPill = post.persona
-        ? `<a class="pill" href="${DOMAIN}/blog/metier/${post.persona}">${escapeHtml(post.personaLabel)}</a>`
+        ? `<a class="pill" href="${toAbsoluteUrl(`/blog/metier/${post.persona}`, locale)}">${escapeHtml(getPersonaLabel(post.persona, locale))}</a>`
         : "";
       const categoryPill = post.category
-        ? `<a class="pill" href="${DOMAIN}/blog/c/${post.category}">${escapeHtml(post.categoryLabel)}</a>`
+        ? `<a class="pill" href="${toAbsoluteUrl(`/blog/c/${post.category}`, locale)}">${escapeHtml(getCategoryLabel(post.category, locale))}</a>`
         : "";
 
       return `<article class="article-card">
   ${image}
   <div class="meta">
-    <span>${escapeHtml(formatDate(post.date))}</span>
+    <span>${escapeHtml(formatDate(post.date, locale))}</span>
     <span>${escapeHtml(post.author)}</span>
     ${categoryPill}
     ${personaPill}
   </div>
-  <h2><a href="${DOMAIN}/blog/${post.slug}">${escapeHtml(post.title)}</a></h2>
+  <h2><a href="${toAbsoluteUrl(`/blog/${post.slug}`, locale)}">${escapeHtml(post.title)}</a></h2>
   <p>${escapeHtml(post.excerpt)}</p>
 </article>`;
     })
     .join("\n")}</div>`;
 }
 
-function renderBlogIndex(posts) {
+function buildDefaultAlternates(routePath, includeEnglish = true) {
+  const alternates = [
+    { hrefLang: "fr", href: toAbsoluteUrl(routePath, "fr") },
+    { hrefLang: "x-default", href: toAbsoluteUrl(routePath, "fr") },
+  ];
+
+  if (includeEnglish) {
+    alternates.splice(1, 0, { hrefLang: "en", href: toAbsoluteUrl(routePath, "en") });
+  }
+
+  return alternates;
+}
+
+function renderBlogIndex(posts, locale) {
+  const localeCopy = getLocaleCopy(locale);
   const categories = [];
   const personas = [];
   const categoryMap = new Map();
@@ -288,18 +358,26 @@ function renderBlogIndex(posts) {
 
   for (const post of posts) {
     if (post.category && !categoryMap.has(post.category)) {
+      const categoryLabel = getCategoryLabel(post.category, locale);
       categoryMap.set(post.category, {
         slug: post.category,
-        label: post.categoryLabel,
-        description: `Voir tous les articles sur ${post.categoryLabel.toLowerCase()}.`,
+        label: categoryLabel,
+        description:
+          locale === "en"
+            ? `Browse all articles about ${categoryLabel.toLowerCase()}.`
+            : `Voir tous les articles sur ${categoryLabel.toLowerCase()}.`,
       });
     }
 
     if (post.persona && !personaMap.has(post.persona)) {
+      const personaLabel = getPersonaLabel(post.persona, locale);
       personaMap.set(post.persona, {
         slug: post.persona,
-        label: post.personaLabel,
-        description: `Voir les guides pour ${post.personaLabel.toLowerCase()}.`,
+        label: personaLabel,
+        description:
+          locale === "en"
+            ? `Browse all guides for ${personaLabel.toLowerCase()}.`
+            : `Voir les guides pour ${personaLabel.toLowerCase()}.`,
       });
     }
   }
@@ -308,103 +386,114 @@ function renderBlogIndex(posts) {
   personas.push(...personaMap.values());
 
   const body = `<section class="hero">
-  <h1>Blog SlideAI</h1>
-  <p>Guides, comparatifs et conseils concrets pour creer des presentations PowerPoint plus vite avec l'IA.</p>
+  <h1>${escapeHtml(localeCopy.blogTitle)}</h1>
+  <p>${escapeHtml(localeCopy.blogDescription)}</p>
 </section>
 <section>
-  <h2 class="section-title">Pages metier</h2>
-  ${renderHubCards(personas, "/blog/metier")}
+  <h2 class="section-title">${escapeHtml(localeCopy.personas)}</h2>
+  ${renderHubCards(personas, "/blog/metier", locale)}
 </section>
 <section>
-  <h2 class="section-title">Categories</h2>
-  ${renderHubCards(categories, "/blog/c")}
+  <h2 class="section-title">${escapeHtml(localeCopy.categories)}</h2>
+  ${renderHubCards(categories, "/blog/c", locale)}
 </section>
 <section>
-  <h2 class="section-title">Articles</h2>
-  ${renderPostCards(posts)}
+  <h2 class="section-title">${escapeHtml(localeCopy.articles)}</h2>
+  ${renderPostCards(posts, locale)}
 </section>`;
 
-  const jsonLd = buildJsonLd({
-    "@context": "https://schema.org",
-    "@type": "Blog",
-    name: "Blog SlideAI",
-    url: `${DOMAIN}/blog`,
-  });
-
   return buildDocument({
-    title: "Blog SlideAI",
-    description: "Guides, comparatifs et conseils pour creer des presentations avec l'IA.",
-    canonicalUrl: `${DOMAIN}/blog`,
+    lang: locale,
+    title: localeCopy.blogTitle,
+    description: localeCopy.blogDescription,
+    canonicalUrl: toAbsoluteUrl("/blog", locale),
     body,
-    jsonLd: [jsonLd],
+    jsonLd: [
+      buildJsonLd({
+        "@context": "https://schema.org",
+        "@type": "Blog",
+        name: localeCopy.blogTitle,
+        url: toAbsoluteUrl("/blog", locale),
+      }),
+    ],
+    alternates: buildDefaultAlternates("/blog"),
   });
 }
 
-function renderCategoryPage(categorySlug, posts) {
-  const label = getCategoryLabel(categorySlug);
-  const description = `Articles SlideAI sur ${label.toLowerCase()} pour structurer vos presentations et renforcer le maillage interne.`;
+function renderCategoryPage(categorySlug, posts, locale, hasEnglishEquivalent) {
+  const label = getCategoryLabel(categorySlug, locale);
+  const description =
+    locale === "en"
+      ? `SlideAI articles about ${label.toLowerCase()} to structure your presentations and strengthen internal linking.`
+      : `Articles SlideAI sur ${label.toLowerCase()} pour structurer vos presentations et renforcer le maillage interne.`;
+
   const body = `<section class="hero">
   <h1>${escapeHtml(label)}</h1>
   <p>${escapeHtml(description)}</p>
 </section>
 <section>
-  <h2 class="section-title">Articles</h2>
-  ${renderPostCards(posts)}
+  <h2 class="section-title">${escapeHtml(getLocaleCopy(locale).articles)}</h2>
+  ${renderPostCards(posts, locale)}
 </section>`;
 
   return buildDocument({
+    lang: locale,
     title: `Blog ${label}`,
     description,
-    canonicalUrl: `${DOMAIN}/blog/c/${categorySlug}`,
+    canonicalUrl: toAbsoluteUrl(`/blog/c/${categorySlug}`, locale),
     body,
     jsonLd: [
       buildJsonLd({
         "@context": "https://schema.org",
         "@type": "CollectionPage",
         name: `Blog ${label}`,
-        url: `${DOMAIN}/blog/c/${categorySlug}`,
+        url: toAbsoluteUrl(`/blog/c/${categorySlug}`, locale),
       }),
     ],
+    alternates: buildDefaultAlternates(`/blog/c/${categorySlug}`, hasEnglishEquivalent),
   });
 }
 
-function renderPersonaPage(personaSlug, posts) {
-  const label = getPersonaLabel(personaSlug);
-  const description = getPersonaDescription(personaSlug);
+function renderPersonaPage(personaSlug, posts, locale, hasEnglishEquivalent) {
+  const label = getPersonaLabel(personaSlug, locale);
+  const description = getPersonaDescription(personaSlug, locale);
+
   const body = `<section class="hero">
   <h1>${escapeHtml(label)}</h1>
   <p>${escapeHtml(description)}</p>
 </section>
 <section>
-  <h2 class="section-title">Articles</h2>
-  ${renderPostCards(posts)}
+  <h2 class="section-title">${escapeHtml(getLocaleCopy(locale).articles)}</h2>
+  ${renderPostCards(posts, locale)}
 </section>`;
 
   return buildDocument({
+    lang: locale,
     title: `${label} PowerPoint IA`,
     description,
-    canonicalUrl: `${DOMAIN}/blog/metier/${personaSlug}`,
+    canonicalUrl: toAbsoluteUrl(`/blog/metier/${personaSlug}`, locale),
     body,
     jsonLd: [
       buildJsonLd({
         "@context": "https://schema.org",
         "@type": "CollectionPage",
         name: `${label} PowerPoint IA`,
-        url: `${DOMAIN}/blog/metier/${personaSlug}`,
+        url: toAbsoluteUrl(`/blog/metier/${personaSlug}`, locale),
       }),
     ],
+    alternates: buildDefaultAlternates(`/blog/metier/${personaSlug}`, hasEnglishEquivalent),
   });
 }
 
-function renderPostPage(post, posts) {
+function renderPostPage(post, posts, locale, hasEnglishEquivalent) {
   const coverImage = post.coverImage
     ? `<img src="${escapeHtml(post.coverImage)}" alt="${escapeHtml(post.title)}" />`
     : "";
   const categoryPill = post.category
-    ? `<a class="pill" href="${DOMAIN}/blog/c/${post.category}">${escapeHtml(post.categoryLabel)}</a>`
+    ? `<a class="pill" href="${toAbsoluteUrl(`/blog/c/${post.category}`, locale)}">${escapeHtml(getCategoryLabel(post.category, locale))}</a>`
     : "";
   const personaPill = post.persona
-    ? `<a class="pill" href="${DOMAIN}/blog/metier/${post.persona}">${escapeHtml(post.personaLabel)}</a>`
+    ? `<a class="pill" href="${toAbsoluteUrl(`/blog/metier/${post.persona}`, locale)}">${escapeHtml(getPersonaLabel(post.persona, locale))}</a>`
     : "";
 
   const relatedPosts = posts
@@ -420,8 +509,8 @@ function renderPostPage(post, posts) {
 
   const relatedSection = relatedPosts.length
     ? `<section>
-  <h2 class="section-title">Articles lies</h2>
-  ${renderPostCards(relatedPosts)}
+  <h2 class="section-title">${escapeHtml(getLocaleCopy(locale).related)}</h2>
+  ${renderPostCards(relatedPosts, locale)}
 </section>`
     : "";
 
@@ -429,7 +518,7 @@ function renderPostPage(post, posts) {
   <h1>${escapeHtml(post.title)}</h1>
   <p>${escapeHtml(post.excerpt)}</p>
   <div class="meta">
-    <span>${escapeHtml(formatDate(post.date))}</span>
+    <span>${escapeHtml(formatDate(post.date, locale))}</span>
     <span>${escapeHtml(post.author)}</span>
     ${categoryPill}
     ${personaPill}
@@ -441,38 +530,39 @@ function renderPostPage(post, posts) {
 </section>
 ${relatedSection}`;
 
-  const jsonLd = buildJsonLd({
-    "@context": "https://schema.org",
-    "@type": "BlogPosting",
-    headline: post.title,
-    description: post.excerpt,
-    datePublished: post.date,
-    dateModified: post.date,
-    author: {
-      "@type": "Organization",
-      name: post.author,
-    },
-    publisher: {
-      "@type": "Organization",
-      name: "SlideAI",
-      logo: {
-        "@type": "ImageObject",
-        url: `${DOMAIN}/logo.png`,
-      },
-    },
-    image: post.coverImage ? [post.coverImage] : [DEFAULT_OG_IMAGE],
-    mainEntityOfPage: `${DOMAIN}/blog/${post.slug}`,
-  });
-
   return buildDocument({
-    lang: post.language.toLowerCase().startsWith("en") ? "en" : "fr",
+    lang: locale,
     title: post.title,
     description: post.excerpt,
-    canonicalUrl: `${DOMAIN}/blog/${post.slug}`,
+    canonicalUrl: toAbsoluteUrl(`/blog/${post.slug}`, locale),
     ogImage: post.coverImage || DEFAULT_OG_IMAGE,
     type: "article",
     body,
-    jsonLd: [jsonLd],
+    jsonLd: [
+      buildJsonLd({
+        "@context": "https://schema.org",
+        "@type": "BlogPosting",
+        headline: post.title,
+        description: post.excerpt,
+        datePublished: post.date,
+        dateModified: post.date,
+        author: {
+          "@type": "Organization",
+          name: post.author,
+        },
+        publisher: {
+          "@type": "Organization",
+          name: "SlideAI",
+          logo: {
+            "@type": "ImageObject",
+            url: `${DOMAIN}/logo.png`,
+          },
+        },
+        image: post.coverImage ? [post.coverImage] : [DEFAULT_OG_IMAGE],
+        mainEntityOfPage: toAbsoluteUrl(`/blog/${post.slug}`, locale),
+      }),
+    ],
+    alternates: buildDefaultAlternates(`/blog/${post.slug}`, hasEnglishEquivalent),
   });
 }
 
@@ -490,42 +580,60 @@ function generateStaticBlog() {
     return;
   }
 
-  ensureDir(BLOG_DIST_DIR);
   const posts = parsePosts();
+  const postsByLocale = {
+    fr: posts.filter((post) => post.language === "fr"),
+    en: posts.filter((post) => post.language === "en"),
+  };
 
-  writeFile("blog/index.html", renderBlogIndex(posts));
+  for (const locale of ["fr", "en"]) {
+    const localePosts = postsByLocale[locale];
+    const alternatePosts = postsByLocale[locale === "fr" ? "en" : "fr"];
+    const categories = new Map();
+    const personas = new Map();
 
-  const categories = new Map();
-  const personas = new Map();
+    writeFile(localizePath("/blog", locale).replace(/^\//, "") + "/index.html", renderBlogIndex(localePosts, locale));
 
-  for (const post of posts) {
-    if (post.category) {
-      if (!categories.has(post.category)) {
-        categories.set(post.category, []);
+    for (const post of localePosts) {
+      if (post.category) {
+        if (!categories.has(post.category)) {
+          categories.set(post.category, []);
+        }
+        categories.get(post.category).push(post);
       }
-      categories.get(post.category).push(post);
+
+      if (post.persona) {
+        if (!personas.has(post.persona)) {
+          personas.set(post.persona, []);
+        }
+        personas.get(post.persona).push(post);
+      }
+
+      writeFile(
+        localizePath(`/blog/${post.slug}`, locale).replace(/^\//, "") + "/index.html",
+        renderPostPage(post, localePosts, locale, alternatePosts.some((candidate) => candidate.slug === post.slug))
+      );
     }
 
-    if (post.persona) {
-      if (!personas.has(post.persona)) {
-        personas.set(post.persona, []);
-      }
-      personas.get(post.persona).push(post);
+    for (const [categorySlug, categoryPosts] of categories.entries()) {
+      writeFile(
+        localizePath(`/blog/c/${categorySlug}`, locale).replace(/^\//, "") + "/index.html",
+        renderCategoryPage(categorySlug, categoryPosts, locale, alternatePosts.some((post) => post.category === categorySlug))
+      );
     }
 
-    writeFile(`blog/${post.slug}/index.html`, renderPostPage(post, posts));
-  }
-
-  for (const [categorySlug, categoryPosts] of categories.entries()) {
-    writeFile(`blog/c/${categorySlug}/index.html`, renderCategoryPage(categorySlug, categoryPosts));
-  }
-
-  for (const [personaSlug, personaPosts] of personas.entries()) {
-    writeFile(`blog/metier/${personaSlug}/index.html`, renderPersonaPage(personaSlug, personaPosts));
+    for (const [personaSlug, personaPosts] of personas.entries()) {
+      writeFile(
+        localizePath(`/blog/metier/${personaSlug}`, locale).replace(/^\//, "") + "/index.html",
+        renderPersonaPage(personaSlug, personaPosts, locale, alternatePosts.some((post) => post.persona === personaSlug))
+      );
+    }
   }
 
   console.log(
-    `Generated ${posts.length} post pages, ${categories.size} category pages and ${personas.size} persona pages.`
+    `Generated ${posts.length} post pages, ${
+      new Set(posts.map((post) => `${post.language}:${post.category}`)).size
+    } category pages and ${new Set(posts.filter((post) => post.persona).map((post) => `${post.language}:${post.persona}`)).size} persona pages.`
   );
 }
 

@@ -29,28 +29,36 @@ export interface BlogPersonaSummary {
     count: number;
 }
 
-const CATEGORY_LABELS: Record<string, string> = {
-    "consulting": "Conseil",
-    "marketing": "Marketing",
-    "sales": "Commercial",
-    "finance": "Finance",
-    "powerpoint-ai": "PowerPoint IA",
-    "pitch-deck": "Pitch deck",
-    "competitive": "Alternatives et comparatifs",
-    "productivity": "Productivite",
+const CATEGORY_LABELS: Record<string, { fr: string; en: string }> = {
+    "consulting": { fr: "Conseil", en: "Consulting" },
+    "marketing": { fr: "Marketing", en: "Marketing" },
+    "sales": { fr: "Commercial", en: "Sales" },
+    "finance": { fr: "Finance", en: "Finance" },
+    "product": { fr: "Produit", en: "Product" },
+    "training": { fr: "Formation", en: "Training" },
+    "powerpoint-ai": { fr: "PowerPoint IA", en: "AI PowerPoint" },
+    "pitch-deck": { fr: "Pitch deck", en: "Pitch deck" },
+    "competitive": { fr: "Alternatives et comparatifs", en: "Alternatives and comparisons" },
+    "productivity": { fr: "Productivite", en: "Productivity" },
 };
 
-const PERSONA_LABELS: Record<string, string> = {
-    "consultant-rh": "Consultant RH",
-    "consultant-seo": "Consultant SEO",
-    "consultant-strategie": "Consultant strategie",
-    "directeur-marketing": "Directeur marketing",
-    "directeur-commercial": "Directeur commercial",
-    "analyste-financier": "Analyste financier",
-    "freelance": "Freelance",
-    "product-manager": "Product manager",
-    "sales-manager": "Sales manager",
+const PERSONA_LABELS: Record<string, { fr: string; en: string }> = {
+    "consultant-rh": { fr: "Consultant RH", en: "HR consultant" },
+    "consultant-seo": { fr: "Consultant SEO", en: "SEO consultant" },
+    "consultant-strategie": { fr: "Consultant strategie", en: "Strategy consultant" },
+    "directeur-marketing": { fr: "Directeur marketing", en: "Marketing director" },
+    "directeur-commercial": { fr: "Directeur commercial", en: "Sales director" },
+    "analyste-financier": { fr: "Analyste financier", en: "Financial analyst" },
+    "freelance": { fr: "Freelance", en: "Freelancer" },
+    "product-manager": { fr: "Product manager", en: "Product manager" },
+    "responsable-formation": { fr: "Responsable formation", en: "Training manager" },
+    "consultant-cybersecurite": { fr: "Consultant cybersecurite", en: "Cybersecurity consultant" },
+    "sales-manager": { fr: "Sales manager", en: "Sales manager" },
 };
+
+function normalizeLanguage(language?: string): "fr" | "en" {
+    return String(language || "fr").toLowerCase().startsWith("en") ? "en" : "fr";
+}
 
 function slugifyCategory(value: string): string {
     return value
@@ -72,12 +80,24 @@ function inferCategoryAndTags(slug: string, title: string): { category: string; 
         return { category: "marketing", tags: ["marketing", "b2b", "powerpoint", "ia"] };
     }
 
+    if (source.includes("product manager") || source.includes("roadmap produit") || source.includes("produit")) {
+        return { category: "product", tags: ["product", "roadmap", "powerpoint", "ia"] };
+    }
+
+    if (source.includes("formation") || source.includes("training")) {
+        return { category: "training", tags: ["formation", "supports", "powerpoint", "ia"] };
+    }
+
     if (source.includes("commercial") || source.includes("vente") || source.includes("sales")) {
         return { category: "sales", tags: ["sales", "b2b", "powerpoint", "ia"] };
     }
 
     if (source.includes("financier") || source.includes("finance")) {
         return { category: "finance", tags: ["finance", "analyse", "powerpoint", "ia"] };
+    }
+
+    if (source.includes("cyber") || source.includes("securite")) {
+        return { category: "consulting", tags: ["cybersecurite", "audit", "powerpoint", "ia"] };
     }
 
     if (source.includes("gamma") || source.includes("alternative")) {
@@ -119,6 +139,12 @@ function inferPersona(slug: string, title: string): string | undefined {
     if (source.includes("product manager") || source.includes("product-manager")) {
         return "product-manager";
     }
+    if (source.includes("responsable formation") || source.includes("responsable-formation")) {
+        return "responsable-formation";
+    }
+    if (source.includes("consultant cybers") || source.includes("cybersecurite") || source.includes("cyber")) {
+        return "consultant-cybersecurite";
+    }
     if (source.includes("strategie")) {
         return "consultant-strategie";
     }
@@ -129,8 +155,9 @@ function inferPersona(slug: string, title: string): string | undefined {
     return undefined;
 }
 
-export function getCategoryLabel(categorySlug: string): string {
-    return CATEGORY_LABELS[categorySlug] || categorySlug;
+export function getCategoryLabel(categorySlug: string, language: string = "fr"): string {
+    const locale = normalizeLanguage(language);
+    return CATEGORY_LABELS[categorySlug]?.[locale] || categorySlug;
 }
 
 export function getTagLabel(tagSlug: string): string {
@@ -140,13 +167,17 @@ export function getTagLabel(tagSlug: string): string {
         .join(" ");
 }
 
-export function getPersonaLabel(personaSlug: string): string {
-    return PERSONA_LABELS[personaSlug] || getTagLabel(personaSlug);
+export function getPersonaLabel(personaSlug: string, language: string = "fr"): string {
+    const locale = normalizeLanguage(language);
+    return PERSONA_LABELS[personaSlug]?.[locale] || getTagLabel(personaSlug);
 }
 
-export function getPersonaDescription(personaSlug: string): string {
-    const label = getPersonaLabel(personaSlug);
-    return `Guides SlideAI pour ${label.toLowerCase()} qui cree des presentations PowerPoint toute la journee dans un contexte B2B.`;
+export function getPersonaDescription(personaSlug: string, language: string = "fr"): string {
+    const locale = normalizeLanguage(language);
+    const label = getPersonaLabel(personaSlug, locale);
+    return locale === "en"
+        ? `SlideAI guides for ${label.toLowerCase()} building PowerPoint presentations in a B2B context.`
+        : `Guides SlideAI pour ${label.toLowerCase()} qui cree des presentations PowerPoint toute la journee dans un contexte B2B.`;
 }
 
 // Eagerly load all markdown files as raw strings
@@ -213,9 +244,47 @@ export async function getAllPosts(language: string = 'fr'): Promise<BlogPost[]> 
     return filteredPosts.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 }
 
-export async function getPostBySlug(slug: string): Promise<BlogPost | undefined> {
-    // We search across all languages because the slug should be unique enough or we just want the content regardless of current locale context if requested explicitly
+export function hasPostInLanguage(slug: string, language: string): boolean {
     const posts = getParsedPosts();
+    const currentLang = normalizeLanguage(language);
+
+    return posts.some((post) => {
+        const postLang = normalizeLanguage(post.language);
+        return post.slug === slug && postLang === currentLang;
+    });
+}
+
+export function hasCategoryInLanguage(categorySlug: string, language: string): boolean {
+    const currentLang = normalizeLanguage(language);
+    return getParsedPosts().some((post) => {
+        const postLang = normalizeLanguage(post.language);
+        return post.category === categorySlug && postLang === currentLang;
+    });
+}
+
+export function hasPersonaInLanguage(personaSlug: string, language: string): boolean {
+    const currentLang = normalizeLanguage(language);
+    return getParsedPosts().some((post) => {
+        const postLang = normalizeLanguage(post.language);
+        return post.persona === personaSlug && postLang === currentLang;
+    });
+}
+
+export async function getPostBySlug(slug: string, language?: string): Promise<BlogPost | undefined> {
+    const posts = getParsedPosts();
+
+    if (language) {
+        const currentLang = normalizeLanguage(language);
+        const localizedPost = posts.find((post) => {
+            const postLang = normalizeLanguage(post.language);
+            return post.slug === slug && postLang === currentLang;
+        });
+
+        if (localizedPost) {
+            return localizedPost;
+        }
+    }
+
     return posts.find((post) => post.slug === slug);
 }
 
@@ -226,6 +295,7 @@ export async function getPostsByCategory(categorySlug: string, language: string 
 
 export async function getAllCategories(language: string = "fr"): Promise<BlogCategorySummary[]> {
     const posts = await getAllPosts(language);
+    const locale = normalizeLanguage(language);
     const counts = new Map<string, number>();
 
     posts.forEach((post) => {
@@ -236,7 +306,7 @@ export async function getAllCategories(language: string = "fr"): Promise<BlogCat
     return Array.from(counts.entries())
         .map(([slug, count]) => ({
             slug,
-            label: getCategoryLabel(slug),
+            label: getCategoryLabel(slug, locale),
             count,
         }))
         .sort((a, b) => b.count - a.count);
@@ -249,6 +319,7 @@ export async function getPostsByPersona(personaSlug: string, language: string = 
 
 export async function getAllPersonas(language: string = "fr"): Promise<BlogPersonaSummary[]> {
     const posts = await getAllPosts(language);
+    const locale = normalizeLanguage(language);
     const counts = new Map<string, number>();
 
     posts.forEach((post) => {
@@ -259,7 +330,7 @@ export async function getAllPersonas(language: string = "fr"): Promise<BlogPerso
     return Array.from(counts.entries())
         .map(([slug, count]) => ({
             slug,
-            label: getPersonaLabel(slug),
+            label: getPersonaLabel(slug, locale),
             count,
         }))
         .sort((a, b) => b.count - a.count);

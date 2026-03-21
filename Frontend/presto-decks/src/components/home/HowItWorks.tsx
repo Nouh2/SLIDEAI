@@ -1,9 +1,44 @@
-import { motion } from "framer-motion";
+import { useRef } from "react";
+import { motion, useScroll, useTransform, Variants } from "framer-motion";
 import { useTranslation } from "react-i18next";
 import { FileText, Wand2, Send } from "lucide-react";
 
 export function HowItWorks() {
     const { t } = useTranslation();
+    const sectionRef = useRef<HTMLElement | null>(null);
+
+    const { scrollYProgress } = useScroll({
+        target: sectionRef,
+        offset: ["start 82%", "end 30%"],
+    });
+
+    const sectionOpacity = useTransform(scrollYProgress, [0, 0.18, 1], [0.4, 1, 1]);
+    const headingY = useTransform(scrollYProgress, [0, 1], [34, -8]);
+    const sectionY = useTransform(scrollYProgress, [0, 1], [56, -14]);
+    const lineProgress = useTransform(scrollYProgress, [0.15, 0.75], [0, 1]);
+
+    const containerVariants: Variants = {
+        hidden: {},
+        visible: {
+            transition: {
+                staggerChildren: 0.14,
+                delayChildren: 0.06,
+            },
+        },
+    };
+
+    const stepVariants: Variants = {
+        hidden: { opacity: 0, y: 48, scale: 0.96 },
+        visible: {
+            opacity: 1,
+            y: 0,
+            scale: 1,
+            transition: {
+                duration: 0.7,
+                ease: [0.22, 1, 0.36, 1],
+            },
+        },
+    };
 
     const steps = [
         {
@@ -24,24 +59,39 @@ export function HowItWorks() {
     ];
 
     return (
-        <section className="py-8 md:py-10 px-4 relative z-10">
+        <motion.section
+            ref={sectionRef}
+            style={{ opacity: sectionOpacity }}
+            className="py-8 md:py-10 px-4 relative z-10"
+        >
             <div className="absolute inset-0 bg-gradient-to-b from-transparent via-primary/5 to-transparent -z-10" />
             <div className="max-w-7xl mx-auto">
-                <div className="text-center mb-10">
+                <motion.div className="text-center mb-10" style={{ y: headingY }}>
                     <h2 className="text-3xl md:text-5xl font-bold mb-4">{t('howItWorks.title')}</h2>
-                </div>
+                </motion.div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-8 relative">
+                <motion.div
+                    className="grid grid-cols-1 md:grid-cols-3 gap-8 relative"
+                    style={{ y: sectionY }}
+                    variants={containerVariants}
+                    initial="hidden"
+                    whileInView="visible"
+                    viewport={{ once: true, amount: 0.22 }}
+                >
                     {/* Connecting line (desktop) */}
-                    <div className="hidden md:block absolute top-12 left-[16%] right-[16%] h-0.5 bg-gradient-to-r from-transparent via-primary/30 to-transparent" />
+                    <div className="hidden md:block absolute top-12 left-[16%] right-[16%] h-0.5 bg-gradient-to-r from-transparent via-primary/20 to-transparent overflow-hidden">
+                        <motion.div
+                            style={{ scaleX: lineProgress }}
+                            className="h-full origin-left bg-gradient-to-r from-primary via-secondary to-primary"
+                        />
+                    </div>
 
                     {steps.map((step, index) => (
                         <motion.div
                             key={index}
-                            initial={{ opacity: 0, y: 20 }}
-                            whileInView={{ opacity: 1, y: 0 }}
-                            transition={{ delay: index * 0.2 }}
-                            className="relative flex flex-col items-center text-center space-y-4"
+                            variants={stepVariants}
+                            whileHover={{ y: -6 }}
+                            className="relative flex flex-col items-center text-center space-y-4 rounded-3xl border border-border/50 bg-background/40 px-5 py-6 backdrop-blur-sm shadow-[0_16px_50px_-36px_rgba(0,0,0,0.45)]"
                         >
                             <div className="w-24 h-24 rounded-full glass-premium flex items-center justify-center border border-primary/20 shadow-lg relative z-10 bg-background/50 backdrop-blur-xl">
                                 <step.icon className="w-10 h-10 text-primary" />
@@ -55,12 +105,12 @@ export function HowItWorks() {
                             </div>
                         </motion.div>
                     ))}
-                </div>
+                </motion.div>
 
-                <div className="mt-10 text-center">
+                <motion.div className="mt-10 text-center" style={{ y: sectionY }}>
                     <p className="text-xl md:text-2xl font-medium text-gradient-secondary">{t('howItWorks.time')}</p>
-                </div>
+                </motion.div>
             </div>
-        </section>
+        </motion.section>
     );
 }

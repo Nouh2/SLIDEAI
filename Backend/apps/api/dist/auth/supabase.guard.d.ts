@@ -12,4 +12,5 @@ export declare class SupabaseGuard implements CanActivate {
     private readonly jwtSecret;
     constructor(prisma: PrismaService);
     canActivate(context: ExecutionContext): Promise<boolean>;
+    private canUseTeamWorkspace;
 }

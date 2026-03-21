@@ -2,9 +2,11 @@ import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Home, AlertCircle } from "lucide-react";
+import { useLocalePath } from "@/hooks/use-locale-path";
 
 const NotFound = () => {
   const { t } = useTranslation();
+  const { localize } = useLocalePath();
 
   return (
     <div className="min-h-screen flex items-center justify-center">
@@ -26,7 +28,7 @@ const NotFound = () => {
         </div>
 
         <Button size="lg" variant="solid" asChild>
-          <Link to="/">
+          <Link to={localize("/")}>
             <Home className="mr-2 h-5 w-5" />
             {t('notFound.backHome')}
           </Link>
@@ -37,4 +39,3 @@ const NotFound = () => {
 };
 
 export default NotFound;
-

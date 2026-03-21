@@ -1,3 +1,4 @@
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Globe } from 'lucide-react';
@@ -7,6 +8,8 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { hasPostInLanguage } from '@/lib/blog';
+import { AppLocale, isLocalizedMarketingPath, localizePath, stripLocalePrefix } from '@/lib/localeRouting';
 
 const languages = [
     { code: 'fr', label: 'Français', flag: '🇫🇷' },
@@ -15,13 +18,37 @@ const languages = [
 
 export function LanguageSwitcher() {
     const { i18n } = useTranslation();
+    const navigate = useNavigate();
+    const location = useLocation();
     const currentLang = i18n.language?.substring(0, 2) || 'fr';
 
     const handleLanguageChange = (langCode: string) => {
-        i18n.changeLanguage(langCode);
-    };
+        const nextLocale = (langCode === 'en' ? 'en' : 'fr') as AppLocale;
+        localStorage.setItem('i18nextLng', nextLocale);
 
-    const currentLanguage = languages.find(l => l.code === currentLang) || languages[0];
+        const currentPath = `${location.pathname}${location.search}${location.hash}`;
+        const basePath = stripLocalePrefix(location.pathname);
+
+        if (/^\/blog\/[^/]+$/.test(basePath)) {
+            const slug = basePath.split("/").pop();
+            const targetPath = slug && hasPostInLanguage(slug, nextLocale)
+                ? localizePath(basePath, nextLocale)
+                : localizePath("/blog", nextLocale);
+
+            void i18n.changeLanguage(nextLocale);
+            navigate(`${targetPath}${location.search}${location.hash}`);
+            return;
+        }
+
+        if (isLocalizedMarketingPath(location.pathname)) {
+            void i18n.changeLanguage(nextLocale);
+            navigate(localizePath(basePath, nextLocale));
+            return;
+        }
+
+        void i18n.changeLanguage(nextLocale);
+        navigate(currentPath);
+    };
 
     return (
         <DropdownMenu>

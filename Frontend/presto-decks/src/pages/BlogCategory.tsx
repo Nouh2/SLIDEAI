@@ -4,14 +4,18 @@ import { Helmet } from "react-helmet-async";
 import { ArrowLeft, ArrowRight, Calendar, User } from "lucide-react";
 import { SEO } from "@/components/common/SEO";
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
-import { BlogPost, getCategoryLabel, getPostsByCategory } from "@/lib/blog";
+import { BlogPost, getCategoryLabel, getPostsByCategory, hasCategoryInLanguage } from "@/lib/blog";
 import { useTranslation } from "react-i18next";
+import { useLocalePath } from "@/hooks/use-locale-path";
+import { toAbsoluteUrl } from "@/lib/localeRouting";
 
 export default function BlogCategory() {
   const { i18n } = useTranslation();
+  const { locale, localize } = useLocalePath();
   const { category } = useParams<{ category: string }>();
   const [posts, setPosts] = useState<BlogPost[]>([]);
   const [loading, setLoading] = useState(true);
+  const alternateLocale = locale === "fr" ? "en" : "fr";
 
   useEffect(() => {
     const loadPosts = async () => {
@@ -22,7 +26,7 @@ export default function BlogCategory() {
 
       try {
         setLoading(true);
-        const data = await getPostsByCategory(category, i18n.language);
+        const data = await getPostsByCategory(category, locale);
         setPosts(data);
       } finally {
         setLoading(false);
@@ -30,24 +34,30 @@ export default function BlogCategory() {
     };
 
     loadPosts();
-  }, [category, i18n.language]);
+  }, [category, i18n.language, locale]);
 
-  const categoryLabel = getCategoryLabel(category || "");
+  const categoryLabel = getCategoryLabel(category || "", locale);
+  const hasAlternateCategory = category ? hasCategoryInLanguage(category, alternateLocale) : false;
   const title = `Blog ${categoryLabel} | SlideAI`;
   const description = `Articles SlideAI sur ${categoryLabel.toLowerCase()} pour mieux structurer vos presentations et votre maillage SEO.`;
 
   return (
     <div className="min-h-screen pt-24 pb-16 px-4">
-      <SEO title={title} description={description} url={`/blog/c/${category || ""}`} />
+      <SEO
+        title={title}
+        description={description}
+        url={`/blog/c/${category || ""}`}
+        alternates={hasAlternateCategory ? { fr: `/blog/c/${category}`, en: `/blog/c/${category}`, "x-default": "/blog" } : undefined}
+      />
       <Helmet>
         <script type="application/ld+json">
           {JSON.stringify({
             "@context": "https://schema.org",
             "@type": "BreadcrumbList",
             itemListElement: [
-              { "@type": "ListItem", position: 1, name: "Accueil", item: "https://www.slideai.fr/" },
-              { "@type": "ListItem", position: 2, name: "Blog", item: "https://www.slideai.fr/blog" },
-              { "@type": "ListItem", position: 3, name: categoryLabel, item: `https://www.slideai.fr/blog/c/${category}` },
+              { "@type": "ListItem", position: 1, name: locale === "fr" ? "Accueil" : "Home", item: toAbsoluteUrl("/", locale) },
+              { "@type": "ListItem", position: 2, name: "Blog", item: toAbsoluteUrl("/blog", locale) },
+              { "@type": "ListItem", position: 3, name: categoryLabel, item: toAbsoluteUrl(`/blog/c/${category}`, locale) },
             ],
           })}
         </script>
@@ -55,21 +65,21 @@ export default function BlogCategory() {
 
       <div className="max-w-6xl mx-auto space-y-10">
         <div className="space-y-4">
-          <Link to="/blog" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors">
+          <Link to={localize("/blog")} className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors">
             <ArrowLeft className="h-4 w-4" />
-            Retour au blog
+            {locale === "fr" ? "Retour au blog" : "Back to blog"}
           </Link>
           <Breadcrumb>
             <BreadcrumbList>
               <BreadcrumbItem>
                 <BreadcrumbLink asChild>
-                  <Link to="/">Accueil</Link>
+                  <Link to={localize("/")}>{locale === "fr" ? "Accueil" : "Home"}</Link>
                 </BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator />
               <BreadcrumbItem>
                 <BreadcrumbLink asChild>
-                  <Link to="/blog">Blog</Link>
+                  <Link to={localize("/blog")}>Blog</Link>
                 </BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator />
@@ -83,7 +93,9 @@ export default function BlogCategory() {
         <header className="space-y-3">
           <h1 className="text-4xl md:text-5xl font-bold">{categoryLabel}</h1>
           <p className="max-w-3xl text-lg text-muted-foreground">
-            Articles regroupes pour renforcer le cluster {categoryLabel.toLowerCase()} et orienter le maillage interne vers les bons sujets.
+            {locale === "fr"
+              ? `Articles regroupes pour renforcer le cluster ${categoryLabel.toLowerCase()} et orienter le maillage interne vers les bons sujets.`
+              : `Articles grouped to strengthen the ${categoryLabel.toLowerCase()} cluster and guide internal linking toward the right topics.`}
           </p>
         </header>
 
@@ -96,7 +108,7 @@ export default function BlogCategory() {
             {posts.map((post) => (
               <Link
                 key={post.slug}
-                to={`/blog/${post.slug}`}
+                to={localize(`/blog/${post.slug}`)}
                 className="group flex flex-col bg-card border border-border/50 rounded-2xl overflow-hidden hover:shadow-2xl hover:shadow-primary/10 transition-all duration-300 hover:-translate-y-1"
               >
                 <div className="aspect-video relative overflow-hidden bg-muted">
@@ -130,7 +142,7 @@ export default function BlogCategory() {
                   <p className="text-muted-foreground text-sm line-clamp-3 flex-1">{post.excerpt}</p>
 
                   <div className="pt-4 flex items-center text-primary font-medium text-sm">
-                    Lire l'article
+                    {locale === "fr" ? "Lire l'article" : "Read article"}
                     <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
                   </div>
                 </div>

@@ -25,8 +25,8 @@ export default function PDFToPowerPoint() {
             r: "Max 50 Mo par fichier"
         },
         {
-            q: "Est-ce vraiment gratuit ?",
-            r: "Oui, 7€ de test gratuit (annulez quand vous voulez)"
+            q: "Puis-je essayer sans carte bancaire ?",
+            r: "Oui, vous pouvez démarrer un essai 7 jours sans carte bancaire."
         },
         {
             q: "Mes données sont-elles sécurisées ?",
@@ -37,8 +37,8 @@ export default function PDFToPowerPoint() {
     return (
         <div className="min-h-screen w-full relative pt-20 overflow-x-hidden">
             <SEO
-                title="Convertir PDF en PowerPoint Gratuit | SlideAI"
-                description="Transformez vos PDF en présentations PowerPoint en quelques secondes avec l'IA. Gratuit, rapide et sans inscription. Essayez maintenant."
+                title="Convertir PDF en PowerPoint | SlideAI"
+                description="Transformez vos PDF en présentations PowerPoint en quelques secondes avec l'IA. Essai 7 jours sans carte, rapide et prêt à éditer."
             />
 
             <Helmet>
@@ -152,7 +152,7 @@ export default function PDFToPowerPoint() {
                             onClick={() => navigate("/create")}
                             className="h-14 px-8 text-base font-bold rounded-xl bg-gradient-primary hover:shadow-neon-hover transition-all duration-300 group text-foreground"
                         >
-                            Essayer gratuitement (7€)
+                            Demarrer l'essai 7 jours
                             <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
                         </Button>
                         <Button
@@ -221,10 +221,10 @@ export default function PDFToPowerPoint() {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                         {[
                             { title: "✅ Rapide", desc: "30 secondes vs 2-3 heures manuellement. Gagnez 2-3 heures par conversion." },
-                            { title: "✅ Gratuit", desc: "Essayez gratuitement (7€ de test). Sans engagement." },
+                            { title: "✅ Sans carte", desc: "Démarrez un essai 7 jours sans carte bancaire." },
                             { title: "✅ Professionnel", desc: "L'IA crée des slides avec une mise en page et une hiérarchie visuelle claire." },
                             { title: "✅ Modifiable", desc: "100% personnalisable. Modifiez le texte, les couleurs et les images." },
-                            { title: "✅ Sans inscription", desc: "Commencez immédiatement sans créer de compte pour tester." },
+                            { title: "✅ Essai 7 jours", desc: "Créez un compte et démarrez un essai sans carte bancaire." },
                             { title: "✅ Sécurisé", desc: "Chiffrement SSL et suppression auto après 24h. Vos données sont protégées." }
                         ].map((item, i) => (
                             <div key={i} className="p-6 bg-background border border-border/50 rounded-xl space-y-2">
@@ -286,7 +286,7 @@ export default function PDFToPowerPoint() {
 
                 {/* SECTION 7 : ENGLISH SEO SECTION (OPPORTUNITY #2) */}
                 <section className="mb-32 p-12 bg-primary/5 rounded-3xl border border-primary/10">
-                    <h2 className="text-3xl font-bold mb-6">Convert PDF to PowerPoint Online - Free Tool</h2>
+                    <h2 className="text-3xl font-bold mb-6">Convert PDF to PowerPoint Online</h2>
                     <div className="prose prose-invert max-w-none text-foreground/70">
                         <p className="mb-4">
                             Looking for a fast and reliable way to <strong>convert PDF to PowerPoint</strong>? SlideAI uses advanced artificial intelligence to transform your static PDF documents into dynamic, editable PPT slides in seconds. Whether it's a client report, a research paper, or a business proposal, our AI analyzes the layout and content to create a professional presentation that saves you hours of manual work.
@@ -297,7 +297,7 @@ export default function PDFToPowerPoint() {
                         <ul className="list-disc pl-6 space-y-2 mb-6">
                             <li>Fast: 30-second conversion.</li>
                             <li>Smart: AI-powered layout reconstruction.</li>
-                            <li>Free to try: Get started with our trial plan.</li>
+                            <li>Try it with a 7-day no-card trial.</li>
                             <li>Secure: Your data is encrypted and deleted automatically.</li>
                         </ul>
                         <div className="flex justify-center mt-8">
@@ -314,26 +314,26 @@ export default function PDFToPowerPoint() {
 
                 {/* SECTION 7 : PRICING + CTA FINAL */}
                 <section className="mb-32 p-12 bg-gradient-to-br from-primary/5 via-background to-secondary/5 rounded-3xl border border-primary/20 text-center">
-                    <h2 className="text-3xl md:text-5xl font-bold mb-12">Commencer gratuitement</h2>
+                    <h2 className="text-3xl md:text-5xl font-bold mb-12">Commencer avec un essai 7 jours</h2>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto mb-12">
                         <div className="p-8 bg-background border border-border/50 rounded-2xl space-y-4">
-                            <h3 className="text-xl font-bold">Plan Gratuit (7€ test)</h3>
+                            <h3 className="text-xl font-bold">Starter apres essai</h3>
                             <ul className="text-sm text-foreground/60 space-y-2 text-left">
-                                <li>• 5 conversions/mois</li>
-                                <li>• Fichiers jusqu'à 50 Mo</li>
-                                <li>• Support par email</li>
-                                <li>• Annulation facile</li>
+                                <li>• 15 générations par mois</li>
+                                <li>• Export PDF et PowerPoint image</li>
+                                <li>• Partage par lien</li>
+                                <li>• 9€/mois ou 7€/mois annuel</li>
                             </ul>
-                            <Button onClick={() => navigate("/create")} className="w-full h-12 rounded-xl font-bold bg-primary mt-4">Essayer gratuitement</Button>
+                            <Button onClick={() => navigate("/create")} className="w-full h-12 rounded-xl font-bold bg-primary mt-4">Demarrer l'essai</Button>
                         </div>
                         <div className="p-8 bg-background/50 border border-primary/30 rounded-2xl space-y-4 relative overflow-hidden">
                             <div className="absolute top-4 right-4 text-[10px] font-bold bg-primary text-foreground px-2 py-1 rounded-full uppercase tracking-tighter">Populaire</div>
                             <h3 className="text-xl font-bold">Plan Pro (19€/mois)</h3>
                             <ul className="text-sm text-foreground/60 space-y-2 text-left">
-                                <li>• Conversions illimitées</li>
-                                <li>• Fichiers jusqu'à 500 Mo</li>
+                                <li>• Générations illimitées</li>
+                                <li>• Brand kits illimités</li>
                                 <li>• Support prioritaire</li>
-                                <li>• Intégrations API</li>
+                                <li>• Export PowerPoint éditable beta</li>
                             </ul>
                             <Button variant="outline" onClick={() => navigate("/pricing")} className="w-full h-12 rounded-xl font-bold mt-4">Voir tous les plans</Button>
                         </div>

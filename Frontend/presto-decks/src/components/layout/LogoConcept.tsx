@@ -1,8 +1,11 @@
 import { Link } from 'react-router-dom';
+import { useLocalePath } from "@/hooks/use-locale-path";
 
 export const LogoConcept = () => {
+    const { localize } = useLocalePath();
+
     return (
-        <Link to="/" className="group flex items-center gap-3">
+        <Link to={localize("/")} className="group flex items-center gap-3">
             <div className="relative w-8 h-8 flex items-center justify-center">
                 {/* Gradients */}
                 <svg width="0" height="0">

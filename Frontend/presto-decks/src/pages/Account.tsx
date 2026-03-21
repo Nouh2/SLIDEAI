@@ -12,6 +12,8 @@ import { api } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
 import { Input } from "@/components/ui/input";
 import { useTranslation } from "react-i18next";
+import { UpgradeGate } from "@/components/common/UpgradeGate";
+import { getPlanDisplayKey, hasFeature, isLegacySubscription, isPackSubscription, isTrialingSubscription } from "@/lib/subscription";
 
 export default function Account() {
   const { t, i18n } = useTranslation();
@@ -157,12 +159,15 @@ export default function Account() {
     );
   }
 
-  const isPackActive = Boolean(subscription?.packActive);
-  const isTrialing = subscription?.accessState === "trialing";
+  const isPackActive = isPackSubscription(subscription);
+  const isTrialing = isTrialingSubscription(subscription);
   const isExpiredTrial = subscription?.accessState === "trial_expired";
-  const isFree = !subscription || (subscription?.accessState === "legacy_free" && !isPackActive);
+  const isLegacyAccess = isLegacySubscription(subscription);
+  const isFree = !subscription || (isLegacyAccess && !isPackActive);
   const isUnlimited = subscription?.creditsRemaining === -1;
   const canStartTrial = Boolean(subscription?.canStartTrial);
+  const canUseBrandKit = hasFeature(subscription, "brand_kit");
+  const displayPlanKey = getPlanDisplayKey(subscription);
   const planColor = isPackActive ? "text-amber-700" : isFree ? "text-muted-foreground" : "text-primary";
   const planName = isPackActive
     ? t("account.packActive", { defaultValue: "Active pack" })
@@ -170,9 +175,9 @@ export default function Account() {
       ? t("account.proTrial", { defaultValue: "Essai Pro" })
       : isExpiredTrial
         ? t("account.trialExpired", { defaultValue: "Essai expiré" })
-      : subscription?.plan
-        ? t(`pricing.plans.${subscription.plan}.name`)
-      : t("pricing.plans.free.name");
+      : displayPlanKey
+        ? t(`pricing.plans.${displayPlanKey}.name`)
+      : t("account.legacyAccess", { defaultValue: "Legacy access" });
 
   return (
     <div className="container py-12">
@@ -393,7 +398,7 @@ export default function Account() {
                     <p className="text-sm text-muted-foreground">
                       {t("account.packActiveDetail", {
                         defaultValue:
-                          "Ce pack vous permet de continuer a generer ponctuellement et d exporter en PDF/PPTX, tout en gardant le reste des fonctionnalites du plan gratuit.",
+                          "Ce pack vous permet de generer ponctuellement et d exporter en PDF/PPTX, sans debloquer les fonctionnalites avancees de Pro.",
                       })}
                     </p>
                   </div>
@@ -454,7 +459,16 @@ export default function Account() {
                 <CardDescription>{t("account.brandingDesc")}</CardDescription>
               </CardHeader>
               <CardContent>
-                <BrandKitManager mode="manage" />
+                {canUseBrandKit ? (
+                  <BrandKitManager mode="manage" />
+                ) : (
+                  <UpgradeGate
+                    title="Brand Kit reserve a Pro"
+                    description="Les brand kits sont disponibles sur Pro et Team. Passez a Pro pour gerer vos couleurs, polices et logos."
+                    cta={t("account.upgradeToPro")}
+                    onUpgrade={() => navigate("/pricing")}
+                  />
+                )}
               </CardContent>
             </Card>
           </TabsContent>

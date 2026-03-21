@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
@@ -17,6 +17,7 @@ import { projectService } from "@/lib/projects";
 import { supabase } from "@/contexts/AuthContext";
 import { OutOfCreditsModal } from "@/components/OutOfCreditsModal";
 import { Analytics, ANALYTICS_EVENTS } from "@/lib/analytics";
+import { hasFeature } from "@/lib/subscription";
 
 
 
@@ -42,9 +43,35 @@ export default function Create() {
     const [isDragging, setIsDragging] = useState(false);
     const [showOutOfCreditsModal, setShowOutOfCreditsModal] = useState(false);
     const [selectedBrandKit, setSelectedBrandKit] = useState<BrandKit | null>(null);
+    const [subscription, setSubscription] = useState<any>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const navigate = useNavigate();
     const { toast } = useToast();
+    const canUseBrandKit = hasFeature(subscription, "brand_kit");
+
+    useEffect(() => {
+        const loadSubscription = async () => {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!session) {
+                return;
+            }
+
+            try {
+                const data = await api.getMySubscription(session.access_token);
+                setSubscription(data);
+            } catch (error) {
+                console.error("Failed to load subscription", error);
+            }
+        };
+
+        loadSubscription();
+    }, []);
+
+    useEffect(() => {
+        if (!canUseBrandKit && selectedBrandKit) {
+            setSelectedBrandKit(null);
+        }
+    }, [canUseBrandKit, selectedBrandKit]);
 
     const processFile = async (file: File) => {
         // Limit file size to 10MB
@@ -615,7 +642,13 @@ export default function Create() {
                                                         <BrandKitSelector
                                                             selectedKit={selectedBrandKit}
                                                             onSelect={setSelectedBrandKit}
+                                                            disabled={!canUseBrandKit}
                                                         />
+                                                        {!canUseBrandKit && (
+                                                            <p className="text-[11px] text-muted-foreground">
+                                                                Activez Pro pour appliquer vos couleurs, polices et logos a la generation.
+                                                            </p>
+                                                        )}
                                                     </div>
                                                 </div>
 

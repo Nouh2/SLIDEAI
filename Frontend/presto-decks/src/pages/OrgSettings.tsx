@@ -21,6 +21,8 @@ import {
     TableRow,
 } from "@/components/ui/table";
 import { Trash2, UserPlus, Loader2 } from "lucide-react";
+import { hasFeature } from "@/lib/subscription";
+import { UpgradeGate } from "@/components/common/UpgradeGate";
 
 interface Member {
     userId: string;
@@ -42,11 +44,18 @@ export default function OrgSettings() {
     const [newMemberEmail, setNewMemberEmail] = useState("");
     const [inviteLoading, setInviteLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [subscription, setSubscription] = useState<any>(null);
 
     useEffect(() => {
         const loadMembers = async () => {
             if (!session?.access_token || !orgId) return;
             try {
+                const subscriptionData = await api.getMySubscription(session.access_token).catch(() => null);
+                setSubscription(subscriptionData);
+                if (!hasFeature(subscriptionData, "team_workspace")) {
+                    return;
+                }
+
                 const data = await api.getOrgMembers(orgId, session.access_token);
                 setMembers(data);
             } catch (err) {
@@ -96,6 +105,19 @@ export default function OrgSettings() {
 
     if (loading) {
         return <div className="flex justify-center p-8"><Loader2 className="h-8 w-8 animate-spin" /></div>;
+    }
+
+    if (!hasFeature(subscription, "team_workspace")) {
+        return (
+            <div className="container mx-auto py-10">
+                <UpgradeGate
+                    title="Team workspace required"
+                    description="Organization creation and member management are available on the Team plan."
+                    cta="View plans"
+                    onUpgrade={() => navigate("/pricing")}
+                />
+            </div>
+        );
     }
 
     return (

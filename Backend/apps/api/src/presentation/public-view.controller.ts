@@ -1,6 +1,7 @@
 // apps/api/src/presentation/public-view.controller.ts
 import { Controller, Get, Param, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma.service.js';
+import { SubscriptionService } from '../subscription/subscription.service.js';
 
 /**
  * Public controller for view-only presentation access.
@@ -8,7 +9,10 @@ import { PrismaService } from '../prisma.service.js';
  */
 @Controller('/v1/public')
 export class PublicViewController {
-    constructor(private readonly prisma: PrismaService) { }
+    constructor(
+        private readonly prisma: PrismaService,
+        private readonly subscriptionService: SubscriptionService,
+    ) { }
 
     /**
      * GET /v1/public/view/:token
@@ -31,14 +35,7 @@ export class PublicViewController {
             throw new NotFoundException('Presentation not found or link expired');
         }
 
-        // Check if owner has watermark feature (for free users)
-        const subscription = await this.prisma.subscription.findFirst({
-            where: { userId: presentation.user_id },
-            orderBy: { createdAt: 'desc' },
-        });
-
-        const features = ((subscription as any)?.features) || [];
-        const showWatermark = !features.includes('no_watermark');
+        const showWatermark = !(await this.subscriptionService.hasFeature(presentation.user_id, 'no_watermark'));
 
         return {
             id: presentation.id,

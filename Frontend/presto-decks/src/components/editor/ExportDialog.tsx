@@ -25,6 +25,8 @@ import {
 } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { api, TemplateOverlay as TemplateOverlayType } from '@/lib/api';
+import { UpgradeGate } from '@/components/common/UpgradeGate';
+import { SubscriptionSnapshot, hasFeature, isExpiredTrialSubscription } from '@/lib/subscription';
 
 import { ModernSlideRenderer } from '@/components/slides/ModernSlideRenderer';
 import { TemplateOverlay } from '@/components/slides/TemplateOverlay';
@@ -35,6 +37,7 @@ interface ExportDialogProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;
     accessToken: string | null;
+    subscription?: SubscriptionSnapshot | null;
     presentation: {
         id?: string;
         title: string;
@@ -47,7 +50,7 @@ interface ExportDialogProps {
     };
 }
 
-export function ExportDialog({ open, onOpenChange, presentation, accessToken }: ExportDialogProps) {
+export function ExportDialog({ open, onOpenChange, presentation, accessToken, subscription }: ExportDialogProps) {
     const [exportProgress, setExportProgress] = useState<ExportProgress | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [targetLanguage, setTargetLanguage] = useState<string>("original");
@@ -59,6 +62,20 @@ export function ExportDialog({ open, onOpenChange, presentation, accessToken }: 
     const editableModeDescription = i18n.language.startsWith('fr')
         ? 'Export PowerPoint editable pour les layouts pris en charge, avec fallback image automatique pour le reste.'
         : 'Editable PowerPoint export for supported layouts, with automatic image fallback for the rest.';
+    const canExportPdf = hasFeature(subscription, 'export_pdf');
+    const canExportPptx = hasFeature(subscription, 'export_pptx');
+    const canExportEditablePptx = hasFeature(subscription, 'export_editable_pptx');
+    const exportLocked = !canExportPdf && !canExportPptx;
+    const exportUpgradeTitle = i18n.language.startsWith('fr')
+        ? 'Export reserve a un abonnement actif'
+        : 'Export requires an active plan';
+    const exportUpgradeDescription = isExpiredTrialSubscription(subscription)
+        ? (i18n.language.startsWith('fr')
+            ? 'Votre essai est termine. Reprenez un abonnement Starter ou Pro pour exporter vos decks.'
+            : 'Your trial has ended. Upgrade to Starter or Pro to export your decks.')
+        : (i18n.language.startsWith('fr')
+            ? 'L export PDF et PowerPoint est disponible selon votre plan. Passez a Starter ou Pro pour le debloquer.'
+            : 'PDF and PowerPoint export depend on your plan. Upgrade to Starter or Pro to unlock it.');
 
     const pollTranslationStatus = async (traceId: string): Promise<any> => {
         return new Promise((resolve, reject) => {
@@ -324,6 +341,7 @@ export function ExportDialog({ open, onOpenChange, presentation, accessToken }: 
                             <Select
                                 value={pptxMode}
                                 onValueChange={(value) => setPptxMode(value as 'pixel-perfect' | 'editable')}
+                                disabled={!canExportPptx}
                             >
                                 <SelectTrigger id="pptx-mode-select">
                                     <SelectValue />
@@ -332,13 +350,17 @@ export function ExportDialog({ open, onOpenChange, presentation, accessToken }: 
                                     <SelectItem value="pixel-perfect">
                                         {t('export.pptxModePixelPerfect', { defaultValue: 'Pixel Perfect (Recommended)' })}
                                     </SelectItem>
-                                    <SelectItem value="editable">
+                                    <SelectItem value="editable" disabled={!canExportEditablePptx}>
                                         {t('export.pptxModeEditable', { defaultValue: 'Editable Objects (Beta)' })}
                                     </SelectItem>
                                 </SelectContent>
                             </Select>
                             <p className="text-[10px] text-muted-foreground">
-                                {pptxMode === 'pixel-perfect'
+                                {!canExportPptx
+                                    ? (i18n.language.startsWith('fr')
+                                        ? 'L export PowerPoint est disponible a partir du plan Starter.'
+                                        : 'PowerPoint export is available from Starter.')
+                                    : pptxMode === 'pixel-perfect'
                                     ? t('export.pptxModePixelPerfectDesc', { defaultValue: 'Visual fidelity max. Slides are exported as images in PowerPoint.' })
                                     : t('export.pptxModeEditableDesc', { defaultValue: 'Editable PowerPoint objects, with partial fidelity depending on layout/variants.' })}
                             </p>
@@ -350,12 +372,29 @@ export function ExportDialog({ open, onOpenChange, presentation, accessToken }: 
                 {/* Export Options */}
                 {
                     !isExporting && !isComplete && (
+                        exportLocked ? (
+                            <div className="py-4">
+                                <UpgradeGate
+                                    title={exportUpgradeTitle}
+                                    description={exportUpgradeDescription}
+                                    cta={i18n.language.startsWith('fr') ? 'Voir les abonnements' : 'View plans'}
+                                    onUpgrade={() => {
+                                        onOpenChange(false);
+                                        navigate('/pricing');
+                                    }}
+                                />
+                            </div>
+                        ) : (
                         <div className="grid grid-cols-2 gap-4 py-4">
                             {/* PDF Option */}
                             <button
                                 onClick={handlePDFExport}
-                                disabled={isExporting}
-                                className="group relative flex flex-col items-center p-6 rounded-2xl border-2 border-border bg-surface/50 hover:border-primary hover:bg-primary/5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 text-left"
+                                disabled={isExporting || !canExportPdf}
+                                className={`group relative flex flex-col items-center p-6 rounded-2xl border-2 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 text-left ${
+                                    canExportPdf
+                                        ? 'border-border bg-surface/50 hover:border-primary hover:bg-primary/5'
+                                        : 'border-border bg-surface/30 opacity-60 cursor-not-allowed'
+                                }`}
                             >
                                 <div className="w-14 h-14 rounded-xl bg-red-500/10 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                                     <FileText className="w-7 h-7 text-red-500" />
@@ -371,8 +410,12 @@ export function ExportDialog({ open, onOpenChange, presentation, accessToken }: 
                             {/* PPTX Option */}
                             <button
                                 onClick={handlePPTXExport}
-                                disabled={isExporting}
-                                className="group relative flex flex-col items-center p-6 rounded-2xl border-2 border-border bg-surface/50 hover:border-primary hover:bg-primary/5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 text-left"
+                                disabled={isExporting || !canExportPptx}
+                                className={`group relative flex flex-col items-center p-6 rounded-2xl border-2 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 text-left ${
+                                    canExportPptx
+                                        ? 'border-border bg-surface/50 hover:border-primary hover:bg-primary/5'
+                                        : 'border-border bg-surface/30 opacity-60 cursor-not-allowed'
+                                }`}
                             >
                                 <div className="w-14 h-14 rounded-xl bg-orange-500/10 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                                     <FileSpreadsheet className="w-7 h-7 text-orange-500" />
@@ -383,7 +426,11 @@ export function ExportDialog({ open, onOpenChange, presentation, accessToken }: 
                                     </span>
                                 </h3>
                                 <p className="text-xs text-muted-foreground text-center">
-                                    {pptxMode === 'pixel-perfect'
+                                    {!canExportPptx
+                                        ? (i18n.language.startsWith('fr')
+                                            ? 'Disponible a partir du plan Starter.'
+                                            : 'Available from Starter.')
+                                        : pptxMode === 'pixel-perfect'
                                         ? t('export.pptxDescription')
                                         : editableModeDescription}
                                 </p>
@@ -406,6 +453,7 @@ export function ExportDialog({ open, onOpenChange, presentation, accessToken }: 
                                 </span>
                             </button>
                         </div>
+                        )
                     )
                 }
 

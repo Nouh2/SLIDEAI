@@ -6,9 +6,10 @@ import { PresentationService } from './presentation.service.js';
 import { PrismaService } from '../prisma.service.js';
 import { SubscriptionModule } from '../subscription/subscription.module.js';
 import { QueueModule } from '../queues/queue.module.js';
+import { SupabaseMirrorModule } from '../supabase-mirror/supabase-mirror.module.js';
 
 @Module({
-    imports: [SubscriptionModule, QueueModule],
+    imports: [SubscriptionModule, QueueModule, SupabaseMirrorModule],
     controllers: [PresentationController, PublicViewController],
     providers: [PresentationService, PrismaService],
     exports: [PresentationService],

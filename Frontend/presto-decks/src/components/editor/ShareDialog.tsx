@@ -19,11 +19,12 @@ interface ShareDialogProps {
     presentationId: string;
     accessToken: string;
     disabled?: boolean;
+    disabledReason?: string;
 }
 
 type ShareMode = "edit" | "view";
 
-export function ShareDialog({ presentationId, accessToken, disabled }: ShareDialogProps) {
+export function ShareDialog({ presentationId, accessToken, disabled, disabledReason }: ShareDialogProps) {
     const [isOpen, setIsOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [shareMode, setShareMode] = useState<ShareMode>("edit");
@@ -91,7 +92,7 @@ export function ShareDialog({ presentationId, accessToken, disabled }: ShareDial
     return (
         <Dialog open={isOpen} onOpenChange={handleOpenChange}>
             <DialogTrigger asChild>
-                <Button variant="ghost" size="sm" disabled={disabled} title="Partager">
+                <Button variant="ghost" size="sm" disabled={disabled} title={disabled ? disabledReason : "Partager"}>
                     <Share2 className="h-4 w-4" />
                 </Button>
             </DialogTrigger>

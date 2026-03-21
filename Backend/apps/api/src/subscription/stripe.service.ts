@@ -2,6 +2,15 @@ import { Injectable, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import Stripe from 'stripe';
 
+const STRIPE_PRICE_PLAN_BY_ID: Record<string, 'starter' | 'pro' | 'business'> = {
+    price_1Sn5Iw5KgGKgF82ebXEDerSL: 'starter',
+    price_1Sn5Jx5KgGKgF82e7TVoKqcJ: 'starter',
+    price_1Sn5IN5KgGKgF82elQlvSUIf: 'pro',
+    price_1Sn5Jd5KgGKgF82erWwaHW8G: 'pro',
+    price_1Sn5JB5KgGKgF82egl8duDWF: 'business',
+    price_1Sn5KK5KgGKgF82eSgoyWSnS: 'business',
+};
+
 @Injectable()
 export class StripeService implements OnModuleInit {
     private stripe!: Stripe;
@@ -171,6 +180,117 @@ export class StripeService implements OnModuleInit {
             currency,
             subscriptionCount,
         };
+    }
+
+    isReady() {
+        return Boolean(this.stripe);
+    }
+
+    async findActiveSubscriptionByEmail(email: string): Promise<{
+        customerId: string;
+        subscriptionId: string;
+        plan: 'starter' | 'pro' | 'business' | null;
+        status: string;
+        currentPeriodEnd: Date | null;
+    } | null> {
+        if (!this.stripe || !email) {
+            return null;
+        }
+
+        const customers = await this.stripe.customers.list({
+            email,
+            limit: 10,
+        });
+
+        const candidates: Array<{
+            customerId: string;
+            subscriptionId: string;
+            plan: 'starter' | 'pro' | 'business' | null;
+            status: string;
+            currentPeriodEnd: Date | null;
+            rank: number;
+        }> = [];
+
+        for (const customer of customers.data) {
+            if (!customer.id) {
+                continue;
+            }
+
+            const subscriptions = await this.stripe.subscriptions.list({
+                customer: customer.id,
+                status: 'all',
+                limit: 10,
+            });
+
+            for (const subscription of subscriptions.data) {
+                const rank = this.getSubscriptionRank(subscription.status);
+                if (rank === 0) {
+                    continue;
+                }
+
+                const currentPeriodEndUnix = (subscription as any).current_period_end as number | null | undefined;
+
+                candidates.push({
+                    customerId: customer.id,
+                    subscriptionId: subscription.id,
+                    plan: this.resolvePlanFromSubscription(subscription),
+                    status: subscription.status,
+                    currentPeriodEnd: currentPeriodEndUnix
+                        ? new Date(currentPeriodEndUnix * 1000)
+                        : null,
+                    rank,
+                });
+            }
+        }
+
+        candidates.sort((a, b) => b.rank - a.rank);
+        const best = candidates[0];
+
+        if (!best) {
+            return null;
+        }
+
+        return {
+            customerId: best.customerId,
+            subscriptionId: best.subscriptionId,
+            plan: best.plan,
+            status: best.status,
+            currentPeriodEnd: best.currentPeriodEnd,
+        };
+    }
+
+    private getSubscriptionRank(status: string) {
+        switch (status) {
+            case 'active':
+                return 3;
+            case 'trialing':
+                return 2;
+            case 'past_due':
+                return 1;
+            default:
+                return 0;
+        }
+    }
+
+    private resolvePlanFromSubscription(subscription: Stripe.Subscription): 'starter' | 'pro' | 'business' | null {
+        const metadataPlan = subscription.metadata?.plan;
+        if (metadataPlan === 'starter' || metadataPlan === 'pro' || metadataPlan === 'business') {
+            return metadataPlan;
+        }
+
+        for (const item of subscription.items.data) {
+            const itemPlan = item.price?.metadata?.plan;
+            if (itemPlan === 'starter' || itemPlan === 'pro' || itemPlan === 'business') {
+                return itemPlan;
+            }
+
+            const pricePlan = STRIPE_PRICE_PLAN_BY_ID[item.price?.id || ''];
+            if (pricePlan) {
+                return pricePlan;
+            }
+        }
+
+        return null;
     }
 
     private async resolvePromotionCodeId(code: string): Promise<string | null> {

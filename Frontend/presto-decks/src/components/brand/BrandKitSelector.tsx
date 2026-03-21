@@ -11,9 +11,10 @@ interface BrandKitSelectorProps {
     selectedKit: BrandKit | null;
     onSelect: (kit: BrandKit | null) => void;
     className?: string;
+    disabled?: boolean;
 }
 
-export function BrandKitSelector({ selectedKit, onSelect, className }: BrandKitSelectorProps) {
+export function BrandKitSelector({ selectedKit, onSelect, className, disabled = false }: BrandKitSelectorProps) {
     const [brandKits, setBrandKits] = useState<BrandKit[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isOpen, setIsOpen] = useState(false);
@@ -55,6 +56,22 @@ export function BrandKitSelector({ selectedKit, onSelect, className }: BrandKitS
     if (isLoading) {
         return (
             <div className={cn("h-10 rounded-lg bg-muted animate-pulse", className)} />
+        );
+    }
+
+    if (disabled) {
+        return (
+            <Button
+                variant="outline"
+                className={cn("justify-between gap-2 min-w-[200px]", className)}
+                onClick={() => navigate('/pricing')}
+            >
+                <div className="flex items-center gap-2">
+                    <Palette className="w-4 h-4 text-muted-foreground" />
+                    <span className="text-muted-foreground">Brand Kit - Pro</span>
+                </div>
+                <Plus className="w-4 h-4 text-muted-foreground" />
+            </Button>
         );
     }
 

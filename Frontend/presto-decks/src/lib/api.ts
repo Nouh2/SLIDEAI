@@ -937,6 +937,34 @@ export const api = {
     return response.json();
   },
 
+  async getBroadcastUsers(segment: string, accessToken: string): Promise<any> {
+    const response = await fetch(`${API_BASE_URL}/ops/broadcast/users?segment=${segment}`, {
+      headers: buildHeaders(accessToken),
+    });
+    if (!response.ok) throw new Error('Impossible de charger les destinataires');
+    return response.json();
+  },
+
+  async broadcastPreview(params: object, accessToken: string): Promise<{ subject: string; html: string }> {
+    const response = await fetch(`${API_BASE_URL}/ops/broadcast/preview`, {
+      method: 'POST',
+      headers: buildHeaders(accessToken, 'application/json'),
+      body: JSON.stringify(params),
+    });
+    if (!response.ok) throw new Error('Impossible de générer le preview');
+    return response.json();
+  },
+
+  async broadcastSend(params: object, accessToken: string): Promise<any> {
+    const response = await fetch(`${API_BASE_URL}/ops/broadcast/send`, {
+      method: 'POST',
+      headers: buildHeaders(accessToken, 'application/json'),
+      body: JSON.stringify(params),
+    });
+    if (!response.ok) throw new Error('Erreur lors de l\'envoi broadcast');
+    return response.json();
+  },
+
   // ============================================
   // ORGANIZATION API
   // ============================================

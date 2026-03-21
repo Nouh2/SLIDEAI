@@ -7801,7 +7801,7 @@ export const ModernSlideRenderer = ({
 
         // Default: Content with bullets
 
-        return <ContentBulletsLayout showPageNumber={finalShowPageNumber} slide={slide} colors={colors} onSelect={onElementSelect} selectedId={selectedElementId} titleFontScale={titleFontScale} textFontScale={textFontScale} />;
+        return withExportMeta('content', 'bullets-legacy', <ContentBulletsLayout showPageNumber={finalShowPageNumber} slide={slide} colors={colors} onSelect={onElementSelect} selectedId={selectedElementId} titleFontScale={titleFontScale} textFontScale={textFontScale} />);
     };
 
     const renderedLayout = renderLayout();

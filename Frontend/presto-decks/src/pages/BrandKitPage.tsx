@@ -1,11 +1,41 @@
+import { useEffect, useState } from "react";
 import { BrandKitManager } from "@/components/brand/BrandKitManager";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Palette, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "@/contexts/AuthContext";
+import { api } from "@/lib/api";
+import { hasFeature } from "@/lib/subscription";
+import { UpgradeGate } from "@/components/common/UpgradeGate";
 
 export default function BrandKitPage() {
     const navigate = useNavigate();
+    const [subscription, setSubscription] = useState<any>(null);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const loadSubscription = async () => {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!session) {
+                setLoading(false);
+                return;
+            }
+
+            try {
+                const data = await api.getMySubscription(session.access_token);
+                setSubscription(data);
+            } catch (error) {
+                console.error("Failed to load subscription", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        loadSubscription();
+    }, []);
+
+    const canUseBrandKit = hasFeature(subscription, "brand_kit");
 
     return (
         <div className="container py-8 max-w-5xl mx-auto space-y-6 animate-fade-in">
@@ -25,7 +55,20 @@ export default function BrandKitPage() {
                 </div>
             </div>
 
-            <BrandKitManager mode="manage" />
+            {loading ? (
+                <Card>
+                    <CardContent className="py-10 text-center text-muted-foreground">Loading...</CardContent>
+                </Card>
+            ) : canUseBrandKit ? (
+                <BrandKitManager mode="manage" />
+            ) : (
+                <UpgradeGate
+                    title="Brand Kit reserve a Pro"
+                    description="Les brand kits sont disponibles avec Pro et Team. Passez a Pro pour enregistrer vos couleurs, polices et logos."
+                    cta="Voir les abonnements"
+                    onUpgrade={() => navigate("/pricing")}
+                />
+            )}
         </div>
     );
 }

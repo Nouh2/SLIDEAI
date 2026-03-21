@@ -32,6 +32,7 @@ export function OfferSection() {
                 <motion.div
                     initial={{ opacity: 0, scale: 0.95 }}
                     whileInView={{ opacity: 1, scale: 1 }}
+                    viewport={{ once: true, amount: 0.25 }}
                     className="glass-premium rounded-3xl p-8 md:p-12 border border-primary/20 shadow-2xl relative overflow-hidden"
                 >
                     {/* Background Glow */}

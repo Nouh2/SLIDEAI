@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useParams, Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
-import { BlogPost, getCategoryLabel, getPersonaLabel, getPostBySlug, getRelatedPosts, getTagLabel } from "@/lib/blog";
+import { BlogPost, getCategoryLabel, getPersonaLabel, getPostBySlug, getRelatedPosts, getTagLabel, hasPostInLanguage } from "@/lib/blog";
 import ReactMarkdown from "react-markdown";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, User, Calendar, Sparkles } from "lucide-react";
@@ -17,6 +17,8 @@ import {
     BreadcrumbPage,
     BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
+import { useLocalePath } from "@/hooks/use-locale-path";
+import { toAbsoluteUrl } from "@/lib/localeRouting";
 
 const businessPages = [
     { title: "Generateur PowerPoint IA", href: "/generateur-powerpoint-ia" },
@@ -26,16 +28,20 @@ const businessPages = [
 
 export default function BlogPostPage() {
     const { t, i18n } = useTranslation();
+    const { locale, localize } = useLocalePath();
     const { user } = useAuth();
     const { slug } = useParams<{ slug: string }>();
     const [post, setPost] = useState<BlogPost | null>(null);
     const [relatedPosts, setRelatedPosts] = useState<BlogPost[]>([]);
     const [loading, setLoading] = useState(true);
     const ctaPath = user ? "/create" : `/auth?returnTo=${encodeURIComponent("/create")}`;
+    const isFr = locale === "fr";
+    const alternateLocale = locale === "fr" ? "en" : "fr";
+    const hasAlternatePost = slug ? hasPostInLanguage(slug, alternateLocale) : false;
     const relatedLinks = [
         ...relatedPosts.map((relatedPost) => ({
             title: relatedPost.title,
-            href: `/blog/${relatedPost.slug}`,
+            href: localize(`/blog/${relatedPost.slug}`),
         })),
         ...businessPages,
     ].slice(0, 4);
@@ -61,7 +67,7 @@ export default function BlogPostPage() {
             if (isInternalLink) {
                 return (
                     <Link
-                        to={href}
+                        to={localize(href)}
                         className="font-semibold text-primary underline decoration-primary/50 underline-offset-4 transition-colors hover:text-primary/80"
                     >
                         {children}
@@ -102,17 +108,17 @@ export default function BlogPostPage() {
     useEffect(() => {
         const loadPost = async () => {
             if (slug) {
-                const data = await getPostBySlug(slug);
+                const data = await getPostBySlug(slug, locale);
                 setPost(data || null);
                 if (data) {
-                    const related = await getRelatedPosts(data, i18n.language, 2);
+                    const related = await getRelatedPosts(data, locale, 2);
                     setRelatedPosts(related);
                 }
             }
             setLoading(false);
         };
         loadPost();
-    }, [slug, i18n.language]);
+    }, [slug, locale, i18n.language]);
 
     if (loading) {
         return (
@@ -126,7 +132,7 @@ export default function BlogPostPage() {
         return (
             <div className="min-h-screen pt-32 px-4 text-center">
                 <h1 className="text-2xl font-bold mb-4">{t('blog.notFound')}</h1>
-                <Link to="/blog">
+                <Link to={localize("/blog")}>
                     <Button variant="outline">{t('blog.backToBlog')}</Button>
                 </Link>
             </div>
@@ -141,6 +147,7 @@ export default function BlogPostPage() {
                 image={post.coverImage}
                 url={`/blog/${post.slug}`}
                 type="article"
+                alternates={hasAlternatePost ? { fr: `/blog/${post.slug}`, en: `/blog/${post.slug}`, "x-default": "/blog" } : undefined}
             />
             <Helmet>
                 <script type="application/ld+json">
@@ -167,7 +174,7 @@ export default function BlogPostPage() {
                         "description": post.excerpt,
                         "mainEntityOfPage": {
                             "@type": "WebPage",
-                            "@id": `https://www.slideai.fr/blog/${post.slug}`
+                            "@id": toAbsoluteUrl(`/blog/${post.slug}`, locale)
                         }
                     })}
                 </script>
@@ -179,20 +186,20 @@ export default function BlogPostPage() {
                             {
                                 "@type": "ListItem",
                                 position: 1,
-                                name: "Accueil",
-                                item: "https://www.slideai.fr/"
+                                name: isFr ? "Accueil" : "Home",
+                                item: toAbsoluteUrl("/", locale)
                             },
                             {
                                 "@type": "ListItem",
                                 position: 2,
                                 name: "Blog",
-                                item: "https://www.slideai.fr/blog"
+                                item: toAbsoluteUrl("/blog", locale)
                             },
                             {
                                 "@type": "ListItem",
                                 position: 3,
                                 name: post.title,
-                                item: `https://www.slideai.fr/blog/${post.slug}`
+                                item: toAbsoluteUrl(`/blog/${post.slug}`, locale)
                             }
                         ]
                     })}
@@ -201,7 +208,7 @@ export default function BlogPostPage() {
 
             <div className="max-w-3xl mx-auto">
                 <div className="space-y-4 mb-8">
-                    <Link to="/blog" className="inline-flex items-center text-sm text-muted-foreground hover:text-primary transition-colors">
+                    <Link to={localize("/blog")} className="inline-flex items-center text-sm text-muted-foreground hover:text-primary transition-colors">
                         <ArrowLeft className="w-4 h-4 mr-2" />
                         {t('blog.backToArticles')}
                     </Link>
@@ -209,13 +216,13 @@ export default function BlogPostPage() {
                         <BreadcrumbList>
                             <BreadcrumbItem>
                                 <BreadcrumbLink asChild>
-                                    <Link to="/">Accueil</Link>
+                                    <Link to={localize("/")}>{isFr ? "Accueil" : "Home"}</Link>
                                 </BreadcrumbLink>
                             </BreadcrumbItem>
                             <BreadcrumbSeparator />
                             <BreadcrumbItem>
                                 <BreadcrumbLink asChild>
-                                    <Link to="/blog">Blog</Link>
+                                    <Link to={localize("/blog")}>Blog</Link>
                                 </BreadcrumbLink>
                             </BreadcrumbItem>
                             <BreadcrumbSeparator />
@@ -239,18 +246,18 @@ export default function BlogPostPage() {
                     <div className="flex flex-wrap items-center justify-center md:justify-start gap-4 text-sm text-muted-foreground">
                         {post.persona && (
                             <Link
-                                to={`/blog/metier/${post.persona}`}
+                                to={localize(`/blog/metier/${post.persona}`)}
                                 className="rounded-full border border-primary/20 bg-primary/5 px-3 py-1 font-medium text-primary transition-colors hover:bg-primary/10"
                             >
-                                {getPersonaLabel(post.persona)}
+                                {getPersonaLabel(post.persona, locale)}
                             </Link>
                         )}
                         {post.category && (
                             <Link
-                                to={`/blog/c/${post.category}`}
+                                to={localize(`/blog/c/${post.category}`)}
                                 className="rounded-full border border-primary/20 bg-primary/5 px-3 py-1 font-medium text-primary transition-colors hover:bg-primary/10"
                             >
-                                {getCategoryLabel(post.category)}
+                                {getCategoryLabel(post.category, locale)}
                             </Link>
                         )}
                         <div className="flex items-center gap-1.5">
@@ -281,7 +288,7 @@ export default function BlogPostPage() {
                 </div>
 
                 <div className="mt-16 rounded-2xl border border-border/60 bg-card/40 p-6 md:p-8">
-                    <h3 className="text-2xl font-bold mb-5">Pages et articles lies</h3>
+                    <h3 className="text-2xl font-bold mb-5">{isFr ? "Pages et articles lies" : "Related pages and articles"}</h3>
                     <div className="grid md:grid-cols-2 gap-4">
                         {relatedLinks.map((item) => (
                             <Link

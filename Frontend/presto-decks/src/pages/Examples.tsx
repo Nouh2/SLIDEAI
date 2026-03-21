@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { ModernSlideRenderer } from "@/components/slides/ModernSlideRenderer";
 import { SlideThumbnail } from "@/components/slides/SlideThumbnail";
 import { ScalableSlidePreview } from "@/components/slides/ScalableSlidePreview";
+import { SEO } from "@/components/common/SEO";
 
 export default function Examples() {
   const [selectedExample, setSelectedExample] = useState<Example | null>(null);
@@ -50,6 +51,12 @@ export default function Examples() {
 
   return (
     <div className="min-h-screen flex flex-col">
+      <SEO
+        title={t("examples.meta.title", "Exemples SlideAI")}
+        description={t("examples.meta.description", "Parcourez des exemples de presentations generees avec SlideAI pour comprendre le niveau de structure, design et narration possible.")}
+        url="/examples"
+        alternates={{ fr: "/examples", en: "/examples", "x-default": "/examples" }}
+      />
       <section className="py-12 md:py-20">
         <div className="container">
           <div className="text-center space-y-6 mb-10 md:mb-20">

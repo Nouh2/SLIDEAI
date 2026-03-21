@@ -54,6 +54,7 @@ export function DeckPreview() {
                             initial={{ opacity: 0, y: 50, scale: 0.85 }}
                             whileInView={{ opacity: 0.4, y: -50, scale: 0.88 }}
                             transition={{ duration: 0.8, delay: 0.1 }}
+                            viewport={{ once: true, amount: 0.35 }}
                             className="absolute w-[65%] md:w-[60%] aspect-video rounded-2xl border border-primary/10 shadow-lg overflow-hidden"
                             style={{
                                 transform: "translateZ(-60px) rotateY(-5deg) rotateX(8deg)",
@@ -76,6 +77,7 @@ export function DeckPreview() {
                             initial={{ opacity: 0, y: 50, scale: 0.9 }}
                             whileInView={{ opacity: 0.7, y: -20, scale: 0.94 }}
                             transition={{ duration: 0.8, delay: 0.2 }}
+                            viewport={{ once: true, amount: 0.35 }}
                             className="absolute w-[70%] md:w-[65%] aspect-video rounded-2xl border border-primary/20 shadow-neon overflow-hidden"
                             style={{
                                 transform: "translateZ(-30px) rotateY(-2deg) rotateX(4deg)",
@@ -99,6 +101,7 @@ export function DeckPreview() {
                             initial={{ opacity: 0, y: 50, scale: 0.95 }}
                             whileInView={{ opacity: 1, y: 0, scale: 1 }}
                             transition={{ duration: 0.8, delay: 0.3 }}
+                            viewport={{ once: true, amount: 0.35 }}
                             className="absolute w-[85%] md:w-[70%] aspect-[4/5] md:aspect-video rounded-2xl border-2 border-primary/40 shadow-neon-hover overflow-hidden z-10 glass-premium"
                             style={{
                                 transform: "translateZ(0px)",
@@ -177,6 +180,7 @@ export function DeckPreview() {
                     initial={{ opacity: 0, y: 20 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.6 }}
+                    viewport={{ once: true, amount: 0.4 }}
                     className="text-center mt-12 md:mt-16"
                 >
                     <p className="text-lg font-medium text-gradient-primary">

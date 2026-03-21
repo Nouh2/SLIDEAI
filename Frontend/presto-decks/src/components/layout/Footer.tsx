@@ -1,9 +1,10 @@
 import { Link } from "react-router-dom";
-import { Sparkles } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { useLocalePath } from "@/hooks/use-locale-path";
 
 export const Footer = () => {
   const { t } = useTranslation();
+  const { localize } = useLocalePath();
 
   const links = {
     product: [
@@ -26,7 +27,7 @@ export const Footer = () => {
       <div className="container py-6">
         <div className="grid grid-cols-1 gap-6 md:grid-cols-4">
           <div className="space-y-2">
-            <Link to="/" className="flex items-center space-x-2">
+            <Link to={localize("/")} className="flex items-center space-x-2">
               <span className="font-semibold text-lg bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)] bg-clip-text text-transparent">
                 SlideAI
               </span>
@@ -42,7 +43,7 @@ export const Footer = () => {
               {links.product.map((link) => (
                 <li key={link.href}>
                   <Link
-                    to={link.href}
+                    to={localize(link.href)}
                     className="text-xs text-[var(--muted)] hover:text-[var(--primary)] transition-colors"
                   >
                     {link.label}

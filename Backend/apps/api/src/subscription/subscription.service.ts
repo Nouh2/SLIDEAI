@@ -3,6 +3,8 @@ import type { Subscription as PrismaSubscription, User as PrismaUser } from '@pr
 import { randomUUID } from 'crypto';
 import { PrismaService } from '../prisma.service.js';
 import { LifecycleEmailService } from './lifecycle-email.service.js';
+import { StripeService } from './stripe.service.js';
+import { SupabaseMirrorService } from '../supabase-mirror/supabase-mirror.service.js';
 
 type PlanLimits = {
   creditsPerMonth: number;
@@ -16,13 +18,18 @@ type PlanLimits = {
 };
 
 type AccessState = 'legacy_free' | 'trialing' | 'pack_active' | 'active_paid' | 'trial_expired';
+type ResolvedEntitlements = {
+  accessState: AccessState;
+  effectivePlan: string;
+  limits: PlanLimits;
+};
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
 const PLAN_LIMITS: Record<string, PlanLimits> = {
   free: {
     creditsPerMonth: 2,
-    features: ['watermark'],
+    features: ['export_pdf'],
     limits: {
       pdfPages: 10,
       maxProjects: 3,
@@ -32,7 +39,7 @@ const PLAN_LIMITS: Record<string, PlanLimits> = {
   },
   starter: {
     creditsPerMonth: 15,
-    features: ['web_viewer', 'public_link', 'no_watermark', 'export_pdf'],
+    features: ['web_viewer', 'public_link', 'no_watermark', 'export_pdf', 'export_pptx'],
     limits: {
       pdfPages: 50,
       maxProjects: 20,
@@ -42,7 +49,7 @@ const PLAN_LIMITS: Record<string, PlanLimits> = {
   },
   pro: {
     creditsPerMonth: -1,
-    features: ['web_viewer', 'public_link', 'no_watermark', 'brand_kit', 'ai_priority', 'export_beta', 'export_pdf', 'support_priority'],
+    features: ['web_viewer', 'public_link', 'no_watermark', 'brand_kit', 'ai_priority', 'export_pdf', 'export_pptx', 'export_editable_pptx', 'support_priority'],
     limits: {
       pdfPages: 200,
       maxProjects: -1,
@@ -52,7 +59,7 @@ const PLAN_LIMITS: Record<string, PlanLimits> = {
   },
   business: {
     creditsPerMonth: -1,
-    features: ['web_viewer', 'public_link', 'no_watermark', 'brand_kit', 'ai_priority', 'export_beta', 'team_workspace', 'sso', 'analytics', 'export_pdf'],
+    features: ['web_viewer', 'public_link', 'no_watermark', 'brand_kit', 'ai_priority', 'export_pdf', 'export_pptx', 'export_editable_pptx', 'support_priority', 'team_workspace'],
     limits: {
       pdfPages: 500,
       maxProjects: -1,
@@ -74,6 +81,8 @@ export class SubscriptionService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly lifecycleEmailService: LifecycleEmailService,
+    private readonly stripeService: StripeService,
+    private readonly supabaseMirrorService: SupabaseMirrorService,
   ) {}
 
   async getOrCreateSubscription(userId: string, userEmail?: string) {
@@ -230,6 +239,11 @@ export class SubscriptionService {
     }
 
     return entitlements.limits.features.includes(feature);
+  }
+
+  async getEntitlements(userId: string, userEmail?: string): Promise<ResolvedEntitlements> {
+    const subscription = await this.getOrCreateSubscriptionRecord(userId, userEmail);
+    return this.resolveEntitlements(subscription);
   }
 
   getPlanLimits(plan: string) {
@@ -454,10 +468,13 @@ export class SubscriptionService {
   }
 
   private async getOrCreateSubscriptionRecord(userId: string, userEmail?: string) {
+    await this.supabaseMirrorService.syncUserAndSubscription(userId, userEmail);
     const user = await this.ensureLocalUser(userId, userEmail);
     let subscription = await this.prisma.subscription.findUnique({
       where: { userId },
     });
+
+    subscription = await this.recoverStripeSubscriptionIfNeeded(user, subscription);
 
     if (!subscription) {
       subscription = await this.createInitialSubscription(user);
@@ -465,6 +482,93 @@ export class SubscriptionService {
 
     subscription = await this.repairMisclassifiedTrialSubscription(user, subscription);
     return this.refreshSubscriptionState(subscription);
+  }
+
+  private async recoverStripeSubscriptionIfNeeded(
+    user: PrismaUser,
+    subscription: PrismaSubscription | null,
+  ): Promise<PrismaSubscription | null> {
+    if (!this.shouldAttemptStripeRecovery(user, subscription)) {
+      return subscription;
+    }
+
+    try {
+      const remoteSubscription = await this.stripeService.findActiveSubscriptionByEmail(user.email);
+
+      if (!remoteSubscription?.plan) {
+        return subscription;
+      }
+
+      this.logger.log(
+        `Recovered Stripe subscription for ${user.email}: plan=${remoteSubscription.plan}, subscription=${remoteSubscription.subscriptionId}`,
+      );
+
+      const now = new Date();
+      const nextStatus = remoteSubscription.status === 'trialing' ? 'trialing' : 'active';
+      const nextPlan = remoteSubscription.plan;
+
+      if (subscription) {
+        return this.prisma.subscription.update({
+          where: { userId: user.id },
+          data: {
+            plan: nextPlan,
+            status: nextStatus,
+            stripeCustomerId: remoteSubscription.customerId,
+            stripeSubscriptionId: remoteSubscription.subscriptionId,
+            currentPeriodEnd: remoteSubscription.currentPeriodEnd,
+            creditsRemaining: PLAN_LIMITS[nextPlan].creditsPerMonth,
+            creditsResetAt: this.isUnlimitedPlan(nextPlan) ? null : (remoteSubscription.currentPeriodEnd || this.buildNextMonthlyResetAt(now)),
+            requiresPayment: false,
+            legacyFree: false,
+            updatedAt: now,
+          },
+        });
+      }
+
+      return this.prisma.subscription.create({
+        data: {
+          id: randomUUID(),
+          userId: user.id,
+          plan: nextPlan,
+          status: nextStatus,
+          stripeCustomerId: remoteSubscription.customerId,
+          stripeSubscriptionId: remoteSubscription.subscriptionId,
+          currentPeriodEnd: remoteSubscription.currentPeriodEnd,
+          creditsRemaining: PLAN_LIMITS[nextPlan].creditsPerMonth,
+          creditsResetAt: this.isUnlimitedPlan(nextPlan) ? null : (remoteSubscription.currentPeriodEnd || this.buildNextMonthlyResetAt(now)),
+          legacyFree: false,
+          requiresPayment: false,
+          updatedAt: now,
+        },
+      });
+    } catch (error: any) {
+      this.logger.warn(`Stripe subscription recovery skipped for ${user.email}: ${error.message}`);
+      return subscription;
+    }
+  }
+
+  private shouldAttemptStripeRecovery(user: PrismaUser, subscription: PrismaSubscription | null) {
+    if (!this.stripeService.isReady()) {
+      return false;
+    }
+
+    if (!user.email || user.email.endsWith('@placeholder.local')) {
+      return false;
+    }
+
+    if (!subscription) {
+      return true;
+    }
+
+    if (subscription.stripeSubscriptionId) {
+      return false;
+    }
+
+    if (subscription.plan === 'starter' || subscription.plan === 'pro' || subscription.plan === 'business') {
+      return subscription.status !== 'active' && subscription.status !== 'trialing';
+    }
+
+    return true;
   }
 
   private async ensureLocalUser(userId: string, userEmail?: string): Promise<PrismaUser> {
@@ -755,7 +859,7 @@ export class SubscriptionService {
     });
   }
 
-  private resolveEntitlements(subscription: PrismaSubscription) {
+  private resolveEntitlements(subscription: PrismaSubscription): ResolvedEntitlements {
     const accessState = this.getAccessState(subscription);
 
     if (accessState === 'trialing') {
@@ -769,7 +873,7 @@ export class SubscriptionService {
     if (accessState === 'pack_active') {
       return {
         accessState,
-        effectivePlan: 'free',
+        effectivePlan: 'pack',
         limits: this.getPackLimits(),
       };
     }
@@ -784,7 +888,7 @@ export class SubscriptionService {
 
     return {
       accessState,
-      effectivePlan: 'free',
+      effectivePlan: subscription.legacyFree ? 'legacy' : 'free',
       limits: this.getPlanLimits('free'),
     };
   }
@@ -832,6 +936,8 @@ export class SubscriptionService {
     const entitlements = this.resolveEntitlements(subscription);
     const now = Date.now();
     const packActive = this.isPackActive(subscription);
+    const features = entitlements.accessState === 'trial_expired' ? [] : entitlements.limits.features;
+    const creditsTotal = entitlements.accessState === 'trial_expired' ? 0 : entitlements.limits.creditsPerMonth;
     const trialDaysLeft = subscription.trialEndsAt
       ? Math.max(0, Math.ceil((subscription.trialEndsAt.getTime() - now) / DAY_MS))
       : 0;
@@ -839,12 +945,15 @@ export class SubscriptionService {
     return {
       ...subscription,
       accessState: entitlements.accessState,
-      creditsTotal: entitlements.limits.creditsPerMonth,
+      effectivePlan: entitlements.effectivePlan,
+      features,
+      creditsTotal,
       limits: entitlements.limits,
       trialDaysLeft,
       canStartTrial: this.canStartTrial(subscription),
       requiresPayment: entitlements.accessState === 'trial_expired',
       legacyFree: subscription.legacyFree,
+      isLegacyAccess: subscription.legacyFree,
       packActive,
       packCreditsRemaining: packActive ? subscription.creditsRemaining : 0,
       packFeaturesMode: packActive ? 'generation_and_export' : null,
@@ -936,8 +1045,14 @@ export class SubscriptionService {
 
   private getPackLimits(): PlanLimits {
     return {
-      ...PLAN_LIMITS.free,
-      features: [...PLAN_LIMITS.free.features, 'export_pdf'],
+      creditsPerMonth: 0,
+      features: ['export_pdf', 'export_pptx', 'export_editable_pptx', 'no_watermark'],
+      limits: {
+        pdfPages: 50,
+        maxProjects: 20,
+        aiAddPerPresentation: 5,
+        aiWandPerPresentation: -1,
+      },
     };
   }
 }

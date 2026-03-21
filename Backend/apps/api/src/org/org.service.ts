@@ -1,14 +1,19 @@
 import { Injectable, NotFoundException, ForbiddenException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma.service.js';
 import { CreateOrgDto } from './dto/create-org.dto.js';
-import { AddMemberDto, OrgRole } from './dto/add-member.dto.js';
+import { AddMemberDto } from './dto/add-member.dto.js';
 import { ulid } from 'ulid';
+import { SubscriptionService } from '../subscription/subscription.service.js';
 
 @Injectable()
 export class OrgService {
-    constructor(private prisma: PrismaService) { }
+    constructor(
+        private prisma: PrismaService,
+        private subscriptionService: SubscriptionService,
+    ) { }
 
     async createOrg(userId: string, createOrgDto: CreateOrgDto) {
+        await this.ensureTeamWorkspace(userId);
         // Generate a unique ID for the org
         const orgId = `org_${ulid()}`;
 
@@ -37,21 +42,29 @@ export class OrgService {
     }
 
     async getUserOrgs(userId: string) {
-        const memberships = await this.prisma.membership.findMany({
-            where: { userId },
-            include: {
-                Org: true,
-            },
-        });
+        try {
+            const memberships = await this.prisma.membership.findMany({
+                where: { userId },
+                include: {
+                    Org: true,
+                },
+            });
 
-        return memberships.map((m) => ({
-            ...m.Org,
-            role: m.role,
-            createdAt: m.createdAt,
-        }));
+            return memberships.map((m) => ({
+                ...m.Org,
+                role: m.role,
+                createdAt: m.createdAt,
+            }));
+        } catch (error: any) {
+            if (this.isMissingOrgTables(error)) {
+                return [];
+            }
+            throw error;
+        }
     }
 
     async getOrgMembers(orgId: string, userId: string) {
+        await this.ensureTeamWorkspace(userId);
         // Verify user is a member of the org
         await this.checkMembership(orgId, userId);
 
@@ -77,6 +90,7 @@ export class OrgService {
     }
 
     async addMember(orgId: string, requesterId: string, addMemberDto: AddMemberDto) {
+        await this.ensureTeamWorkspace(requesterId);
         // Verify requester is admin or owner
         const membership = await this.checkMembership(orgId, requesterId);
         if (membership.role !== 'owner' && membership.role !== 'admin') {
@@ -118,6 +132,7 @@ export class OrgService {
     }
 
     async removeMember(orgId: string, requesterId: string, userIdToRemove: string) {
+        await this.ensureTeamWorkspace(requesterId);
         const requesterMembership = await this.checkMembership(orgId, requesterId);
 
         if (requesterMembership.role !== 'owner' && requesterMembership.role !== 'admin') {
@@ -162,5 +177,20 @@ export class OrgService {
         }
 
         return membership;
+    }
+
+    private async ensureTeamWorkspace(userId: string) {
+        const hasWorkspaceAccess = await this.subscriptionService.hasFeature(userId, 'team_workspace');
+
+        if (!hasWorkspaceAccess) {
+            throw new ForbiddenException('Le workspace d equipe est reserve au plan Team.');
+        }
+    }
+
+    private isMissingOrgTables(error: any) {
+        return error?.code === 'P2021' && (
+            String(error?.message || '').includes('public.Membership') ||
+            String(error?.message || '').includes('public.Org')
+        );
     }
 }

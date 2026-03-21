@@ -5,6 +5,7 @@ import { SubscriptionService } from '../subscription/subscription.service.js';
 import { QueueService } from '../queues/queue.service.js';
 import { randomBytes } from 'crypto';
 import { ulid } from 'ulid';
+import { SupabaseMirrorService } from '../supabase-mirror/supabase-mirror.service.js';
 
 @Injectable()
 export class PresentationService {
@@ -12,6 +13,7 @@ export class PresentationService {
         private prisma: PrismaService,
         private subscriptionService: SubscriptionService,
         private queueService: QueueService,
+        private supabaseMirrorService: SupabaseMirrorService,
     ) { }
 
     /**
@@ -19,6 +21,10 @@ export class PresentationService {
      * Filtered by organization context
      */
     async findAllForUser(userId: string, orgId: string | null) {
+        if (!orgId) {
+            await this.supabaseMirrorService.syncPresentations(userId);
+        }
+
         if (orgId) {
             // Organization Context: Return all presentations belonging to the organization
             // Assuming all org members can see all org presentations for now
@@ -65,9 +71,15 @@ export class PresentationService {
      * Returns showWatermark: true if the OWNER is on a Free plan (no 'no_watermark' feature)
      */
     async findOne(id: string, userId: string, orgId: string | null = null) {
-        const presentation = await this.prisma.presentations.findUnique({
+        let presentation = await this.prisma.presentations.findUnique({
             where: { id },
         });
+        if (!presentation && !orgId) {
+            await this.supabaseMirrorService.syncPresentations(userId);
+            presentation = await this.prisma.presentations.findUnique({
+                where: { id },
+            });
+        }
 
         if (!presentation) {
             throw new NotFoundException('Présentation introuvable');

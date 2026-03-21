@@ -207,30 +207,64 @@ const getSwotQuadrants = (slide: SlideData) => {
     const slideType = getNormalizedType(slide);
     const isTows = titleText.includes('tows') || titleText.includes('twos') || slideType.includes('tows') || slideType.includes('twos');
 
-    const extract = (key: string, fallbackTitle: string, fallbackItems: string[], color: string) => ({
-        key,
-        title: fallbackTitle,
-        items: readArray(swot?.[key] || (slide.content as any)?.[key] || []).slice(0, 5),
-        color,
-    });
+    const strengths = readArray(swot.strengths || (slide.content as any)?.strengths || []);
+    const weaknesses = readArray(swot.weaknesses || (slide.content as any)?.weaknesses || []);
+    const opportunities = readArray(swot.opportunities || (slide.content as any)?.opportunities || []);
+    const threats = readArray(swot.threats || (slide.content as any)?.threats || []);
+
+    const so = readArray(swot.so || (slide.content as any)?.so || []);
+    const st = readArray(swot.st || (slide.content as any)?.st || []);
+    const wo = readArray(swot.wo || (slide.content as any)?.wo || []);
+    const wt = readArray(swot.wt || (slide.content as any)?.wt || []);
+
+    const labels = readArray((slide.content as any)?.labels || (slide.content as any)?.chart?.labels || []);
+    const datasets = (slide.content as any)?.datasets || (slide.content as any)?.chart?.datasets || [];
+    const firstDataset = Array.isArray(datasets) ? datasets[0] : undefined;
+    const datasetValues = Array.isArray(firstDataset?.data) ? firstDataset.data : [];
+
+    const extractFromLabels = (patterns: string[]) => {
+        const found: string[] = [];
+        labels.forEach((label, index) => {
+            const normalized = label.toLowerCase();
+            if (patterns.some((pattern) => normalized.includes(pattern))) {
+                const rawValue = datasetValues[index];
+                const value = readText(rawValue);
+                found.push(value ? `${label}: ${value}` : label);
+            }
+        });
+        return found;
+    };
+
+    const finalStrengths = strengths.length > 0 ? strengths : extractFromLabels(['strength']);
+    const finalWeaknesses = weaknesses.length > 0 ? weaknesses : extractFromLabels(['weakness']);
+    const finalOpportunities = opportunities.length > 0 ? opportunities : extractFromLabels(['opportunity']);
+    const finalThreats = threats.length > 0 ? threats : extractFromLabels(['threat']);
+
+    const finalSO = so.length > 0 ? so : extractFromLabels(['so strategies', 'so (', 'maxi-maxi']);
+    const finalST = st.length > 0 ? st : extractFromLabels(['st strategies', 'st (', 'maxi-mini']);
+    const finalWO = wo.length > 0 ? wo : extractFromLabels(['wo strategies', 'wo (', 'mini-maxi']);
+    const finalWT = wt.length > 0 ? wt : extractFromLabels(['wt strategies', 'wt (', 'mini-mini']);
 
     if (isTows) {
         return [
-            extract('so', 'SO Strategies', ['Maxi-Maxi Strategy'], '#27AE60'),
-            extract('st', 'ST Strategies', ['Maxi-Mini Strategy'], '#E74C3C'),
-            extract('wo', 'WO Strategies', ['Mini-Maxi Strategy'], '#3498DB'),
-            extract('wt', 'WT Strategies', ['Mini-Mini Strategy'], '#F39C12'),
-        ].map((item) => ({ ...item, items: item.items.length > 0 ? item.items : [item.title] }));
+            { key: 'so', title: 'SO Strategies', items: finalSO, color: '#27AE60' },
+            { key: 'st', title: 'ST Strategies', items: finalST, color: '#E74C3C' },
+            { key: 'wo', title: 'WO Strategies', items: finalWO, color: '#3498DB' },
+            { key: 'wt', title: 'WT Strategies', items: finalWT, color: '#F39C12' },
+        ].map((item) => ({
+            ...item,
+            items: item.items.length > 0 ? item.items.slice(0, 5) : [item.title],
+        }));
     }
 
     return [
-        extract('strengths', 'Strengths', ['High quality', 'Fast delivery'], '#27AE60'),
-        extract('weaknesses', 'Weaknesses', ['Limited resources', 'Brand awareness'], '#E74C3C'),
-        extract('opportunities', 'Opportunities', ['Market expansion', 'New features'], '#3498DB'),
-        extract('threats', 'Threats', ['Competition', 'Economic shift'], '#F39C12'),
-    ].map((item, index) => ({
+        { key: 'strengths', title: 'Strengths', items: finalStrengths, color: '#27AE60' },
+        { key: 'weaknesses', title: 'Weaknesses', items: finalWeaknesses, color: '#E74C3C' },
+        { key: 'opportunities', title: 'Opportunities', items: finalOpportunities, color: '#3498DB' },
+        { key: 'threats', title: 'Threats', items: finalThreats, color: '#F39C12' },
+    ].map((item) => ({
         ...item,
-        items: item.items.length > 0 ? item.items : [index % 2 === 0 ? 'Opportunity to expand' : 'Operational challenge'],
+        items: item.items.length > 0 ? item.items.slice(0, 5) : [item.title],
     }));
 };
 
@@ -268,23 +302,23 @@ const addAbstractBackground = (nodes: SceneNode[], colors: ColorPalette) => {
         {
             kind: 'shape',
             shape: 'ellipse',
-            x: x(-260),
-            y: y(-180),
-            w: x(720),
-            h: y(720),
-            fillColor: colors.primary,
-            fillTransparency: DEFAULT_BLOB_TRANSPARENCY,
+            x: x(1640),
+            y: y(70),
+            w: x(84),
+            h: y(84),
+            fillColor: colors.secondary || colors.accent || colors.primary,
+            fillTransparency: 82,
             lineTransparency: 100,
         },
         {
             kind: 'shape',
             shape: 'ellipse',
-            x: x(1460),
-            y: y(600),
-            w: x(620),
-            h: y(520),
-            fillColor: colors.secondary || colors.accent,
-            fillTransparency: 88,
+            x: x(108),
+            y: y(896),
+            w: x(56),
+            h: y(56),
+            fillColor: colors.primary,
+            fillTransparency: 86,
             lineTransparency: 100,
         }
     );
@@ -2369,6 +2403,79 @@ const buildContentMinimalOffset = (ctx: SceneBuildContext): SlideScene => {
     };
 };
 
+const buildContentBulletsLegacy = (ctx: SceneBuildContext): SlideScene => {
+    const { slide, presentation, colors } = ctx;
+    const title = readText(slide.title, 'Overview');
+    const body = getBodyText(slide);
+    const bullets = getBullets(slide).slice(0, 6);
+    const titleFont = getHeadingFont(presentation);
+    const bodyFont = getBodyFont(presentation);
+    const titleScale = getTitleScale(presentation);
+    const textScale = getTextScale(presentation);
+    const nodes: SceneNode[] = [];
+    addAbstractBackground(nodes, colors);
+    nodes.push({
+        kind: 'text',
+        text: title,
+        x: x(180),
+        y: y(150),
+        w: x(1040),
+        h: y(90),
+        fontFace: titleFont,
+        fontSize: Math.round(48 * titleScale),
+        bold: true,
+        color: colors.text,
+        fit: 'shrink',
+    });
+    if (body) {
+        nodes.push({
+            kind: 'text',
+            text: body,
+            x: x(180),
+            y: y(290),
+            w: x(980),
+            h: y(140),
+            fontFace: bodyFont,
+            fontSize: Math.round(22 * textScale),
+            color: colors.text,
+            fit: 'shrink',
+            transparency: 10,
+        });
+    }
+    bullets.forEach((bullet, index) => {
+        const top = 470 + index * 88;
+        nodes.push({
+            kind: 'shape',
+            shape: 'ellipse',
+            x: x(188),
+            y: y(top + 16),
+            w: x(14),
+            h: y(14),
+            fillColor: colors.primary,
+            lineTransparency: 100,
+        });
+        nodes.push({
+            kind: 'text',
+            text: bullet,
+            x: x(220),
+            y: y(top),
+            w: x(1040),
+            h: y(44),
+            fontFace: bodyFont,
+            fontSize: Math.round(22 * textScale),
+            bold: true,
+            color: colors.text,
+            fit: 'shrink',
+        });
+    });
+    return {
+        family: 'content',
+        variation: 'bullets-legacy',
+        backgroundColor: colors.bg,
+        nodes,
+    };
+};
+
 const buildImageShowcase = (ctx: SceneBuildContext): SlideScene => {
     const { slide, presentation, colors } = ctx;
     const title = readText(slide.title, 'Untitled Slide');
@@ -2966,6 +3073,98 @@ const buildBentoAsymmetricMasonry = (ctx: SceneBuildContext): SlideScene => {
         backgroundColor: colors.bg,
         nodes,
     };
+};
+
+const buildBentoMagazineGrid = (ctx: SceneBuildContext): SlideScene => {
+    const { slide, presentation, colors } = ctx;
+    const items = getBentoItems(slide).slice(0, 4);
+    const main = items[0];
+    const sideItems = items.slice(1, 4);
+    const titleFont = getHeadingFont(presentation);
+    const bodyFont = getBodyFont(presentation);
+    const titleScale = getTitleScale(presentation);
+    const textScale = getTextScale(presentation);
+    const nodes: SceneNode[] = [];
+    addAbstractBackground(nodes, colors);
+    if (main) {
+        nodes.push({ kind: 'shape', shape: 'roundRect', x: x(100), y: y(130), w: x(980), h: y(820), fillColor: colors.text, lineTransparency: 100 });
+        nodes.push({ kind: 'image', path: main.image, x: x(100), y: y(130), w: x(980), h: y(820), sizing: 'cover', rounding: true });
+        nodes.push({ kind: 'shape', shape: 'rect', x: x(100), y: y(130), w: x(980), h: y(820), fillColor: '#000000', fillTransparency: 56, lineTransparency: 100 });
+        nodes.push({ kind: 'shape', shape: 'roundRect', x: x(180), y: y(700), w: x(220), h: y(34), fillColor: '#FFFFFF', fillTransparency: 82, lineTransparency: 100 });
+        nodes.push({ kind: 'text', text: 'COVER STORY', x: x(190), y: y(707), w: x(200), h: y(18), fontFace: bodyFont, fontSize: Math.round(11 * textScale), bold: true, uppercase: true, color: '#FFFFFF', fit: 'shrink' });
+        nodes.push({ kind: 'text', text: main.title || readText(slide.title, 'Story'), x: x(180), y: y(760), w: x(760), h: y(92), fontFace: titleFont, fontSize: Math.round(44 * titleScale), bold: true, color: '#FFFFFF', fit: 'shrink' });
+        nodes.push({ kind: 'text', text: main.description, x: x(180), y: y(850), w: x(720), h: y(64), fontFace: bodyFont, fontSize: Math.round(18 * textScale), color: '#FFFFFF', fit: 'shrink', transparency: 8 });
+    }
+    nodes.push({ kind: 'text', text: 'Related Topics', x: x(1160), y: y(165), w: x(420), h: y(26), fontFace: bodyFont, fontSize: Math.round(14 * textScale), bold: true, uppercase: true, color: colors.text, transparency: 36, fit: 'shrink' });
+    nodes.push({ kind: 'shape', shape: 'line', x: x(1160), y: y(210), w: x(560), h: 0, lineColor: colors.text, lineTransparency: 88, lineWidth: 0.5 });
+    sideItems.forEach((item, index) => {
+        const top = 280 + index * 210;
+        nodes.push({ kind: 'image', path: item.image, x: x(1160), y: y(top), w: x(110), h: y(110), sizing: 'cover', rounding: true });
+        nodes.push({ kind: 'text', text: item.title, x: x(1300), y: y(top + 8), w: x(450), h: y(34), fontFace: titleFont, fontSize: Math.round(22 * titleScale), bold: true, color: colors.text, fit: 'shrink' });
+        nodes.push({ kind: 'text', text: item.description, x: x(1300), y: y(top + 48), w: x(450), h: y(54), fontFace: bodyFont, fontSize: Math.round(14 * textScale), color: colors.text, fit: 'shrink', transparency: 28 });
+        nodes.push({ kind: 'shape', shape: 'line', x: x(1160), y: y(top + 135), w: x(590), h: 0, lineColor: colors.text, lineTransparency: 90, lineWidth: 0.4 });
+    });
+    return { family: 'bento', variation: 'magazine-grid', backgroundColor: colors.bg, nodes };
+};
+
+const buildBentoFeatureFocus = (ctx: SceneBuildContext): SlideScene => {
+    const { slide, presentation, colors } = ctx;
+    const items = getBentoItems(slide).slice(0, 5);
+    const center = items[0];
+    const leftItems = items.slice(1, 3);
+    const rightItems = items.slice(3, 5);
+    const titleFont = getHeadingFont(presentation);
+    const bodyFont = getBodyFont(presentation);
+    const titleScale = getTitleScale(presentation);
+    const textScale = getTextScale(presentation);
+    const nodes: SceneNode[] = [];
+    addAbstractBackground(nodes, colors);
+    nodes.push({ kind: 'shape', shape: 'ellipse', x: x(560), y: y(150), w: x(800), h: y(800), lineColor: colors.text, lineTransparency: 90, lineWidth: 0.5, fillTransparency: 100 });
+    if (center) {
+        nodes.push({ kind: 'shape', shape: 'roundRect', x: x(685), y: y(280), w: x(550), h: y(520), fillColor: '#FFFFFF', fillTransparency: 4, lineTransparency: 100 });
+        nodes.push({ kind: 'image', path: center.image, x: x(685), y: y(280), w: x(550), h: y(520), sizing: 'cover', rounding: true });
+        nodes.push({ kind: 'shape', shape: 'rect', x: x(685), y: y(680), w: x(550), h: y(120), fillColor: '#FFFFFF', fillTransparency: 10, lineTransparency: 100 });
+        nodes.push({ kind: 'text', text: center.title || readText(slide.title, 'Feature'), x: x(735), y: y(712), w: x(450), h: y(34), fontFace: titleFont, fontSize: Math.round(26 * titleScale), bold: true, color: colors.text, align: 'center', fit: 'shrink' });
+    }
+    leftItems.forEach((item, index) => {
+        const top = 290 + index * 270;
+        nodes.push({ kind: 'text', text: item.title, x: x(150), y: y(top), w: x(420), h: y(30), fontFace: titleFont, fontSize: Math.round(22 * titleScale), bold: true, color: colors.text, align: 'right', fit: 'shrink' });
+        nodes.push({ kind: 'text', text: item.description, x: x(130), y: y(top + 42), w: x(440), h: y(62), fontFace: bodyFont, fontSize: Math.round(14 * textScale), color: colors.text, align: 'right', fit: 'shrink', transparency: 24 });
+        nodes.push({ kind: 'shape', shape: 'line', x: x(180), y: y(top + 120), w: x(390), h: 0, lineColor: colors.primary, lineTransparency: 84, lineWidth: 0.5 });
+    });
+    rightItems.forEach((item, index) => {
+        const top = 290 + index * 270;
+        nodes.push({ kind: 'text', text: item.title, x: x(1350), y: y(top), w: x(420), h: y(30), fontFace: titleFont, fontSize: Math.round(22 * titleScale), bold: true, color: colors.text, fit: 'shrink' });
+        nodes.push({ kind: 'text', text: item.description, x: x(1350), y: y(top + 42), w: x(440), h: y(62), fontFace: bodyFont, fontSize: Math.round(14 * textScale), color: colors.text, fit: 'shrink', transparency: 24 });
+        nodes.push({ kind: 'shape', shape: 'line', x: x(1350), y: y(top + 120), w: x(390), h: 0, lineColor: colors.primary, lineTransparency: 84, lineWidth: 0.5 });
+    });
+    return { family: 'bento', variation: 'feature-focus', backgroundColor: colors.bg, nodes };
+};
+
+const buildBentoDefault = (ctx: SceneBuildContext): SlideScene => {
+    const { slide, presentation, colors } = ctx;
+    const items = getBentoItems(slide).slice(0, 3);
+    const titleFont = getHeadingFont(presentation);
+    const bodyFont = getBodyFont(presentation);
+    const titleScale = getTitleScale(presentation);
+    const textScale = getTextScale(presentation);
+    const nodes: SceneNode[] = [];
+    addAbstractBackground(nodes, colors);
+    nodes.push({ kind: 'text', text: readText(slide.title, 'Overview'), x: x(120), y: y(82), w: x(1200), h: y(66), fontFace: titleFont, fontSize: Math.round(42 * titleScale), bold: true, color: colors.text, fit: 'shrink' });
+    const layouts = [
+        { x0: 120, y0: 220, w: 820, h: 700 },
+        { x0: 980, y0: 220, w: 820, h: 330 },
+        { x0: 980, y0: 590, w: 820, h: 330 },
+    ];
+    items.forEach((item, index) => {
+        const frame = layouts[index];
+        if (!frame) return;
+        nodes.push({ kind: 'image', path: item.image, x: x(frame.x0), y: y(frame.y0), w: x(frame.w), h: y(frame.h), sizing: 'cover' });
+        nodes.push({ kind: 'shape', shape: 'rect', x: x(frame.x0), y: y(frame.y0), w: x(frame.w), h: y(frame.h), fillColor: '#000000', fillTransparency: 58, lineTransparency: 100 });
+        nodes.push({ kind: 'text', text: item.title, x: x(frame.x0 + 28), y: y(frame.y0 + frame.h - 120), w: x(frame.w - 56), h: y(42), fontFace: titleFont, fontSize: Math.round((index === 0 ? 30 : 24) * titleScale), bold: true, color: '#FFFFFF', fit: 'shrink' });
+        nodes.push({ kind: 'text', text: item.description, x: x(frame.x0 + 28), y: y(frame.y0 + frame.h - 72), w: x(frame.w - 56), h: y(46), fontFace: bodyFont, fontSize: Math.round(14 * textScale), color: '#FFFFFF', fit: 'shrink', transparency: 10 });
+    });
+    return { family: 'bento', variation: 'default', backgroundColor: colors.bg, nodes };
 };
 
 const buildSectionDefault = (ctx: SceneBuildContext): SlideScene => {
@@ -4379,10 +4578,10 @@ const buildTextColumnsNumberedEditorial = (ctx: SceneBuildContext): SlideScene =
 
     columns.forEach((column, index) => {
         const startX = x(70 + (index * 610));
-        nodes.push({ kind: 'text', text: `0${index + 1}`, x: startX - x(10), y: y(245), w: x(150), h: y(140), fontFace: titleFont, fontSize: Math.round(92 * titleScale), bold: true, color: colors.text, transparency: 92 });
-        nodes.push({ kind: 'shape', shape: 'roundRect', x: startX + x(2), y: y(286), w: x(8), h: y(42), fillColor: colors.primary, lineTransparency: 100 });
-        nodes.push({ kind: 'text', text: column.title, x: startX + x(22), y: y(292), w: x(470), h: y(42), fontFace: titleFont, fontSize: Math.round(18 * titleScale), bold: true, color: colors.primary, fit: 'shrink' });
-        nodes.push({ kind: 'text', text: column.text, x: startX, y: y(360), w: x(500), h: y(450), fontFace: bodyFont, fontSize: Math.round(17 * textScale), color: colors.text, fit: 'shrink', transparency: 8 });
+        nodes.push({ kind: 'text', text: `0${index + 1}`, x: startX - x(14), y: y(228), w: x(220), h: y(92), fontFace: titleFont, fontSize: Math.round(68 * titleScale), bold: true, color: colors.text, transparency: 92 });
+        nodes.push({ kind: 'shape', shape: 'roundRect', x: startX + x(18), y: y(314), w: x(8), h: y(42), fillColor: colors.accent || colors.primary, lineTransparency: 100 });
+        nodes.push({ kind: 'text', text: column.title, x: startX + x(42), y: y(318), w: x(448), h: y(48), fontFace: titleFont, fontSize: Math.round(20 * titleScale), bold: true, color: colors.primary, fit: 'shrink' });
+        nodes.push({ kind: 'text', text: column.text, x: startX, y: y(388), w: x(500), h: y(432), fontFace: bodyFont, fontSize: Math.round(17 * textScale), color: colors.text, fit: 'shrink', transparency: 8 });
     });
 
     return { family: 'text-columns', variation: 'numbered-editorial', backgroundColor: colors.bg, nodes };
@@ -5399,9 +5598,164 @@ const buildExecutiveDashboard = (ctx: SceneBuildContext): SlideScene => {
 };
 
 const buildExecutiveSplitColumns = (ctx: SceneBuildContext): SlideScene => {
-    const scene = buildExecutiveDashboard(ctx);
-    scene.variation = 'split-columns';
-    return scene;
+    const { slide, presentation, colors } = ctx;
+    const title = readText(slide.title, 'Executive Summary');
+    const { stats, bullets, nextSteps } = getExecutiveData(slide);
+    const titleFont = getHeadingFont(presentation);
+    const bodyFont = getBodyFont(presentation);
+    const titleScale = getTitleScale(presentation);
+    const textScale = getTextScale(presentation);
+    const nodes: SceneNode[] = [];
+
+    addAbstractBackground(nodes, colors);
+    nodes.push({
+        kind: 'text',
+        text: title,
+        x: x(310),
+        y: y(76),
+        w: x(1300),
+        h: y(60),
+        fontFace: titleFont,
+        fontSize: Math.round(38 * titleScale),
+        bold: true,
+        color: colors.text,
+        align: 'center',
+        fit: 'shrink',
+    });
+
+    const columns = [
+        { x0: 120, title: 'Key Metrics', titleColor: colors.primary, items: stats.slice(0, 4) },
+        { x0: 700, title: 'Key Findings', titleColor: colors.accent || colors.primary, items: bullets.slice(0, 5) },
+        { x0: 1280, title: 'Next Steps', titleColor: '#27AE60', items: nextSteps.slice(0, 5) },
+    ];
+
+    columns.forEach((column) => {
+        nodes.push({
+            kind: 'text',
+            text: column.title,
+            x: x(column.x0),
+            y: y(214),
+            w: x(460),
+            h: y(24),
+            fontFace: bodyFont,
+            fontSize: Math.round(11 * textScale),
+            bold: true,
+            uppercase: true,
+            color: column.titleColor,
+            fit: 'shrink',
+        });
+    });
+
+    stats.slice(0, 4).forEach((stat, index) => {
+        const top = 260 + index * 128;
+        nodes.push({
+            kind: 'shape',
+            shape: 'roundRect',
+            x: x(120),
+            y: y(top),
+            w: x(460),
+            h: y(100),
+            fillColor: colors.primary,
+            fillTransparency: 92,
+            lineColor: colors.primary,
+            lineTransparency: 82,
+            lineWidth: 0.5,
+        });
+        nodes.push({
+            kind: 'text',
+            text: stat.value,
+            x: x(148),
+            y: y(top + 18),
+            w: x(404),
+            h: y(34),
+            fontFace: titleFont,
+            fontSize: Math.round(28 * titleScale),
+            bold: true,
+            color: colors.primary,
+            fit: 'shrink',
+        });
+        nodes.push({
+            kind: 'text',
+            text: stat.label,
+            x: x(148),
+            y: y(top + 56),
+            w: x(404),
+            h: y(20),
+            fontFace: bodyFont,
+            fontSize: Math.round(11 * textScale),
+            color: colors.text,
+            transparency: 24,
+            fit: 'shrink',
+        });
+    });
+
+    bullets.slice(0, 5).forEach((bullet, index) => {
+        const top = 260 + index * 118;
+        nodes.push({
+            kind: 'shape',
+            shape: 'ellipse',
+            x: x(700),
+            y: y(top + 16),
+            w: x(10),
+            h: y(10),
+            fillColor: colors.accent || colors.primary,
+            lineTransparency: 100,
+        });
+        nodes.push({
+            kind: 'text',
+            text: bullet,
+            x: x(724),
+            y: y(top),
+            w: x(500),
+            h: y(72),
+            fontFace: bodyFont,
+            fontSize: Math.round(15 * textScale),
+            color: colors.text,
+            fit: 'shrink',
+        });
+    });
+
+    nextSteps.slice(0, 5).forEach((step, index) => {
+        const top = 260 + index * 118;
+        nodes.push({
+            kind: 'shape',
+            shape: 'ellipse',
+            x: x(1280),
+            y: y(top + 8),
+            w: x(26),
+            h: y(26),
+            fillColor: '#27AE60',
+            fillTransparency: 86,
+            lineTransparency: 100,
+        });
+        nodes.push({
+            kind: 'text',
+            text: String(index + 1),
+            x: x(1280),
+            y: y(top + 12),
+            w: x(26),
+            h: y(14),
+            fontFace: bodyFont,
+            fontSize: Math.round(10 * textScale),
+            bold: true,
+            color: '#27AE60',
+            align: 'center',
+        });
+        nodes.push({
+            kind: 'text',
+            text: step,
+            x: x(1320),
+            y: y(top),
+            w: x(490),
+            h: y(72),
+            fontFace: bodyFont,
+            fontSize: Math.round(15 * textScale),
+            color: colors.text,
+            fit: 'shrink',
+        });
+    });
+
+    return { family: 'executive', variation: 'split-columns', backgroundColor: colors.bg, nodes };
 };
 
 const buildExecutiveCompact = (ctx: SceneBuildContext): SlideScene => {
@@ -5651,9 +6005,167 @@ const buildTextColumnsVerticalSeparators = (ctx: SceneBuildContext): SlideScene 
 };
 
 const buildTextColumnsBentoText = (ctx: SceneBuildContext): SlideScene => {
-    const scene = buildTextColumnsModernCards(ctx);
-    scene.variation = 'bento-text';
-    return scene;
+    const { slide, presentation, colors } = ctx;
+    const columns = getTextColumns(slide).slice(0, 3);
+    const titleFont = getHeadingFont(presentation);
+    const bodyFont = getBodyFont(presentation);
+    const titleScale = getTitleScale(presentation);
+    const textScale = getTextScale(presentation);
+    const nodes: SceneNode[] = [];
+
+    nodes.push({ kind: 'shape', shape: 'rect', x: 0, y: 0, w: SLIDE_WIDTH, h: SLIDE_HEIGHT, fillColor: colors.bg, lineTransparency: 100 });
+    addAbstractBackground(nodes, colors);
+
+    nodes.push({
+        kind: 'shape',
+        shape: 'roundRect',
+        x: x(120),
+        y: y(96),
+        w: x(800),
+        h: y(252),
+        fillColor: colors.text,
+        fillTransparency: 94,
+        lineTransparency: 100,
+    });
+    nodes.push({
+        kind: 'shape',
+        shape: 'roundRect',
+        x: x(160),
+        y: y(136),
+        w: x(150),
+        h: y(38),
+        fillColor: '#FFFFFF',
+        fillTransparency: 28,
+        lineColor: '#FFFFFF',
+        lineTransparency: 82,
+        lineWidth: 0.5,
+    });
+    nodes.push({
+        kind: 'text',
+        text: 'OVERVIEW',
+        x: x(168),
+        y: y(147),
+        w: x(132),
+        h: y(16),
+        fontFace: bodyFont,
+        fontSize: Math.round(9 * textScale),
+        bold: true,
+        uppercase: true,
+        color: colors.text,
+        align: 'center',
+    });
+    nodes.push({
+        kind: 'text',
+        text: readText(slide.title, 'Overview'),
+        x: x(160),
+        y: y(204),
+        w: x(700),
+        h: y(110),
+        fontFace: titleFont,
+        fontSize: Math.round(40 * titleScale),
+        bold: true,
+        color: colors.text,
+        fit: 'shrink',
+    });
+
+    if (columns[0]) {
+        nodes.push({
+            kind: 'shape',
+            shape: 'roundRect',
+            x: x(980),
+            y: y(96),
+            w: x(820),
+            h: y(792),
+            fillColor: colors.primary,
+            lineTransparency: 100,
+        });
+        nodes.push({
+            kind: 'shape',
+            shape: 'ellipse',
+            x: x(1570),
+            y: y(10),
+            w: x(260),
+            h: y(260),
+            fillColor: '#FFFFFF',
+            fillTransparency: 86,
+            lineTransparency: 100,
+        });
+        nodes.push({
+            kind: 'text',
+            text: columns[0].title,
+            x: x(1040),
+            y: y(340),
+            w: x(700),
+            h: y(70),
+            fontFace: titleFont,
+            fontSize: Math.round(28 * titleScale),
+            bold: true,
+            color: '#FFFFFF',
+            fit: 'shrink',
+        });
+        nodes.push({
+            kind: 'text',
+            text: columns[0].text,
+            x: x(1040),
+            y: y(432),
+            w: x(700),
+            h: y(280),
+            fontFace: bodyFont,
+            fontSize: Math.round(18 * textScale),
+            color: '#FFFFFF',
+            fit: 'shrink',
+            transparency: 8,
+        });
+    }
+
+    const lowerCards = [
+        { x0: 120, column: columns[1] },
+        { x0: 540, column: columns[2] },
+    ];
+    lowerCards.forEach(({ x0, column }) => {
+        if (!column) return;
+        nodes.push({
+            kind: 'shape',
+            shape: 'roundRect',
+            x: x(x0),
+            y: y(408),
+            w: x(380),
+            h: y(480),
+            fillColor: '#FFFFFF',
+            fillTransparency: 6,
+            lineColor: colors.text,
+            lineTransparency: 90,
+            lineWidth: 0.5,
+        });
+        nodes.push({
+            kind: 'text',
+            text: column.title,
+            x: x(x0 + 32),
+            y: y(470),
+            w: x(316),
+            h: y(66),
+            fontFace: titleFont,
+            fontSize: Math.round(22 * titleScale),
+            bold: true,
+            color: colors.text,
+            fit: 'shrink',
+        });
+        nodes.push({
+            kind: 'text',
+            text: column.text,
+            x: x(x0 + 32),
+            y: y(560),
+            w: x(316),
+            h: y(228),
+            fontFace: bodyFont,
+            fontSize: Math.round(15 * textScale),
+            color: colors.text,
+            fit: 'shrink',
+            transparency: 18,
+        });
+    });
+
+    return { family: 'text-columns', variation: 'bento-text', backgroundColor: colors.bg, nodes };
 };
 
 const buildComparisonVersusCards = (ctx: SceneBuildContext): SlideScene => {
@@ -5732,9 +6244,88 @@ const buildTimelineVerticalAlternating = (ctx: SceneBuildContext): SlideScene =>
 };
 
 const buildTimelineSteppedProcess = (ctx: SceneBuildContext): SlideScene => {
-    const scene = buildTimelineConnectedCards(ctx);
-    scene.variation = 'stepped-process';
-    return scene;
+    const { slide, presentation, colors } = ctx;
+    const items = getTimelineItems(slide).slice(0, 4);
+    const titleFont = getHeadingFont(presentation);
+    const bodyFont = getBodyFont(presentation);
+    const titleScale = getTitleScale(presentation);
+    const textScale = getTextScale(presentation);
+    const nodes: SceneNode[] = [];
+
+    nodes.push({ kind: 'shape', shape: 'rect', x: 0, y: 0, w: SLIDE_WIDTH, h: SLIDE_HEIGHT, fillColor: colors.bg, lineTransparency: 100 });
+    nodes.push({ kind: 'text', text: readText(slide.title, 'Process'), x: x(120), y: y(90), w: x(1500), h: y(70), fontFace: titleFont, fontSize: Math.round(42 * titleScale), bold: true, color: colors.text, fit: 'shrink' });
+    nodes.push({ kind: 'shape', shape: 'line', x: x(120), y: y(182), w: x(1680), h: 0, lineColor: colors.text, lineTransparency: 92, lineWidth: 0.6 });
+
+    items.forEach((item, index) => {
+        const startX = 120 + index * 420;
+        const borderColor = index % 2 === 0 ? colors.primary : (colors.secondary || colors.primary);
+        nodes.push({
+            kind: 'text',
+            text: String(index + 1),
+            x: x(startX),
+            y: y(244),
+            w: x(150),
+            h: y(86),
+            fontFace: titleFont,
+            fontSize: Math.round(62 * titleScale),
+            bold: true,
+            color: colors.primary,
+            transparency: 92,
+        });
+        nodes.push({
+            kind: 'shape',
+            shape: 'rect',
+            x: x(startX + 26),
+            y: y(380),
+            w: x(8),
+            h: y(370),
+            fillColor: borderColor,
+            lineTransparency: 100,
+        });
+        nodes.push({
+            kind: 'text',
+            text: item.date || `STEP ${index + 1}`,
+            x: x(startX + 58),
+            y: y(328),
+            w: x(300),
+            h: y(26),
+            fontFace: bodyFont,
+            fontSize: Math.round(12 * textScale),
+            bold: true,
+            uppercase: true,
+            color: colors.text,
+            transparency: 38,
+            fit: 'shrink',
+        });
+        nodes.push({
+            kind: 'text',
+            text: item.title,
+            x: x(startX + 58),
+            y: y(388),
+            w: x(310),
+            h: y(66),
+            fontFace: titleFont,
+            fontSize: Math.round(22 * titleScale),
+            bold: true,
+            color: colors.text,
+            fit: 'shrink',
+        });
+        nodes.push({
+            kind: 'text',
+            text: item.description,
+            x: x(startX + 58),
+            y: y(476),
+            w: x(310),
+            h: y(200),
+            fontFace: bodyFont,
+            fontSize: Math.round(17 * textScale),
+            color: colors.text,
+            fit: 'shrink',
+            transparency: 14,
+        });
+    });
+
+    return { family: 'timeline', variation: 'stepped-process', backgroundColor: colors.bg, nodes };
 };
 
 const buildTimelineMinimalList = (ctx: SceneBuildContext): SlideScene => {
@@ -5833,6 +6424,7 @@ const buildScene = (ctx: SceneBuildContext, family: 'cover' | 'content' | 'image
 
     if (family === 'content') {
         if (variation === 'classic') return buildContentClassic(ctx);
+        if (variation === 'bullets-legacy') return buildContentBulletsLegacy(ctx);
         if (variation === 'split-card') return buildContentSplitCard(ctx);
         if (variation === 'hero-block') return buildContentHeroBlock(ctx);
         if (variation === 'magazine') return buildContentMagazine(ctx);
@@ -5906,6 +6498,9 @@ const buildScene = (ctx: SceneBuildContext, family: 'cover' | 'content' | 'image
     }
 
     if (family === 'bento') {
+        if (variation === 'default') return buildBentoDefault(ctx);
+        if (variation === 'magazine-grid') return buildBentoMagazineGrid(ctx);
+        if (variation === 'feature-focus') return buildBentoFeatureFocus(ctx);
         if (variation === 'asymmetric-masonry') return buildBentoAsymmetricMasonry(ctx);
         return undefined;
     }
@@ -5949,6 +6544,8 @@ const buildScene = (ctx: SceneBuildContext, family: 'cover' | 'content' | 'image
     if (variation === 'default') return buildImageDefault(ctx);
     if (variation === 'text-mask') return buildImageTextMask(ctx);
     if (variation === 'image-showcase') return buildImageShowcase(ctx);
+    if (variation === 'chart-showcase') return buildChartShowcase(ctx);
+    if (variation === 'chart-analysis') return buildChartAnalysis(ctx);
     if (variation === 'split-curtain') return buildImageSplitCurtain(ctx);
     if (variation === 'polaroid-pile') return buildImagePolaroidPile(ctx);
     return undefined;

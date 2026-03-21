@@ -6,9 +6,10 @@ import { StripeService } from './stripe.service.js';
 import { PrismaService } from '../prisma.service.js';
 import { LifecycleEmailService } from './lifecycle-email.service.js';
 import { OpsModule } from '../ops/ops.module.js';
+import { SupabaseMirrorModule } from '../supabase-mirror/supabase-mirror.module.js';
 
 @Module({
-    imports: [OpsModule],
+    imports: [OpsModule, SupabaseMirrorModule],
     controllers: [SubscriptionController],
     providers: [SubscriptionService, StripeService, PrismaService, LifecycleEmailService],
     exports: [SubscriptionService, StripeService],

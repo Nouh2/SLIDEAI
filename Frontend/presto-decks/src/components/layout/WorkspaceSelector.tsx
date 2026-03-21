@@ -13,8 +13,8 @@ import {
 import { api } from "@/lib/api";
 import { useAuth } from "@/contexts/AuthContext";
 import { CreateOrgDialog } from "./CreateOrgDialog";
-import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
+import { hasFeature } from "@/lib/subscription";
 
 interface Org {
     id: string;
@@ -30,15 +30,27 @@ export function WorkspaceSelector() {
     const [showCreateDialog, setShowCreateDialog] = useState(false);
     const [orgs, setOrgs] = useState<Org[]>([]);
     const [currentOrgId, setCurrentOrgId] = useState<string | null>(null);
-    const [loading, setLoading] = useState(false);
+    const [subscription, setSubscription] = useState<any>(null);
 
     // Load orgs and current selection
     useEffect(() => {
         const loadOrgs = async () => {
             if (!session?.access_token) return;
-            setLoading(true);
             try {
-                const data = await api.getUserOrgs(session.access_token);
+                const [data, subscriptionData] = await Promise.all([
+                    api.getUserOrgs(session.access_token),
+                    api.getMySubscription(session.access_token).catch(() => null),
+                ]);
+                setSubscription(subscriptionData);
+                const canUseTeamWorkspace = hasFeature(subscriptionData, "team_workspace");
+
+                if (!canUseTeamWorkspace) {
+                    setOrgs([]);
+                    localStorage.setItem('slideai-org-id', 'personal');
+                    setCurrentOrgId('personal');
+                    return;
+                }
+
                 setOrgs(data);
 
                 // Load current selection from local storage
@@ -58,8 +70,10 @@ export function WorkspaceSelector() {
                 }
             } catch (error) {
                 console.error("Failed to load organizations", error);
-            } finally {
-                setLoading(false);
+                setOrgs([]);
+                setSubscription(null);
+                localStorage.setItem('slideai-org-id', 'personal');
+                setCurrentOrgId('personal');
             }
         };
 
@@ -84,6 +98,7 @@ export function WorkspaceSelector() {
     };
 
     const currentOrg = orgs.find(o => o.id === currentOrgId);
+    const canManageWorkspace = hasFeature(subscription, "team_workspace");
 
     if (!session) return null;
 
@@ -141,30 +156,36 @@ export function WorkspaceSelector() {
                             </DropdownMenuItem>
                         ))}
                     </DropdownMenuGroup>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem onSelect={() => setShowCreateDialog(true)} className="cursor-pointer">
-                        <Plus className="mr-2 h-4 w-4" />
-                        Create Organization
-                    </DropdownMenuItem>
-                    {currentOrgId !== 'personal' && currentOrg && (
+                    {canManageWorkspace && (
                         <>
                             <DropdownMenuSeparator />
-                            <DropdownMenuItem onSelect={() => navigate(`/org/${currentOrgId}/settings`)} className="cursor-pointer">
-                                <Building2 className="mr-2 h-4 w-4" />
-                                Manage Organization
+                            <DropdownMenuItem onSelect={() => setShowCreateDialog(true)} className="cursor-pointer">
+                                <Plus className="mr-2 h-4 w-4" />
+                                Create Organization
                             </DropdownMenuItem>
+                            {currentOrgId !== 'personal' && currentOrg && (
+                                <>
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuItem onSelect={() => navigate(`/org/${currentOrgId}/settings`)} className="cursor-pointer">
+                                        <Building2 className="mr-2 h-4 w-4" />
+                                        Manage Organization
+                                    </DropdownMenuItem>
+                                </>
+                            )}
                         </>
                     )}
 
                 </DropdownMenuContent>
             </DropdownMenu>
 
-            <CreateOrgDialog
-                open={showCreateDialog}
-                onOpenChange={setShowCreateDialog}
-                onSuccess={handleCreateSuccess}
-                accessToken={session.access_token}
-            />
+            {canManageWorkspace && (
+                <CreateOrgDialog
+                    open={showCreateDialog}
+                    onOpenChange={setShowCreateDialog}
+                    onSuccess={handleCreateSuccess}
+                    accessToken={session.access_token}
+                />
+            )}
         </>
     );
 }

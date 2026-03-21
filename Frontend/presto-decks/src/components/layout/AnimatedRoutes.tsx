@@ -33,6 +33,7 @@ const VisualRegressionPage = lazy(() => import("@/pages/VisualRegression"));
 
 const PDFToPowerPoint = lazy(() => import("@/pages/PDFToPowerPoint"));
 const OrgSettings = lazy(() => import("@/pages/OrgSettings"));
+const AdminBroadcast = lazy(() => import("@/pages/AdminBroadcast"));
 const GenerateurPowerPointIA = lazy(() => import("@/pages/GenerateurPowerPointIA"));
 const CreerPowerPointAvecIA = lazy(() => import("@/pages/CreerPowerPointAvecIA"));
 const OutilIAPresentation = lazy(() => import("@/pages/OutilIAPresentation"));
@@ -52,6 +53,7 @@ export const AnimatedRoutes = () => {
                 <Routes location={location} key={location.pathname}>
                     {/* PUBLIC ROUTES - Accessible to everyone */}
                     <Route path="/pricing" element={<PageTransition><Pricing /></PageTransition>} />
+                    <Route path="/en/pricing" element={<PageTransition><Pricing /></PageTransition>} />
                     <Route path="/brand" element={<PageTransition><Brand /></PageTransition>} />
                     <Route path="/brand-kit" element={
                         <ProtectedRoute>
@@ -62,9 +64,13 @@ export const AnimatedRoutes = () => {
                     <Route path="/terms" element={<PageTransition><TermsPage /></PageTransition>} />
                     <Route path="/gdpr" element={<PageTransition><GdprPage /></PageTransition>} />
                     <Route path="/blog" element={<PageTransition><Blog /></PageTransition>} />
+                    <Route path="/en/blog" element={<PageTransition><Blog /></PageTransition>} />
                     <Route path="/blog/c/:category" element={<PageTransition><BlogCategory /></PageTransition>} />
+                    <Route path="/en/blog/c/:category" element={<PageTransition><BlogCategory /></PageTransition>} />
                     <Route path="/blog/metier/:persona" element={<PageTransition><BlogPersona /></PageTransition>} />
+                    <Route path="/en/blog/metier/:persona" element={<PageTransition><BlogPersona /></PageTransition>} />
                     <Route path="/blog/:slug" element={<PageTransition><BlogPost /></PageTransition>} />
+                    <Route path="/en/blog/:slug" element={<PageTransition><BlogPost /></PageTransition>} />
                     <Route path="/charts-demo" element={<PageTransition><ChartDemoPage /></PageTransition>} />
                     <Route path="/qa/visual-regression" element={<PageTransition><VisualRegressionPage /></PageTransition>} />
                     <Route path="/pdf-to-powerpoint" element={<PageTransition><PDFToPowerPoint /></PageTransition>} />
@@ -79,12 +85,22 @@ export const AnimatedRoutes = () => {
                             <PageTransition><Home /></PageTransition>
                         </GuestRoute>
                     } />
+                    <Route path="/en" element={
+                        <GuestRoute>
+                            <PageTransition><Home /></PageTransition>
+                        </GuestRoute>
+                    } />
                     <Route path="/auth" element={
                         <GuestRoute>
                             <PageTransition><Auth /></PageTransition>
                         </GuestRoute>
                     } />
                     <Route path="/examples" element={
+                        <GuestRoute>
+                            <PageTransition><Examples /></PageTransition>
+                        </GuestRoute>
+                    } />
+                    <Route path="/en/examples" element={
                         <GuestRoute>
                             <PageTransition><Examples /></PageTransition>
                         </GuestRoute>
@@ -119,6 +135,11 @@ export const AnimatedRoutes = () => {
                     <Route path="/ops" element={
                         <OpsRoute>
                             <PageTransition><OpsDashboard /></PageTransition>
+                        </OpsRoute>
+                    } />
+                    <Route path="/ops/broadcast" element={
+                        <OpsRoute>
+                            <PageTransition><AdminBroadcast /></PageTransition>
                         </OpsRoute>
                     } />
                     <Route path="/org/:orgId/settings" element={

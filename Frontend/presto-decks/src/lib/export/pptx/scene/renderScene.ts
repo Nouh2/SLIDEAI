@@ -4,6 +4,7 @@ import type { SlideScene, SceneNode } from './types';
 const toHex = (color?: string) => (color || '#000000').replace('#', '');
 const POINTS_PER_INCH = 72;
 const MIN_FIT_FONT_SIZE = 8;
+const IMAGE_RENDER_DPI = 150;
 
 const estimateWrappedLineCount = (text: string, maxCharsPerLine: number) => {
     const paragraphs = text.split(/\r?\n/);
@@ -118,7 +119,112 @@ const renderTextNode = (slide: pptxgen.Slide, node: Extract<SceneNode, { kind: '
     });
 };
 
-const renderImageNode = (slide: pptxgen.Slide, node: Extract<SceneNode, { kind: 'image' }>) => {
+const blobToDataUrl = (blob: Blob) => new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result || ''));
+    reader.onerror = () => reject(reader.error);
+    reader.readAsDataURL(blob);
+});
+
+const loadBrowserImage = (src: string) => new Promise<HTMLImageElement>((resolve, reject) => {
+    const image = new Image();
+    image.crossOrigin = 'anonymous';
+    image.onload = () => resolve(image);
+    image.onerror = () => reject(new Error(`Unable to load image: ${src}`));
+    image.src = src;
+});
+
+const addRoundedRectPath = (ctx: CanvasRenderingContext2D, width: number, height: number, radius: number) => {
+    const safeRadius = Math.max(0, Math.min(radius, width / 2, height / 2));
+    ctx.beginPath();
+    ctx.moveTo(safeRadius, 0);
+    ctx.lineTo(width - safeRadius, 0);
+    ctx.quadraticCurveTo(width, 0, width, safeRadius);
+    ctx.lineTo(width, height - safeRadius);
+    ctx.quadraticCurveTo(width, height, width - safeRadius, height);
+    ctx.lineTo(safeRadius, height);
+    ctx.quadraticCurveTo(0, height, 0, height - safeRadius);
+    ctx.lineTo(0, safeRadius);
+    ctx.quadraticCurveTo(0, 0, safeRadius, 0);
+    ctx.closePath();
+};
+
+const rasterizeImageNode = async (node: Extract<SceneNode, { kind: 'image' }>) => {
+    if (typeof window === 'undefined' || typeof document === 'undefined') {
+        return undefined;
+    }
+
+    const source = node.data || node.path;
+    if (!source) {
+        return undefined;
+    }
+
+    let imageSrc = source;
+    if (!node.data) {
+        try {
+            const response = await fetch(source);
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
+            }
+            imageSrc = await blobToDataUrl(await response.blob());
+        } catch {
+            return undefined;
+        }
+    }
+
+    try {
+        const image = await loadBrowserImage(imageSrc);
+        const widthPx = Math.max(8, Math.round(node.w * IMAGE_RENDER_DPI));
+        const heightPx = Math.max(8, Math.round(node.h * IMAGE_RENDER_DPI));
+        const canvas = document.createElement('canvas');
+        canvas.width = widthPx;
+        canvas.height = heightPx;
+        const context = canvas.getContext('2d');
+        if (!context) {
+            return undefined;
+        }
+
+        const imgWidth = image.naturalWidth || image.width;
+        const imgHeight = image.naturalHeight || image.height;
+        if (!imgWidth || !imgHeight) {
+            return undefined;
+        }
+
+        const mode = node.sizing || 'cover';
+        let drawX = 0;
+        let drawY = 0;
+        let drawW = widthPx;
+        let drawH = heightPx;
+
+        if (mode === 'contain') {
+            const scale = Math.min(widthPx / imgWidth, heightPx / imgHeight);
+            drawW = imgWidth * scale;
+            drawH = imgHeight * scale;
+            drawX = (widthPx - drawW) / 2;
+            drawY = (heightPx - drawH) / 2;
+        } else if (mode === 'cover' || mode === 'crop') {
+            const scale = Math.max(widthPx / imgWidth, heightPx / imgHeight);
+            drawW = imgWidth * scale;
+            drawH = imgHeight * scale;
+            drawX = (widthPx - drawW) / 2;
+            drawY = (heightPx - drawH) / 2;
+        }
+
+        if (node.rounding) {
+            const radius = Math.round(Math.min(widthPx, heightPx) * 0.08);
+            addRoundedRectPath(context, widthPx, heightPx, radius);
+            context.clip();
+        }
+
+        context.drawImage(image, drawX, drawY, drawW, drawH);
+        return canvas.toDataURL('image/png');
+    } catch {
+        return undefined;
+    }
+};
+
+const renderImageNode = async (slide: pptxgen.Slide, node: Extract<SceneNode, { kind: 'image' }>) => {
+    const preparedData = await rasterizeImageNode(node);
     const sizing = node.sizing
         ? {
             type: node.sizing,
@@ -137,10 +243,14 @@ const renderImageNode = (slide: pptxgen.Slide, node: Extract<SceneNode, { kind: 
         h: node.h,
         rotate: node.rotation,
         transparency: node.transparency ?? 0,
-        rounding: node.rounding,
         shadow: node.shadow,
-        sizing,
-        ...(node.data ? { data: node.data } : { path: node.path || '' }),
+        ...(preparedData
+            ? { data: preparedData }
+            : {
+                ...(node.rounding ? { rounding: node.rounding } : {}),
+                ...(sizing ? { sizing } : {}),
+                ...(node.data ? { data: node.data } : { path: node.path || '' }),
+            }),
     });
 };
 
@@ -215,26 +325,26 @@ const renderTableNode = (slide: pptxgen.Slide, node: Extract<SceneNode, { kind: 
     });
 };
 
-export const renderSceneToPptx = (pptxSlide: pptxgen.Slide, scene: SlideScene) => {
+export const renderSceneToPptx = async (pptxSlide: pptxgen.Slide, scene: SlideScene) => {
     pptxSlide.background = { color: toHex(scene.backgroundColor) };
 
-    scene.nodes.forEach((node) => {
+    for (const node of scene.nodes) {
         if (node.kind === 'shape') {
             renderShapeNode(pptxSlide, node);
-            return;
+            continue;
         }
         if (node.kind === 'text') {
             renderTextNode(pptxSlide, node);
-            return;
+            continue;
         }
         if (node.kind === 'chart') {
             renderChartNode(pptxSlide, node);
-            return;
+            continue;
         }
         if (node.kind === 'table') {
             renderTableNode(pptxSlide, node);
-            return;
+            continue;
         }
-        renderImageNode(pptxSlide, node);
-    });
+        await renderImageNode(pptxSlide, node);
+    }
 };

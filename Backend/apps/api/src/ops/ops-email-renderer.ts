@@ -1127,6 +1127,42 @@ export function buildTrialEmailContent(params: {
   };
 }
 
+export type BroadcastEmailParams = {
+  subject: string;
+  badge: string;
+  title: string;
+  intro: string;
+  body: string[];
+  bullets?: string[];
+  ctaLabel: string;
+  ctaUrl: string;
+  note?: string;
+  unsubscribeUrl?: string;
+  footerReason?: string;
+};
+
+export function buildBroadcastEmailContent(params: BroadcastEmailParams): { subject: string; html: string } {
+  const content: EmailContent = {
+    subject: params.subject,
+    preview: params.intro,
+    badge: params.badge,
+    title: params.title,
+    intro: params.intro,
+    body: params.body,
+    bullets: params.bullets,
+    ctaLabel: params.ctaLabel,
+    ctaUrl: params.ctaUrl,
+    note: params.note,
+    unsubscribeUrl: params.unsubscribeUrl,
+    footerReason: params.footerReason || 'Vous recevez cet email car vous utilisez SlideAI.',
+  };
+
+  return {
+    subject: params.subject,
+    html: wrapEmail(content),
+  };
+}
+
 export async function sendLifecycleEmail(params: {
   to: string;
   subject: string;

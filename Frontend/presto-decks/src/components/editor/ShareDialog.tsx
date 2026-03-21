@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useTranslation, Trans } from "react-i18next";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -11,7 +12,7 @@ import {
     DialogTitle,
     DialogTrigger,
 } from "@/components/ui/dialog";
-import { Share2, Copy, Check, Loader2, Edit3, Eye } from "lucide-react";
+import { Share2, Copy, Check, Loader2, Edit3, Eye, Lock } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { api } from "@/lib/api";
 
@@ -20,14 +21,16 @@ interface ShareDialogProps {
     accessToken: string;
     disabled?: boolean;
     disabledReason?: string;
+    canShareCollaborative?: boolean;
 }
 
 type ShareMode = "edit" | "view";
 
-export function ShareDialog({ presentationId, accessToken, disabled, disabledReason }: ShareDialogProps) {
+export function ShareDialog({ presentationId, accessToken, disabled, disabledReason, canShareCollaborative = true }: ShareDialogProps) {
+    const navigate = useNavigate();
     const [isOpen, setIsOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
-    const [shareMode, setShareMode] = useState<ShareMode>("edit");
+    const [shareMode, setShareMode] = useState<ShareMode>("view");
     const [editShareUrl, setEditShareUrl] = useState<string | null>(null);
     const [viewShareUrl, setViewShareUrl] = useState<string | null>(null);
     const [copied, setCopied] = useState(false);
@@ -82,9 +85,9 @@ export function ShareDialog({ presentationId, accessToken, disabled, disabledRea
     const handleOpenChange = (open: boolean) => {
         setIsOpen(open);
         if (open) {
-            // Generate edit link by default when opening
-            if (!editShareUrl) {
-                handleGenerateLink("edit");
+            // Generate view link by default when opening
+            if (!viewShareUrl) {
+                handleGenerateLink("view");
             }
         }
     };
@@ -110,14 +113,20 @@ export function ShareDialog({ presentationId, accessToken, disabled, disabledRea
                 {/* Mode Selection */}
                 <div className="flex gap-2 p-1 bg-muted/50 rounded-lg">
                     <button
-                        onClick={() => handleModeChange("edit")}
-                        className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-md text-sm font-medium transition-all ${shareMode === "edit"
-                            ? "bg-background shadow-sm text-primary border border-primary/20"
-                            : "text-muted-foreground hover:text-foreground hover:bg-muted"
-                            }`}
+                        onClick={() => canShareCollaborative ? handleModeChange("edit") : navigate("/pricing")}
+                        className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-md text-sm font-medium transition-all ${
+                            !canShareCollaborative
+                                ? "text-muted-foreground/60 cursor-pointer hover:bg-muted"
+                                : shareMode === "edit"
+                                ? "bg-background shadow-sm text-primary border border-primary/20"
+                                : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                        }`}
                     >
-                        <Edit3 className="h-4 w-4" />
+                        {canShareCollaborative ? <Edit3 className="h-4 w-4" /> : <Lock className="h-3.5 w-3.5" />}
                         {t('share.collaborative')}
+                        {!canShareCollaborative && (
+                            <span className="ml-1 text-[10px] font-bold uppercase tracking-wide bg-primary/10 text-primary px-1.5 py-0.5 rounded">Pro</span>
+                        )}
                     </button>
                     <button
                         onClick={() => handleModeChange("view")}
@@ -130,6 +139,17 @@ export function ShareDialog({ presentationId, accessToken, disabled, disabledRea
                         {t('share.readOnly')}
                     </button>
                 </div>
+
+                {/* Collaborative upgrade nudge */}
+                {!canShareCollaborative && shareMode === "view" && (
+                    <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-primary/5 border border-primary/15 text-xs text-muted-foreground">
+                        <Lock className="h-3.5 w-3.5 text-primary flex-shrink-0" />
+                        <span>Le partage collaboratif (édition à plusieurs) est disponible avec Pro.</span>
+                        <button onClick={() => navigate("/pricing")} className="ml-auto text-primary font-medium hover:underline whitespace-nowrap">
+                            Voir Pro
+                        </button>
+                    </div>
+                )}
 
                 {/* Description based on mode */}
                 <div className={`p-3 rounded-lg border text-sm ${shareMode === "edit"

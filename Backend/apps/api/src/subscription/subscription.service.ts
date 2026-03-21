@@ -1046,7 +1046,7 @@ export class SubscriptionService {
   private getPackLimits(): PlanLimits {
     return {
       creditsPerMonth: 0,
-      features: ['export_pdf', 'export_pptx', 'export_editable_pptx', 'no_watermark'],
+      features: ['export_pdf', 'export_pptx', 'export_editable_pptx', 'no_watermark', 'public_link', 'web_viewer'],
       limits: {
         pdfPages: 50,
         maxProjects: 20,

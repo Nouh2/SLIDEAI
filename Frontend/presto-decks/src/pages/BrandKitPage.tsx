@@ -63,9 +63,9 @@ export default function BrandKitPage() {
                 <BrandKitManager mode="manage" />
             ) : (
                 <UpgradeGate
-                    title="Brand Kit reserve a Pro"
-                    description="Les brand kits sont disponibles avec Pro et Team. Passez a Pro pour enregistrer vos couleurs, polices et logos."
-                    cta="Voir les abonnements"
+                    title="Brand Kit — disponible avec Pro"
+                    description="Enregistrez vos couleurs, polices et logos pour toutes vos présentations. Idéal pour les agences qui gèrent plusieurs clients : appliquez une charte graphique différente en un clic sur chaque deck."
+                    cta="Passer à Pro"
                     onUpgrade={() => navigate("/pricing")}
                 />
             )}

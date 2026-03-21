@@ -316,6 +316,7 @@ export default function Editor() {
   const pendingSaveRef = useRef<any>(null);
   const projectRef = useRef<any>(null); // Ref to access latest project state in event listeners
   const canShareByLink = hasFeature(subscription, "public_link");
+  const canShareCollaborative = hasFeature(subscription, "brand_kit"); // brand_kit = Pro+
   const canExportAnything = hasFeature(subscription, "export_pdf") || hasFeature(subscription, "export_pptx");
   const shareDisabledReason = canShareByLink
     ? undefined
@@ -1260,6 +1261,7 @@ export default function Editor() {
                     accessToken={accessToken}
                     disabled={!canShareByLink}
                     disabledReason={shareDisabledReason}
+                    canShareCollaborative={canShareCollaborative}
                   />
                 )}
                 {currentProject && accessToken && (

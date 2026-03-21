@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Check, ChevronsUpDown, Plus, Building2, User } from "lucide-react";
+import { Check, ChevronsUpDown, Plus, Building2, User, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
     DropdownMenu,
@@ -156,22 +156,26 @@ export function WorkspaceSelector() {
                             </DropdownMenuItem>
                         ))}
                     </DropdownMenuGroup>
-                    {canManageWorkspace && (
+                    <DropdownMenuSeparator />
+                    {canManageWorkspace ? (
+                        <DropdownMenuItem onSelect={() => setShowCreateDialog(true)} className="cursor-pointer">
+                            <Plus className="mr-2 h-4 w-4" />
+                            Créer une équipe
+                        </DropdownMenuItem>
+                    ) : (
+                        <DropdownMenuItem onSelect={() => navigate("/pricing")} className="cursor-pointer text-muted-foreground">
+                            <Lock className="mr-2 h-3.5 w-3.5" />
+                            Créer une équipe
+                            <span className="ml-auto text-[10px] font-bold uppercase tracking-wide bg-primary/10 text-primary px-1.5 py-0.5 rounded">Business</span>
+                        </DropdownMenuItem>
+                    )}
+                    {canManageWorkspace && currentOrgId !== 'personal' && currentOrg && (
                         <>
                             <DropdownMenuSeparator />
-                            <DropdownMenuItem onSelect={() => setShowCreateDialog(true)} className="cursor-pointer">
-                                <Plus className="mr-2 h-4 w-4" />
-                                Create Organization
+                            <DropdownMenuItem onSelect={() => navigate(`/org/${currentOrgId}/settings`)} className="cursor-pointer">
+                                <Building2 className="mr-2 h-4 w-4" />
+                                Gérer l'équipe
                             </DropdownMenuItem>
-                            {currentOrgId !== 'personal' && currentOrg && (
-                                <>
-                                    <DropdownMenuSeparator />
-                                    <DropdownMenuItem onSelect={() => navigate(`/org/${currentOrgId}/settings`)} className="cursor-pointer">
-                                        <Building2 className="mr-2 h-4 w-4" />
-                                        Manage Organization
-                                    </DropdownMenuItem>
-                                </>
-                            )}
                         </>
                     )}
 

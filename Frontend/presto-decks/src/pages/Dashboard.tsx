@@ -23,6 +23,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { getPlanDisplayKey, isLegacySubscription, isPackSubscription, isTrialingSubscription } from "@/lib/subscription";
+import { HearAboutUsDialog } from "@/components/common/HearAboutUsDialog";
 
 interface Presentation {
   id: string;
@@ -51,6 +52,8 @@ export default function Dashboard() {
   const [viewOnlyPresentations, setViewOnlyPresentations] = useState<Presentation[]>([]);
   const [searchParams, setSearchParams] = useSearchParams();
   const [subscription, setSubscription] = useState<any>(null);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [currentUserEmail, setCurrentUserEmail] = useState<string | null>(null);
 
   const [showSuccess, setShowSuccess] = useState(() => {
     const params = new URLSearchParams(window.location.search);
@@ -93,6 +96,8 @@ export default function Dashboard() {
         setSharedPresentations(result.shared || []);
         setViewOnlyPresentations(result.viewOnly || []);
         setSubscription(subResult);
+        setCurrentUserId(session.user.id);
+        setCurrentUserEmail(session.user.email ?? null);
       } catch (error: any) {
         console.error("Error fetching presentations:", error);
         toast({
@@ -209,6 +214,9 @@ export default function Dashboard() {
 
   return (
     <div className="container py-12 space-y-8">
+      {currentUserId && (
+        <HearAboutUsDialog userId={currentUserId} userEmail={currentUserEmail ?? undefined} />
+      )}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 animate-fade-in-up">
         <div>
           <h1 className="text-4xl md:text-5xl font-bold mb-2 text-gradient">

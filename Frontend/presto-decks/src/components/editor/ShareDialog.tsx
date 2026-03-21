@@ -83,11 +83,8 @@ export function ShareDialog({ presentationId, accessToken, canShareByLink = true
 
     const handleOpenChange = (open: boolean) => {
         setIsOpen(open);
-        if (open) {
-            // Generate view link by default when opening
-            if (!viewShareUrl) {
-                handleGenerateLink("view");
-            }
+        if (open && canShareByLink && !viewShareUrl) {
+            handleGenerateLink("view");
         }
     };
 

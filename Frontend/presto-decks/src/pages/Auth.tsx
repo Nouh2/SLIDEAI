@@ -144,7 +144,7 @@ export default function AuthPage() {
             },
           }}
           theme="light"
-          providers={[]}
+          providers={["google"]}
           localization={getLocalization()}
           redirectTo={`${window.location.origin}${returnTo}`}
         />

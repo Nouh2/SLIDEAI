@@ -9,15 +9,17 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 type TrialEmailStep = {
   emailType: string;
   offsetMs: number;
+  bypassSendWindow?: boolean;
 };
 
 type ScheduledEmailStep = {
   emailType: string;
   offsetMs: number;
+  bypassSendWindow?: boolean;
 };
 
 const TRIAL_EMAIL_SCHEDULE: TrialEmailStep[] = [
-  { emailType: 'trial_welcome', offsetMs: 0 },
+  { emailType: 'trial_welcome', offsetMs: 0, bypassSendWindow: true },
   { emailType: 'trial_inactive_day1', offsetMs: 1 * DAY_MS },
   { emailType: 'trial_value_day4', offsetMs: 4 * DAY_MS },
   { emailType: 'trial_ending_day6', offsetMs: 6 * DAY_MS },
@@ -262,6 +264,7 @@ export class LifecycleEmailService {
         scheduledFor: targetScheduledFor,
         scopeKey: `${params.scopeKey}_${step.emailType}`,
         payload: params.payload,
+        bypassSendWindow: step.bypassSendWindow,
       });
     }
   }
@@ -273,6 +276,7 @@ export class LifecycleEmailService {
     scheduledFor: Date;
     scopeKey: string;
     payload: Record<string, unknown>;
+    bypassSendWindow?: boolean;
   }) {
     const templateRuntime = await this.opsService.getTemplateRuntime(params.emailType);
     const flowRuntime = await this.opsService.getFlowRuntimeByEmailType(params.emailType);
@@ -307,7 +311,7 @@ export class LifecycleEmailService {
     }
 
     const unsubscribeUrl = isMarketing ? await this.opsService.getUnsubscribeUrl(params.userId) : undefined;
-    const scheduledFor = this.applyFlowWindow(params.scheduledFor, flowRuntime);
+    const scheduledFor = params.bypassSendWindow ? params.scheduledFor : this.applyFlowWindow(params.scheduledFor, flowRuntime);
     const dedupeKey = `${params.emailType}__${params.userId}__${this.sanitizeScopeKey(params.scopeKey)}`;
 
     const existing = await this.prisma.lifecycleEmailLog.findUnique({

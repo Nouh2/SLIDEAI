@@ -124,6 +124,12 @@
     <lastmod>2026-03-09</lastmod>
   </url>
   <url>
+    <loc>https://www.slideai.fr/blog/controleur-gestion-automatiser-presentations-reporting-financier</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <lastmod>2026-03-23</lastmod>
+  </url>
+  <url>
     <loc>https://www.slideai.fr/en/blog/convert-pdf-to-powerpoint-ai</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
@@ -202,6 +208,18 @@
     <lastmod>2026-03-17</lastmod>
   </url>
   <url>
+    <loc>https://www.slideai.fr/blog/recruteur-creer-presentations-process-recrutement-rapidement</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <lastmod>2026-03-23</lastmod>
+  </url>
+  <url>
+    <loc>https://www.slideai.fr/blog/responsable-communication-creer-plan-communication-powerpoint-rapidement</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <lastmod>2026-03-23</lastmod>
+  </url>
+  <url>
     <loc>https://www.slideai.fr/blog/responsable-formation-creer-supports-formation-powerpoint-10x-plus-vite</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
@@ -256,6 +274,11 @@
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://www.slideai.fr/blog/c/hr</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://www.slideai.fr/blog/c/training</loc>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
@@ -286,6 +309,11 @@
     <priority>0.8</priority>
   </url>
   <url>
+    <loc>https://www.slideai.fr/blog/metier/controleur-de-gestion</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
     <loc>https://www.slideai.fr/blog/metier/directeur-commercial</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
@@ -297,6 +325,16 @@
   </url>
   <url>
     <loc>https://www.slideai.fr/blog/metier/product-manager</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.slideai.fr/blog/metier/recruteur</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.slideai.fr/blog/metier/responsable-communication</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>

@@ -34,6 +34,7 @@ const CATEGORY_LABELS: Record<string, { fr: string; en: string }> = {
     "marketing": { fr: "Marketing", en: "Marketing" },
     "sales": { fr: "Commercial", en: "Sales" },
     "finance": { fr: "Finance", en: "Finance" },
+    "hr": { fr: "RH", en: "HR" },
     "product": { fr: "Produit", en: "Product" },
     "training": { fr: "Formation", en: "Training" },
     "powerpoint-ai": { fr: "PowerPoint IA", en: "AI PowerPoint" },
@@ -49,6 +50,9 @@ const PERSONA_LABELS: Record<string, { fr: string; en: string }> = {
     "directeur-marketing": { fr: "Directeur marketing", en: "Marketing director" },
     "directeur-commercial": { fr: "Directeur commercial", en: "Sales director" },
     "analyste-financier": { fr: "Analyste financier", en: "Financial analyst" },
+    "controleur-de-gestion": { fr: "Controleur de gestion", en: "Financial controller" },
+    "responsable-communication": { fr: "Responsable communication", en: "Communications manager" },
+    "recruteur": { fr: "Recruteur", en: "Recruiter" },
     "freelance": { fr: "Freelance", en: "Freelancer" },
     "product-manager": { fr: "Product manager", en: "Product manager" },
     "responsable-formation": { fr: "Responsable formation", en: "Training manager" },
@@ -80,6 +84,10 @@ function inferCategoryAndTags(slug: string, title: string): { category: string; 
         return { category: "marketing", tags: ["marketing", "b2b", "powerpoint", "ia"] };
     }
 
+    if (source.includes("communication") || source.includes("communication interne") || source.includes("plan de communication")) {
+        return { category: "marketing", tags: ["communication", "plan", "powerpoint", "ia"] };
+    }
+
     if (source.includes("product manager") || source.includes("roadmap produit") || source.includes("produit")) {
         return { category: "product", tags: ["product", "roadmap", "powerpoint", "ia"] };
     }
@@ -88,12 +96,20 @@ function inferCategoryAndTags(slug: string, title: string): { category: string; 
         return { category: "training", tags: ["formation", "supports", "powerpoint", "ia"] };
     }
 
+    if (source.includes("recruteur") || source.includes("recrutement") || source.includes("recruit")) {
+        return { category: "hr", tags: ["recrutement", "rh", "powerpoint", "ia"] };
+    }
+
     if (source.includes("commercial") || source.includes("vente") || source.includes("sales")) {
         return { category: "sales", tags: ["sales", "b2b", "powerpoint", "ia"] };
     }
 
     if (source.includes("financier") || source.includes("finance")) {
         return { category: "finance", tags: ["finance", "analyse", "powerpoint", "ia"] };
+    }
+
+    if (source.includes("controleur de gestion") || source.includes("controleur-de-gestion") || source.includes("reporting financier")) {
+        return { category: "finance", tags: ["controle-de-gestion", "reporting", "finance", "powerpoint", "ia"] };
     }
 
     if (source.includes("cyber") || source.includes("securite")) {
@@ -133,6 +149,9 @@ function inferPersona(slug: string, title: string): string | undefined {
     if (source.includes("analyste-financier") || (source.includes("analyste") && source.includes("financier"))) {
         return "analyste-financier";
     }
+    if (source.includes("controleur de gestion") || source.includes("controleur-de-gestion")) {
+        return "controleur-de-gestion";
+    }
     if (source.includes("freelance")) {
         return "freelance";
     }
@@ -144,6 +163,12 @@ function inferPersona(slug: string, title: string): string | undefined {
     }
     if (source.includes("consultant cybers") || source.includes("cybersecurite") || source.includes("cyber")) {
         return "consultant-cybersecurite";
+    }
+    if (source.includes("responsable communication") || source.includes("responsable-communication") || source.includes("plan de communication")) {
+        return "responsable-communication";
+    }
+    if (source.includes("recruteur") || source.includes("recrutement") || source.includes("recruit")) {
+        return "recruteur";
     }
     if (source.includes("strategie")) {
         return "consultant-strategie";

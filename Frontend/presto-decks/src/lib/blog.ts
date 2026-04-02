@@ -51,6 +51,8 @@ const PERSONA_LABELS: Record<string, { fr: string; en: string }> = {
     "directeur-commercial": { fr: "Directeur commercial", en: "Sales director" },
     "analyste-financier": { fr: "Analyste financier", en: "Financial analyst" },
     "controleur-de-gestion": { fr: "Controleur de gestion", en: "Financial controller" },
+    "consultant-erp": { fr: "Consultant ERP", en: "ERP consultant" },
+    "responsable-marketing-produit": { fr: "Responsable marketing produit", en: "Product marketing manager" },
     "responsable-communication": { fr: "Responsable communication", en: "Communications manager" },
     "recruteur": { fr: "Recruteur", en: "Recruiter" },
     "freelance": { fr: "Freelance", en: "Freelancer" },
@@ -84,6 +86,10 @@ function inferCategoryAndTags(slug: string, title: string): { category: string; 
         return { category: "marketing", tags: ["marketing", "b2b", "powerpoint", "ia"] };
     }
 
+    if (source.includes("marketing produit") || source.includes("positionnement produit") || source.includes("product marketing")) {
+        return { category: "marketing", tags: ["marketing-produit", "positionnement", "powerpoint", "ia"] };
+    }
+
     if (source.includes("communication") || source.includes("communication interne") || source.includes("plan de communication")) {
         return { category: "marketing", tags: ["communication", "plan", "powerpoint", "ia"] };
     }
@@ -114,6 +120,10 @@ function inferCategoryAndTags(slug: string, title: string): { category: string; 
 
     if (source.includes("cyber") || source.includes("securite")) {
         return { category: "consulting", tags: ["cybersecurite", "audit", "powerpoint", "ia"] };
+    }
+
+    if (source.includes("erp")) {
+        return { category: "consulting", tags: ["erp", "cadrage", "consulting", "powerpoint", "ia"] };
     }
 
     if (source.includes("gamma") || source.includes("alternative")) {
@@ -163,6 +173,12 @@ function inferPersona(slug: string, title: string): string | undefined {
     }
     if (source.includes("consultant cybers") || source.includes("cybersecurite") || source.includes("cyber")) {
         return "consultant-cybersecurite";
+    }
+    if (source.includes("consultant erp") || source.includes("consultant-erp") || source.includes("erp")) {
+        return "consultant-erp";
+    }
+    if (source.includes("responsable marketing produit") || source.includes("responsable-marketing-produit") || source.includes("product marketing")) {
+        return "responsable-marketing-produit";
     }
     if (source.includes("responsable communication") || source.includes("responsable-communication") || source.includes("plan de communication")) {
         return "responsable-communication";

@@ -36,6 +36,8 @@ const PERSONA_LABELS = {
   "directeur-commercial": { fr: "Directeur commercial", en: "Sales director" },
   "analyste-financier": { fr: "Analyste financier", en: "Financial analyst" },
   "controleur-de-gestion": { fr: "Controleur de gestion", en: "Financial controller" },
+  "consultant-erp": { fr: "Consultant ERP", en: "ERP consultant" },
+  "responsable-marketing-produit": { fr: "Responsable marketing produit", en: "Product marketing manager" },
   "responsable-communication": { fr: "Responsable communication", en: "Communications manager" },
   recruteur: { fr: "Recruteur", en: "Recruiter" },
   freelance: { fr: "Freelance", en: "Freelancer" },

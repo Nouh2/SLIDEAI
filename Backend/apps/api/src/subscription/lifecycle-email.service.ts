@@ -6,6 +6,14 @@ import { getTemplateDefinition } from '../ops/ops-email-catalog.js';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
+function extractFirstNameFromEmail(email: string): string {
+  const local = email.split('@')[0];
+  const firstPart = local.split('.')[0].split('_')[0].split('+')[0];
+  const name = firstPart.replace(/\d+$/, '');
+  if (!name) return '';
+  return name.charAt(0).toUpperCase() + name.slice(1).toLowerCase();
+}
+
 type TrialEmailStep = {
   emailType: string;
   offsetMs: number;
@@ -28,6 +36,7 @@ const TRIAL_EMAIL_SCHEDULE: TrialEmailStep[] = [
 ];
 
 const SIGNUP_ONBOARDING_SCHEDULE: ScheduledEmailStep[] = [
+  { emailType: 'signup_welcome', offsetMs: 0, bypassSendWindow: true },
   { emailType: 'signup_day1_no_presentation', offsetMs: 1 * DAY_MS },
   { emailType: 'signup_day3_no_presentation', offsetMs: 3 * DAY_MS },
   { emailType: 'signup_day5_activated', offsetMs: 5 * DAY_MS },
@@ -101,6 +110,7 @@ export class LifecycleEmailService {
       steps: SIGNUP_ONBOARDING_SCHEDULE,
       payload: {
         email: params.email,
+        firstName: extractFirstNameFromEmail(params.email),
         signupAt: params.signupAt.toISOString(),
       },
     });

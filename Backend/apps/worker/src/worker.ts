@@ -1643,10 +1643,12 @@ const lifecycleEmailWorker = new Worker(
         flowSlug,
         flowVersion,
         footerReason,
+        firstName,
       } = job.data as {
         userId: string;
         email: string;
         emailType: string;
+        firstName?: string;
         dedupeKey: string;
         trialStartedAt?: string;
         trialEndsAt?: string;
@@ -1789,6 +1791,7 @@ const lifecycleEmailWorker = new Worker(
         contentPatch: templatePatch,
         unsubscribeUrl,
         footerReason,
+        firstName,
       });
 
     if (!content) {

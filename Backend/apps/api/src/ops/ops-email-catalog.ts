@@ -33,6 +33,7 @@ export const OPS_EMAIL_TEMPLATE_DEFINITIONS: OpsEmailTemplateDefinition[] = [
   { slug: 'trial_ending_day6', name: 'Trial ending day 6', category: 'trial', kind: 'marketing', flowSlug: 'trial', sample: { presentationCount: 2, trialEndsAtOffsetDays: 1 } },
   { slug: 'trial_expired', name: 'Trial expired', category: 'trial', kind: 'transactional', flowSlug: 'trial', sample: { presentationCount: 2, trialEndsAtOffsetDays: 0 } },
   { slug: 'trial_winback_day2', name: 'Trial winback day 2', category: 'trial', kind: 'marketing', flowSlug: 'trial', sample: { presentationCount: 2, trialEndsAtOffsetDays: -2 } },
+  { slug: 'signup_welcome', name: 'Signup welcome', category: 'onboarding', kind: 'transactional', flowSlug: 'signup_onboarding', sample: { presentationCount: 0, trialEndsAtOffsetDays: 7 } },
   { slug: 'signup_day1_no_presentation', name: 'Signup day 1 no presentation', category: 'onboarding', kind: 'marketing', flowSlug: 'signup_onboarding', sample: { presentationCount: 0, trialEndsAtOffsetDays: 6 } },
   { slug: 'signup_day3_no_presentation', name: 'Signup day 3 no presentation', category: 'onboarding', kind: 'marketing', flowSlug: 'signup_onboarding', sample: { presentationCount: 0, trialEndsAtOffsetDays: 4 } },
   { slug: 'signup_day5_activated', name: 'Signup day 5 activated', category: 'onboarding', kind: 'marketing', flowSlug: 'signup_onboarding', sample: { presentationCount: 2, trialEndsAtOffsetDays: 2 } },
@@ -61,7 +62,7 @@ export const OPS_EMAIL_FLOW_DEFINITIONS: OpsEmailFlowDefinition[] = [
     name: 'Signup onboarding',
     category: 'onboarding',
     kind: 'marketing',
-    emailTypes: ['signup_day1_no_presentation', 'signup_day3_no_presentation', 'signup_day5_activated'],
+    emailTypes: ['signup_welcome', 'signup_day1_no_presentation', 'signup_day3_no_presentation', 'signup_day5_activated'],
     defaultConfig: { timezone: 'Europe/Paris', sendWindowStart: '09:00', sendWindowEnd: '18:00', weekdaysOnly: true, enabled: true },
   },
   {

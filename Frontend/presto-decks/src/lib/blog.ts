@@ -50,9 +50,12 @@ const PERSONA_LABELS: Record<string, { fr: string; en: string }> = {
     "directeur-marketing": { fr: "Directeur marketing", en: "Marketing director" },
     "directeur-commercial": { fr: "Directeur commercial", en: "Sales director" },
     "analyste-financier": { fr: "Analyste financier", en: "Financial analyst" },
+    "analyste-credit-bancaire": { fr: "Analyste credit bancaire", en: "Credit risk analyst" },
     "controleur-de-gestion": { fr: "Controleur de gestion", en: "Financial controller" },
     "consultant-erp": { fr: "Consultant ERP", en: "ERP consultant" },
+    "consultant-transformation-organisationnelle": { fr: "Consultant transformation organisationnelle", en: "Organizational transformation consultant" },
     "responsable-marketing-produit": { fr: "Responsable marketing produit", en: "Product marketing manager" },
+    "responsable-marketing-retail": { fr: "Responsable marketing retail", en: "Retail marketing manager" },
     "responsable-communication": { fr: "Responsable communication", en: "Communications manager" },
     "recruteur": { fr: "Recruteur", en: "Recruiter" },
     "freelance": { fr: "Freelance", en: "Freelancer" },
@@ -86,6 +89,10 @@ function inferCategoryAndTags(slug: string, title: string): { category: string; 
         return { category: "marketing", tags: ["marketing", "b2b", "powerpoint", "ia"] };
     }
 
+    if (source.includes("retail") || source.includes("magasin") || source.includes("performance magasin")) {
+        return { category: "marketing", tags: ["retail", "magasin", "performance", "powerpoint", "ia"] };
+    }
+
     if (source.includes("marketing produit") || source.includes("positionnement produit") || source.includes("product marketing")) {
         return { category: "marketing", tags: ["marketing-produit", "positionnement", "powerpoint", "ia"] };
     }
@@ -114,6 +121,10 @@ function inferCategoryAndTags(slug: string, title: string): { category: string; 
         return { category: "finance", tags: ["finance", "analyse", "powerpoint", "ia"] };
     }
 
+    if (source.includes("credit bancaire") || source.includes("analyse de risque") || source.includes("risque credit")) {
+        return { category: "finance", tags: ["credit", "risque", "banque", "powerpoint", "ia"] };
+    }
+
     if (source.includes("controleur de gestion") || source.includes("controleur-de-gestion") || source.includes("reporting financier")) {
         return { category: "finance", tags: ["controle-de-gestion", "reporting", "finance", "powerpoint", "ia"] };
     }
@@ -124,6 +135,10 @@ function inferCategoryAndTags(slug: string, title: string): { category: string; 
 
     if (source.includes("erp")) {
         return { category: "consulting", tags: ["erp", "cadrage", "consulting", "powerpoint", "ia"] };
+    }
+
+    if (source.includes("transformation organisationnelle") || source.includes("organisationnelle")) {
+        return { category: "consulting", tags: ["transformation", "organisation", "consulting", "powerpoint", "ia"] };
     }
 
     if (source.includes("gamma") || source.includes("alternative")) {
@@ -159,6 +174,9 @@ function inferPersona(slug: string, title: string): string | undefined {
     if (source.includes("analyste-financier") || (source.includes("analyste") && source.includes("financier"))) {
         return "analyste-financier";
     }
+    if (source.includes("analyste credit bancaire") || source.includes("analyste-credit-bancaire") || source.includes("risque credit")) {
+        return "analyste-credit-bancaire";
+    }
     if (source.includes("controleur de gestion") || source.includes("controleur-de-gestion")) {
         return "controleur-de-gestion";
     }
@@ -177,8 +195,14 @@ function inferPersona(slug: string, title: string): string | undefined {
     if (source.includes("consultant erp") || source.includes("consultant-erp") || source.includes("erp")) {
         return "consultant-erp";
     }
+    if (source.includes("transformation organisationnelle") || source.includes("consultant transformation organisationnelle") || source.includes("consultant-transformation-organisationnelle")) {
+        return "consultant-transformation-organisationnelle";
+    }
     if (source.includes("responsable marketing produit") || source.includes("responsable-marketing-produit") || source.includes("product marketing")) {
         return "responsable-marketing-produit";
+    }
+    if (source.includes("responsable marketing retail") || source.includes("responsable-marketing-retail") || source.includes("retail marketing")) {
+        return "responsable-marketing-retail";
     }
     if (source.includes("responsable communication") || source.includes("responsable-communication") || source.includes("plan de communication")) {
         return "responsable-communication";

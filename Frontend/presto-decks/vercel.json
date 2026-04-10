@@ -1,6 +1,54 @@
 {
     "rewrites": [
         {
+            "source": "/pricing",
+            "destination": "/pricing/index.html"
+        },
+        {
+            "source": "/pricing/",
+            "destination": "/pricing/index.html"
+        },
+        {
+            "source": "/en/pricing",
+            "destination": "/en/pricing/index.html"
+        },
+        {
+            "source": "/en/pricing/",
+            "destination": "/en/pricing/index.html"
+        },
+        {
+            "source": "/pdf-to-powerpoint",
+            "destination": "/pdf-to-powerpoint/index.html"
+        },
+        {
+            "source": "/pdf-to-powerpoint/",
+            "destination": "/pdf-to-powerpoint/index.html"
+        },
+        {
+            "source": "/privacy",
+            "destination": "/privacy/index.html"
+        },
+        {
+            "source": "/privacy/",
+            "destination": "/privacy/index.html"
+        },
+        {
+            "source": "/terms",
+            "destination": "/terms/index.html"
+        },
+        {
+            "source": "/terms/",
+            "destination": "/terms/index.html"
+        },
+        {
+            "source": "/gdpr",
+            "destination": "/gdpr/index.html"
+        },
+        {
+            "source": "/gdpr/",
+            "destination": "/gdpr/index.html"
+        },
+        {
             "source": "/blog",
             "destination": "/blog/index.html"
         },
@@ -31,6 +79,30 @@
         {
             "source": "/blog/metier/:persona/",
             "destination": "/blog/metier/:persona/index.html"
+        },
+        {
+            "source": "/en/blog",
+            "destination": "/en/blog/index.html"
+        },
+        {
+            "source": "/en/blog/",
+            "destination": "/en/blog/index.html"
+        },
+        {
+            "source": "/en/blog/:slug",
+            "destination": "/en/blog/:slug/index.html"
+        },
+        {
+            "source": "/en/blog/:slug/",
+            "destination": "/en/blog/:slug/index.html"
+        },
+        {
+            "source": "/en/blog/c/:category",
+            "destination": "/en/blog/c/:category/index.html"
+        },
+        {
+            "source": "/en/blog/c/:category/",
+            "destination": "/en/blog/c/:category/index.html"
         },
         {
             "source": "/(.*)",

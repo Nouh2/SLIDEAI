@@ -1,8 +1,14 @@
 import React from 'react';
+import { SEO } from "@/components/common/SEO";
 
 export default function PrivacyPage() {
     return (
         <div className="container mx-auto py-12 px-4 max-w-4xl space-y-8">
+            <SEO
+                title="Politique de confidentialite"
+                description="Consultez la politique de confidentialite de SlideAI et le traitement des donnees utilisees par la plateforme."
+                url="/privacy"
+            />
             <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
                 Politique de Confidentialité
             </h1>

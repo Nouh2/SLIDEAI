@@ -1,8 +1,14 @@
 import React from 'react';
+import { SEO } from "@/components/common/SEO";
 
 export default function TermsPage() {
     return (
         <div className="container mx-auto py-12 px-4 max-w-4xl space-y-8">
+            <SEO
+                title="Conditions generales d'utilisation"
+                description="Consultez les conditions generales d'utilisation de SlideAI et le cadre d'usage du service."
+                url="/terms"
+            />
             <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
                 Conditions Générales d'Utilisation
             </h1>

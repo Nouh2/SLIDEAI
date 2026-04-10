@@ -9,16 +9,17 @@ const __dirname = path.dirname(__filename);
 const DOMAIN = "https://www.slideai.fr";
 const CONTENT_DIR = path.join(__dirname, "../src/content/blog");
 const PUBLIC_DIR = path.join(__dirname, "../public");
+const DIST_DIR = path.join(__dirname, "../dist");
 const SITEMAP_PATH = path.join(PUBLIC_DIR, "sitemap.xml");
+const DIST_SITEMAP_PATH = path.join(DIST_DIR, "sitemap.xml");
+const MIN_CATEGORY_POSTS = 2;
+const MIN_PERSONA_POSTS = 2;
 
 const STATIC_ROUTES = [
   { path: "/", changefreq: "weekly", priority: 1.0, locales: ["fr", "en"] },
   { path: "/pricing", changefreq: "monthly", priority: 0.8, locales: ["fr", "en"] },
   { path: "/examples", changefreq: "weekly", priority: 0.8, locales: ["fr", "en"] },
   { path: "/blog", changefreq: "daily", priority: 0.9, locales: ["fr", "en"] },
-  { path: "/privacy", changefreq: "monthly", priority: 0.3, locales: ["fr"] },
-  { path: "/terms", changefreq: "monthly", priority: 0.3, locales: ["fr"] },
-  { path: "/gdpr", changefreq: "monthly", priority: 0.3, locales: ["fr"] },
   { path: "/pdf-to-powerpoint", changefreq: "weekly", priority: 0.9, locales: ["fr"] },
   { path: "/generateur-powerpoint-ia", changefreq: "weekly", priority: 0.9, locales: ["fr"] },
   { path: "/creer-powerpoint-avec-ia", changefreq: "weekly", priority: 0.9, locales: ["fr"] },
@@ -59,8 +60,8 @@ async function generateSitemap() {
   console.log("Generating sitemap...");
 
   const urls = [];
-  const categoryUrls = { fr: new Set(), en: new Set() };
-  const personaUrls = { fr: new Set(), en: new Set() };
+  const categoryCounts = { fr: new Map(), en: new Map() };
+  const personaCounts = { fr: new Map(), en: new Map() };
 
   for (const route of STATIC_ROUTES) {
     for (const locale of route.locales) {
@@ -82,11 +83,13 @@ async function generateSitemap() {
         pushRoute(urls, `/blog/${slug}`, locale, "monthly", 0.8, lastmod);
 
         if (data.category) {
-          categoryUrls[locale].add(slugify(data.category));
+          const categorySlug = slugify(data.category);
+          categoryCounts[locale].set(categorySlug, (categoryCounts[locale].get(categorySlug) || 0) + 1);
         }
 
         if (data.persona) {
-          personaUrls[locale].add(slugify(data.persona));
+          const personaSlug = slugify(data.persona);
+          personaCounts[locale].set(personaSlug, (personaCounts[locale].get(personaSlug) || 0) + 1);
         }
       }
 
@@ -99,12 +102,16 @@ async function generateSitemap() {
   }
 
   for (const locale of ["fr", "en"]) {
-    for (const categorySlug of categoryUrls[locale]) {
-      pushRoute(urls, `/blog/c/${categorySlug}`, locale, "weekly", 0.7);
+    for (const [categorySlug, count] of categoryCounts[locale].entries()) {
+      if (count >= MIN_CATEGORY_POSTS) {
+        pushRoute(urls, `/blog/c/${categorySlug}`, locale, "weekly", 0.7);
+      }
     }
 
-    for (const personaSlug of personaUrls[locale]) {
-      pushRoute(urls, `/blog/metier/${personaSlug}`, locale, "weekly", 0.8);
+    for (const [personaSlug, count] of personaCounts[locale].entries()) {
+      if (count >= MIN_PERSONA_POSTS) {
+        pushRoute(urls, `/blog/metier/${personaSlug}`, locale, "weekly", 0.8);
+      }
     }
   }
 
@@ -122,6 +129,7 @@ ${urls
 </urlset>`;
 
   fs.writeFileSync(SITEMAP_PATH, sitemap, "utf-8");
+  fs.writeFileSync(DIST_SITEMAP_PATH, sitemap, "utf-8");
   console.log(`Sitemap generated at ${SITEMAP_PATH}`);
 }
 

@@ -5,9 +5,10 @@
   "type": "module",
   "scripts": {
     "dev": "vite --config vite.config.mjs",
-    "build": "vite build --config vite.config.mjs && npm run generate:blog-static && npm run generate:sitemap",
+    "build": "vite build --config vite.config.mjs && npm run generate:blog-static && npm run generate:seo-static && npm run generate:sitemap",
     "build:dev": "vite build --config vite.config.mjs --mode development",
     "generate:blog-static": "node scripts/generate-blog-static.js",
+    "generate:seo-static": "node scripts/generate-seo-static.js",
     "generate:sitemap": "node scripts/generate-sitemap.js",
     "test:visual": "node scripts/visual-regression.mjs",
     "test:visual:stress": "node scripts/visual-regression-stress.mjs",

@@ -38,12 +38,12 @@ export default function PDFToPowerPoint() {
         <div className="min-h-screen w-full relative pt-20 overflow-x-hidden">
             <SEO
                 title="Convertir PDF en PowerPoint | SlideAI"
+                url="/pdf-to-powerpoint"
                 description="Transformez vos PDF en présentations PowerPoint en quelques secondes avec l'IA. Essai 7 jours sans carte, rapide et prêt à éditer."
             />
 
             <Helmet>
                 <link rel="alternate" hrefLang="fr" href="https://www.slideai.fr/pdf-to-powerpoint" />
-                <link rel="alternate" hrefLang="en" href="https://www.slideai.fr/en/pdf-to-powerpoint" />
                 <link rel="alternate" hrefLang="x-default" href="https://www.slideai.fr/pdf-to-powerpoint" />
 
                 {/* HowTo Schema */}

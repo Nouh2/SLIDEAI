@@ -1,8 +1,14 @@
 import React from 'react';
+import { SEO } from "@/components/common/SEO";
 
 export default function GdprPage() {
     return (
         <div className="container mx-auto py-12 px-4 max-w-4xl space-y-8">
+            <SEO
+                title="Conformite RGPD"
+                description="Consultez les engagements SlideAI en matiere de protection des donnees personnelles et de conformite RGPD."
+                url="/gdpr"
+            />
             <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
                 Conformité RGPD
             </h1>

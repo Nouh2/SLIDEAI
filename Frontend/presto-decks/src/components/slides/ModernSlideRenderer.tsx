@@ -201,13 +201,13 @@ const getExportConstrainedTextStyle = (renderMode: 'interactive' | 'export' | un
     if (renderMode !== 'export') return undefined;
 
     return {
-        display: 'block',
-        overflow: 'hidden',
+        display: '-webkit-box',
         whiteSpace: 'normal',
-        lineHeight: 1.15,
-        maxHeight: `calc(${maxLines} * 1.15em)`,
-        textOverflow: 'clip',
+        lineHeight: 1.2,
         overflowWrap: 'break-word',
+        wordBreak: 'normal',
+        WebkitBoxOrient: 'vertical',
+        WebkitLineClamp: maxLines,
     };
 };
 
@@ -226,13 +226,13 @@ const CenteredBadgeText = ({
     textClassName?: string;
     textStyle?: React.CSSProperties;
 }) => (
-    <div className={className} style={{ overflow: 'hidden', ...style }}>
+    <div className={className} style={style}>
         <span
-            className={cn('block leading-none', textClassName)}
+            className={cn('inline-flex h-full w-full items-center justify-center leading-none', textClassName)}
             style={{
                 lineHeight: 1,
-                display: 'block',
-                transform: renderMode === 'export' ? 'translateY(0.04em)' : undefined,
+                display: 'inline-flex',
+                textAlign: 'center',
                 ...textStyle,
             }}
         >

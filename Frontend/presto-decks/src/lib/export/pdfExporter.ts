@@ -25,6 +25,20 @@ const waitForImages = async (element: HTMLElement): Promise<void> => {
     await Promise.all(promises);
 };
 
+const waitForFonts = async (): Promise<void> => {
+    if (!('fonts' in document)) return;
+
+    await Promise.race([
+        (document as Document & { fonts: FontFaceSet }).fonts.ready,
+        new Promise((resolve) => setTimeout(resolve, 10000)),
+    ]);
+};
+
+const waitForStablePaint = async (): Promise<void> => {
+    await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+    await new Promise((resolve) => setTimeout(resolve, 200));
+};
+
 
 
 /**
@@ -33,9 +47,8 @@ const waitForImages = async (element: HTMLElement): Promise<void> => {
 export const captureSlide = async (slide: HTMLElement, scale: number = 2.0): Promise<string> => {
     // Wait for images
     await waitForImages(slide);
-
-    // Small delay for CSS to settle
-    await new Promise(resolve => setTimeout(resolve, 200));
+    await waitForFonts();
+    await waitForStablePaint();
 
     // Capture with html2canvas
     const canvas = await html2canvas(slide, {
@@ -49,6 +62,7 @@ export const captureSlide = async (slide: HTMLElement, scale: number = 2.0): Pro
         imageTimeout: 30000,
         windowWidth: SLIDE_WIDTH,
         windowHeight: SLIDE_HEIGHT,
+        removeContainer: true,
         x: 0,
         y: 0,
         scrollX: 0,
@@ -60,6 +74,14 @@ export const captureSlide = async (slide: HTMLElement, scale: number = 2.0): Pro
                 *, *::before, *::after {
                     animation: none !important;
                     transition: none !important;
+                    caret-color: transparent !important;
+                    filter: none !important;
+                    mix-blend-mode: normal !important;
+                    background-blend-mode: normal !important;
+                    backdrop-filter: none !important;
+                    -webkit-backdrop-filter: none !important;
+                    mask-image: none !important;
+                    -webkit-mask-image: none !important;
                 }
             `;
             clonedDoc.head.appendChild(styleTag);
@@ -114,7 +136,7 @@ export const exportToPDF = async (
         const scale = 2.0;
 
         // Ensure fonts are loaded before starting
-        await document.fonts.ready;
+        await waitForFonts();
 
         for (let i = 0; i < slideElements.length; i++) {
             const slide = slideElements[i];

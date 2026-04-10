@@ -145,6 +145,7 @@ export default function VisualRegression() {
                             <ModernSlideRenderer
                                 slide={slide}
                                 theme={normalizedDeck.theme}
+                                renderMode="export"
                                 colorPalette={normalizedDeck.colorScheme}
                                 titleFontScale={normalizedDeck.themeConfig.titleFontScale}
                                 textFontScale={normalizedDeck.themeConfig.textFontScale}

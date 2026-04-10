@@ -567,6 +567,7 @@ export function ExportDialog({ open, onOpenChange, presentation, accessToken, su
                                                 content: { title: slide.title }
                                             } : slide}
                                             theme={activeDeck?.theme}
+                                            renderMode="export"
                                             colorPalette={activeDeck?.colorScheme}
                                             fontConfig={activeDeck?.fontConfig}
                                             titleFontScale={titleFontScale}

@@ -12,6 +12,7 @@ interface SlideRendererProps {
     slide: any;
     theme: string;
     className?: string;
+    renderMode?: 'interactive' | 'export';
     colorPalette?: {
         primary: string;
         secondary: string;
@@ -193,6 +194,84 @@ const repairStringLikeObjects = (value: any): any => {
 
     return Object.fromEntries(
         Object.entries(value).map(([key, entry]) => [key, repairStringLikeObjects(entry)])
+    );
+};
+
+const getExportConstrainedTextStyle = (renderMode: 'interactive' | 'export' | undefined, maxLines: number): React.CSSProperties | undefined => {
+    if (renderMode !== 'export') return undefined;
+
+    return {
+        display: 'block',
+        overflow: 'hidden',
+        whiteSpace: 'normal',
+        lineHeight: 1.15,
+        maxHeight: `calc(${maxLines} * 1.15em)`,
+        textOverflow: 'clip',
+        overflowWrap: 'break-word',
+    };
+};
+
+const CenteredBadgeText = ({
+    text,
+    renderMode,
+    className,
+    style,
+    textClassName,
+    textStyle,
+}: {
+    text: string;
+    renderMode?: 'interactive' | 'export';
+    className?: string;
+    style?: React.CSSProperties;
+    textClassName?: string;
+    textStyle?: React.CSSProperties;
+}) => (
+    <div className={className} style={{ overflow: 'hidden', ...style }}>
+        <span
+            className={cn('block leading-none', textClassName)}
+            style={{
+                lineHeight: 1,
+                display: 'block',
+                transform: renderMode === 'export' ? 'translateY(0.04em)' : undefined,
+                ...textStyle,
+            }}
+        >
+            {text}
+        </span>
+    </div>
+);
+
+const TrendArrowIcon = ({
+    direction,
+    color,
+    size = 36,
+}: {
+    direction: 'up' | 'up-right' | 'right';
+    color: string;
+    size?: number;
+}) => {
+    const path = direction === 'up'
+        ? 'M12 18V6 M12 6 L7 11 M12 6 L17 11'
+        : direction === 'right'
+            ? 'M6 12 H18 M18 12 L13 7 M18 12 L13 17'
+            : 'M7 17 L17 7 M17 7 H10 M17 7 V14';
+
+    return (
+        <svg
+            width={size}
+            height={size}
+            viewBox="0 0 24 24"
+            fill="none"
+            aria-hidden="true"
+        >
+            <path
+                d={path}
+                stroke={color}
+                strokeWidth="2.6"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+            />
+        </svg>
     );
 };
 
@@ -434,7 +513,7 @@ const CoverHeroLayout = ({ slide, colors, onSelect, selectedId, showPageNumber, 
 type StatsVariation = 'classic-grid' | 'metric-cards' | 'big-hero-stat' | 'data-progress' | 'trend-focus';
 type SWOTVariation = 'classic-grid' | 'rounded-cards' | 'minimal-list';
 
-const StatsLayout = ({ slide, colors, variation = 'classic-grid', onSelect, selectedId, showPageNumber, fontScale = 1, titleFontScale = 1, textFontScale = 1 }: { slide: any; colors: any; variation?: StatsVariation; onSelect?: any; selectedId?: string | null; showPageNumber?: boolean; fontScale?: number; titleFontScale?: number; textFontScale?: number }) => {
+const StatsLayout = ({ slide, colors, variation = 'classic-grid', onSelect, selectedId, showPageNumber, fontScale = 1, titleFontScale = 1, textFontScale = 1, renderMode = 'interactive' }: { slide: any; colors: any; variation?: StatsVariation; onSelect?: any; selectedId?: string | null; showPageNumber?: boolean; fontScale?: number; titleFontScale?: number; textFontScale?: number; renderMode?: 'interactive' | 'export' }) => {
     const resolvedTitleScale = titleFontScale || fontScale;
     const resolvedTextScale = textFontScale || fontScale;
     // Support multiple AI formats: stats, statistics, metrics
@@ -673,10 +752,10 @@ const StatsLayout = ({ slide, colors, variation = 'classic-grid', onSelect, sele
                 <div className="grid grid-cols-3 gap-0 relative z-10 bg-white/5 backdrop-blur-xl rounded-[3rem] border shadow-2xl overflow-hidden divide-x"
                     style={{ borderColor: `${colors.text}10` }}>
                     {stats.slice(0, 3).map((stat: any, i: number) => (
-                        <div key={i} className="p-12 flex flex-col items-center text-center group hover:bg-white/5 transition-colors">
-                            <div className="mb-4 p-3 rounded-full bg-surface" style={{ backgroundColor: i === 1 ? `${colors.primary}10` : `${colors.text}05` }}>
-                                {/* Fake Trend Arrow - alternating up/down for visual variety if not real */}
-                                <span className="text-4xl font-bold" style={{ color: i === 1 ? colors.primary : colors.secondary, fontSize: `calc(var(--slide-font-scale, 1) * ${resolvedTextScale} * 2.25rem)` }}>
+                        <div key={i} className={cn("p-12 flex flex-col items-center text-center group transition-colors", renderMode === 'export' ? '' : 'hover:bg-white/5')}>
+                            <div className="mb-4 rounded-full bg-surface flex items-center justify-center" style={{ width: 72, height: 72, backgroundColor: i === 1 ? `${colors.primary}10` : `${colors.text}05` }}>
+                                <TrendArrowIcon direction={i % 2 === 0 ? 'up-right' : 'up'} color={i === 1 ? colors.primary : colors.secondary} size={36} />
+                                <span className="hidden text-4xl font-bold" aria-hidden="true" style={{ color: i === 1 ? colors.primary : colors.secondary, fontSize: `calc(var(--slide-font-scale, 1) * ${resolvedTextScale} * 2.25rem)` }}>
                                     {i % 2 === 0 ? '↗' : '↑'}
                                 </span>
                             </div>
@@ -2577,7 +2656,7 @@ const TimelineLayout = ({ slide, colors, variation = 'horizontal-line', onSelect
 // Comparison layout - Multiple variants
 type ComparisonVariation = 'balanced-split' | 'versus-cards' | 'feature-grid' | 'before-after' | 'pros-cons';
 
-const ComparisonLayout = ({ slide, colors, variation = 'balanced-split', onSelect, selectedId, showPageNumber, titleFontScale = 1, textFontScale = 1 }: { slide: any; colors: any, variation?: ComparisonVariation; onSelect?: any; selectedId?: string | null; showPageNumber?: boolean; titleFontScale?: number; textFontScale?: number }) => {
+const ComparisonLayout = ({ slide, colors, variation = 'balanced-split', onSelect, selectedId, showPageNumber, titleFontScale = 1, textFontScale = 1, renderMode = 'interactive' }: { slide: any; colors: any, variation?: ComparisonVariation; onSelect?: any; selectedId?: string | null; showPageNumber?: boolean; titleFontScale?: number; textFontScale?: number; renderMode?: 'interactive' | 'export' }) => {
 
     const comparison = slide.comparison || slide.content?.comparison;
     const columns = slide.columns || slide.content?.columns;
@@ -2692,15 +2771,27 @@ const ComparisonLayout = ({ slide, colors, variation = 'balanced-split', onSelec
 
                 <div className="flex-1 flex gap-12 items-center justify-center relative z-10 p-8">
                     {/* VS Badge */}
-                    <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-24 h-24 rounded-full flex items-center justify-center font-black text-5xl shadow-2xl z-20 border-4 animate-pulse"
-                        style={{ backgroundColor: colors.primary, color: '#ffffff', borderColor: colors.bg }}>
-                        VS
-                    </div>
+                    <CenteredBadgeText
+                        text="VS"
+                        renderMode={renderMode}
+                        className={cn(
+                            "absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-24 h-24 rounded-full shadow-2xl z-20 border-4 flex items-center justify-center",
+                            renderMode === 'export' ? '' : 'animate-pulse'
+                        )}
+                        style={{ backgroundColor: colors.primary, color: '#ffffff', borderColor: colors.bg }}
+                        textClassName="font-black text-5xl"
+                    />
 
                     {/* Left Card */}
-                    <div className="flex-1 h-full bg-surface backdrop-blur-xl rounded-3xl p-10 border shadow-2xl flex flex-col items-center text-center transform hover:-translate-y-2 transition-transform duration-500"
+                    <div className={cn("flex-1 h-full bg-surface backdrop-blur-xl rounded-3xl p-10 border shadow-2xl flex flex-col items-center text-center transform transition-transform duration-500", renderMode === 'export' ? '' : 'hover:-translate-y-2')}
                         style={{ backgroundColor: `${colors.bg}E6`, borderColor: `${colors.text}10` }}>
-                        <div className="w-16 h-16 rounded-2xl mb-6 shadow-inner flex items-center justify-center text-4xl font-bold" style={{ backgroundColor: `${colors.text}10`, color: colors.text }}>A</div>
+                        <CenteredBadgeText
+                            text="A"
+                            renderMode={renderMode}
+                            className="w-16 h-16 rounded-2xl mb-6 shadow-inner flex items-center justify-center"
+                            style={{ backgroundColor: `${colors.text}10`, color: colors.text }}
+                            textClassName="text-4xl font-bold"
+                        />
                         {left && (
                             <>
                                 <EditableElement
@@ -2737,9 +2828,15 @@ const ComparisonLayout = ({ slide, colors, variation = 'balanced-split', onSelec
                     </div>
 
                     {/* Right Card */}
-                    <div className="flex-1 h-full bg-surface backdrop-blur-xl rounded-3xl p-10 border shadow-2xl flex flex-col items-center text-center transform hover:-translate-y-2 transition-transform duration-500 delay-100"
+                    <div className={cn("flex-1 h-full bg-surface backdrop-blur-xl rounded-3xl p-10 border shadow-2xl flex flex-col items-center text-center transform transition-transform duration-500 delay-100", renderMode === 'export' ? '' : 'hover:-translate-y-2')}
                         style={{ backgroundColor: colors.primary, borderColor: colors.primary, color: '#ffffff' }}>
-                        <div className="w-16 h-16 rounded-2xl mb-6 shadow-lg flex items-center justify-center text-4xl font-bold bg-white/20 text-white">B</div>
+                        <CenteredBadgeText
+                            text="B"
+                            renderMode={renderMode}
+                            className="w-16 h-16 rounded-2xl mb-6 shadow-lg flex items-center justify-center"
+                            style={{ backgroundColor: 'rgb(255 255 255 / 0.2)', color: '#ffffff' }}
+                            textClassName="text-4xl font-bold"
+                        />
                         {right && (
                             <>
                                 <EditableElement
@@ -3125,7 +3222,7 @@ const ComparisonLayout = ({ slide, colors, variation = 'balanced-split', onSelec
 // Infographic layout - Multiple variants for different flow types
 type InfographicVariation = 'funnel' | 'pyramid' | 'process' | 'cycle-flow' | 'hub-spoke';
 
-const InfographicLayout = ({ slide, colors, variation = 'funnel', onSelect, selectedId, showPageNumber, titleFontScale = 1, textFontScale = 1 }: { slide: any; colors: any, variation?: InfographicVariation; onSelect?: any; selectedId?: string | null; showPageNumber?: boolean; titleFontScale?: number; textFontScale?: number }) => {
+const InfographicLayout = ({ slide, colors, variation = 'funnel', onSelect, selectedId, showPageNumber, titleFontScale = 1, textFontScale = 1, renderMode = 'interactive' }: { slide: any; colors: any, variation?: InfographicVariation; onSelect?: any; selectedId?: string | null; showPageNumber?: boolean; titleFontScale?: number; textFontScale?: number; renderMode?: 'interactive' | 'export' }) => {
     let infographic = slide.infographic || slide.content?.infographic;
 
     // Support AI format: type and steps directly in content
@@ -3417,10 +3514,10 @@ const InfographicLayout = ({ slide, colors, variation = 'funnel', onSelect, sele
                             <div className="absolute w-40 h-40 rounded-full flex flex-col items-center justify-center text-center p-6 shadow-2xl z-0 border border-white/10 overflow-hidden"
                                 style={{
                                     backgroundColor: `${colors.bg}CC`,
-                                    backdropFilter: 'blur(12px)',
+                                    backdropFilter: renderMode === 'export' ? 'none' : 'blur(12px)',
                                     boxShadow: `0 0 100px -20px ${colors.primary}30`
                                 }}>
-                                <div className="absolute inset-0 opacity-10 animate-pulse" style={{ background: `radial-gradient(circle, ${colors.primary} 0%, transparent 70%)` }} />
+                                <div className={cn("absolute inset-0 opacity-10", renderMode === 'export' ? '' : 'animate-pulse')} style={{ background: `radial-gradient(circle, ${colors.primary} 0%, transparent 70%)` }} />
                                 <span className="relative z-10 font-black text-base uppercase tracking-[0.2em] mb-1" style={{ color: colors.primary, fontSize: `calc(var(--slide-font-scale, 1) * ${titleFontScale} * 1rem)` }}>Cycle</span>
                                 <span className="relative z-10 font-bold text-[10px] uppercase opacity-40 tracking-widest" style={{ color: colors.text, fontSize: `calc(var(--slide-font-scale, 1) * ${textFontScale} * 0.625rem)` }}>Process</span>
                             </div>
@@ -3430,18 +3527,19 @@ const InfographicLayout = ({ slide, colors, variation = 'funnel', onSelect, sele
                     {type === 'hub-spoke' && (
                         <div className="relative w-full max-w-5xl h-[600px] flex items-center justify-center">
                             {/* Central Core */}
-                            <div className="relative z-20 w-72 h-72 rounded-full bg-surface backdrop-blur-xl shadow-2xl flex flex-col items-center justify-center text-center p-8 border-8"
+                            <div className="relative z-20 w-72 h-72 rounded-full bg-surface shadow-2xl flex flex-col items-center justify-center text-center p-8 border-8"
                                 style={{
                                     backgroundColor: `${colors.bg}F0`,
                                     borderColor: `${colors.primary}20`,
-                                    boxShadow: `0 0 80px -20px ${colors.primary}40`
+                                    boxShadow: `0 0 80px -20px ${colors.primary}40`,
+                                    backdropFilter: renderMode === 'export' ? 'none' : 'blur(12px)',
                                 }}>
                                 <EditableElement
                                     element={{ id: 'title', type: 'text', value: slide.title, path: 'title', label: 'Title' }}
                                     onSelect={onSelect}
                                     isSelected={selectedId === 'title'}
                                 >
-                                    <h2 className="text-4xl font-bold leading-tight break-words line-clamp-3" style={{ color: colors.text, fontSize: `calc(var(--slide-font-scale, 1) * ${titleFontScale} * 2.4rem)` }}>{slide.title}</h2>
+                                    <h2 className={cn("text-4xl font-bold leading-tight break-words", renderMode === 'export' ? '' : 'line-clamp-3')} style={{ color: colors.text, fontSize: `calc(var(--slide-font-scale, 1) * ${titleFontScale} * 2.4rem)`, ...getExportConstrainedTextStyle(renderMode, 3) }}>{slide.title}</h2>
                                 </EditableElement>
                                 <div className="mt-4 w-12 h-1 bg-primary rounded-full" style={{ backgroundColor: colors.primary }} />
                             </div>
@@ -3466,23 +3564,26 @@ const InfographicLayout = ({ slide, colors, variation = 'funnel', onSelect, sele
                                             }} />
 
                                         {/* Node */}
-                                        <div className="absolute w-56 p-4 rounded-xl bg-white shadow-lg border flex flex-col gap-1 z-10 transition-transform hover:scale-105"
+                                        <div className={cn("absolute w-56 p-4 rounded-xl bg-white shadow-lg border flex flex-col gap-1 z-10 transition-transform", renderMode === 'export' ? '' : 'hover:scale-105')}
                                             style={{
                                                 left: `calc(50% + ${x}px)`,
                                                 top: `calc(50% + ${y}px)`,
                                                 transform: `translate(-50%, -50%)`,
                                                 borderColor: `${colors.text}10`
                                             }}>
-                                            <div className="w-10 h-10 -mt-10 mx-auto rounded-full flex items-center justify-center font-bold text-white shadow-md border-4 border-white"
-                                                style={{ backgroundColor: getStepColor(i) }}>
-                                                <span style={{ fontSize: `calc(var(--slide-font-scale, 1) * ${titleFontScale} * 1.5rem)` }}>{i + 1}</span>
-                                            </div>
+                                            <CenteredBadgeText
+                                                text={String(i + 1)}
+                                                renderMode={renderMode}
+                                                className="w-10 h-10 -mt-10 mx-auto rounded-full flex items-center justify-center shadow-md border-4 border-white"
+                                                style={{ backgroundColor: getStepColor(i), color: '#ffffff' }}
+                                                textStyle={{ fontSize: `calc(var(--slide-font-scale, 1) * ${titleFontScale} * 1.5rem)`, fontWeight: 700 }}
+                                            />
                                             <EditableElement
                                                 element={{ id: `step-${i}-label`, type: 'text', value: step.label, path: `${stepsPath}[${i}].label`, label: `Step ${i + 1} Label` }}
                                                 onSelect={onSelect}
                                                 isSelected={selectedId === `step-${i}-label`}
                                             >
-                                                <h3 className="text-xl font-bold text-center leading-tight break-words line-clamp-2 min-h-[3.1rem]" style={{ color: colors.text, fontSize: `calc(var(--slide-font-scale, 1) * ${titleFontScale} * 1.2rem)` }}>{step.label}</h3>
+                                                <h3 className={cn("text-xl font-bold text-center leading-tight break-words min-h-[3.1rem]", renderMode === 'export' ? '' : 'line-clamp-2')} style={{ color: colors.text, fontSize: `calc(var(--slide-font-scale, 1) * ${titleFontScale} * 1.2rem)`, ...getExportConstrainedTextStyle(renderMode, 2) }}>{step.label}</h3>
                                             </EditableElement>
                                             {step.description && (
                                                 <EditableElement
@@ -3490,7 +3591,7 @@ const InfographicLayout = ({ slide, colors, variation = 'funnel', onSelect, sele
                                                     onSelect={onSelect}
                                                     isSelected={selectedId === `step-${i}-desc`}
                                                 >
-                                                    <p className="text-sm text-center opacity-60 leading-tight break-words line-clamp-3 min-h-[3.2rem]" style={{ color: colors.text, fontSize: `calc(var(--slide-font-scale, 1) * ${textFontScale} * 0.875rem)` }}>{step.description}</p>
+                                                    <p className={cn("text-sm text-center opacity-60 leading-tight break-words min-h-[3.2rem]", renderMode === 'export' ? '' : 'line-clamp-3')} style={{ color: colors.text, fontSize: `calc(var(--slide-font-scale, 1) * ${textFontScale} * 0.875rem)`, ...getExportConstrainedTextStyle(renderMode, 3) }}>{step.description}</p>
                                                 </EditableElement>
                                             )}
                                         </div>
@@ -5302,7 +5403,7 @@ const SectionDividerLayout = ({ slide, colors, variation = 'default', onSelect, 
 // Bento Grid Layout - Modern CSS Grid features
 type BentoVariation = 'default' | 'magazine-grid' | 'feature-focus' | 'asymmetric-masonry';
 
-const BentoGridLayout = ({ slide, colors, variation = 'default', onSelect, selectedId, showPageNumber, titleFontScale = 1, textFontScale = 1 }: { slide: any; colors: any, variation?: BentoVariation; onSelect?: any; selectedId?: string | null; showPageNumber?: boolean; titleFontScale?: number; textFontScale?: number }) => {
+const BentoGridLayout = ({ slide, colors, variation = 'default', onSelect, selectedId, showPageNumber, titleFontScale = 1, textFontScale = 1, renderMode = 'interactive' }: { slide: any; colors: any, variation?: BentoVariation; onSelect?: any; selectedId?: string | null; showPageNumber?: boolean; titleFontScale?: number; textFontScale?: number; renderMode?: 'interactive' | 'export' }) => {
     const isQaVisualRoute = typeof window !== 'undefined' && window.location.pathname.startsWith('/qa/visual-regression');
     if (isQaVisualRoute && variation === 'asymmetric-masonry') {
         variation = 'default';
@@ -5360,7 +5461,7 @@ const BentoGridLayout = ({ slide, colors, variation = 'default', onSelect, selec
                                 onSelect={onSelect}
                                 isSelected={selectedId === 'main-desc'}
                             >
-                                <p className="text-3xl text-white/80 line-clamp-3 leading-relaxed max-w-2xl" style={{ fontSize: `calc(var(--slide-font-scale, 1) * ${textFontScale} * 1.875rem)` }}>
+                                <p className={cn("text-3xl text-white/80 leading-relaxed max-w-2xl", renderMode === 'export' ? '' : 'line-clamp-3')} style={{ fontSize: `calc(var(--slide-font-scale, 1) * ${textFontScale} * 1.875rem)`, ...getExportConstrainedTextStyle(renderMode, 3) }}>
                                     {mainItem?.description || slide.content?.description || "Detailed analysis of the key trends shaping this narrative."}
                                 </p>
                             </EditableElement>
@@ -5375,9 +5476,9 @@ const BentoGridLayout = ({ slide, colors, variation = 'default', onSelect, selec
                         </div>
 
                         {sideItems.map((item: any, i: number) => (
-                            <div key={i} className="row-span-1 flex gap-6 items-center p-4 rounded-2xl hover:bg-black/5 transition-colors group cursor-pointer"
+                            <div key={i} className={cn("row-span-1 flex gap-6 items-center p-4 rounded-2xl transition-colors group cursor-pointer", renderMode === 'export' ? '' : 'hover:bg-black/5')}
                                 style={{ backgroundColor: `${colors.bg}` }}>
-                                <div className="w-24 h-24 rounded-xl bg-cover bg-center shrink-0 shadow-md transform group-hover:scale-105 transition-transform duration-500"
+                                <div className={cn("w-24 h-24 rounded-xl bg-cover bg-center shrink-0 shadow-md transform transition-transform duration-500", renderMode === 'export' ? '' : 'group-hover:scale-105')}
                                     style={{ backgroundImage: `url(${item.image || `https://source.unsplash.com/200x200/?${encodeURIComponent(item.title || 'abstract')}`})` }} />
                                 <div className="flex-1 min-w-0">
                                     <EditableElement
@@ -5386,17 +5487,18 @@ const BentoGridLayout = ({ slide, colors, variation = 'default', onSelect, selec
                                         isSelected={selectedId === `side-${i}-title`}
                                         className="mb-2"
                                     >
-                                        <h3 className="text-3xl font-bold truncate group-hover:text-primary transition-colors" style={{ color: colors.text, fontSize: `calc(var(--slide-font-scale, 1) * ${titleFontScale} * 1.875rem)` }}>{item.title}</h3>
+                                        <h3 className={cn("text-3xl font-bold transition-colors leading-[1.08]", renderMode === 'export' ? '' : 'truncate group-hover:text-primary')} style={{ color: colors.text, fontSize: `calc(var(--slide-font-scale, 1) * ${titleFontScale} * 1.875rem)`, ...getExportConstrainedTextStyle(renderMode, 2) }}>{item.title}</h3>
                                     </EditableElement>
                                     <EditableElement
                                         element={{ id: `side-${i}-desc`, type: 'text', value: item.description, path: `${itemsPath}[${i + 1}].description`, label: `Side Item ${i + 1} Description` }}
                                         onSelect={onSelect}
                                         isSelected={selectedId === `side-${i}-desc`}
                                     >
-                                        <p className="text-lg opacity-60 line-clamp-2 leading-relaxed" style={{ color: colors.text, fontSize: `calc(var(--slide-font-scale, 1) * ${textFontScale} * 1.125rem)` }}>{item.description}</p>
+                                        <p className={cn("text-lg opacity-60 leading-relaxed", renderMode === 'export' ? '' : 'line-clamp-2')} style={{ color: colors.text, fontSize: `calc(var(--slide-font-scale, 1) * ${textFontScale} * 1.125rem)`, ...getExportConstrainedTextStyle(renderMode, 2) }}>{item.description}</p>
                                     </EditableElement>
                                 </div>
-                                <div className="w-10 h-10 rounded-full border flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity" style={{ borderColor: colors.primary, color: colors.primary }}>
+                                <div className={cn("w-10 h-10 rounded-full border flex items-center justify-center transition-opacity text-[0px]", renderMode === 'export' ? 'opacity-100' : 'opacity-0 group-hover:opacity-100')} style={{ borderColor: colors.primary, color: colors.primary }}>
+                                    <TrendArrowIcon direction="right" color={colors.primary} size={18} />
                                     →
                                 </div>
                             </div>
@@ -6881,6 +6983,7 @@ export const ModernSlideRenderer = ({
     slide: rawSlide,
     theme: rawTheme = 'modern',
     className,
+    renderMode = 'interactive',
     colorPalette,
     fontConfig,
     fontScale = 0.9,
@@ -7507,7 +7610,7 @@ export const ModernSlideRenderer = ({
             return withExportMeta('chart', chartVar, <ChartLayout showPageNumber={finalShowPageNumber} slide={slide} colors={colors} variation={chartVar} onSelect={onElementSelect} selectedId={selectedElementId} titleFontScale={titleFontScale} textFontScale={textFontScale} />);
         } else if (hasInfographic) {
             const picked = getInfographicVariation();
-            return withExportMeta('infographic', picked, <InfographicLayout showPageNumber={finalShowPageNumber} slide={slide} colors={colors} variation={picked} onSelect={onElementSelect} selectedId={selectedElementId} titleFontScale={titleFontScale} textFontScale={textFontScale} />);
+            return withExportMeta('infographic', picked, <InfographicLayout showPageNumber={finalShowPageNumber} slide={slide} colors={colors} variation={picked} onSelect={onElementSelect} selectedId={selectedElementId} titleFontScale={titleFontScale} textFontScale={textFontScale} renderMode={renderMode} />);
         } else if (hasTimeline) {
             const picked = getTimelineVariation();
             return withExportMeta('timeline', picked, <TimelineLayout showPageNumber={finalShowPageNumber} slide={slide} colors={colors} variation={picked} onSelect={onElementSelect} selectedId={selectedElementId} titleFontScale={titleFontScale} textFontScale={textFontScale} />);
@@ -7518,11 +7621,11 @@ export const ModernSlideRenderer = ({
         }
         if (hasComparison) {
             const picked = getComparisonVariation();
-            return withExportMeta('comparison', picked, <ComparisonLayout showPageNumber={finalShowPageNumber} slide={slide} colors={colors} variation={picked} onSelect={onElementSelect} selectedId={selectedElementId} titleFontScale={titleFontScale} textFontScale={textFontScale} />);
+            return withExportMeta('comparison', picked, <ComparisonLayout showPageNumber={finalShowPageNumber} slide={slide} colors={colors} variation={picked} onSelect={onElementSelect} selectedId={selectedElementId} titleFontScale={titleFontScale} textFontScale={textFontScale} renderMode={renderMode} />);
         }
         if (hasStats) {
             const statsVar = getStatsVariation();
-            return withExportMeta('stats', statsVar, <StatsLayout showPageNumber={finalShowPageNumber} slide={slide} colors={colors} variation={statsVar} onSelect={onElementSelect} selectedId={selectedElementId} titleFontScale={titleFontScale} textFontScale={textFontScale} />);
+            return withExportMeta('stats', statsVar, <StatsLayout showPageNumber={finalShowPageNumber} slide={slide} colors={colors} variation={statsVar} onSelect={onElementSelect} selectedId={selectedElementId} titleFontScale={titleFontScale} textFontScale={textFontScale} renderMode={renderMode} />);
         }
         if (hasTextColumns) {
             const picked = getMultiColumnVariation();
@@ -7530,7 +7633,7 @@ export const ModernSlideRenderer = ({
         }
         if (hasItems && (normalizedType.includes('bento') || normalizedType.includes('grid'))) {
             const bentoVar = getBentoVariation();
-            return withExportMeta('bento', bentoVar, <BentoGridLayout showPageNumber={finalShowPageNumber} slide={slide} colors={colors} variation={bentoVar} onSelect={onElementSelect} selectedId={selectedElementId} titleFontScale={titleFontScale} textFontScale={textFontScale} />);
+            return withExportMeta('bento', bentoVar, <BentoGridLayout showPageNumber={finalShowPageNumber} slide={slide} colors={colors} variation={bentoVar} onSelect={onElementSelect} selectedId={selectedElementId} titleFontScale={titleFontScale} textFontScale={textFontScale} renderMode={renderMode} />);
         }
         const itemsArray = slide.content?.items || [];
         if (hasItems && itemsArray.length >= 3) {
@@ -7544,7 +7647,7 @@ export const ModernSlideRenderer = ({
             const shouldUseBento = normalizedType.includes('feature') || (Math.abs(bentoHash) % 10) >= 7;
             if (shouldUseBento) {
                 const bentoVar = getBentoVariation();
-                return withExportMeta('bento', bentoVar, <BentoGridLayout showPageNumber={finalShowPageNumber} slide={slide} colors={colors} variation={bentoVar} onSelect={onElementSelect} selectedId={selectedElementId} titleFontScale={titleFontScale} textFontScale={textFontScale} />);
+                return withExportMeta('bento', bentoVar, <BentoGridLayout showPageNumber={finalShowPageNumber} slide={slide} colors={colors} variation={bentoVar} onSelect={onElementSelect} selectedId={selectedElementId} titleFontScale={titleFontScale} textFontScale={textFontScale} renderMode={renderMode} />);
             }
         }
         if (hasQuote) {
@@ -7695,7 +7798,7 @@ export const ModernSlideRenderer = ({
         if (normalizedType.includes('stat') || normalizedType.includes('metric') || normalizedType.includes('kpi')) {
             if (hasStats) {
                 const statsVar = getStatsVariation();
-                return withExportMeta('stats', statsVar, <StatsLayout showPageNumber={finalShowPageNumber} slide={slide} colors={colors} variation={statsVar} onSelect={onElementSelect} selectedId={selectedElementId} titleFontScale={titleFontScale} textFontScale={textFontScale} />);
+                return withExportMeta('stats', statsVar, <StatsLayout showPageNumber={finalShowPageNumber} slide={slide} colors={colors} variation={statsVar} onSelect={onElementSelect} selectedId={selectedElementId} titleFontScale={titleFontScale} textFontScale={textFontScale} renderMode={renderMode} />);
             }
 
         }
@@ -7718,7 +7821,7 @@ export const ModernSlideRenderer = ({
                 return withExportMeta('timeline', picked, <TimelineLayout showPageNumber={finalShowPageNumber} slide={slide} colors={colors} variation={picked} onSelect={onElementSelect} selectedId={selectedElementId} titleFontScale={titleFontScale} textFontScale={textFontScale} />);
             } else if (hasInfographic) {
                 const picked = getInfographicVariation();
-                return withExportMeta('infographic', picked, <InfographicLayout showPageNumber={finalShowPageNumber} slide={slide} colors={colors} variation={picked} onSelect={onElementSelect} selectedId={selectedElementId} titleFontScale={titleFontScale} textFontScale={textFontScale} />);
+                return withExportMeta('infographic', picked, <InfographicLayout showPageNumber={finalShowPageNumber} slide={slide} colors={colors} variation={picked} onSelect={onElementSelect} selectedId={selectedElementId} titleFontScale={titleFontScale} textFontScale={textFontScale} renderMode={renderMode} />);
             }
             // Fallback if no timeline data
 
@@ -7727,13 +7830,13 @@ export const ModernSlideRenderer = ({
         // Comparison - STRICT CHECK
         if (normalizedType.includes('comparison') || normalizedType.includes('versus') || normalizedType.includes('before')) {
             const picked = getComparisonVariation();
-            return withExportMeta('comparison', picked, <ComparisonLayout showPageNumber={finalShowPageNumber} slide={slide} colors={colors} variation={picked} onSelect={onElementSelect} selectedId={selectedElementId} titleFontScale={titleFontScale} textFontScale={textFontScale} />);
+            return withExportMeta('comparison', picked, <ComparisonLayout showPageNumber={finalShowPageNumber} slide={slide} colors={colors} variation={picked} onSelect={onElementSelect} selectedId={selectedElementId} titleFontScale={titleFontScale} textFontScale={textFontScale} renderMode={renderMode} />);
         }
 
         // Infographic
         if (normalizedType.includes('infographic') || normalizedType.includes('funnel') || normalizedType.includes('pyramid')) {
             const picked = getInfographicVariation();
-            return withExportMeta('infographic', picked, <InfographicLayout showPageNumber={finalShowPageNumber} slide={slide} colors={colors} variation={picked} onSelect={onElementSelect} selectedId={selectedElementId} titleFontScale={titleFontScale} textFontScale={textFontScale} />);
+            return withExportMeta('infographic', picked, <InfographicLayout showPageNumber={finalShowPageNumber} slide={slide} colors={colors} variation={picked} onSelect={onElementSelect} selectedId={selectedElementId} titleFontScale={titleFontScale} textFontScale={textFontScale} renderMode={renderMode} />);
         }
 
         // SWOT Analysis by type
@@ -7766,7 +7869,7 @@ export const ModernSlideRenderer = ({
         // Bento grid
         if (normalizedType.includes('bento') || normalizedType.includes('grid') || normalizedType.includes('feature')) {
             const bentoVar = getBentoVariation();
-            return withExportMeta('bento', bentoVar, <BentoGridLayout showPageNumber={finalShowPageNumber} slide={slide} colors={colors} variation={bentoVar} onSelect={onElementSelect} selectedId={selectedElementId} titleFontScale={titleFontScale} textFontScale={textFontScale} />);
+            return withExportMeta('bento', bentoVar, <BentoGridLayout showPageNumber={finalShowPageNumber} slide={slide} colors={colors} variation={bentoVar} onSelect={onElementSelect} selectedId={selectedElementId} titleFontScale={titleFontScale} textFontScale={textFontScale} renderMode={renderMode} />);
         }
 
         // Showcase / Product
@@ -7790,13 +7893,13 @@ export const ModernSlideRenderer = ({
         // Columns layout (legacy support) - Strict exclusion of text-columns
         if (normalizedType.includes('column') && !normalizedType.includes('text')) {
             const picked = getComparisonVariation();
-            return withExportMeta('comparison', picked, <ComparisonLayout showPageNumber={finalShowPageNumber} slide={slide} colors={colors} variation={picked} onSelect={onElementSelect} selectedId={selectedElementId} titleFontScale={titleFontScale} textFontScale={textFontScale} />);
+            return withExportMeta('comparison', picked, <ComparisonLayout showPageNumber={finalShowPageNumber} slide={slide} colors={colors} variation={picked} onSelect={onElementSelect} selectedId={selectedElementId} titleFontScale={titleFontScale} textFontScale={textFontScale} renderMode={renderMode} />);
         }
 
         // Bento fallback for items
         if (hasItems) {
             const bentoVar = getBentoVariation();
-            return withExportMeta('bento', bentoVar, <BentoGridLayout showPageNumber={finalShowPageNumber} slide={slide} colors={colors} variation={bentoVar} onSelect={onElementSelect} selectedId={selectedElementId} titleFontScale={titleFontScale} textFontScale={textFontScale} />);
+            return withExportMeta('bento', bentoVar, <BentoGridLayout showPageNumber={finalShowPageNumber} slide={slide} colors={colors} variation={bentoVar} onSelect={onElementSelect} selectedId={selectedElementId} titleFontScale={titleFontScale} textFontScale={textFontScale} renderMode={renderMode} />);
         }
 
         // Default: Content with bullets

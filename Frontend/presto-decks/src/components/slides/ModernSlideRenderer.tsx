@@ -2960,8 +2960,9 @@ const ComparisonLayout = ({ slide, colors, variation = 'balanced-split', onSelec
         return (
             <div className="relative w-full h-full overflow-hidden flex" style={{ backgroundColor: colors.bg }}>
                 {/* Arrow Indicator */}
-                <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-20 h-20 bg-white rounded-full shadow-xl z-20 flex items-center justify-center text-6xl"
+                <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-20 h-20 bg-white rounded-full shadow-xl z-20 flex items-center justify-center text-[0px]"
                     style={{ color: colors.primary }}>
+                    <TrendArrowIcon direction="right" color={colors.primary} size={34} />
                     →
                 </div>
 
@@ -4594,7 +4595,8 @@ const ThreeColumnTextLayout = ({ slide, colors, variation = 'classic', onSelect,
                             </EditableElement>
 
                             {/* Decorative element at bottom */}
-                            <div className="mt-auto pt-8 opacity-50">
+                            <div className="mt-auto pt-8 opacity-50 text-[0px]">
+                                <TrendArrowIcon direction="right" color={colors.primary} size={28} />
                                 <span className="text-4xl" style={{ color: colors.primary }}>→</span>
                             </div>
                         </div>
@@ -7921,6 +7923,7 @@ export const ModernSlideRenderer = ({
                 className={cn("w-full h-full relative overflow-hidden slide-container", className)}
                 data-export-family={resolvedExportFamily || undefined}
                 data-export-variation={resolvedExportVariation || undefined}
+                data-render-mode={renderMode}
                 style={{
                     backgroundColor: colors.bg,
                     color: colors.text,
@@ -7934,6 +7937,33 @@ export const ModernSlideRenderer = ({
                     '--slide-font-scale': fontScale.toString(),
                 } as React.CSSProperties}
             >
+                {renderMode === 'export' && (
+                    <style>{`
+                        [data-render-mode="export"] * {
+                            animation: none !important;
+                            transition: none !important;
+                            caret-color: transparent !important;
+                        }
+                        [data-render-mode="export"] .truncate {
+                            white-space: normal !important;
+                            overflow: visible !important;
+                            text-overflow: clip !important;
+                        }
+                        [data-render-mode="export"] [class*="line-clamp-"] {
+                            display: block !important;
+                            -webkit-line-clamp: unset !important;
+                            line-clamp: unset !important;
+                            overflow: visible !important;
+                        }
+                        [data-render-mode="export"] [class*="backdrop-blur"] {
+                            backdrop-filter: none !important;
+                            -webkit-backdrop-filter: none !important;
+                        }
+                        [data-render-mode="export"] [class*="animate-"] {
+                            animation: none !important;
+                        }
+                    `}</style>
+                )}
                 {renderedLayout}
 
                 {/* Custom Floating Elements Layer */}

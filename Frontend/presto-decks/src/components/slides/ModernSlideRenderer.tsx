@@ -3852,7 +3852,7 @@ const SWOTLayout = ({ slide, colors, variation = 'classic-grid', onSelect, selec
 // Executive Summary Layout - KPIs + Key Findings + Next Steps
 type ExecSummaryVariation = 'dashboard' | 'split-columns' | 'compact';
 
-const ExecutiveSummaryLayout = ({ slide, colors, variation = 'dashboard', onSelect, selectedId, showPageNumber, titleFontScale = 1, textFontScale = 1 }: { slide: any; colors: any; variation?: ExecSummaryVariation; onSelect?: any; selectedId?: string | null; showPageNumber?: boolean; titleFontScale?: number; textFontScale?: number }) => {
+const ExecutiveSummaryLayout = ({ slide, colors, variation = 'dashboard', onSelect, selectedId, showPageNumber, titleFontScale = 1, textFontScale = 1, renderMode = 'interactive' }: { slide: any; colors: any; variation?: ExecSummaryVariation; onSelect?: any; selectedId?: string | null; showPageNumber?: boolean; titleFontScale?: number; textFontScale?: number; renderMode?: 'interactive' | 'export' }) => {
     // Robust data extraction with fallback naming (highlights, keyFindings, etc.)
     const stats = slide.content?.stats || slide.content?.statistics || slide.content?.highlights ||
         slide.stats || slide.statistics || slide.highlights || [];
@@ -3982,8 +3982,13 @@ const ExecutiveSummaryLayout = ({ slide, colors, variation = 'dashboard', onSele
                                     isSelected={selectedId === `nextstep-${i}`}
                                 >
                                     <div className="flex items-start gap-2">
-                                        <span className="text-base font-bold rounded-full w-5 h-5 flex items-center justify-center flex-shrink-0"
-                                            style={{ backgroundColor: '#27AE6020', color: '#27AE60', fontSize: `calc(var(--slide-font-scale, 1) * ${textFontScale} * 1rem)` }}>{i + 1}</span>
+                                        <CenteredBadgeText
+                                            text={String(i + 1)}
+                                            renderMode={renderMode}
+                                            className="h-5 w-5 flex-shrink-0 rounded-full"
+                                            style={{ backgroundColor: '#27AE6020', color: '#27AE60' }}
+                                            textStyle={{ fontSize: `calc(var(--slide-font-scale, 1) * ${textFontScale} * 1rem)`, fontWeight: 700 }}
+                                        />
                                         <span className="text-lg leading-relaxed" style={{ color: colors.text, fontSize: `calc(var(--slide-font-scale, 1) * ${textFontScale} * 1.125rem)` }}>{step}</span>
                                     </div>
                                 </EditableElement>
@@ -4138,8 +4143,13 @@ const ExecutiveSummaryLayout = ({ slide, colors, variation = 'dashboard', onSele
                                 isSelected={selectedId === `nextstep-${i}`}
                             >
                                 <div className="flex items-start gap-2.5">
-                                    <span className="text-base font-bold rounded-full w-5 h-5 flex items-center justify-center flex-shrink-0 mt-0.5"
-                                        style={{ backgroundColor: '#27AE6015', color: '#27AE60' }}>{i + 1}</span>
+                                    <CenteredBadgeText
+                                        text={String(i + 1)}
+                                        renderMode={renderMode}
+                                        className="mt-0.5 h-5 w-5 flex-shrink-0 rounded-full"
+                                        style={{ backgroundColor: '#27AE6015', color: '#27AE60' }}
+                                        textStyle={{ fontSize: `calc(var(--slide-font-scale, 1) * ${textFontScale} * 1rem)`, fontWeight: 700 }}
+                                    />
                                     <span className="text-lg leading-relaxed" style={{ color: colors.text, fontSize: `calc(var(--slide-font-scale, 1) * ${textFontScale} * 1.125rem)` }}>{step}</span>
                                 </div>
                             </EditableElement>
@@ -6175,7 +6185,7 @@ const ProductShowcaseLayout = ({ slide, colors, variation = 'default', onSelect,
 // Supports: Classic, Split Card, Hero Block, Minimal Offset, Magazine
 type MasterVariation = 'classic' | 'split-card' | 'hero-block' | 'minimal-offset' | 'magazine';
 
-const MasterContentLayout = ({ slide, colors, variation = 'classic', onSelect, selectedId, showPageNumber, titleFontScale = 1, textFontScale = 1 }: { slide: any; colors: any; variation?: MasterVariation; onSelect?: any; selectedId?: string | null; showPageNumber?: boolean; titleFontScale?: number; textFontScale?: number }) => {
+const MasterContentLayout = ({ slide, colors, variation = 'classic', onSelect, selectedId, showPageNumber, titleFontScale = 1, textFontScale = 1, renderMode = 'interactive' }: { slide: any; colors: any; variation?: MasterVariation; onSelect?: any; selectedId?: string | null; showPageNumber?: boolean; titleFontScale?: number; textFontScale?: number; renderMode?: 'interactive' | 'export' }) => {
     // Determine content
     // Determine content
     const rawBullets = slide.bullets || slide.content?.bullets || [];
@@ -6267,7 +6277,13 @@ const MasterContentLayout = ({ slide, colors, variation = 'classic', onSelect, s
                         <ul className="space-y-6">
                             {bullets.map((b: string, i: number) => (
                                 <li key={i} className="flex items-center gap-4 p-4 rounded-xl hover:bg-black/5 transition-colors">
-                                    <span className="w-8 h-8 rounded-full flex items-center justify-center font-bold shadow-lg" style={{ backgroundColor: colors.secondary, color: '#ffffff', fontSize: `calc(var(--slide-font-scale, 1) * ${textFontScale} * 1rem)` }}>{i + 1}</span>
+                                    <CenteredBadgeText
+                                        text={String(i + 1)}
+                                        renderMode={renderMode}
+                                        className="h-8 w-8 rounded-full shadow-lg"
+                                        style={{ backgroundColor: colors.secondary, color: '#ffffff' }}
+                                        textStyle={{ fontSize: `calc(var(--slide-font-scale, 1) * ${textFontScale} * 1rem)`, fontWeight: 700 }}
+                                    />
                                     <EditableElement
                                         element={{ id: `bullet-${i}`, type: 'text', value: b, path: `bullets[${i}]`, label: `Bullet ${i + 1}` }}
                                         onSelect={onSelect}
@@ -7634,7 +7650,7 @@ export const ModernSlideRenderer = ({
         }
         if (hasExecutiveSummary && (normalizedType.includes('executive') || normalizedType.includes('exec') || normalizedType.includes('summary'))) {
             const execVar = getExecSummaryVariation();
-            return withExportMeta('executive', execVar, <ExecutiveSummaryLayout showPageNumber={finalShowPageNumber} slide={slide} colors={colors} variation={execVar} onSelect={onElementSelect} selectedId={selectedElementId} titleFontScale={titleFontScale} textFontScale={textFontScale} />);
+            return withExportMeta('executive', execVar, <ExecutiveSummaryLayout showPageNumber={finalShowPageNumber} slide={slide} colors={colors} variation={execVar} onSelect={onElementSelect} selectedId={selectedElementId} titleFontScale={titleFontScale} textFontScale={textFontScale} renderMode={renderMode} />);
         }
 
         // PRIORITY 1: Content-based detection (what data actually exists)
@@ -7759,7 +7775,7 @@ export const ModernSlideRenderer = ({
             }
 
 
-            return withExportMeta('content', picked, <MasterContentLayout showPageNumber={finalShowPageNumber} slide={slide} colors={colors} variation={picked} onSelect={onElementSelect} selectedId={selectedElementId} titleFontScale={titleFontScale} textFontScale={textFontScale} />);
+            return withExportMeta('content', picked, <MasterContentLayout showPageNumber={finalShowPageNumber} slide={slide} colors={colors} variation={picked} onSelect={onElementSelect} selectedId={selectedElementId} titleFontScale={titleFontScale} textFontScale={textFontScale} renderMode={renderMode} />);
         }
 
         // Cover / Hero layouts
@@ -7881,7 +7897,7 @@ export const ModernSlideRenderer = ({
         // Executive Summary by type
         if (normalizedType.includes('executive') || normalizedType.includes('exec-summary') || normalizedType.includes('executive-summary')) {
             const execVar = getExecSummaryVariation();
-            return withExportMeta('executive', execVar, <ExecutiveSummaryLayout showPageNumber={finalShowPageNumber} slide={slide} colors={colors} variation={execVar} onSelect={onElementSelect} selectedId={selectedElementId} titleFontScale={titleFontScale} textFontScale={textFontScale} />);
+            return withExportMeta('executive', execVar, <ExecutiveSummaryLayout showPageNumber={finalShowPageNumber} slide={slide} colors={colors} variation={execVar} onSelect={onElementSelect} selectedId={selectedElementId} titleFontScale={titleFontScale} textFontScale={textFontScale} renderMode={renderMode} />);
         }
 
         // Quote - Use dedicated QuoteLayout

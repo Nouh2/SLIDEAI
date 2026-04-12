@@ -730,20 +730,20 @@ const StatsLayout = ({ slide, colors, variation = 'classic-grid', onSelect, sele
 
                         return (
                             <div key={i} className="flex flex-col justify-center">
-                                <div className="flex justify-between items-end mb-4">
+                                <div className="grid grid-cols-[minmax(0,1fr)_auto] items-end gap-8 mb-4">
                                     <EditableElement
                                         element={{ id: `stat-${i}-label`, type: 'text', value: stat.label, path: `${statsPath}[${i}].label`, label: `Stat ${i + 1} Label` }}
                                         onSelect={onSelect}
                                         isSelected={selectedId === `stat-${i}-label`}
                                     >
-                                        <span className="text-3xl font-medium opacity-80 uppercase tracking-wider" style={{ color: colors.text, fontSize: `calc(var(--slide-font-scale, 1) * ${resolvedTextScale} * 1.875rem)` }}>{stat.label}</span>
+                                        <span className="block min-w-0 text-3xl font-medium opacity-80 uppercase tracking-wider leading-tight" style={{ color: colors.text, fontSize: `calc(var(--slide-font-scale, 1) * ${resolvedTextScale} * 1.875rem)` }}>{stat.label}</span>
                                     </EditableElement>
                                     <EditableElement
                                         element={{ id: `stat-${i}-value`, type: 'text', value: stat.value, path: `${statsPath}[${i}].value`, label: `Stat ${i + 1} Value` }}
                                         onSelect={onSelect}
                                         isSelected={selectedId === `stat-${i}-value`}
                                     >
-                                        <span className="text-6xl font-bold" style={{ color: colors.primary, fontSize: `calc(var(--slide-font-scale, 1) * ${resolvedTextScale} * 3.75rem)` }}>{stat.value}</span>
+                                        <span className="block shrink-0 pl-4 text-right text-6xl font-bold leading-none" style={{ color: colors.primary, fontSize: `calc(var(--slide-font-scale, 1) * ${resolvedTextScale} * 3.75rem)` }}>{stat.value}</span>
                                     </EditableElement>
                                 </div>
                                 <div className="w-full h-4 bg-gray-100 rounded-full overflow-hidden" style={{ backgroundColor: `${colors.text}10` }}>
@@ -6491,7 +6491,7 @@ const ContentBulletsLayout = ({ slide, colors, onSelect, selectedId, showPageNum
 // ============================================
 type CoverVariation = 'centered-minimal' | 'full-split' | 'diagonal-hero' | 'typographic-giant' | 'boxed-modern' | 'gradient-mesh' | 'dark-tech' | 'offset-gallery' | 'floating-glass' | 'cinematic';
 
-const MasterCoverLayout = ({ slide, colors, variation = 'centered-minimal', onSelect, selectedId, showPageNumber, titleFontScale = 1, textFontScale = 1, fontScale = 1 }: { slide: any; colors: any; variation?: CoverVariation; onSelect?: any; selectedId?: string | null; showPageNumber?: boolean; titleFontScale?: number; textFontScale?: number; fontScale?: number }) => {
+const MasterCoverLayout = ({ slide, colors, variation = 'centered-minimal', onSelect, selectedId, showPageNumber, titleFontScale = 1, textFontScale = 1, fontScale = 1, renderMode = 'interactive' }: { slide: any; colors: any; variation?: CoverVariation; onSelect?: any; selectedId?: string | null; showPageNumber?: boolean; titleFontScale?: number; textFontScale?: number; fontScale?: number; renderMode?: 'interactive' | 'export' }) => {
     const isQaVisualRoute = typeof window !== 'undefined' && window.location.pathname.startsWith('/qa/visual-regression');
     if (isQaVisualRoute && variation === 'diagonal-hero') {
         variation = 'full-split';
@@ -6630,6 +6630,60 @@ const MasterCoverLayout = ({ slide, colors, variation = 'centered-minimal', onSe
 
     // 3. DIAGONAL HERO (Dynamic slice)
     if (variation === 'diagonal-hero') {
+        if (renderMode === 'export') {
+            return (
+                <div className="relative w-full h-full overflow-hidden" style={{ backgroundColor: colors.bg }}>
+                    <div className="absolute inset-0 z-0" style={{ backgroundColor: colors.bg }} />
+                    <div
+                        className="absolute left-[-8%] bottom-[-16%] z-10 h-[52%] w-[44%]"
+                        style={{
+                            backgroundColor: colors.text,
+                            transform: 'skewY(12deg)',
+                            transformOrigin: 'bottom left',
+                        }}
+                    />
+                    <div className="absolute z-20 top-20 left-20 max-w-3xl">
+                        <EditableElement
+                            element={{ id: 'title', type: 'text', value: mainTitle, path: 'title', label: 'Title' }}
+                            onSelect={onSelect}
+                            isSelected={selectedId === 'title'}
+                            className="mb-4"
+                        >
+                            <h1 className="text-8xl font-black drop-shadow-sm" style={{ color: getReadableColor(colors.text, colors.bg), fontSize: `calc(var(--slide-font-scale, 1) * ${titleFontScale} * 6rem)` }}>{mainTitle}</h1>
+                        </EditableElement>
+                        <EditableElement
+                            element={{ id: 'subtitle', type: 'text', value: subtitle, path: 'subtitle', label: 'Subtitle' }}
+                            onSelect={onSelect}
+                            isSelected={selectedId === 'subtitle'}
+                            className="mb-8"
+                        >
+                            <p className="text-5xl font-medium leading-tight" style={{ color: colors.secondary, fontSize: `calc(var(--slide-font-scale, 1) * ${textFontScale} * 3rem)` }}>{subtitle}</p>
+                        </EditableElement>
+                    </div>
+                    {imageSrc && (
+                        <div
+                            className="absolute bottom-0 right-0 z-20 h-[68%] w-[58%] overflow-hidden"
+                            style={{
+                                transform: 'skewX(-16deg)',
+                                transformOrigin: 'bottom left',
+                            }}
+                        >
+                            <div
+                                className="absolute inset-0"
+                                style={{
+                                    transform: 'skewX(16deg) scale(1.16)',
+                                    transformOrigin: 'bottom left',
+                                }}
+                            >
+                                <img src={imageSrc} className="w-full h-full object-cover" alt="" />
+                            </div>
+                        </div>
+                    )}
+                    <SlideFooter title="" slideNumber={1} colors={colors} unsplashPhotographer={slide.unsplashPhotographer} showPageNumber={showPageNumber} />
+                </div>
+            );
+        }
+
         return (
             <div className="relative w-full h-full overflow-hidden" style={{ backgroundColor: colors.primary }}>
                 <div className="absolute inset-0 w-full h-full bg-white z-0" style={{ clipPath: 'polygon(0 0, 100% 0, 100% 85%, 0 45%)', backgroundColor: colors.bg }} />
@@ -7834,7 +7888,7 @@ export const ModernSlideRenderer = ({
             }
 
 
-            return withExportMeta('cover', picked, <MasterCoverLayout showPageNumber={finalShowPageNumber} slide={slide} colors={colors} variation={picked} onSelect={onElementSelect} selectedId={selectedElementId} titleFontScale={titleFontScale} textFontScale={textFontScale} fontScale={fontScale} />);
+            return withExportMeta('cover', picked, <MasterCoverLayout showPageNumber={finalShowPageNumber} slide={slide} colors={colors} variation={picked} onSelect={onElementSelect} selectedId={selectedElementId} titleFontScale={titleFontScale} textFontScale={textFontScale} fontScale={fontScale} renderMode={renderMode} />);
         }
 
         // Section divider

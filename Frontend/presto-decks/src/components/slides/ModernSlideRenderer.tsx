@@ -6631,17 +6631,37 @@ const MasterCoverLayout = ({ slide, colors, variation = 'centered-minimal', onSe
     // 3. DIAGONAL HERO (Dynamic slice)
     if (variation === 'diagonal-hero') {
         if (renderMode === 'export') {
+            const exportClipId = `diagonal-hero-export-${String(slide.id || mainTitle || 'cover')
+                .toLowerCase()
+                .replace(/[^a-z0-9]+/g, '-')}`;
+
             return (
                 <div className="relative w-full h-full overflow-hidden" style={{ backgroundColor: colors.bg }}>
                     <div className="absolute inset-0 z-0" style={{ backgroundColor: colors.bg }} />
-                    <div
-                        className="absolute left-[-8%] bottom-[-16%] z-10 h-[52%] w-[44%]"
-                        style={{
-                            backgroundColor: colors.text,
-                            transform: 'skewY(12deg)',
-                            transformOrigin: 'bottom left',
-                        }}
-                    />
+                    <svg
+                        className="absolute inset-0 z-10 h-full w-full pointer-events-none"
+                        viewBox="0 0 100 100"
+                        preserveAspectRatio="none"
+                        aria-hidden="true"
+                    >
+                        <defs>
+                            <clipPath id={exportClipId}>
+                                <polygon points="46 34,100 34,100 100,34 100" />
+                            </clipPath>
+                        </defs>
+                        <polygon points="0 58,46 70,34 100,0 100" fill={colors.text} />
+                        {imageSrc && (
+                            <image
+                                href={imageSrc}
+                                x="33"
+                                y="31"
+                                width="67"
+                                height="69"
+                                preserveAspectRatio="xMidYMid slice"
+                                clipPath={`url(#${exportClipId})`}
+                            />
+                        )}
+                    </svg>
                     <div className="absolute z-20 top-20 left-20 max-w-3xl">
                         <EditableElement
                             element={{ id: 'title', type: 'text', value: mainTitle, path: 'title', label: 'Title' }}

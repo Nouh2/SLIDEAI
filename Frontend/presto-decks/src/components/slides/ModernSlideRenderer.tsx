@@ -243,6 +243,7 @@ const CenteredBadgeText = ({
                         dominantBaseline="middle"
                         className={textClassName}
                         style={{
+                            fill: 'currentColor',
                             lineHeight: 1,
                             ...textStyle,
                         }}

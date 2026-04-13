@@ -18,17 +18,15 @@ import { BusinessSeoSection } from "@/components/home/BusinessSeoSection";
 import { SEO } from "@/components/common/SEO";
 import { Analytics, ANALYTICS_EVENTS } from "@/lib/analytics";
 import { toAbsoluteUrl } from "@/lib/localeRouting";
+import { homePageContent } from "@/content/seo/marketingPages";
 
 export default function Home() {
   const navigate = useNavigate();
   const { t, i18n } = useTranslation();
   const isFr = i18n.language.startsWith("fr");
-  const seoTitle = isFr
-    ? "Générateur PowerPoint IA | Créez vos présentations en 40 secondes"
-    : "AI PowerPoint Generator | Create presentations in 40 seconds";
-  const seoDescription = isFr
-    ? "Le générateur PowerPoint IA pour créer un PowerPoint avec IA, générer une présentation automatiquement et livrer plus vite. Essai 7 jours sans carte bancaire."
-    : "Use AI to create presentations automatically from your client docs. Start a 7-day trial with no credit card.";
+  const pageContent = isFr ? homePageContent.fr : homePageContent.en;
+  const seoTitle = pageContent.title;
+  const seoDescription = pageContent.description;
   const seoKeywords = isFr
     ? "générateur PowerPoint IA, créer un PowerPoint avec IA, IA pour faire un PowerPoint, générer une présentation automatiquement, outil IA présentation"
     : "ai powerpoint generator, create powerpoint with ai, ai for powerpoint, generate presentation automatically, ai presentation tool";

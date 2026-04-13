@@ -4,6 +4,9 @@ import { SEO } from "@/components/common/SEO";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, ArrowRight, CheckCircle2, Sparkles } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { Analytics, ANALYTICS_EVENTS } from "@/lib/analytics";
+import { useLocalePath } from "@/hooks/use-locale-path";
+import { seoLandingLinks } from "@/content/seo/marketingPages";
 
 interface BusinessSeoLandingProps {
   title: string;
@@ -16,13 +19,8 @@ interface BusinessSeoLandingProps {
   useCases: string[];
   benefits: string[];
   howItWorks: string[];
+  faqs: Array<{ question: string; answer: string }>;
 }
-
-const businessPages = [
-  { title: "Generateur PowerPoint IA", href: "/generateur-powerpoint-ia" },
-  { title: "Creer un PowerPoint avec IA", href: "/creer-powerpoint-avec-ia" },
-  { title: "Outil IA presentation", href: "/outil-ia-presentation" },
-];
 
 export function BusinessSeoLanding({
   title,
@@ -35,11 +33,13 @@ export function BusinessSeoLanding({
   useCases,
   benefits,
   howItWorks,
+  faqs,
 }: BusinessSeoLandingProps) {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { localize } = useLocalePath();
   const ctaPath = user ? "/create" : `/auth?returnTo=${encodeURIComponent("/create")}`;
-  const relatedPages = businessPages.filter((page) => page.href !== url);
+  const relatedPages = seoLandingLinks.filter((page) => page.href !== url);
 
   const breadcrumbSchema = {
     "@context": "https://schema.org",
@@ -60,16 +60,39 @@ export function BusinessSeoLanding({
     ],
   };
 
+  const faqSchema = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: faqs.map((faq) => ({
+      "@type": "Question",
+      name: faq.question,
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: faq.answer,
+      },
+    })),
+  };
+
+  const handlePrimaryCta = () => {
+    Analytics.trackEvent(
+      ANALYTICS_EVENTS.ECOMMERCE.CATEGORY,
+      ANALYTICS_EVENTS.ECOMMERCE.SELECT_PLAN,
+      `SEO CTA - ${url}`
+    );
+    navigate(ctaPath);
+  };
+
   return (
     <div className="min-h-screen pt-24 pb-16 px-4">
       <SEO title={title} description={description} keywords={`${keyword}, ${secondaryKeyword}`} url={url} />
       <Helmet>
         <script type="application/ld+json">{JSON.stringify(breadcrumbSchema)}</script>
+        <script type="application/ld+json">{JSON.stringify(faqSchema)}</script>
       </Helmet>
 
       <div className="max-w-5xl mx-auto space-y-12">
         <button
-          onClick={() => navigate("/")}
+          onClick={() => navigate(localize("/", "fr"))}
           className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors"
         >
           <ArrowLeft className="h-4 w-4" />
@@ -84,13 +107,13 @@ export function BusinessSeoLanding({
           <h1 className="text-4xl md:text-6xl font-bold leading-tight">{h1}</h1>
           <p className="max-w-3xl text-lg text-muted-foreground leading-8">{intro}</p>
           <div className="flex flex-col sm:flex-row gap-4">
-            <Button size="lg" onClick={() => navigate(ctaPath)} className="font-bold">
+            <Button size="lg" onClick={handlePrimaryCta} className="font-bold">
               <Sparkles className="h-4 w-4 mr-2" />
               Demarrer mon essai 7 jours
               <ArrowRight className="h-4 w-4 ml-2" />
             </Button>
             <Button size="lg" variant="outline" asChild className="font-bold">
-              <Link to="/pricing">Voir les tarifs</Link>
+              <Link to={localize("/pricing", "fr")}>Voir les tarifs</Link>
             </Button>
           </div>
         </section>
@@ -143,6 +166,18 @@ export function BusinessSeoLanding({
         </section>
 
         <section className="rounded-2xl border border-border/60 bg-card/40 p-6 md:p-8">
+          <h2 className="text-2xl md:text-3xl font-bold mb-5">Questions frequentes</h2>
+          <div className="grid md:grid-cols-3 gap-4">
+            {faqs.map((faq) => (
+              <div key={faq.question} className="rounded-xl border border-border/40 bg-background/70 p-5">
+                <h3 className="text-lg font-semibold mb-2">{faq.question}</h3>
+                <p className="text-sm leading-7 text-muted-foreground">{faq.answer}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <section className="rounded-2xl border border-border/60 bg-card/40 p-6 md:p-8">
           <h2 className="text-2xl md:text-3xl font-bold mb-5">Pages liees</h2>
           <div className="grid md:grid-cols-2 gap-4">
             {relatedPages.map((page) => (
@@ -152,9 +187,7 @@ export function BusinessSeoLanding({
                 className="rounded-xl border border-border/40 bg-background/70 p-5 transition-all hover:border-primary/40 hover:text-primary"
               >
                 <div className="text-lg font-semibold">{page.title}</div>
-                <div className="mt-2 text-sm text-muted-foreground">
-                  Explorer cette page business pour renforcer le maillage interne et capter une intention de recherche complementaire.
-                </div>
+                <div className="mt-2 text-sm text-muted-foreground">{page.description}</div>
               </Link>
             ))}
           </div>

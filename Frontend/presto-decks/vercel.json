@@ -1,6 +1,14 @@
 {
     "rewrites": [
         {
+            "source": "/en",
+            "destination": "/en/index.html"
+        },
+        {
+            "source": "/en/",
+            "destination": "/en/index.html"
+        },
+        {
             "source": "/pricing",
             "destination": "/pricing/index.html"
         },
@@ -23,6 +31,30 @@
         {
             "source": "/pdf-to-powerpoint/",
             "destination": "/pdf-to-powerpoint/index.html"
+        },
+        {
+            "source": "/generateur-powerpoint-ia",
+            "destination": "/generateur-powerpoint-ia/index.html"
+        },
+        {
+            "source": "/generateur-powerpoint-ia/",
+            "destination": "/generateur-powerpoint-ia/index.html"
+        },
+        {
+            "source": "/creer-powerpoint-avec-ia",
+            "destination": "/creer-powerpoint-avec-ia/index.html"
+        },
+        {
+            "source": "/creer-powerpoint-avec-ia/",
+            "destination": "/creer-powerpoint-avec-ia/index.html"
+        },
+        {
+            "source": "/outil-ia-presentation",
+            "destination": "/outil-ia-presentation/index.html"
+        },
+        {
+            "source": "/outil-ia-presentation/",
+            "destination": "/outil-ia-presentation/index.html"
         },
         {
             "source": "/privacy",

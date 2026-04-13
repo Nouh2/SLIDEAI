@@ -1,363 +1,230 @@
 import { useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, ArrowRight, CheckCircle2, FileText, Sparkles, Zap, Laptop, Shield, MessageSquare, Star } from "lucide-react";
+import { ArrowLeft, ArrowRight, CheckCircle2, FileText, Laptop, MessageSquare, Sparkles, Zap } from "lucide-react";
 import { SEO } from "@/components/common/SEO";
+import { pdfToPowerPointPageContent } from "@/content/seo/marketingPages";
+import { useAuth } from "@/contexts/AuthContext";
+import { useLocalePath } from "@/hooks/use-locale-path";
+import { Analytics, ANALYTICS_EVENTS } from "@/lib/analytics";
 
 export default function PDFToPowerPoint() {
     const navigate = useNavigate();
+    const { user } = useAuth();
+    const { localize } = useLocalePath();
+    const page = pdfToPowerPointPageContent;
+    const ctaPath = user ? "/create" : `/auth?returnTo=${encodeURIComponent("/create")}`;
+    const useCaseIcons = [<FileText className="w-6 h-6" />, <Laptop className="w-6 h-6" />, <Zap className="w-6 h-6" />];
 
-    const faqs = [
-        {
-            q: "Quel est le format de fichier accepté ?",
-            r: "PDF, Word, PowerPoint, images (JPG, PNG)"
-        },
-        {
-            q: "Combien de temps pour convertir un PDF ?",
-            r: "30 secondes en moyenne, peu importe la taille"
-        },
-        {
-            q: "Puis-je modifier la présentation après conversion ?",
-            r: "Oui, 100% modifiable dans PowerPoint"
-        },
-        {
-            q: "Y a-t-il une limite de fichier ?",
-            r: "Max 50 Mo par fichier"
-        },
-        {
-            q: "Puis-je essayer sans carte bancaire ?",
-            r: "Oui, vous pouvez démarrer un essai 7 jours sans carte bancaire."
-        },
-        {
-            q: "Mes données sont-elles sécurisées ?",
-            r: "Oui, chiffrement SSL, suppression auto après 24h"
-        }
-    ];
+    const faqSchema = {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        mainEntity: page.faqs.map((faq) => ({
+            "@type": "Question",
+            name: faq.question,
+            acceptedAnswer: {
+                "@type": "Answer",
+                text: faq.answer,
+            },
+        })),
+    };
+
+    const howToSchema = {
+        "@context": "https://schema.org",
+        "@type": "HowTo",
+        name: "Comment convertir un PDF en PowerPoint avec SlideAI",
+        description: page.description,
+        step: page.howItWorks.map((step) => ({
+            "@type": "HowToStep",
+            text: step,
+        })),
+    };
+
+    const breadcrumbSchema = {
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        itemListElement: [
+            {
+                "@type": "ListItem",
+                position: 1,
+                name: "Accueil",
+                item: "https://www.slideai.fr/",
+            },
+            {
+                "@type": "ListItem",
+                position: 2,
+                name: page.title,
+                item: `https://www.slideai.fr${page.url}`,
+            },
+        ],
+    };
+
+    const handlePrimaryCta = () => {
+        Analytics.trackEvent(
+            ANALYTICS_EVENTS.ECOMMERCE.CATEGORY,
+            ANALYTICS_EVENTS.ECOMMERCE.SELECT_PLAN,
+            "SEO CTA - /pdf-to-powerpoint"
+        );
+        navigate(ctaPath);
+    };
+
+    const handleExamplesCta = () => {
+        Analytics.trackEvent("Navigation", "Examples Click", "SEO Secondary CTA - /pdf-to-powerpoint");
+        navigate(localize("/examples", "fr"));
+    };
 
     return (
         <div className="min-h-screen w-full relative pt-20 overflow-x-hidden">
             <SEO
-                title="Convertir PDF en PowerPoint | SlideAI"
-                url="/pdf-to-powerpoint"
-                description="Transformez vos PDF en présentations PowerPoint en quelques secondes avec l'IA. Essai 7 jours sans carte, rapide et prêt à éditer."
+                title={page.title}
+                description={page.description}
+                url={page.url}
+                keywords="convertir pdf en powerpoint, transformer pdf en powerpoint, pdf en powerpoint, convertir un pdf en powerpoint"
+                alternates={{ fr: page.url, "x-default": page.url }}
             />
 
             <Helmet>
-                <link rel="alternate" hrefLang="fr" href="https://www.slideai.fr/pdf-to-powerpoint" />
-                <link rel="alternate" hrefLang="x-default" href="https://www.slideai.fr/pdf-to-powerpoint" />
-
-                {/* HowTo Schema */}
-                <script type="application/ld+json">
-                    {JSON.stringify({
-                        "@context": "https://schema.org",
-                        "@type": "HowTo",
-                        "name": "Comment convertir un PDF en PowerPoint",
-                        "description": "Convertissez votre PDF en PowerPoint en 30 secondes avec l'IA",
-                        "image": "https://www.slideai.fr/images/pdf-to-powerpoint.jpg",
-                        "step": [
-                            {
-                                "@type": "HowToStep",
-                                "name": "Télécharger votre PDF",
-                                "text": "Glissez-déposez votre fichier PDF sur SlideAI"
-                            },
-                            {
-                                "@type": "HowToStep",
-                                "name": "L'IA analyse et crée",
-                                "text": "Notre IA crée automatiquement des slides professionnelles en 30 secondes"
-                            },
-                            {
-                                "@type": "HowToStep",
-                                "name": "Télécharger votre PowerPoint",
-                                "text": "Récupérez votre présentation PowerPoint prête à l'emploi"
-                            }
-                        ]
-                    })}
-                </script>
-
-                {/* Product Schema */}
-                <script type="application/ld+json">
-                    {JSON.stringify({
-                        "@context": "https://schema.org",
-                        "@type": "Product",
-                        "name": "SlideAI - Convertir PDF en PowerPoint",
-                        "description": "Convertissez vos PDF en présentations PowerPoint en 30 secondes avec l'IA",
-                        "brand": {
-                            "@type": "Brand",
-                            "name": "SlideAI"
-                        },
-                        "offers": {
-                            "@type": "Offer",
-                            "price": "7",
-                            "priceCurrency": "EUR",
-                            "availability": "https://schema.org/InStock"
-                        },
-                        "aggregateRating": {
-                            "@type": "AggregateRating",
-                            "ratingValue": "4.8",
-                            "reviewCount": "50"
-                        }
-                    })}
-                </script>
-
-                {/* FAQ Schema */}
-                <script type="application/ld+json">
-                    {JSON.stringify({
-                        "@context": "https://schema.org",
-                        "@type": "FAQPage",
-                        "mainEntity": faqs.map(faq => ({
-                            "@type": "Question",
-                            "name": faq.q,
-                            "acceptedAnswer": {
-                                "@type": "Answer",
-                                "text": faq.r
-                            }
-                        }))
-                    })}
-                </script>
+                <script type="application/ld+json">{JSON.stringify(breadcrumbSchema)}</script>
+                <script type="application/ld+json">{JSON.stringify(howToSchema)}</script>
+                <script type="application/ld+json">{JSON.stringify(faqSchema)}</script>
             </Helmet>
 
-            {/* Grid Background */}
             <div className="fixed inset-0 z-0 h-full w-full bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px] pointer-events-none"></div>
 
             <div className="relative z-10 max-w-5xl mx-auto px-4 pb-20">
                 <button
-                    onClick={() => navigate("/")}
+                    onClick={() => navigate(localize("/", "fr"))}
                     className="flex items-center text-sm text-foreground/60 hover:text-primary transition-colors mb-12 group"
                 >
                     <ArrowLeft className="w-4 h-4 mr-2 group-hover:-translate-x-1 transition-transform" />
-                    Retour à l'accueil
+                    Retour a l'accueil
                 </button>
 
-                {/* SECTION 1 : HERO */}
-                <section className="text-center space-y-8 mb-32">
+                <section className="text-center space-y-8 mb-20">
                     <div className="inline-flex items-center px-4 py-2 rounded-full border border-primary/20 bg-primary/5 text-primary text-sm font-medium">
                         <Sparkles className="w-4 h-4 mr-2" />
-                        Nouveau : Conversion PDF intelligente v2.0
+                        {page.eyebrow}
                     </div>
 
-                    <h1 className="text-4xl md:text-7xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-b from-foreground via-foreground to-foreground/50 leading-tight">
-                        Convertir PDF en PowerPoint <br />
-                        <span className="text-primary italic">en Secondes avec l'IA</span>
+                    <h1 className="text-4xl md:text-6xl font-bold tracking-tight leading-tight max-w-4xl mx-auto">
+                        {page.h1}
                     </h1>
 
-                    <p className="text-xl text-foreground/60 max-w-2xl mx-auto">
-                        Transformez vos documents en présentations professionnelles sans effort.
-                        <br />
-                        <span className="text-sm font-semibold text-primary mt-2 inline-block">✓ 500+ freelancers utilisent SlideAI</span>
-                    </p>
+                    <p className="text-xl text-foreground/60 max-w-3xl mx-auto">{page.intro}</p>
 
-                    <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
+                    <div className="flex flex-col sm:flex-row gap-4 justify-center pt-2">
                         <Button
                             size="lg"
-                            onClick={() => navigate("/create")}
+                            onClick={handlePrimaryCta}
                             className="h-14 px-8 text-base font-bold rounded-xl bg-gradient-primary hover:shadow-neon-hover transition-all duration-300 group text-foreground"
                         >
-                            Demarrer l'essai 7 jours
+                            {page.primaryCta}
                             <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
                         </Button>
                         <Button
-                            variant="link"
-                            onClick={() => {
-                                const element = document.getElementById('how-it-works');
-                                element?.scrollIntoView({ behavior: 'smooth' });
-                            }}
-                            className="h-14 px-8 text-base text-foreground/60 hover:text-primary"
-                        >
-                            Voir la démo
-                        </Button>
-                    </div>
-                </section>
-
-                {/* SECTION 2 : PROBLÈME + SOLUTION */}
-                <section className="mb-32 grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
-                    <div className="space-y-6">
-                        <h2 className="text-3xl font-bold">Pourquoi convertir un PDF en PowerPoint ?</h2>
-                        <div className="space-y-4 text-foreground/70 leading-relaxed">
-                            <p>
-                                Vous avez un PDF (rapport client, contrat, document stratégique) et vous devez le transformer en présentation PowerPoint pour votre réunion demain ?
-                            </p>
-                            <p>
-                                Normalement, cela prend 2-3 heures de travail manuel : copier-coller le texte, redimensionner les images, créer une mise en page cohérente...
-                            </p>
-                            <p className="font-semibold text-foreground">
-                                Avec SlideAI, c'est différent. Notre IA convertit votre PDF en PowerPoint professionnel en 30 secondes.
-                            </p>
-                            <div className="grid grid-cols-2 gap-3 pt-4">
-                                {['Freelancer', 'Consultant', 'Coach', 'Manager'].map((item) => (
-                                    <div key={item} className="flex items-center text-sm gap-2">
-                                        <CheckCircle2 className="w-4 h-4 text-primary" />
-                                        {item}
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    </div>
-                    <div className="bg-gradient-to-br from-primary/10 to-secondary/10 rounded-2xl p-8 border border-border/50 aspect-video flex items-center justify-center">
-                        <FileText className="w-20 h-20 text-primary opacity-50" />
-                    </div>
-                </section>
-
-                {/* SECTION 3 : COMMENT ÇA MARCHE */}
-                <section id="how-it-works" className="mb-32 py-16 px-8 bg-foreground/5 rounded-3xl border border-border/50">
-                    <h2 className="text-3xl font-bold text-center mb-16">Comment convertir un PDF en PowerPoint avec SlideAI ?</h2>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
-                        {[
-                            { step: "1️⃣", title: "Télécharger votre PDF", desc: "Glissez-déposez votre fichier PDF sur SlideAI (ou cliquez pour parcourir). Nous acceptons les PDF jusqu'à 50 Mo." },
-                            { step: "2️⃣", title: "L'IA analyse et crée", desc: "Notre IA analyse le contenu de votre PDF et crée automatiquement des slides professionnelles en 30 secondes." },
-                            { step: "3️⃣", title: "Télécharger votre PowerPoint", desc: "Récupérez votre présentation PowerPoint prête à l'emploi. Vous pouvez la modifier à 100% dans PowerPoint." }
-                        ].map((item, i) => (
-                            <div key={i} className="space-y-4 text-center">
-                                <div className="text-4xl mb-4">{item.step}</div>
-                                <h3 className="text-xl font-bold">{item.title}</h3>
-                                <p className="text-foreground/60 text-sm leading-relaxed">{item.desc}</p>
-                            </div>
-                        ))}
-                    </div>
-                </section>
-
-                {/* SECTION 4 : AVANTAGES CLÉS */}
-                <section className="mb-32 space-y-16">
-                    <h2 className="text-3xl font-bold text-center">Pourquoi choisir SlideAI pour convertir PDF en PowerPoint ?</h2>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        {[
-                            { title: "✅ Rapide", desc: "30 secondes vs 2-3 heures manuellement. Gagnez 2-3 heures par conversion." },
-                            { title: "✅ Sans carte", desc: "Démarrez un essai 7 jours sans carte bancaire." },
-                            { title: "✅ Professionnel", desc: "L'IA crée des slides avec une mise en page et une hiérarchie visuelle claire." },
-                            { title: "✅ Modifiable", desc: "100% personnalisable. Modifiez le texte, les couleurs et les images." },
-                            { title: "✅ Essai 7 jours", desc: "Créez un compte et démarrez un essai sans carte bancaire." },
-                            { title: "✅ Sécurisé", desc: "Chiffrement SSL et suppression auto après 24h. Vos données sont protégées." }
-                        ].map((item, i) => (
-                            <div key={i} className="p-6 bg-background border border-border/50 rounded-xl space-y-2">
-                                <h3 className="font-bold text-lg">{item.title}</h3>
-                                <p className="text-foreground/60 text-sm">{item.desc}</p>
-                            </div>
-                        ))}
-                    </div>
-                    <div className="text-center">
-                        <Button
                             size="lg"
-                            onClick={() => navigate("/create")}
-                            className="h-14 px-12 bg-primary hover:bg-primary/90 rounded-xl font-bold"
+                            variant="outline"
+                            onClick={handleExamplesCta}
+                            className="h-14 px-8 text-base font-bold rounded-xl"
                         >
-                            Convertir mon PDF maintenant
+                            {page.secondaryCta}
                         </Button>
                     </div>
                 </section>
 
-                {/* SECTION 5 : CAS D'USAGE DÉTAILLÉS */}
-                <section className="mb-32 space-y-16">
-                    <h2 className="text-3xl font-bold text-center">Exemples concrets : qui utilise PDF to PowerPoint ?</h2>
-                    <div className="grid grid-cols-1 gap-8">
-                        {[
-                            { icon: <Zap className="w-6 h-6" />, title: "Freelancer - Pitch deck client", desc: "Votre client vous envoie un rapport PDF de 20 pages. Vous devez créer un pitch deck demain. Gain de temps : 2 heures." },
-                            { icon: <Laptop className="w-6 h-6" />, title: "Consultant - Présentation stratégique", desc: "Transformez vos documents de 20 pages en une présentation structurée pour un comité de direction." },
-                            { icon: <Sparkles className="w-6 h-6" />, title: "Coach - Contenu de formation", desc: "Convertissez vos PDF de formation en slides prêts à l'emploi pour vos plateformes de cours." },
-                            { icon: <FileText className="w-6 h-6" />, title: "Manager - Rapport mensuel", desc: "Transformez vos rapports d'activité en une présentation visuelle percutante en 30 secondes." }
-                        ].map((item, i) => (
-                            <div key={i} className="flex flex-col md:flex-row gap-6 p-8 bg-foreground/3 rounded-2xl border border-border/50 items-start">
+                <section className="mb-16 space-y-10">
+                    <div className="text-center space-y-3">
+                        <h2 className="text-3xl font-bold">Pourquoi cette page convertit mieux</h2>
+                        <p className="text-foreground/60 max-w-2xl mx-auto">
+                            L'intention PDF vers PowerPoint est precise. Le visiteur sait ce qu'il veut faire et cherche une solution rapide.
+                        </p>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        {page.highlights.map((item) => (
+                            <div key={item.title} className="p-6 bg-background border border-border/50 rounded-2xl space-y-3">
+                                <h3 className="font-bold text-lg">{item.title}</h3>
+                                <p className="text-foreground/60 text-sm leading-7">{item.description}</p>
+                            </div>
+                        ))}
+                    </div>
+                </section>
+
+                <section className="mb-16 py-10 px-8 bg-foreground/5 rounded-3xl border border-border/50">
+                    <h2 className="text-3xl font-bold text-center mb-10">Comment convertir un PDF en PowerPoint avec SlideAI</h2>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        {page.howItWorks.map((step, index) => (
+                            <div key={step} className="rounded-2xl bg-background/70 border border-border/50 p-6 space-y-4 text-center">
+                                <div className="text-sm font-bold text-primary">Etape {index + 1}</div>
+                                <p className="text-foreground/80 leading-7">{step}</p>
+                            </div>
+                        ))}
+                    </div>
+                </section>
+
+                <section className="mb-16 space-y-10">
+                    <div className="text-center space-y-3">
+                        <h2 className="text-3xl font-bold">Cas d'usage prioritaires</h2>
+                        <p className="text-foreground/60 max-w-2xl mx-auto">
+                            La promesse n'est pas une conversion gadget, mais un vrai gain de temps sur des supports deja existants.
+                        </p>
+                    </div>
+                    <div className="grid grid-cols-1 gap-6">
+                        {page.useCases.map((item, index) => (
+                            <div key={item.title} className="flex flex-col md:flex-row gap-5 p-6 bg-background border border-border/50 rounded-2xl items-start">
                                 <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center text-primary shrink-0">
-                                    {item.icon}
+                                    {useCaseIcons[index]}
                                 </div>
                                 <div className="space-y-2">
                                     <h3 className="text-xl font-bold">{item.title}</h3>
-                                    <p className="text-foreground/60 leading-relaxed">{item.desc}</p>
-                                    <p className="text-primary font-semibold text-sm">→ Résultat : Présentation professionnelle en 30 sec</p>
+                                    <p className="text-foreground/60 leading-7">{item.description}</p>
                                 </div>
                             </div>
                         ))}
                     </div>
                 </section>
 
-                {/* SECTION 6 : FAQ */}
-                <section className="mb-32 space-y-16">
-                    <h2 className="text-3xl font-bold text-center">Questions fréquentes</h2>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-                        {faqs.map((item, i) => (
-                            <div key={i} className="space-y-2">
+                <section className="mb-16 rounded-3xl border border-primary/20 bg-primary/5 p-8">
+                    <h2 className="text-3xl font-bold mb-6 text-center">Ce que vous obtenez</h2>
+                    <div className="grid md:grid-cols-2 gap-4">
+                        {page.highlights.map((item) => (
+                            <div key={item.title} className="flex items-start gap-3 rounded-2xl border border-primary/10 bg-background/70 p-5">
+                                <CheckCircle2 className="w-5 h-5 text-primary mt-1 shrink-0" />
+                                <div>
+                                    <h3 className="font-semibold">{item.title}</h3>
+                                    <p className="text-sm text-foreground/60 leading-7">{item.description}</p>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </section>
+
+                <section className="mb-16 space-y-10">
+                    <h2 className="text-3xl font-bold text-center">Questions frequentes</h2>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        {page.faqs.map((faq) => (
+                            <div key={faq.question} className="space-y-3 rounded-2xl border border-border/50 bg-background p-6">
                                 <div className="flex gap-3">
                                     <MessageSquare className="w-5 h-5 text-primary shrink-0 mt-1" />
-                                    <h3 className="font-bold">{item.q}</h3>
+                                    <h3 className="font-bold">{faq.question}</h3>
                                 </div>
-                                <p className="pl-8 text-foreground/60 text-sm leading-relaxed">{item.r}</p>
+                                <p className="text-foreground/60 text-sm leading-7">{faq.answer}</p>
                             </div>
                         ))}
                     </div>
                 </section>
 
-                {/* SECTION 7 : ENGLISH SEO SECTION (OPPORTUNITY #2) */}
-                <section className="mb-32 p-12 bg-primary/5 rounded-3xl border border-primary/10">
-                    <h2 className="text-3xl font-bold mb-6">Convert PDF to PowerPoint Online</h2>
-                    <div className="prose prose-invert max-w-none text-foreground/70">
-                        <p className="mb-4">
-                            Looking for a fast and reliable way to <strong>convert PDF to PowerPoint</strong>? SlideAI uses advanced artificial intelligence to transform your static PDF documents into dynamic, editable PPT slides in seconds. Whether it's a client report, a research paper, or a business proposal, our AI analyzes the layout and content to create a professional presentation that saves you hours of manual work.
-                        </p>
-                        <p className="mb-4">
-                            Why use SlideAI as your primary <strong>PDF to PPT converter</strong>? Unlike traditional converters that just embed images of your PDF onto slides, SlideAI reconstructs the text and structure, making it 100% editable in Microsoft PowerPoint or Google Slides.
-                        </p>
-                        <ul className="list-disc pl-6 space-y-2 mb-6">
-                            <li>Fast: 30-second conversion.</li>
-                            <li>Smart: AI-powered layout reconstruction.</li>
-                            <li>Try it with a 7-day no-card trial.</li>
-                            <li>Secure: Your data is encrypted and deleted automatically.</li>
-                        </ul>
-                        <div className="flex justify-center mt-8">
-                            <Button
-                                size="lg"
-                                onClick={() => navigate("/create")}
-                                className="h-12 bg-primary hover:bg-primary/90 rounded-xl font-bold"
-                            >
-                                Start Converting Now
-                            </Button>
-                        </div>
-                    </div>
-                </section>
-
-                {/* SECTION 7 : PRICING + CTA FINAL */}
-                <section className="mb-32 p-12 bg-gradient-to-br from-primary/5 via-background to-secondary/5 rounded-3xl border border-primary/20 text-center">
-                    <h2 className="text-3xl md:text-5xl font-bold mb-12">Commencer avec un essai 7 jours</h2>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto mb-12">
-                        <div className="p-8 bg-background border border-border/50 rounded-2xl space-y-4">
-                            <h3 className="text-xl font-bold">Starter apres essai</h3>
-                            <ul className="text-sm text-foreground/60 space-y-2 text-left">
-                                <li>• 15 générations par mois</li>
-                                <li>• Export PDF et PowerPoint image</li>
-                                <li>• Partage par lien</li>
-                                <li>• 9€/mois ou 7€/mois annuel</li>
-                            </ul>
-                            <Button onClick={() => navigate("/create")} className="w-full h-12 rounded-xl font-bold bg-primary mt-4">Demarrer l'essai</Button>
-                        </div>
-                        <div className="p-8 bg-background/50 border border-primary/30 rounded-2xl space-y-4 relative overflow-hidden">
-                            <div className="absolute top-4 right-4 text-[10px] font-bold bg-primary text-foreground px-2 py-1 rounded-full uppercase tracking-tighter">Populaire</div>
-                            <h3 className="text-xl font-bold">Plan Pro (19€/mois)</h3>
-                            <ul className="text-sm text-foreground/60 space-y-2 text-left">
-                                <li>• Générations illimitées</li>
-                                <li>• Brand kits illimités</li>
-                                <li>• Support prioritaire</li>
-                                <li>• Export PowerPoint éditable beta</li>
-                            </ul>
-                            <Button variant="outline" onClick={() => navigate("/pricing")} className="w-full h-12 rounded-xl font-bold mt-4">Voir tous les plans</Button>
-                        </div>
-                    </div>
-                </section>
-
-                {/* SECTION 8 : SOCIAL PROOF */}
-                <section className="text-center space-y-12">
-                    <h2 className="text-3xl font-bold">Rejoignez 500+ utilisateurs satisfaits</h2>
-                    <div className="flex justify-center gap-1">
-                        {[1, 2, 3, 4, 5].map(i => <Star key={i} className="w-6 h-6 text-yellow-500 fill-yellow-500" />)}
-                        <span className="ml-3 font-bold text-lg">4.8/5</span>
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                        {[
-                            { name: "Freelancer, consultant", quote: "J'ai gagné 2 heures par semaine." },
-                            { name: "Coach marketing", quote: "Parfait pour mes présentations clients." },
-                            { name: "Agence de communication", quote: "Outil indispensable pour mon agence." }
-                        ].map((item, i) => (
-                            <div key={i} className="p-6 italic text-foreground/60 text-sm border-l-2 border-primary/30">
-                                "{item.quote}"
-                                <p className="mt-4 not-italic font-bold text-foreground">{item.name}</p>
-                            </div>
-                        ))}
+                <section className="text-center rounded-3xl border border-border/50 bg-gradient-to-br from-primary/5 via-background to-secondary/5 p-10 space-y-6">
+                    <h2 className="text-3xl md:text-4xl font-bold">Passez du PDF au deck editable plus vite</h2>
+                    <p className="text-foreground/60 max-w-2xl mx-auto">
+                        Essayez SlideAI pour transformer une matiere existante en base de presentation exploitable, puis finalisez le rendu dans PowerPoint.
+                    </p>
+                    <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                        <Button size="lg" onClick={handlePrimaryCta} className="h-14 px-8 font-bold rounded-xl">
+                            Demarrer l'essai 7 jours
+                        </Button>
+                        <Button size="lg" variant="outline" onClick={() => navigate(localize("/pricing", "fr"))} className="h-14 px-8 font-bold rounded-xl">
+                            Voir les tarifs
+                        </Button>
                     </div>
                 </section>
             </div>

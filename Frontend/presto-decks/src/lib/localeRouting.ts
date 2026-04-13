@@ -1,6 +1,15 @@
 export type AppLocale = "fr" | "en";
 
 const EN_PREFIX = "/en";
+const FRENCH_ONLY_MARKETING_PATHS = new Set([
+  "/pdf-to-powerpoint",
+  "/generateur-powerpoint-ia",
+  "/creer-powerpoint-avec-ia",
+  "/outil-ia-presentation",
+  "/privacy",
+  "/terms",
+  "/gdpr",
+]);
 
 export function normalizeLocale(locale?: string | null): AppLocale {
   return locale?.toLowerCase().startsWith("en") ? "en" : "fr";
@@ -37,6 +46,11 @@ export function isLocalizedMarketingPath(pathname: string): boolean {
 export function getPathLocale(pathname: string): AppLocale | null {
   if (pathname === EN_PREFIX || pathname.startsWith(`${EN_PREFIX}/`)) {
     return "en";
+  }
+
+  const basePath = stripLocalePrefix(pathname);
+  if (FRENCH_ONLY_MARKETING_PATHS.has(basePath)) {
+    return "fr";
   }
 
   return isLocalizedMarketingPath(pathname) ? "fr" : null;

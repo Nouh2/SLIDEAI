@@ -1,6 +1,12 @@
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
+import {
+  homePageContent,
+  businessSeoPages,
+  pdfToPowerPointPageContent,
+  seoLandingLinks,
+} from "../src/content/seo/marketingPages.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -56,7 +62,7 @@ function buildFaqJsonLd(faqs) {
   })}</script>`;
 }
 
-function buildWebsiteJsonLd({ title, canonicalUrl, description }) {
+function buildWebPageJsonLd({ title, canonicalUrl, description }) {
   return `<script type="application/ld+json">${JSON.stringify({
     "@context": "https://schema.org",
     "@type": "WebPage",
@@ -82,32 +88,14 @@ function renderHero(title, description, ctaLabel, ctaHref, secondaryLabel, secon
 </section>`;
 }
 
-function renderFeatureGrid(items) {
+function renderFeatureGrid(items, title = "Highlights") {
   return `<section>
-  <h2 class="section-title">Highlights</h2>
+  <h2 class="section-title">${escapeHtml(title)}</h2>
   <div class="grid">${items
     .map(
       (item) => `<article class="card">
     <h3>${escapeHtml(item.title)}</h3>
     <p>${escapeHtml(item.description)}</p>
-  </article>`
-    )
-    .join("\n")}</div>
-</section>`;
-}
-
-function renderFaqs(faqs) {
-  if (!faqs?.length) {
-    return "";
-  }
-
-  return `<section>
-  <h2 class="section-title">FAQ</h2>
-  <div class="faq-list">${faqs
-    .map(
-      (faq) => `<article class="faq-item">
-    <h3>${escapeHtml(faq.question)}</h3>
-    <p>${escapeHtml(faq.answer)}</p>
   </article>`
     )
     .join("\n")}</div>
@@ -123,6 +111,38 @@ function renderSectionList(title, items) {
     <h3>${escapeHtml(item.title)}</h3>
     <p>${escapeHtml(item.body)}</p>
   </article>`
+    )
+    .join("\n")}</div>
+</section>`;
+}
+
+function renderFaqs(title, faqs) {
+  if (!faqs?.length) {
+    return "";
+  }
+
+  return `<section>
+  <h2 class="section-title">${escapeHtml(title)}</h2>
+  <div class="faq-list">${faqs
+    .map(
+      (faq) => `<article class="faq-item">
+    <h3>${escapeHtml(faq.question)}</h3>
+    <p>${escapeHtml(faq.answer)}</p>
+  </article>`
+    )
+    .join("\n")}</div>
+</section>`;
+}
+
+function renderLinkGrid(title, items) {
+  return `<section>
+  <h2 class="section-title">${escapeHtml(title)}</h2>
+  <div class="grid">${items
+    .map(
+      (item) => `<a class="card" href="${escapeHtml(item.href)}">
+    <h3>${escapeHtml(item.title)}</h3>
+    <p>${escapeHtml(item.description)}</p>
+  </a>`
     )
     .join("\n")}</div>
 </section>`;
@@ -158,7 +178,7 @@ function buildDocument({ lang, title, description, canonicalUrl, alternates = []
     :root { color-scheme: light; }
     * { box-sizing: border-box; }
     body { margin: 0; font-family: Pretendard, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: linear-gradient(180deg, #fffdf8 0%, #f7fafc 220px); color: #0f172a; }
-    a { text-decoration: none; }
+    a { text-decoration: none; color: inherit; }
     .shell { max-width: 1080px; margin: 0 auto; padding: 28px 20px 72px; }
     .topbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 28px; }
     .brand { font-size: 1.1rem; font-weight: 800; letter-spacing: -0.03em; color: #111827; }
@@ -205,218 +225,370 @@ function buildDocument({ lang, title, description, canonicalUrl, alternates = []
 </html>`;
 }
 
-const pricingFaqFr = [
-  { question: "Puis-je essayer SlideAI sans carte bancaire ?", answer: "Oui. SlideAI propose un essai Pro de 7 jours sans carte bancaire." },
-  { question: "Quelle formule choisir ?", answer: "Pack Mission pour un besoin ponctuel, Pro pour un usage regulier, Business pour les equipes." },
-  { question: "Les exports restent-ils modifiables ?", answer: "Oui. Les presentations exportees restent editables dans PowerPoint." },
-];
+function getHomeLinkCards(locale) {
+  if (locale === "en") {
+    return [
+      {
+        href: `${DOMAIN}/pdf-to-powerpoint`,
+        title: "Convert PDF to PowerPoint",
+        description: "Capture direct intent from visitors who already have source material.",
+      },
+      {
+        href: `${DOMAIN}/generateur-powerpoint-ia`,
+        title: "French AI PowerPoint generator page",
+        description: "Own the broad French query around AI-powered slide creation.",
+      },
+      {
+        href: `${DOMAIN}/creer-powerpoint-avec-ia`,
+        title: "How to create a PowerPoint with AI",
+        description: "Answer the how-to intent with a tighter educational promise.",
+      },
+      {
+        href: `${DOMAIN}/outil-ia-presentation`,
+        title: "AI presentation tool",
+        description: "Capture broader tool-discovery intent with internal links to the product pages.",
+      },
+    ];
+  }
 
-const pricingFaqEn = [
-  { question: "Can I try SlideAI without a credit card?", answer: "Yes. SlideAI offers a 7-day Pro trial with no credit card required." },
-  { question: "Which plan should I choose?", answer: "Pack Mission fits one-off needs, Pro fits recurring usage, Business fits team workflows." },
-  { question: "Are exports editable in PowerPoint?", answer: "Yes. Generated presentations remain editable after export." },
-];
+  return seoLandingLinks.map((item) => ({
+    href: `${DOMAIN}${item.href}`,
+    title: item.title,
+    description: item.description,
+  }));
+}
 
-const pdfFaqFr = [
-  { question: "Quels formats sont acceptes ?", answer: "SlideAI est pense pour transformer plusieurs sources documentaires, dont les PDF, en base de presentation." },
-  { question: "Puis-je modifier le resultat ?", answer: "Oui. L'objectif est d'obtenir une presentation editable, pas un export fige." },
-  { question: "Quel est le gain de temps ?", answer: "Le gain se compare a une recreation manuelle qui prend souvent plusieurs heures." },
-];
+function getPricingPages() {
+  const pricingFaqFr = [
+    { question: "Puis-je essayer SlideAI sans carte bancaire ?", answer: "Oui. SlideAI propose un essai Pro de 7 jours sans carte bancaire." },
+    { question: "Quelle formule choisir ?", answer: "Pack Mission pour un besoin ponctuel, Pro pour un usage regulier, Business pour les equipes." },
+    { question: "Les exports restent-ils modifiables ?", answer: "Oui. Les presentations exportees restent editables dans PowerPoint." },
+  ];
 
-const pages = [
-  {
-    outputPath: "pricing/index.html",
+  const pricingFaqEn = [
+    { question: "Can I try SlideAI without a credit card?", answer: "Yes. SlideAI offers a 7-day Pro trial with no credit card required." },
+    { question: "Which plan should I choose?", answer: "Pack Mission fits one-off needs, Pro fits recurring usage, Business fits team workflows." },
+    { question: "Are exports editable in PowerPoint?", answer: "Yes. Generated presentations remain editable after export." },
+  ];
+
+  return [
+    {
+      outputPath: "pricing/index.html",
+      lang: "fr",
+      title: "Tarifs SlideAI",
+      description: "Comparez les offres SlideAI pour generer des presentations PowerPoint avec l'IA selon votre rythme et votre volume.",
+      canonicalUrl: `${DOMAIN}/pricing`,
+      alternates: [
+        { hrefLang: "fr", href: `${DOMAIN}/pricing` },
+        { hrefLang: "en", href: `${DOMAIN}/en/pricing` },
+        { hrefLang: "x-default", href: `${DOMAIN}/pricing` },
+      ],
+      body: [
+        renderHero(
+          "Des tarifs adaptes a la creation de presentations IA",
+          "Choisissez une formule simple pour creer des slides plus vite, tester le produit sans carte, puis monter en puissance quand votre volume augmente.",
+          "Demarrer l'essai 7 jours",
+          "/auth?returnTo=%2Fpricing",
+          "Voir le blog",
+          "/blog",
+          "Page tarifaire indexable"
+        ),
+        renderFeatureGrid([
+          { title: "Pack Mission", description: "19 EUR pour un besoin ponctuel, sans abonnement." },
+          { title: "Pack Trimestre", description: "39 EUR pour un besoin court avec plusieurs livrables." },
+          { title: "Pro", description: "A partir de 14 EUR par mois en annuel ou 19 EUR au mois." },
+          { title: "Business", description: "A partir de 24 EUR par mois en annuel ou 29 EUR au mois pour les equipes." },
+        ], "Offres"),
+        renderSectionList("Ce que vous obtenez", [
+          { title: "Generation rapide", body: "Transformez du texte, des documents et des idees en slides structurees en quelques minutes." },
+          { title: "Export modifiable", body: "Recuperez un PowerPoint editable pour finaliser votre message et votre design." },
+          { title: "Essai sans friction", body: "Le parcours d'essai est concu pour permettre un premier usage sans carte bancaire." },
+        ]),
+        renderFaqs("Questions frequentes", pricingFaqFr),
+      ].join("\n"),
+      jsonLd: [
+        buildWebPageJsonLd({ title: "Tarifs SlideAI", canonicalUrl: `${DOMAIN}/pricing`, description: "Page tarifaire SlideAI." }),
+        buildFaqJsonLd(pricingFaqFr),
+      ],
+    },
+    {
+      outputPath: "en/pricing/index.html",
+      lang: "en",
+      title: "SlideAI Pricing",
+      description: "Compare SlideAI plans for AI-powered PowerPoint generation, from one-off packs to recurring team usage.",
+      canonicalUrl: `${DOMAIN}/en/pricing`,
+      alternates: [
+        { hrefLang: "fr", href: `${DOMAIN}/pricing` },
+        { hrefLang: "en", href: `${DOMAIN}/en/pricing` },
+        { hrefLang: "x-default", href: `${DOMAIN}/pricing` },
+      ],
+      body: [
+        renderHero(
+          "Pricing built for AI presentation workflows",
+          "Choose a simple offer to generate better slides faster, start with a no-card trial, then upgrade when your workflow grows.",
+          "Start 7-day trial",
+          "/auth?returnTo=%2Fen%2Fpricing",
+          "Read the blog",
+          "/en/blog",
+          "Indexable pricing page"
+        ),
+        renderFeatureGrid([
+          { title: "Pack Mission", description: "EUR 19 for one-off presentation needs." },
+          { title: "Pack Trimestre", description: "EUR 39 for a short burst of heavier usage." },
+          { title: "Pro", description: "From EUR 14 monthly on annual billing or EUR 19 month-to-month." },
+          { title: "Business", description: "From EUR 24 monthly on annual billing or EUR 29 month-to-month." },
+        ], "Plans"),
+        renderSectionList("What is included", [
+          { title: "Fast generation", body: "Turn text, documents, and notes into structured slides in minutes." },
+          { title: "Editable export", body: "Export a PowerPoint file your team can still edit after generation." },
+          { title: "Low-friction trial", body: "The entry path helps users test value before committing." },
+        ]),
+        renderFaqs("Frequently asked questions", pricingFaqEn),
+      ].join("\n"),
+      jsonLd: [
+        buildWebPageJsonLd({ title: "SlideAI Pricing", canonicalUrl: `${DOMAIN}/en/pricing`, description: "SlideAI pricing page." }),
+        buildFaqJsonLd(pricingFaqEn),
+      ],
+    },
+  ];
+}
+
+function getHomePages() {
+  return [
+    {
+      outputPath: "index.html",
+      lang: "fr",
+      title: homePageContent.fr.title,
+      description: homePageContent.fr.description,
+      canonicalUrl: `${DOMAIN}/`,
+      alternates: [
+        { hrefLang: "fr", href: `${DOMAIN}/` },
+        { hrefLang: "en", href: `${DOMAIN}/en` },
+        { hrefLang: "x-default", href: `${DOMAIN}/` },
+      ],
+      body: [
+        renderHero(
+          homePageContent.fr.hero.headline,
+          homePageContent.fr.hero.subtitle,
+          homePageContent.fr.hero.primaryCta,
+          "/auth?returnTo=%2Fcreate",
+          homePageContent.fr.hero.secondaryCta,
+          "/examples",
+          homePageContent.fr.staticSections.eyebrow
+        ),
+        renderFeatureGrid(homePageContent.fr.staticSections.highlights, "Pourquoi SlideAI"),
+        renderLinkGrid("Pages SEO prioritaires", getHomeLinkCards("fr")),
+        renderFaqs(homePageContent.fr.staticSections.faqTitle, homePageContent.fr.staticSections.faqs),
+      ].join("\n"),
+      jsonLd: [
+        buildWebPageJsonLd({ title: homePageContent.fr.title, canonicalUrl: `${DOMAIN}/`, description: homePageContent.fr.description }),
+        buildFaqJsonLd(homePageContent.fr.staticSections.faqs),
+      ],
+    },
+    {
+      outputPath: "en/index.html",
+      lang: "en",
+      title: homePageContent.en.title,
+      description: homePageContent.en.description,
+      canonicalUrl: `${DOMAIN}/en`,
+      alternates: [
+        { hrefLang: "fr", href: `${DOMAIN}/` },
+        { hrefLang: "en", href: `${DOMAIN}/en` },
+        { hrefLang: "x-default", href: `${DOMAIN}/` },
+      ],
+      body: [
+        renderHero(
+          homePageContent.en.hero.headline,
+          homePageContent.en.hero.subtitle,
+          homePageContent.en.hero.primaryCta,
+          "/auth?returnTo=%2Fcreate",
+          homePageContent.en.hero.secondaryCta,
+          "/en/examples",
+          homePageContent.en.staticSections.eyebrow
+        ),
+        renderFeatureGrid(homePageContent.en.staticSections.highlights, "Why SlideAI"),
+        renderLinkGrid("High-intent pages", getHomeLinkCards("en")),
+        renderFaqs(homePageContent.en.staticSections.faqTitle, homePageContent.en.staticSections.faqs),
+      ].join("\n"),
+      jsonLd: [
+        buildWebPageJsonLd({ title: homePageContent.en.title, canonicalUrl: `${DOMAIN}/en`, description: homePageContent.en.description }),
+        buildFaqJsonLd(homePageContent.en.staticSections.faqs),
+      ],
+    },
+  ];
+}
+
+function getBusinessPages() {
+  return Object.values(businessSeoPages).map((page) => ({
+    outputPath: `${page.url.replace(/^\//, "")}/index.html`,
     lang: "fr",
-    title: "Tarifs SlideAI",
-    description: "Comparez les offres SlideAI pour generer des presentations PowerPoint avec l'IA selon votre rythme et votre volume.",
-    canonicalUrl: `${DOMAIN}/pricing`,
+    title: page.title,
+    description: page.description,
+    canonicalUrl: `${DOMAIN}${page.url}`,
     alternates: [
-      { hrefLang: "fr", href: `${DOMAIN}/pricing` },
-      { hrefLang: "en", href: `${DOMAIN}/en/pricing` },
-      { hrefLang: "x-default", href: `${DOMAIN}/pricing` },
+      { hrefLang: "fr", href: `${DOMAIN}${page.url}` },
+      { hrefLang: "x-default", href: `${DOMAIN}${page.url}` },
     ],
     body: [
       renderHero(
-        "Des tarifs adaptes a la creation de presentations IA",
-        "Choisissez une formule simple pour creer des slides plus vite, tester le produit sans carte, puis monter en puissance quand votre volume augmente.",
+        page.h1,
+        page.intro,
         "Demarrer l'essai 7 jours",
-        "/auth?returnTo=%2Fpricing",
-        "Voir le blog",
-        "/blog",
-        "Page tarifaire indexable"
+        "/auth?returnTo=%2Fcreate",
+        "Voir les tarifs",
+        "/pricing",
+        page.keyword
       ),
-      renderFeatureGrid([
-        { title: "Pack Mission", description: "19 EUR pour un besoin ponctuel, sans abonnement." },
-        { title: "Pack Trimestre", description: "39 EUR pour un besoin court avec plusieurs livrables." },
-        { title: "Pro", description: "A partir de 14 EUR par mois en annuel ou 19 EUR au mois." },
-        { title: "Business", description: "A partir de 24 EUR par mois en annuel ou 29 EUR au mois pour les equipes." },
-      ]),
-      renderSectionList("Ce que vous obtenez", [
-        { title: "Generation rapide", body: "Transformez du texte, des documents et des idees en slides structurees en quelques minutes." },
-        { title: "Export modifiable", body: "Recuperez un PowerPoint editable pour finaliser votre message et votre design." },
-        { title: "Essai sans friction", body: "Le parcours d'essai est concu pour permettre un premier usage sans carte bancaire." },
-      ]),
-      renderFaqs(pricingFaqFr),
+      renderFeatureGrid(page.useCases.map((item) => ({ title: item, description: "Usage cible pour une intention de recherche professionnelle." })), "Pour qui"),
+      renderSectionList("Benefices", page.benefits.map((item) => ({ title: item, body: "Concu pour accelerer la creation du premier jet sans sacrifier la qualite du livrable." }))),
+      renderSectionList("Comment ca marche", page.howItWorks.map((item, index) => ({ title: `Etape ${index + 1}`, body: item }))),
+      renderFaqs("Questions frequentes", page.faqs),
     ].join("\n"),
-    jsonLd: [buildWebsiteJsonLd({ title: "Tarifs SlideAI", canonicalUrl: `${DOMAIN}/pricing`, description: "Page tarifaire SlideAI." }), buildFaqJsonLd(pricingFaqFr)],
-  },
-  {
-    outputPath: "en/pricing/index.html",
-    lang: "en",
-    title: "SlideAI Pricing",
-    description: "Compare SlideAI plans for AI-powered PowerPoint generation, from one-off packs to recurring team usage.",
-    canonicalUrl: `${DOMAIN}/en/pricing`,
-    alternates: [
-      { hrefLang: "fr", href: `${DOMAIN}/pricing` },
-      { hrefLang: "en", href: `${DOMAIN}/en/pricing` },
-      { hrefLang: "x-default", href: `${DOMAIN}/pricing` },
+    jsonLd: [
+      buildWebPageJsonLd({ title: page.title, canonicalUrl: `${DOMAIN}${page.url}`, description: page.description }),
+      buildFaqJsonLd(page.faqs),
     ],
-    body: [
-      renderHero(
-        "Pricing built for AI presentation workflows",
-        "Choose a simple offer to generate better slides faster, start with a no-card trial, then upgrade when your workflow grows.",
-        "Start 7-day trial",
-        "/auth?returnTo=%2Fen%2Fpricing",
-        "Read the blog",
-        "/en/blog",
-        "Indexable pricing page"
-      ),
-      renderFeatureGrid([
-        { title: "Pack Mission", description: "EUR 19 for one-off presentation needs." },
-        { title: "Pack Trimestre", description: "EUR 39 for a short burst of heavier usage." },
-        { title: "Pro", description: "From EUR 14 monthly on annual billing or EUR 19 month-to-month." },
-        { title: "Business", description: "From EUR 24 monthly on annual billing or EUR 29 month-to-month." },
-      ]),
-      renderSectionList("What is included", [
-        { title: "Fast generation", body: "Turn text, documents, and notes into structured slides in minutes." },
-        { title: "Editable export", body: "Export a PowerPoint file your team can still edit after generation." },
-        { title: "Low-friction trial", body: "The entry path helps users test value before committing." },
-      ]),
-      renderFaqs(pricingFaqEn),
-    ].join("\n"),
-    jsonLd: [buildWebsiteJsonLd({ title: "SlideAI Pricing", canonicalUrl: `${DOMAIN}/en/pricing`, description: "SlideAI pricing page." }), buildFaqJsonLd(pricingFaqEn)],
-  },
-  {
+  }));
+}
+
+function getPdfPage() {
+  const page = pdfToPowerPointPageContent;
+
+  return {
     outputPath: "pdf-to-powerpoint/index.html",
     lang: "fr",
-    title: "Convertir PDF en PowerPoint",
-    description: "Transformez un PDF en presentation PowerPoint editable avec SlideAI, plus vite et avec une structure exploitable.",
-    canonicalUrl: `${DOMAIN}/pdf-to-powerpoint`,
+    title: page.title,
+    description: page.description,
+    canonicalUrl: `${DOMAIN}${page.url}`,
     alternates: [
-      { hrefLang: "fr", href: `${DOMAIN}/pdf-to-powerpoint` },
-      { hrefLang: "x-default", href: `${DOMAIN}/pdf-to-powerpoint` },
+      { hrefLang: "fr", href: `${DOMAIN}${page.url}` },
+      { hrefLang: "x-default", href: `${DOMAIN}${page.url}` },
     ],
     body: [
       renderHero(
-        "Convertir un PDF en PowerPoint sans repartir de zero",
-        "SlideAI aide a transformer un PDF en slides presentables, editables et plus rapides a finaliser pour un client, une direction ou une reunion interne.",
-        "Essayer SlideAI",
-        "/auth?returnTo=%2Fpdf-to-powerpoint",
-        "Tarifs",
-        "/pricing",
-        "Landing page SEO"
+        page.h1,
+        page.intro,
+        page.primaryCta,
+        "/auth?returnTo=%2Fcreate",
+        page.secondaryCta,
+        "/examples",
+        page.eyebrow
       ),
-      renderFeatureGrid([
-        { title: "Gain de temps", description: "Evitez les copier-coller manuels, la remise en page et la reconstruction slide par slide." },
-        { title: "Support editable", description: "Le resultat reste retravaillable dans PowerPoint pour adapter le message final." },
-        { title: "Usage pro", description: "Pense pour les consultants, freelances, managers et equipes qui presentent souvent." },
-      ]),
-      renderFaqs(pdfFaqFr),
+      renderFeatureGrid(page.highlights, "Pourquoi cette page est prioritaire"),
+      renderSectionList("Comment ca marche", page.howItWorks.map((step, index) => ({ title: `Etape ${index + 1}`, body: step }))),
+      renderSectionList("Cas d'usage", page.useCases.map((item) => ({ title: item.title, body: item.description }))),
+      renderFaqs("Questions frequentes", page.faqs),
     ].join("\n"),
-    jsonLd: [buildWebsiteJsonLd({ title: "Convertir PDF en PowerPoint", canonicalUrl: `${DOMAIN}/pdf-to-powerpoint`, description: "Landing page PDF to PowerPoint." }), buildFaqJsonLd(pdfFaqFr)],
-  },
-  {
-    outputPath: "privacy/index.html",
-    lang: "fr",
-    title: "Politique de confidentialite",
-    description: "Consultez la politique de confidentialite de SlideAI et le traitement des donnees utilisees par la plateforme.",
-    canonicalUrl: `${DOMAIN}/privacy`,
-    body: [
-      renderHero(
-        "Politique de confidentialite",
-        "Presentation claire des donnees collectees, de leur usage et des garanties apportees par SlideAI.",
-        "Contacter SlideAI",
-        "mailto:contact@slideai.fr",
-        "",
-        "",
-        "Legal page"
-      ),
-      renderSectionList("Principes essentiels", [
-        { title: "Collecte", body: "SlideAI traite les informations de compte, les contenus importes, les prompts et certaines donnees techniques necessaires au service." },
-        { title: "Usage", body: "Ces donnees servent a fournir le service, gerer le compte, assurer le support et executer les workflows de generation." },
-        { title: "Sous-traitance IA", body: "Les contenus utilises pour la generation peuvent etre transmis a des fournisseurs techniques pour produire le resultat demande." },
-        { title: "Droits", body: "Les utilisateurs peuvent demander l'acces, la rectification ou la suppression de leurs donnees selon la reglementation applicable." },
-      ]),
-    ].join("\n"),
-    jsonLd: [buildWebsiteJsonLd({ title: "Politique de confidentialite", canonicalUrl: `${DOMAIN}/privacy`, description: "Politique de confidentialite SlideAI." })],
-  },
-  {
-    outputPath: "terms/index.html",
-    lang: "fr",
-    title: "Conditions generales d'utilisation",
-    description: "Consultez les conditions generales d'utilisation de SlideAI et le cadre d'usage du service.",
-    canonicalUrl: `${DOMAIN}/terms`,
-    body: [
-      renderHero(
-        "Conditions generales d'utilisation",
-        "Cadre contractuel de l'usage de SlideAI, des comptes utilisateurs et des responsabilites liees au contenu genere.",
-        "Contacter SlideAI",
-        "mailto:contact@slideai.fr",
-        "",
-        "",
-        "Legal page"
-      ),
-      renderSectionList("Points cles", [
-        { title: "Service", body: "SlideAI assiste la creation de presentations a partir de texte et de documents avec l'appui de modeles tiers." },
-        { title: "Responsabilite", body: "Le contenu genere doit etre relu et valide par l'utilisateur avant diffusion ou usage externe." },
-        { title: "Compte", body: "L'acces a certaines fonctionnalites suppose un compte et la protection de ses identifiants." },
-        { title: "Propriete intellectuelle", body: "L'utilisateur conserve ses contenus, sous reserve des droits de tiers et des conditions d'usage des sources." },
-      ]),
-    ].join("\n"),
-    jsonLd: [buildWebsiteJsonLd({ title: "Conditions generales d'utilisation", canonicalUrl: `${DOMAIN}/terms`, description: "Conditions d'utilisation SlideAI." })],
-  },
-  {
-    outputPath: "gdpr/index.html",
-    lang: "fr",
-    title: "Conformite RGPD",
-    description: "Consultez les engagements SlideAI en matiere de protection des donnees personnelles et de conformite RGPD.",
-    canonicalUrl: `${DOMAIN}/gdpr`,
-    body: [
-      renderHero(
-        "Conformite RGPD",
-        "Synthese des engagements SlideAI sur la protection des donnees, les droits utilisateurs et les sous-traitants.",
-        "Contacter le support",
-        "mailto:contact@slideai.fr",
-        "",
-        "",
-        "Legal page"
-      ),
-      renderSectionList("Engagements", [
-        { title: "Privacy by design", body: "La plateforme cherche a limiter l'exposition des donnees et a encadrer leur traitement des la conception." },
-        { title: "Droits des personnes", body: "Acces, rectification, suppression et portabilite peuvent etre demandes selon le contexte applicable." },
-        { title: "Sous-traitants", body: "SlideAI s'appuie sur des partenaires techniques pour l'hebergement, le paiement et certaines briques IA." },
-        { title: "Contact", body: "Toute question relative aux donnees personnelles peut etre adressee a contact@slideai.fr." },
-      ]),
-    ].join("\n"),
-    jsonLd: [buildWebsiteJsonLd({ title: "Conformite RGPD", canonicalUrl: `${DOMAIN}/gdpr`, description: "Page RGPD SlideAI." })],
-  },
-];
+    jsonLd: [
+      buildWebPageJsonLd({ title: page.title, canonicalUrl: `${DOMAIN}${page.url}`, description: page.description }),
+      buildFaqJsonLd(page.faqs),
+    ],
+  };
+}
 
-function generateSeoStaticPages() {
+function getLegalPages() {
+  return [
+    {
+      outputPath: "privacy/index.html",
+      lang: "fr",
+      title: "Politique de confidentialite",
+      description: "Consultez la politique de confidentialite de SlideAI et le traitement des donnees utilisees par la plateforme.",
+      canonicalUrl: `${DOMAIN}/privacy`,
+      body: [
+        renderHero(
+          "Politique de confidentialite",
+          "Presentation claire des donnees collectees, de leur usage et des garanties apportees par SlideAI.",
+          "Contacter SlideAI",
+          "mailto:contact@slideai.fr",
+          "",
+          "",
+          "Legal page"
+        ),
+        renderSectionList("Principes essentiels", [
+          { title: "Collecte", body: "SlideAI traite les informations de compte, les contenus importes, les prompts et certaines donnees techniques necessaires au service." },
+          { title: "Usage", body: "Ces donnees servent a fournir le service, gerer le compte, assurer le support et executer les workflows de generation." },
+          { title: "Sous-traitance IA", body: "Les contenus utilises pour la generation peuvent etre transmis a des fournisseurs techniques pour produire le resultat demande." },
+          { title: "Droits", body: "Les utilisateurs peuvent demander l'acces, la rectification ou la suppression de leurs donnees selon la reglementation applicable." },
+        ]),
+      ].join("\n"),
+      jsonLd: [buildWebPageJsonLd({ title: "Politique de confidentialite", canonicalUrl: `${DOMAIN}/privacy`, description: "Politique de confidentialite SlideAI." })],
+    },
+    {
+      outputPath: "terms/index.html",
+      lang: "fr",
+      title: "Conditions generales d'utilisation",
+      description: "Consultez les conditions generales d'utilisation de SlideAI et le cadre d'usage du service.",
+      canonicalUrl: `${DOMAIN}/terms`,
+      body: [
+        renderHero(
+          "Conditions generales d'utilisation",
+          "Resume des conditions applicables a l'utilisation de SlideAI, de l'ouverture de compte a l'usage du service.",
+          "Contacter SlideAI",
+          "mailto:contact@slideai.fr",
+          "",
+          "",
+          "Legal page"
+        ),
+        renderSectionList("Points cles", [
+          { title: "Acces au service", body: "L'utilisateur doit fournir des informations exactes et garder ses acces securises." },
+          { title: "Usage autorise", body: "SlideAI doit etre utilise dans le respect du droit applicable et sans contenu illicite ou abusif." },
+          { title: "Facturation", body: "Les offres payantes sont regies par les tarifs affiches et les conditions de renouvellement associees." },
+          { title: "Limites de responsabilite", body: "Le service est fourni pour accelerer la production de presentations, avec une verification finale qui reste sous controle utilisateur." },
+        ]),
+      ].join("\n"),
+      jsonLd: [buildWebPageJsonLd({ title: "Conditions generales d'utilisation", canonicalUrl: `${DOMAIN}/terms`, description: "Conditions d'utilisation SlideAI." })],
+    },
+    {
+      outputPath: "gdpr/index.html",
+      lang: "fr",
+      title: "Conformite RGPD",
+      description: "Consultez les engagements SlideAI en matiere de protection des donnees personnelles et de conformite RGPD.",
+      canonicalUrl: `${DOMAIN}/gdpr`,
+      body: [
+        renderHero(
+          "Conformite RGPD",
+          "Vue d'ensemble des engagements SlideAI sur la gestion des donnees personnelles dans un contexte europeen.",
+          "Contacter SlideAI",
+          "mailto:contact@slideai.fr",
+          "",
+          "",
+          "Legal page"
+        ),
+        renderSectionList("Engagements", [
+          { title: "Base legale", body: "Les traitements sont relies a la fourniture du service, a la gestion du compte et au support utilisateur." },
+          { title: "Conservation", body: "Les donnees sont conservees selon la duree necessaire au service et aux obligations legales applicables." },
+          { title: "Sous-traitants", body: "SlideAI s'appuie sur des prestataires techniques pour l'hebergement, l'authentification et certains workflows IA." },
+          { title: "Droits des personnes", body: "Acces, rectification, suppression et opposition peuvent etre demandes selon le cadre RGPD." },
+        ]),
+      ].join("\n"),
+      jsonLd: [buildWebPageJsonLd({ title: "Conformite RGPD", canonicalUrl: `${DOMAIN}/gdpr`, description: "Page RGPD SlideAI." })],
+    },
+  ];
+}
+
+function writePage(page, assetTags) {
+  const outputPath = path.join(DIST_DIR, page.outputPath);
+  ensureDir(path.dirname(outputPath));
+  fs.writeFileSync(outputPath, buildDocument(page, assetTags), "utf-8");
+}
+
+function generateStaticPages() {
   if (!fs.existsSync(INDEX_PATH)) {
     throw new Error(`Base Vite build not found: ${INDEX_PATH}`);
   }
 
-  const indexHtml = fs.readFileSync(INDEX_PATH, "utf-8");
-  const assetTags = extractAssetTags(indexHtml);
+  const baseIndexHtml = fs.readFileSync(INDEX_PATH, "utf-8");
+  const assetTags = extractAssetTags(baseIndexHtml);
+  const pages = [
+    ...getHomePages(),
+    ...getPricingPages(),
+    getPdfPage(),
+    ...getBusinessPages(),
+    ...getLegalPages(),
+  ];
 
-  for (const page of pages) {
-    const outputPath = path.join(DIST_DIR, page.outputPath);
-    ensureDir(path.dirname(outputPath));
-    fs.writeFileSync(outputPath, buildDocument(page, assetTags), "utf-8");
-  }
-
+  pages.forEach((page) => writePage(page, assetTags));
   console.log(`Generated ${pages.length} static SEO pages.`);
 }
 
-generateSeoStaticPages();
+generateStaticPages();

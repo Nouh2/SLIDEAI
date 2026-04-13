@@ -18,7 +18,6 @@ const MIN_PERSONA_POSTS = 2;
 const STATIC_ROUTES = [
   { path: "/", changefreq: "weekly", priority: 1.0, locales: ["fr", "en"] },
   { path: "/pricing", changefreq: "monthly", priority: 0.8, locales: ["fr", "en"] },
-  { path: "/examples", changefreq: "weekly", priority: 0.8, locales: ["fr", "en"] },
   { path: "/blog", changefreq: "daily", priority: 0.9, locales: ["fr", "en"] },
   { path: "/pdf-to-powerpoint", changefreq: "weekly", priority: 0.9, locales: ["fr"] },
   { path: "/generateur-powerpoint-ia", changefreq: "weekly", priority: 0.9, locales: ["fr"] },

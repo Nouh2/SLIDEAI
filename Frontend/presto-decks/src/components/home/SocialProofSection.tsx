@@ -32,7 +32,7 @@ export function SocialProofSection() {
   ];
 
   const line = isFr
-    ? "70+ professionnels l'ont déjà utilisé en beta"
+    ? "70+ professionnels l'ont deja utilise en beta"
     : "70+ professionals have already used it in beta";
 
   return (

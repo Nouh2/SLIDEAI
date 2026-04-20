@@ -8,10 +8,20 @@
 import { createClient } from '@supabase/supabase-js';
 
 const SUPABASE_URL = 'https://dntcdhabtctfbylynlcr.supabase.co';
-const SUPABASE_SERVICE_ROLE_KEY =
-  '[REDACTED_SUPABASE_SERVICE_ROLE_KEY]';
-const RESEND_API_KEY = '[REDACTED_RESEND_API_KEY]';
 const EMAIL_FROM = 'SlideAI <noreply@slideai.fr>';
+
+function requireEnv(name: 'SUPABASE_SERVICE_ROLE_KEY' | 'RESEND_API_KEY') {
+  const value = process.env[name];
+
+  if (!value) {
+    throw new Error(`Missing required environment variable: ${name}`);
+  }
+
+  return value;
+}
+
+const SUPABASE_SERVICE_ROLE_KEY = requireEnv('SUPABASE_SERVICE_ROLE_KEY');
+const RESEND_API_KEY = requireEnv('RESEND_API_KEY');
 
 const TARGETS = [
   'karlaelong@yahoo.com',

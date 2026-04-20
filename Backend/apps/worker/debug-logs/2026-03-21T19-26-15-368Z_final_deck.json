@@ -1,0 +1,287 @@
+{
+  "title": "Plan Marketing Stratégique SaaS pour TPE",
+  "colorPalette": {
+    "primary": "#EA580C",
+    "secondary": "#DC2626",
+    "accent": "#CA8A04",
+    "bg": "#FFFFFF",
+    "text": "#1C1917"
+  },
+  "slides": [
+    {
+      "layout": "cover",
+      "title": "Stratégie de Lancement et Croissance SaaS pour TPE",
+      "imageSearchQuery": "modern small business office technology",
+      "content": {
+        "subtitle": "Accélérer la transformation numérique des très petites entreprises par une approche marketing agile et centrée sur l'utilisateur."
+      }
+    },
+    {
+      "layout": "executive-summary",
+      "title": "Synthèse Executive : Objectifs 2024",
+      "imageSearchQuery": "business dashboard analytics",
+      "content": {
+        "stats": [
+          {
+            "value": "500",
+            "label": "Nouveaux clients par trimestre"
+          },
+          {
+            "value": "15%",
+            "label": "Taux de conversion Trial-to-Paid"
+          },
+          {
+            "value": "< 45€",
+            "label": "Coût d'Acquisition Client (CAC)"
+          }
+        ],
+        "subtitle": "Une stratégie focalisée sur l'efficacité opérationnelle et la scalabilité rapide du modèle d'acquisition.",
+        "text": "Notre plan vise à positionner le service comme l'outil indispensable pour la gestion quotidienne des TPE, en levant les barrières technologiques et financières habituelles.",
+        "timeline": {
+          "items": [
+            {
+              "date": "Mois 1",
+              "title": "Lancement Beta",
+              "description": "Test sur un panel de 50 utilisateurs pionniers."
+            },
+            {
+              "date": "Mois 3",
+              "title": "Scaling",
+              "description": "Déploiement massif des campagnes Ads."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "layout": "swot",
+      "title": "Analyse de l'Environnement Stratégique",
+      "imageSearchQuery": "strategic planning whiteboard",
+      "content": {
+        "items": [
+          {
+            "title": "Forces",
+            "description": "Interface ultra-simplifiée adaptée aux non-experts et tarification transparente sans engagement. Support client localisé en France disponible 6j/7."
+          },
+          {
+            "title": "Faiblesses",
+            "description": "Notoriété de marque encore faible face aux acteurs historiques. Ressources marketing limitées nécessitant une priorisation stricte des canaux."
+          },
+          {
+            "title": "Opportunités",
+            "description": "Accélération des aides d'État pour la numérisation des TPE (France Num). Désintérêt des grands éditeurs pour les très petits comptes."
+          },
+          {
+            "title": "Menaces",
+            "description": "Arrivée potentielle de fonctionnalités similaires dans les outils gratuits type Google Workspace. Sensibilité extrême des TPE aux variations de trésorerie."
+          }
+        ]
+      }
+    },
+    {
+      "layout": "bento",
+      "title": "Segmentation et Ciblage Prioritaire",
+      "imageSearchQuery": "diverse entrepreneurs working",
+      "content": {
+        "items": [
+          {
+            "title": "Artisans du Bâtiment",
+            "description": "Besoin critique de mobilité pour la facturation sur chantier et le suivi des devis en temps réel. Forte réceptivité au parrainage local."
+          },
+          {
+            "title": "Consultants Indépendants",
+            "description": "Recherche d'un gain de temps maximal sur l'administratif pour se concentrer sur les missions facturables. Sensibles au SEO et LinkedIn."
+          },
+          {
+            "title": "Commerces de Proximité",
+            "description": "Nécessité de connecter la gestion de stock avec la vente physique et en ligne. Fort besoin d'accompagnement lors de l'onboarding."
+          }
+        ]
+      }
+    },
+    {
+      "layout": "text-columns",
+      "title": "Les Trois Piliers de la Stratégie",
+      "imageSearchQuery": "architecture pillars concept",
+      "content": {
+        "columns": [
+          {
+            "title": "Autorité Digitale",
+            "text": "Production intensive de contenus éducatifs (articles, webinaires) répondant aux problématiques concrètes des gérants de TPE. L'objectif est de devenir la source d'information de référence sur la gestion simplifiée."
+          },
+          {
+            "title": "Growth Hacking",
+            "text": "Mise en place de boucles virales via un programme de parrainage généreux et des partenariats stratégiques avec des cabinets comptables qui prescrivent notre solution à leurs propres clients."
+          },
+          {
+            "title": "Excellence Relationnelle",
+            "text": "Utilisation de l'automatisation pour le support de premier niveau, tout en garantissant un contact humain pour les étapes clés de la conversion. La satisfaction client est notre premier moteur de croissance organique."
+          }
+        ]
+      }
+    },
+    {
+      "layout": "infographic",
+      "title": "Tunnel d'Acquisition et Conversion",
+      "imageSearchQuery": "marketing funnel process",
+      "content": {
+        "infographic": {
+          "type": "funnel",
+          "steps": [
+            {
+              "label": "Notoriété (SEO/Social)",
+              "value": "50k Visiteurs"
+            },
+            {
+              "label": "Considération (Lead Magnet)",
+              "value": "5k Prospects"
+            },
+            {
+              "label": "Activation (Essai Gratuit)",
+              "value": "1k Users"
+            },
+            {
+              "label": "Rétention (Abonnement)",
+              "value": "150 Clients"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "layout": "comparison",
+      "title": "Positionnement vs Concurrence",
+      "imageSearchQuery": "balance scale comparison",
+      "content": {
+        "comparison": {
+          "left": {
+            "title": "Notre Solution SaaS",
+            "items": [
+              "Prise en main en moins de 15 minutes",
+              "Tarif unique tout inclus sans frais cachés",
+              "Support humain ultra-réactif par chat et téléphone",
+              "Interface mobile-first pour usage terrain"
+            ]
+          },
+          "right": {
+            "title": "Logiciels Traditionnels",
+            "items": [
+              "Formation de plusieurs jours requise",
+              "Coûts additionnels pour modules et support",
+              "Support par ticket avec délais de 48h+",
+              "Logiciels lourds souvent limités au desktop"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "layout": "chart",
+      "title": "Prévisions de Croissance du MRR",
+      "imageSearchQuery": "upward financial graph",
+      "content": {
+        "chart": {
+          "type": "line",
+          "categories": [
+            "Mois 1",
+            "Mois 3",
+            "Mois 6",
+            "Mois 9",
+            "Mois 12"
+          ],
+          "series": [
+            {
+              "name": "MRR (€)",
+              "data": [
+                1200,
+                4500,
+                12000,
+                28000,
+                55000
+              ]
+            }
+          ],
+          "title": "Évolution du revenu mensuel récurrent sur la première année"
+        }
+      }
+    },
+    {
+      "layout": "timeline",
+      "title": "Feuille de Route du Déploiement",
+      "imageSearchQuery": "project roadmap timeline",
+      "content": {
+        "timeline": {
+          "items": [
+            {
+              "date": "Trimestre 1",
+              "title": "Fondations & SEO",
+              "description": "Optimisation technique du site et lancement de la stratégie de contenu 'Evergreen' pour générer du trafic organique durable."
+            },
+            {
+              "date": "Trimestre 2",
+              "title": "Offensive Paid Media",
+              "description": "Lancement des campagnes Google Ads et Meta Ads ciblées par secteurs d'activité spécifiques pour tester les messages."
+            },
+            {
+              "date": "Trimestre 3",
+              "title": "Réseau de Partenaires",
+              "description": "Signature d'accords de distribution avec des banques pro et des fédérations d'artisans pour un accès direct aux cibles."
+            },
+            {
+              "date": "Trimestre 4",
+              "title": "Optimisation LTV",
+              "description": "Lancement de modules complémentaires (upsell) et automatisation avancée du cycle de vie client pour maximiser la valeur."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "layout": "image-focus",
+      "title": "Prêt pour le Lancement ?",
+      "imageSearchQuery": "rocket launch sky",
+      "content": {
+        "text": "L'objectif final est de transformer la gestion des TPE d'une corvée administrative en un levier de croissance piloté par la donnée. Ensemble, simplifions l'entrepreneuriat."
+      }
+    }
+  ],
+  "subtitle": "Stratégie d'acquisition et de fidélisation pour dominer le marché des petites entreprises.",
+  "theme": "product-launch",
+  "themeConfig": {
+    "id": "product-launch",
+    "name": "Product Launch",
+    "mode": "light",
+    "colors": {
+      "background": "#FFFFFF",
+      "surface": "#FEF3C7",
+      "text": "#1C1917",
+      "textSecondary": "#78716C",
+      "accent": "#EA580C",
+      "accentSecondary": "#DC2626",
+      "chartColors": [
+        "#EA580C",
+        "#DC2626",
+        "#CA8A04",
+        "#16A34A",
+        "#2563EB"
+      ]
+    },
+    "gradient": {
+      "start": "#FEF3C7",
+      "end": "#FED7AA",
+      "angle": 180
+    },
+    "fonts": {
+      "heading": "Arial",
+      "body": "Arial"
+    },
+    "shapes": {
+      "borderRadius": 0.3,
+      "shadow": true,
+      "strokeWidth": 0
+    },
+    "imageKeywords": "product launch tech device innovation energetic",
+    "iconStyle": "bold",
+    "preferredDensity": "standard"
+  }
+}

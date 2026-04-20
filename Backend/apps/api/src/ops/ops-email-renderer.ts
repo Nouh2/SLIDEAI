@@ -23,6 +23,12 @@ type Stat = {
   label: string;
 };
 
+type FeatureCard = {
+  imageUrl: string;
+  label: string;
+  ctaLabel: string;
+};
+
 type Spotlight = {
   tone: Tone;
   title: string;
@@ -44,7 +50,10 @@ export type EmailContent = {
   note?: string;
   unsubscribeUrl?: string;
   footerReason?: string;
-  layout?: 'default' | 'welcome';
+  layout?: 'default' | 'welcome' | 'newsletter';
+  heroImageUrl?: string;
+  featureGrid?: FeatureCard[];
+  darkFooterStats?: Stat[];
 };
 
 export type EmailContentPatch = Partial<EmailContent> & {
@@ -257,6 +266,151 @@ function wrapSignupWelcomeEmail(content: EmailContent) {
                 ${content.footerReason || 'Vous recevez cet email car vous avez cr&eacute;&eacute; un compte SlideAI.'}<br />
                 ${content.unsubscribeUrl ? `<a href="${content.unsubscribeUrl}" style="color: ${BRAND.primaryDark}; text-decoration: underline;">Se d&eacute;sabonner</a><br />` : ''}
                 SlideAI, plus rapide du brief client au deck final.
+              </td>
+            </tr>
+
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>`;
+}
+
+function wrapNewsletterEmail(content: EmailContent) {
+  const featureCards = (content.featureGrid ?? [])
+    .map(
+      (card) => `
+        <td valign="top" style="width: 33.33%; padding: 0 6px;">
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden;">
+            <tr>
+              <td style="padding: 0;">
+                <img src="${card.imageUrl}" alt="${card.label}" width="100%" style="display: block; width: 100%; height: auto; border-radius: 12px 12px 0 0;" />
+              </td>
+            </tr>
+            <tr>
+              <td style="padding: 12px 10px 14px 10px; text-align: center;">
+                <div style="font-size: 11px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: #0f172a; margin-bottom: 10px;">${card.label}</div>
+                <table role="presentation" cellpadding="0" cellspacing="0" style="margin: 0 auto;">
+                  <tr>
+                    <td style="border: 2px solid #f59e0b; border-radius: 6px;">
+                      <a href="${content.ctaUrl}" style="display: inline-block; padding: 6px 12px; font-size: 11px; font-weight: 800; color: #f59e0b; text-decoration: none; letter-spacing: 0.04em;">[${card.ctaLabel}]</a>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+          </table>
+        </td>`,
+    )
+    .join('');
+
+  const darkStats = (content.darkFooterStats ?? [])
+    .map(
+      (stat) => `
+        <td valign="middle" align="center" style="padding: 0 16px;">
+          <div style="font-size: 20px; font-weight: 800; color: #ffffff; line-height: 1;">${stat.value}</div>
+          <div style="font-size: 12px; color: #94a3b8; margin-top: 4px; line-height: 1.4;">${stat.label}</div>
+        </td>`,
+    )
+    .join('');
+
+  const heroStyle = content.heroImageUrl
+    ? `background: url('${content.heroImageUrl}') center center / cover no-repeat; position: relative;`
+    : `background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);`;
+
+  return `<!doctype html>
+<html lang="fr">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>${content.subject}</title>
+    <style>
+      @media only screen and (max-width: 600px) {
+        .nl-shell { width: 100% !important; }
+        .nl-hero { padding: 28px 20px !important; }
+        .nl-headline { font-size: 26px !important; line-height: 32px !important; }
+        .nl-feature-col { display: block !important; width: 100% !important; padding: 0 0 12px 0 !important; }
+        .nl-cta-btn { display: block !important; width: 100% !important; box-sizing: border-box !important; text-align: center !important; }
+      }
+    </style>
+  </head>
+  <body style="margin: 0; padding: 0; background: #f1f5f9; font-family: Inter, Arial, Helvetica, sans-serif;">
+    <div style="display: none; max-height: 0; overflow: hidden; opacity: 0; mso-hide: all;">${content.preview}</div>
+
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background: #f1f5f9; padding: 24px 0;">
+      <tr>
+        <td align="center">
+          <table class="nl-shell" role="presentation" cellpadding="0" cellspacing="0" style="max-width: 600px; width: 100%;">
+
+            <!-- Logo header -->
+            <tr>
+              <td style="background: #ffffff; border-radius: 16px 16px 0 0; padding: 20px 32px; text-align: center; border-bottom: 1px solid #e2e8f0;">
+                <img src="https://www.slideai.fr/logo.png" alt="SlideAI" width="90" style="display: inline-block; height: auto; border: 0;" />
+              </td>
+            </tr>
+
+            <!-- Hero image banner -->
+            <tr>
+              <td class="nl-hero" style="${heroStyle} padding: 36px 32px 36px 32px; text-align: center;">
+                <div style="background: rgba(0,0,0,0.5); border-radius: 12px; padding: 24px;">
+                  <div style="font-size: 12px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: #f59e0b; margin-bottom: 10px;">SlideAI.fr</div>
+                  <div style="font-size: 13px; color: #e2e8f0; line-height: 1.5;">${content.intro}</div>
+                </div>
+              </td>
+            </tr>
+
+            <!-- Main content: headline + CTA -->
+            <tr>
+              <td style="background: #ffffff; padding: 40px 40px 32px 40px; text-align: center;">
+                <h1 class="nl-headline" style="margin: 0 0 16px 0; font-size: 30px; line-height: 36px; font-weight: 900; color: #0f172a; text-transform: uppercase; letter-spacing: -0.01em;">
+                  ${content.title}
+                </h1>
+                <p style="margin: 0 0 28px 0; font-size: 15px; line-height: 24px; color: #475569;">
+                  ${content.body[0] ?? ''}
+                </p>
+                <table role="presentation" cellpadding="0" cellspacing="0" style="margin: 0 auto 28px auto;">
+                  <tr>
+                    <td style="border: 2px solid #f59e0b; border-radius: 8px; background: #fff7ed;">
+                      <a class="nl-cta-btn" href="${content.ctaUrl}" style="display: inline-block; padding: 14px 24px; font-size: 15px; font-weight: 900; color: #d97706; text-decoration: none; letter-spacing: 0.02em;">
+                        [${content.ctaLabel} &#9733;]
+                      </a>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+
+            ${content.featureGrid?.length ? `
+            <!-- Feature grid -->
+            <tr>
+              <td style="background: #f8fafc; padding: 32px 28px 36px 28px;">
+                <div style="text-align: center; font-size: 16px; font-weight: 900; color: #0f172a; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 20px;">
+                  Un style pour chaque mission.
+                </div>
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                  <tr>
+                    ${featureCards}
+                  </tr>
+                </table>
+              </td>
+            </tr>` : ''}
+
+            <!-- Dark footer with social proof -->
+            <tr>
+              <td style="background: #1e293b; border-radius: 0 0 16px 16px; padding: 32px 28px 28px 28px; text-align: center;">
+                <img src="https://www.slideai.fr/favicon.svg" alt="SlideAI" width="32" style="display: inline-block; margin-bottom: 16px; border: 0;" />
+                ${content.darkFooterStats?.length ? `
+                <table role="presentation" cellpadding="0" cellspacing="0" style="margin: 0 auto 20px auto;">
+                  <tr>${darkStats}</tr>
+                </table>` : ''}
+                <div style="font-size: 14px; font-weight: 800; color: #ffffff; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px;">
+                  ${content.note ?? 'SlideAI — Du brief au deck en quelques minutes.'}
+                </div>
+                <div style="font-size: 12px; color: #64748b; margin-top: 16px;">
+                  ${content.footerReason || 'Vous recevez cet email car vous utilisez SlideAI.'}<br />
+                  ${content.unsubscribeUrl ? `<a href="${content.unsubscribeUrl}" style="color: #94a3b8; text-decoration: underline;">Se désabonner</a>` : ''}
+                </div>
               </td>
             </tr>
 
@@ -1268,7 +1422,11 @@ export function buildTrialEmailContent(params: {
 
   return {
     subject: content.subject,
-    html: content.layout === 'welcome' ? wrapSignupWelcomeEmail(content) : wrapEmail(content),
+    html: content.layout === 'welcome'
+      ? wrapSignupWelcomeEmail(content)
+      : content.layout === 'newsletter'
+        ? wrapNewsletterEmail(content)
+        : wrapEmail(content),
   };
 }
 

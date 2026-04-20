@@ -46,3 +46,6 @@ coverage/
 
 # Agent
 .agent
+
+# Local Google credentials
+G4A/

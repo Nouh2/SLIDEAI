@@ -1,0 +1,34 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(find /c/Users/noete/Desktop/SLIDEAI/Backend/apps/api/src -name *.service.ts -type f)",
+      "Bash(find /c/Users/noete/Desktop/SLIDEAI/Backend/apps/api/src -name *.controller.ts -type f)",
+      "Bash(xargs basename:*)",
+      "Bash(xargs grep:*)",
+      "mcp__plugin_stripe_stripe__create_product",
+      "mcp__plugin_stripe_stripe__create_price",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "mcp__plugin_supabase_supabase__list_projects",
+      "mcp__plugin_supabase_supabase__execute_sql",
+      "Bash(grep -r OpsEmailTemplate C:/Users/noete/Desktop/SLIDEAI/Backend/apps/api/prisma/ --include=*.prisma -l)",
+      "Bash(npx prisma:*)",
+      "Bash(curl -s http://localhost:3001/v1/subscription/me -H 'Authorization: Bearer TEST')",
+      "Bash(node -e \":*)",
+      "mcp__claude_ai_Vercel__list_teams",
+      "mcp__claude_ai_Vercel__list_projects",
+      "Bash(npm install:*)",
+      "Bash(curl -s -H \"Authorization: Bearer [REDACTED_RESEND_API_KEY]\" \"https://api.resend.com/emails/aa0f60b1-d35c-4378-bf50-cce4c1dbbde3\")",
+      "Bash(python3 -m json.tool)",
+      "Bash(curl -s -H 'Authorization: Bearer [REDACTED_RESEND_API_KEY]' https://api.resend.com/emails/aa0f60b1-d35c-4378-bf50-cbe4c1dbbde3)",
+      "mcp__claude_ai_Supabase__list_projects",
+      "mcp__claude_ai_Supabase__execute_sql",
+      "Bash(npx ts-node:*)",
+      "Bash(npx tsx:*)",
+      "Bash(curl:*)",
+      "Bash(node -e ':*)",
+      "Bash(node:*)"
+    ]
+  }
+}

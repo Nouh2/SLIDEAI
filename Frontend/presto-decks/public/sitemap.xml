@@ -51,6 +51,12 @@
     <priority>0.9</priority>
   </url>
   <url>
+    <loc>https://www.slideai.fr/blog/alternatives-beautiful-ai</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <lastmod>2026-04-20</lastmod>
+  </url>
+  <url>
     <loc>https://www.slideai.fr/blog/analyste-credit-bancaire-automatiser-presentations-analyse-risque</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
@@ -66,13 +72,13 @@
     <loc>https://www.slideai.fr/en/blog/best-gamma-app-alternatives</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
-    <lastmod>2025-06-12</lastmod>
+    <lastmod>2026-04-20</lastmod>
   </url>
   <url>
     <loc>https://www.slideai.fr/en/blog/chatgpt-for-powerpoint</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
-    <lastmod>2025-06-10</lastmod>
+    <lastmod>2026-04-20</lastmod>
   </url>
   <url>
     <loc>https://www.slideai.fr/blog/chatgpt-pour-powerpoint</loc>
@@ -138,7 +144,7 @@
     <loc>https://www.slideai.fr/en/blog/convert-text-to-presentation</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
-    <lastmod>2025-06-01</lastmod>
+    <lastmod>2026-04-20</lastmod>
   </url>
   <url>
     <loc>https://www.slideai.fr/blog/convertir-pdf-powerpoint-ia</loc>
@@ -150,7 +156,13 @@
     <loc>https://www.slideai.fr/blog/convertir-texte-presentation</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
-    <lastmod>2026-04-13</lastmod>
+    <lastmod>2026-04-20</lastmod>
+  </url>
+  <url>
+    <loc>https://www.slideai.fr/blog/convertir-word-powerpoint-ia</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <lastmod>2026-04-20</lastmod>
   </url>
   <url>
     <loc>https://www.slideai.fr/en/blog/create-free-ai-powerpoint</loc>
@@ -199,6 +211,12 @@
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
     <lastmod>2025-06-15</lastmod>
+  </url>
+  <url>
+    <loc>https://www.slideai.fr/blog/presentation-commerciale-ia</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <lastmod>2026-04-20</lastmod>
   </url>
   <url>
     <loc>https://www.slideai.fr/blog/product-manager-creer-roadmap-produit-powerpoint-5-minutes</loc>
@@ -255,6 +273,11 @@
     <lastmod>2025-06-05</lastmod>
   </url>
   <url>
+    <loc>https://www.slideai.fr/blog/c/alternatives-et-comparatifs</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://www.slideai.fr/blog/c/finance</loc>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
@@ -266,6 +289,16 @@
   </url>
   <url>
     <loc>https://www.slideai.fr/blog/c/tutoriels</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.slideai.fr/blog/c/productivite</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.slideai.fr/blog/c/sales</loc>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>

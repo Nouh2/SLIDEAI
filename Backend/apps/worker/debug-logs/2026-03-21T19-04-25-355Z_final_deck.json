@@ -1,0 +1,323 @@
+{
+  "title": "Stratégie de Lancement : SaaS pour TPE",
+  "colorPalette": {
+    "primary": "#EA580C",
+    "secondary": "#DC2626",
+    "accent": "#CA8A04",
+    "bg": "#FFFFFF",
+    "text": "#1C1917"
+  },
+  "slides": [
+    {
+      "layout": "cover",
+      "title": "Plan Marketing Stratégique : Solution SaaS pour TPE",
+      "imageSearchQuery": "modern small business owner working laptop",
+      "content": {
+        "subtitle": "Accélérer la transformation numérique des très petites entreprises grâce à une approche marketing agile et axée sur la valeur immédiate.",
+        "text": "Présentation préparée pour la direction générale - Horizon 2024-2025"
+      }
+    },
+    {
+      "layout": "executive-summary",
+      "title": "Synthèse Executive du Projet",
+      "imageSearchQuery": "business summary analysis dashboard",
+      "content": {
+        "stats": [
+          {
+            "value": "1 200",
+            "label": "Acquisitions cibles (An 1)"
+          },
+          {
+            "value": "18%",
+            "label": "Marge nette visée"
+          },
+          {
+            "value": "4.5/5",
+            "label": "Score de satisfaction client"
+          }
+        ],
+        "subtitle": "Une vision claire pour dominer le marché des services numériques aux TPE.",
+        "text": "Notre stratégie repose sur la simplification extrême de l'expérience utilisateur et un modèle de tarification 'freemium' conçu pour briser les barrières à l'entrée technologiques habituelles des petites structures.",
+        "timeline": {
+          "items": [
+            {
+              "date": "T1",
+              "title": "Lancement Bêta",
+              "description": "Validation du Product-Market Fit avec 50 testeurs."
+            },
+            {
+              "date": "T2",
+              "title": "Scaling",
+              "description": "Déploiement des campagnes Ads et SEO intensives."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "layout": "text-columns",
+      "title": "Analyse de la Cible : Le Segment des TPE",
+      "imageSearchQuery": "diverse entrepreneurs small shop",
+      "content": {
+        "columns": [
+          {
+            "title": "Profil Type",
+            "text": "Dirigeants de structures de 1 à 10 salariés, souvent peu technophiles mais conscients de la nécessité de digitaliser leurs processus pour gagner en productivité. Ils privilégient la rapidité d'exécution et le support client réactif en français."
+          },
+          {
+            "title": "Points de Douleur",
+            "text": "Le manque de temps est le frein majeur : les solutions actuelles sont jugées trop complexes ou trop chères. Ils craignent la perte de données et l'isolement face à un outil logiciel complexe sans accompagnement humain."
+          },
+          {
+            "title": "Opportunités",
+            "text": "Un marché massif et fragmenté où la recommandation par les pairs (bouche-à-oreille) et les partenariats locaux jouent un rôle déterminant dans la décision d'achat finale, bien plus que les grandes campagnes de marque."
+          }
+        ]
+      }
+    },
+    {
+      "layout": "comparison",
+      "title": "Positionnement Concurrentiel",
+      "imageSearchQuery": "chess pieces strategy competition",
+      "content": {
+        "comparison": {
+          "left": {
+            "title": "Logiciels Legacy / ERP",
+            "items": [
+              "Coûts d'installation élevés et engagement long terme.",
+              "Interface utilisateur datée et courbe d'apprentissage longue.",
+              "Fonctionnalités superflues qui alourdissent l'usage quotidien."
+            ],
+            "subtitle": "Solutions inadaptées aux TPE"
+          },
+          "right": {
+            "title": "Notre Solution SaaS",
+            "items": [
+              "Modèle d'abonnement mensuel sans engagement de durée.",
+              "Design 'Mobile-First' intuitif ne nécessitant aucune formation.",
+              "Focus sur les 3 fonctionnalités essentielles demandées par 90% des clients."
+            ],
+            "subtitle": "L'agilité au service du client"
+          }
+        }
+      }
+    },
+    {
+      "layout": "swot",
+      "title": "Analyse SWOT de la Stratégie",
+      "imageSearchQuery": "strategic planning whiteboard",
+      "content": {
+        "items": [
+          {
+            "title": "Forces",
+            "description": "Agilité technologique permettant des mises à jour hebdomadaires. Structure de coûts légère permettant des prix agressifs."
+          },
+          {
+            "title": "Faiblesses",
+            "description": "Notoriété de marque encore faible face aux acteurs historiques. Équipe commerciale réduite limitant la prospection directe."
+          },
+          {
+            "title": "Opportunités",
+            "description": "Subventions gouvernementales pour la numérisation des TPE. Croissance du travail hybride nécessitant des outils cloud."
+          },
+          {
+            "title": "Menaces",
+            "description": "Entrée possible de géants de la tech sur le segment bas de gamme. Augmentation des coûts d'acquisition client (CAC) sur Google Ads."
+          }
+        ]
+      }
+    },
+    {
+      "layout": "stats",
+      "title": "Objectifs de Croissance à 12 Mois",
+      "imageSearchQuery": "growing bar chart success",
+      "content": {
+        "stats": [
+          {
+            "value": "25k €",
+            "label": "Revenu Récurrent Mensuel (MRR) visé en fin d'année 1"
+          },
+          {
+            "value": "45 €",
+            "label": "Coût d'Acquisition Client (CAC) maximum autorisé"
+          },
+          {
+            "value": "85%",
+            "label": "Taux de rétention après la période d'essai gratuite"
+          },
+          {
+            "value": "2.5x",
+            "label": "Ratio LTV/CAC pour assurer la rentabilité du modèle"
+          }
+        ]
+      }
+    },
+    {
+      "layout": "infographic",
+      "title": "Tunnel d'Acquisition Multicanal",
+      "imageSearchQuery": "digital marketing funnel icons",
+      "content": {
+        "infographic": {
+          "type": "funnel",
+          "steps": [
+            {
+              "label": "Notoriété",
+              "value": "SEO & Réseaux Sociaux"
+            },
+            {
+              "label": "Considération",
+              "value": "Webinaires & Études de cas"
+            },
+            {
+              "label": "Conversion",
+              "value": "Essai gratuit 14 jours"
+            },
+            {
+              "label": "Fidélisation",
+              "value": "Success Management"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "layout": "bento",
+      "title": "Piliers de la Proposition de Valeur",
+      "imageSearchQuery": "software features grid",
+      "content": {
+        "items": [
+          {
+            "title": "Simplicité Radicale",
+            "description": "Une interface épurée qui permet de réaliser les tâches quotidiennes en moins de 3 clics, réduisant drastiquement le temps de gestion administrative."
+          },
+          {
+            "title": "Automatisation IA",
+            "description": "Intégration de modules d'intelligence artificielle pour la saisie automatique des factures et la prédiction de trésorerie sans effort manuel."
+          },
+          {
+            "title": "Support de Proximité",
+            "description": "Une assistance humaine basée en France, disponible par chat et téléphone, garantissant une réponse en moins de 2 heures pendant les jours ouvrés."
+          },
+          {
+            "title": "Écosystème Ouvert",
+            "description": "Connexion native avec les principaux outils bancaires et comptables pour un flux de données fluide et sécurisé sans ressaisie."
+          }
+        ]
+      }
+    },
+    {
+      "layout": "timeline",
+      "title": "Calendrier de Déploiement Stratégique",
+      "imageSearchQuery": "project timeline roadmap",
+      "content": {
+        "timeline": {
+          "items": [
+            {
+              "date": "Mois 1-2",
+              "title": "Phase de Fondations",
+              "description": "Optimisation du SEO technique et lancement de la stratégie de contenu 'Expertise TPE'."
+            },
+            {
+              "date": "Mois 3-4",
+              "title": "Accélération Payante",
+              "description": "Lancement des campagnes Google Ads et LinkedIn Ads ciblées sur les codes NAF prioritaires."
+            },
+            {
+              "date": "Mois 5-8",
+              "title": "Programme Partenaires",
+              "description": "Mise en place d'accords avec des experts-comptables et des réseaux de franchise."
+            },
+            {
+              "date": "Mois 9-12",
+              "title": "Expansion & Referral",
+              "description": "Activation du système de parrainage et lancement de nouvelles fonctionnalités premium."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "layout": "chart",
+      "title": "Projection de Revenus et ROI",
+      "imageSearchQuery": "financial growth line chart",
+      "content": {
+        "chart": {
+          "type": "line",
+          "categories": [
+            "Jan",
+            "Mar",
+            "Mai",
+            "Juil",
+            "Sep",
+            "Nov"
+          ],
+          "series": [
+            {
+              "name": "MRR (€)",
+              "data": [
+                2000,
+                4500,
+                8000,
+                13000,
+                19000,
+                25000
+              ]
+            },
+            {
+              "name": "Coûts Marketing (€)",
+              "data": [
+                5000,
+                5000,
+                6000,
+                7500,
+                8000,
+                8500
+              ]
+            }
+          ],
+          "title": "Évolution du Chiffre d'Affaires vs Investissement"
+        },
+        "text": "Le point mort est attendu au 8ème mois, grâce à une optimisation continue du taux de conversion et une augmentation organique du trafic."
+      }
+    }
+  ],
+  "subtitle": "Plan d'action marketing pour la conquête du marché des TPE",
+  "theme": "product-launch",
+  "themeConfig": {
+    "id": "product-launch",
+    "name": "Product Launch",
+    "mode": "light",
+    "colors": {
+      "background": "#FFFFFF",
+      "surface": "#FEF3C7",
+      "text": "#1C1917",
+      "textSecondary": "#78716C",
+      "accent": "#EA580C",
+      "accentSecondary": "#DC2626",
+      "chartColors": [
+        "#EA580C",
+        "#DC2626",
+        "#CA8A04",
+        "#16A34A",
+        "#2563EB"
+      ]
+    },
+    "gradient": {
+      "start": "#FEF3C7",
+      "end": "#FED7AA",
+      "angle": 180
+    },
+    "fonts": {
+      "heading": "Arial",
+      "body": "Arial"
+    },
+    "shapes": {
+      "borderRadius": 0.3,
+      "shadow": true,
+      "strokeWidth": 0
+    },
+    "imageKeywords": "product launch tech device innovation energetic",
+    "iconStyle": "bold",
+    "preferredDensity": "standard"
+  }
+}

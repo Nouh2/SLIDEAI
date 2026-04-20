@@ -33,7 +33,12 @@ async function bootstrap() {
                 'https://slideai.tech',
                 'https://www.slideai.tech',
                 'http://localhost:5173', // Ensure dev default is present if needed
-                'http://localhost:3000'
+                'http://localhost:8080',
+                'http://127.0.0.1:8080',
+                'http://localhost:4173',
+                'http://127.0.0.1:4173',
+                'http://localhost:3000',
+                'http://127.0.0.1:3000',
             ];
             if (!origin || allowed.includes(origin))
                 cb(null, true);

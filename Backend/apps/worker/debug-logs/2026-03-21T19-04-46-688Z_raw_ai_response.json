@@ -1,0 +1,241 @@
+{
+  "title": "Stratégie Marketing SaaS : Conquête du Marché TPE",
+  "colorPalette": {
+    "primary": "#FF4B2B",
+    "secondary": "#2B2D42",
+    "accent": "#00D2FF",
+    "bg": "#FFFFFF",
+    "text": "#1A1A1A"
+  },
+  "slides": [
+    {
+      "layout": "cover",
+      "title": "Plan Marketing Stratégique SaaS pour TPE",
+      "imageSearchQuery": "modern small business owner digital tools",
+      "content": {
+        "subtitle": "Accélérer la digitalisation des très petites entreprises par une approche pragmatique et orientée ROI."
+      }
+    },
+    {
+      "layout": "stats",
+      "title": "Objectifs de Croissance et KPIs Clés",
+      "imageSearchQuery": "business growth metrics dashboard",
+      "content": {
+        "stats": [
+          {
+            "value": "15%",
+            "label": "Taux de conversion visé sur le trafic organique via le tunnel d'acquisition optimisé."
+          },
+          {
+            "value": "+250%",
+            "label": "Croissance attendue du MRR (Monthly Recurring Revenue) sur les 12 premiers mois d'exercice."
+          },
+          {
+            "value": "< 2%",
+            "label": "Taux d'attrition (Churn) cible grâce à un programme d'onboarding client automatisé et proactif."
+          }
+        ]
+      }
+    },
+    {
+      "layout": "bento",
+      "title": "Segmentation des Cibles Prioritaires",
+      "imageSearchQuery": "diverse small business professionals",
+      "content": {
+        "items": [
+          {
+            "title": "Artisans & Commerçants",
+            "description": "Profils focalisés sur le gain de temps opérationnel. Ils recherchent une solution mobile-first pour gérer leurs devis et factures entre deux chantiers ou ventes."
+          },
+          {
+            "title": "Professions Libérales",
+            "description": "Besoin critique de conformité réglementaire et de sécurité des données. La valeur ajoutée réside dans l'automatisation des tâches administratives chronophages."
+          },
+          {
+            "title": "Micro-entrepreneurs",
+            "description": "Cible à fort volume nécessitant un prix d'entrée attractif. L'objectif est de devenir leur outil de gestion centralisé dès le lancement de leur activité."
+          }
+        ]
+      }
+    },
+    {
+      "layout": "swot",
+      "title": "Analyse Stratégique SWOT",
+      "imageSearchQuery": "business strategy analysis matrix",
+      "content": {
+        "comparison": {
+          "left": {
+            "title": "Forces & Opportunités",
+            "items": [
+              "Interface utilisateur ultra-simplifiée adaptée aux non-experts en informatique.",
+              "Marché des TPE en pleine transition numérique accélérée par les aides étatiques.",
+              "Possibilité d'intégrations API avec les banques et outils comptables majeurs."
+            ]
+          },
+          "right": {
+            "title": "Faiblesses & Menaces",
+            "items": [
+              "Budget marketing initial limité face aux acteurs historiques du secteur.",
+              "Coût d'acquisition client (CAC) potentiellement élevé sur les mots-clés concurrentiels.",
+              "Arrivée de solutions gratuites proposées par les néo-banques professionnelles."
+            ]
+          }
+        }
+      }
+    },
+    {
+      "layout": "comparison",
+      "title": "Positionnement Concurrentiel",
+      "imageSearchQuery": "competition strategy balance",
+      "content": {
+        "comparison": {
+          "left": {
+            "title": "Notre Solution SaaS",
+            "items": [
+              "Mise en service en moins de 5 minutes sans formation préalable.",
+              "Tarification transparente sans engagement de durée.",
+              "Support client ultra-réactif basé en France."
+            ],
+            "subtitle": "L'agilité au service de l'efficacité"
+          },
+          "right": {
+            "title": "Logiciels Traditionnels",
+            "items": [
+              "Complexité d'installation et paramétrage lourd.",
+              "Coûts cachés liés aux mises à jour et à la maintenance.",
+              "Interfaces datées peu ergonomiques sur mobile."
+            ],
+            "subtitle": "La lourdeur des systèmes hérités"
+          }
+        }
+      }
+    },
+    {
+      "layout": "text-columns",
+      "title": "Les Trois Piliers de la Stratégie d'Acquisition",
+      "imageSearchQuery": "marketing strategy pillars digital",
+      "content": {
+        "columns": [
+          {
+            "title": "Inbound Marketing & SEO",
+            "text": "Création d'un centre de ressources dédié aux problématiques de gestion des TPE. Nous visons le positionnement sur des requêtes longue traîne pour capturer un trafic qualifié à faible coût, tout en établissant notre autorité dans le domaine de la gestion d'entreprise simplifiée."
+          },
+          {
+            "title": "Partenariats Stratégiques",
+            "text": "Mise en place d'accords d'apport d'affaires avec des cabinets d'expertise comptable et des banques pro. Ces prescripteurs de confiance permettront de réduire drastiquement notre CAC tout en augmentant la valeur perçue de notre solution logicielle auprès de l'utilisateur final."
+          },
+          {
+            "title": "Paid Social & Retargeting",
+            "text": "Campagnes ultra-segmentées sur LinkedIn et Facebook Ads ciblant spécifiquement les gérants de TPE. Utilisation du retargeting pour convertir les visiteurs n'ayant pas finalisé leur inscription après l'essai gratuit, avec des témoignages clients rassurants."
+          }
+        ]
+      }
+    },
+    {
+      "layout": "infographic",
+      "title": "Le Tunnel de Conversion Client",
+      "imageSearchQuery": "sales funnel digital marketing",
+      "content": {
+        "infographic": {
+          "type": "funnel",
+          "steps": [
+            {
+              "label": "Notoriété",
+              "value": "Contenu éducatif et Social Ads"
+            },
+            {
+              "label": "Considération",
+              "value": "Webinars et Comparatifs produits"
+            },
+            {
+              "label": "Essai Gratuit",
+              "value": "Accès complet 14 jours sans CB"
+            },
+            {
+              "label": "Activation",
+              "value": "Onboarding guidé et premier succès"
+            },
+            {
+              "label": "Rétention",
+              "value": "Customer Success et Newsletters"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "layout": "timeline",
+      "title": "Feuille de Route à 6 Mois",
+      "imageSearchQuery": "project timeline roadmap",
+      "content": {
+        "timeline": {
+          "items": [
+            {
+              "date": "Mois 1-2",
+              "title": "Lancement de la Beta et SEO",
+              "description": "Ouverture aux 100 premiers testeurs et publication des 20 premiers articles piliers pour le référencement naturel."
+            },
+            {
+              "date": "Mois 3-4",
+              "title": "Expansion Social Ads",
+              "description": "Déploiement massif des campagnes publicitaires sur Facebook et LinkedIn avec un focus sur le coût par inscription."
+            },
+            {
+              "date": "Mois 5-6",
+              "title": "Programme de Parrainage",
+              "description": "Lancement d'un système d'affiliation pour nos clients actuels afin de stimuler la croissance organique et virale."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "layout": "chart",
+      "title": "Répartition du Budget Marketing",
+      "imageSearchQuery": "marketing budget allocation chart",
+      "content": {
+        "chart": {
+          "type": "donut",
+          "categories": [
+            "Publicité Payante",
+            "Création de Contenu",
+            "Outils & CRM",
+            "Événements & RP"
+          ],
+          "series": [
+            {
+              "name": "Allocation Budgetaire",
+              "data": [
+                45,
+                30,
+                15,
+                10
+              ]
+            }
+          ],
+          "title": "Investissement par levier de croissance"
+        }
+      }
+    },
+    {
+      "layout": "executive-summary",
+      "title": "Synthèse et Prochaines Étapes",
+      "imageSearchQuery": "business handshake success",
+      "content": {
+        "stats": [
+          {
+            "value": "3.5x",
+            "label": "Ratio LTV/CAC visé"
+          },
+          {
+            "value": "12 mois",
+            "label": "Délai de rentabilité"
+          }
+        ],
+        "subtitle": "Plan d'action immédiat pour valider la phase de lancement.",
+        "text": "La stratégie repose sur un équilibre entre acquisition payante rapide et construction d'un actif SEO pérenne. La priorité est donnée à l'expérience utilisateur pour garantir une rétention maximale dès les premiers mois."
+      }
+    }
+  ],
+  "subtitle": "Stratégie de croissance et plan d'action opérationnel pour le lancement d'un service SaaS dédié aux TPE."
+}

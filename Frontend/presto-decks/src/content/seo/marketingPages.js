@@ -140,15 +140,15 @@ export const homePageContent = {
 
 export const businessSeoPages = {
   "generateur-powerpoint-ia": {
-    title: "Generateur PowerPoint IA",
+    title: "Generateur de PowerPoint avec IA | PPT editable",
     description:
-      "Le generateur PowerPoint IA pour creer des presentations professionnelles plus vite, avec export PowerPoint et workflow adapte au B2B.",
-    h1: "Le generateur PowerPoint IA pour creer vos presentations plus vite",
+      "Le generateur de PowerPoint avec IA pour creer une presentation plus vite a partir d'un brief, d'un texte, d'un PDF ou d'un document.",
+    h1: "Generateur de PowerPoint avec IA pour creer vos presentations plus vite",
     intro:
-      "SlideAI est un generateur PowerPoint IA concu pour les consultants, equipes marketing, freelances et profils B2B qui passent leurs journees dans PowerPoint. Vous decrivez votre sujet, l'outil structure les slides, puis vous ajustez avant livraison.",
+      "SlideAI est un generateur de PowerPoint avec IA concu pour les consultants, equipes marketing, freelances et profils B2B qui passent leurs journees dans PowerPoint. Vous partez d'un brief, d'un texte, d'un Word ou d'un PDF, l'outil structure les slides, puis vous ajustez avant livraison.",
     url: "/generateur-powerpoint-ia",
     keyword: "generateur powerpoint ia",
-    secondaryKeyword: "outil IA presentation",
+    secondaryKeyword: "generateur de powerpoint",
     useCases: [
       "Consultants RH, SEO, strategie et audit",
       "Directeurs marketing et equipes growth",
@@ -159,7 +159,7 @@ export const businessSeoPages = {
       "Gagner plusieurs heures par semaine sur PowerPoint",
       "Obtenir une structure de deck plus claire des le premier jet",
       "Uniformiser la qualite des supports avant livraison",
-      "Exporter rapidement en PPTX ou PDF",
+      "Exporter rapidement en PPTX ou PDF editable",
     ],
     howItWorks: [
       "Decrivez la presentation ou importez votre document de travail.",
@@ -168,8 +168,12 @@ export const businessSeoPages = {
     ],
     faqs: [
       {
-        question: "Quelle est la difference entre un generateur PowerPoint IA et un modele de slides ?",
+        question: "Quelle est la difference entre un generateur de PowerPoint et un modele de slides ?",
         answer: "Un generateur IA produit une premiere structure et un contenu de depart. Un modele, lui, ne vous aide pas a construire le fond.",
+      },
+      {
+        question: "Puis-je partir d'un texte, d'un Word ou d'un PDF ?",
+        answer: "Oui. C'est l'un des usages les plus utiles : transformer une matiere existante en base de presentation exploitable.",
       },
       {
         question: "Puis-je reutiliser SlideAI chaque semaine pour mes livrables ?",
@@ -182,15 +186,15 @@ export const businessSeoPages = {
     ],
   },
   "creer-powerpoint-avec-ia": {
-    title: "Creer un PowerPoint avec IA",
+    title: "Comment creer un PowerPoint avec IA | Guide 2026",
     description:
-      "Comment creer un PowerPoint avec IA en quelques minutes pour vos presentations B2B, comites de direction et supports clients.",
-    h1: "Comment creer un PowerPoint avec IA pour vos livrables B2B",
+      "Comment creer un PowerPoint avec IA en quelques minutes a partir d'un texte, d'un document ou d'un brief pour vos presentations B2B.",
+    h1: "Comment creer un PowerPoint avec IA en quelques minutes",
     intro:
-      "Creer un PowerPoint avec IA permet de transformer un brief, un document ou une note de travail en deck structure beaucoup plus rapidement. SlideAI est pense pour les equipes qui doivent produire des presentations client-ready sans perdre du temps sur la mise en forme.",
+      "Creer un PowerPoint avec IA permet de transformer un brief, un document ou une note de travail en deck structure beaucoup plus rapidement. SlideAI est pense pour les equipes qui doivent produire des presentations client-ready sans perdre du temps sur la mise en forme ou le copier-coller dans PowerPoint.",
     url: "/creer-powerpoint-avec-ia",
     keyword: "creer un powerpoint avec ia",
-    secondaryKeyword: "IA pour faire un PowerPoint",
+    secondaryKeyword: "ia pour faire un powerpoint",
     useCases: [
       "Restitutions d'audit et recommandations strategiques",
       "Revue de performance marketing ou business review",
@@ -204,7 +208,7 @@ export const businessSeoPages = {
       "Conserver un rendu professionnel avant export",
     ],
     howItWorks: [
-      "Vous partez d'un sujet, d'un prompt ou d'un document client.",
+      "Vous partez d'un sujet, d'un prompt, d'un texte ou d'un document client.",
       "SlideAI genere la structure, les sections et les premiers contenus.",
       "Vous adaptez le ton, le design et les messages avant livraison.",
     ],
@@ -214,25 +218,29 @@ export const businessSeoPages = {
         answer: "Non. Un brief simple suffit pour produire une premiere base, ensuite vous affinez selon votre contexte.",
       },
       {
+        question: "Peut-on creer un PowerPoint avec IA a partir d'un contenu deja ecrit ?",
+        answer: "Oui. C'est meme l'un des cas les plus rentables quand vous avez deja une note, un rapport, un Word ou un PDF.",
+      },
+      {
         question: "Cette approche convient-elle aux presentations de direction ?",
         answer: "Oui. Elle est utile quand il faut passer vite d'une matiere brute a un support plus clair pour un comite ou un client.",
       },
       {
-        question: "Peut-on partir d'un document deja ecrit ?",
-        answer: "Oui. C'est meme l'un des usages les plus pertinents pour accelerer la creation du deck.",
+        question: "Le deck reste-t-il modifiable dans PowerPoint ?",
+        answer: "Oui. L'objectif est de produire un fichier que vous pouvez encore ajuster avant envoi ou presentation.",
       },
     ],
   },
   "outil-ia-presentation": {
-    title: "Outil IA presentation",
+    title: "Outil IA presentation | Creer des slides PowerPoint plus vite",
     description:
-      "Un outil IA presentation pour structurer, generer et finaliser plus vite vos slides PowerPoint dans un contexte B2B.",
-    h1: "L'outil IA presentation pour vos slides PowerPoint B2B",
+      "Un outil IA de presentation pour structurer, generer et finaliser plus vite vos slides PowerPoint dans un contexte B2B.",
+    h1: "L'outil IA de presentation pour vos slides PowerPoint",
     intro:
-      "Si vous cherchez un outil IA presentation pour accelerer la creation de vos supports clients, SlideAI vous aide a passer du brief au deck en quelques minutes. L'outil est adapte aux usages conseil, audit, marketing et freelance.",
+      "Si vous cherchez un outil IA de presentation pour accelerer la creation de vos supports clients, SlideAI vous aide a passer du brief au deck en quelques minutes. L'outil est adapte aux usages conseil, audit, marketing, sales et freelance.",
     url: "/outil-ia-presentation",
     keyword: "outil ia presentation",
-    secondaryKeyword: "generer une presentation automatiquement",
+    secondaryKeyword: "outil ia de presentation",
     useCases: [
       "Equipes conseil qui produisent plusieurs decks par semaine",
       "Audits clients et restitutions executives",
@@ -252,11 +260,11 @@ export const businessSeoPages = {
     ],
     faqs: [
       {
-        question: "A qui s'adresse un outil IA presentation ?",
+        question: "A qui s'adresse un outil IA de presentation ?",
         answer: "A toute personne qui doit produire des supports clairs rapidement, surtout dans un contexte client ou de direction.",
       },
       {
-        question: "Quel type de gain attendre d'un outil IA presentation ?",
+        question: "Quel type de gain attendre d'un outil IA de presentation ?",
         answer: "Le gain vient surtout du temps economise sur la structuration initiale et la premiere mise en forme du deck.",
       },
       {

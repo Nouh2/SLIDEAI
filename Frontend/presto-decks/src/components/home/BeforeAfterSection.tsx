@@ -58,7 +58,7 @@ export function BeforeAfterSection() {
   };
 
   return (
-    <section className="py-8 md:py-10 px-4 relative z-10">
+    <section className="pt-4 pb-8 md:pt-4 md:pb-10 px-4 relative z-10">
       <div className="max-w-5xl mx-auto space-y-6">
         <div className="text-center space-y-2">
           <h2 className="text-3xl md:text-5xl font-bold">
@@ -67,16 +67,16 @@ export function BeforeAfterSection() {
         </div>
 
         <div className="rounded-2xl border border-border/60 overflow-hidden">
-          <div className="grid grid-cols-3 bg-background/80 border-b border-border/60">
-            <div className="p-4 font-bold text-base md:text-lg">{isFr ? "Critere" : "Criteria"}</div>
-            <div className="p-4 font-bold text-base md:text-lg text-muted-foreground">{isFr ? "Avant" : "Before"}</div>
-            <div className="p-4 font-bold text-base md:text-lg text-primary">{isFr ? "Avec SlideAI" : "With SlideAI"}</div>
+          <div className="grid grid-cols-[1.05fr_0.95fr_1.1fr] md:grid-cols-3 bg-background/80 border-b border-border/60">
+            <div className="min-w-0 p-3 md:p-4 font-bold text-sm md:text-lg leading-tight break-words">{isFr ? "Critere" : "Criteria"}</div>
+            <div className="min-w-0 p-3 md:p-4 font-bold text-sm md:text-lg leading-tight text-muted-foreground break-words">{isFr ? "Avant" : "Before"}</div>
+            <div className="min-w-0 p-3 md:p-4 font-bold text-sm md:text-lg leading-tight text-primary break-words">{isFr ? "Avec SlideAI" : "With SlideAI"}</div>
           </div>
           {rows.map((row) => (
-            <div key={row.label} className="grid grid-cols-3 border-b border-border/40 last:border-b-0 bg-card/40">
-              <div className="p-4 text-base font-medium">{row.label}</div>
-              <div className="p-4 text-base text-muted-foreground">{row.before}</div>
-              <div className="p-4 text-base font-semibold">{row.after}</div>
+            <div key={row.label} className="grid grid-cols-[1.05fr_0.95fr_1.1fr] md:grid-cols-3 border-b border-border/40 last:border-b-0 bg-card/40">
+              <div className="min-w-0 p-3 md:p-4 text-sm md:text-base leading-snug font-medium break-words">{row.label}</div>
+              <div className="min-w-0 p-3 md:p-4 text-sm md:text-base leading-snug text-muted-foreground break-words">{row.before}</div>
+              <div className="min-w-0 p-3 md:p-4 text-sm md:text-base leading-snug font-semibold break-words">{row.after}</div>
             </div>
           ))}
         </div>

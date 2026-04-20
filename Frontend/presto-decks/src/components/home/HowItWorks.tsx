@@ -15,8 +15,6 @@ export function HowItWorks() {
     const sectionOpacity = useTransform(scrollYProgress, [0, 0.18, 1], [0.4, 1, 1]);
     const headingY = useTransform(scrollYProgress, [0, 1], [34, -8]);
     const sectionY = useTransform(scrollYProgress, [0, 1], [56, -14]);
-    const lineProgress = useTransform(scrollYProgress, [0.15, 0.75], [0, 1]);
-
     const containerVariants: Variants = {
         hidden: {},
         visible: {
@@ -62,7 +60,7 @@ export function HowItWorks() {
         <motion.section
             ref={sectionRef}
             style={{ opacity: sectionOpacity }}
-            className="py-8 md:py-10 px-4 relative z-10"
+            className="pt-4 pb-8 md:pt-4 md:pb-10 px-4 relative z-10"
         >
             <div className="absolute inset-0 bg-gradient-to-b from-transparent via-primary/5 to-transparent -z-10" />
             <div className="max-w-7xl mx-auto">
@@ -78,14 +76,6 @@ export function HowItWorks() {
                     whileInView="visible"
                     viewport={{ once: true, amount: 0.22 }}
                 >
-                    {/* Connecting line (desktop) */}
-                    <div className="hidden md:block absolute top-12 left-[16%] right-[16%] h-0.5 bg-gradient-to-r from-transparent via-primary/20 to-transparent overflow-hidden">
-                        <motion.div
-                            style={{ scaleX: lineProgress }}
-                            className="h-full origin-left bg-gradient-to-r from-primary via-secondary to-primary"
-                        />
-                    </div>
-
                     {steps.map((step, index) => (
                         <motion.div
                             key={index}
@@ -107,7 +97,7 @@ export function HowItWorks() {
                     ))}
                 </motion.div>
 
-                <motion.div className="mt-10 text-center" style={{ y: sectionY }}>
+                <motion.div className="mt-4 text-center" style={{ y: sectionY }}>
                     <p className="text-xl md:text-2xl font-medium text-gradient-secondary">{t('howItWorks.time')}</p>
                 </motion.div>
             </div>

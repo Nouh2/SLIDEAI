@@ -37,7 +37,7 @@ export function FaqSection() {
     ];
 
     return (
-        <section className="py-8 md:py-10 px-4 bg-background/20 relative z-10">
+        <section className="pt-4 pb-8 md:pt-4 md:pb-10 px-4 bg-background/20 relative z-10">
             <div className="max-w-3xl mx-auto">
                 <div className="text-center mb-12">
                     <h2 className="text-3xl md:text-4xl font-bold">{t('faq.title')}</h2>

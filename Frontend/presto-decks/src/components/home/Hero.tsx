@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Sparkles } from "lucide-react";
 import { motion, Variants } from "framer-motion";
-import { DeckPreview } from "@/components/home/DeckPreview";
+import { DemoFlowSection } from "@/components/home/DemoFlowSection";
 import { SocialProofSection } from "@/components/home/SocialProofSection";
 import { Analytics, ANALYTICS_EVENTS } from "@/lib/analytics";
 import { useLocalePath } from "@/hooks/use-locale-path";
@@ -54,7 +54,7 @@ export function Hero() {
 
     return (
         <section
-            className="min-h-[70vh] flex flex-col items-center justify-center py-6 px-4 md:py-10 relative z-10 overflow-hidden"
+            className="min-h-0 flex flex-col items-center justify-center pt-4 pb-4 px-4 md:pt-4 md:pb-8 relative z-10 overflow-hidden"
             style={{ willChange: "transform" }}
         >
             <div className="absolute inset-0 -z-10 pointer-events-none overflow-hidden">
@@ -66,7 +66,7 @@ export function Hero() {
             </div>
 
             <motion.div
-                className="max-w-5xl w-full space-y-8 md:space-y-10"
+                className="max-w-6xl w-full space-y-4 md:space-y-5"
                 variants={containerVariants}
                 initial="hidden"
                 animate="visible"
@@ -83,7 +83,7 @@ export function Hero() {
                     </div>
                 </motion.div>
 
-                <motion.div variants={itemVariants} className="text-center space-y-4 md:space-y-6">
+                <motion.div variants={itemVariants} className="text-center space-y-3 md:space-y-4">
                     <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold leading-tight tracking-tight px-2 max-w-5xl mx-auto">
                         {heroContent.headline}
                     </h1>
@@ -108,8 +108,8 @@ export function Hero() {
                     <SocialProofSection />
                 </motion.div>
 
-                <motion.div variants={itemVariants} className="flex flex-col items-center gap-6 pt-8">
-                    <div className="flex flex-col sm:flex-row items-center gap-4">
+                <motion.div variants={itemVariants} className="flex flex-col items-center gap-3 pt-2">
+                    <div className="flex flex-col sm:flex-row items-center gap-3">
                         <Button
                             size="lg"
                             onClick={handleHeroCta}
@@ -130,7 +130,7 @@ export function Hero() {
                     </div>
                     <p className="text-base text-muted-foreground">{heroContent.trialNote}</p>
 
-                    <div className="flex flex-col md:flex-row items-center gap-4 text-sm md:text-base text-muted-foreground">
+                    <div className="flex flex-col md:flex-row items-center gap-3 text-sm md:text-base text-muted-foreground">
                         {heroContent.microProofs.map((proof, index) => (
                             <div key={proof} className="contents">
                                 {index > 0 && <div className="hidden md:block w-1 h-1 bg-muted-foreground/30 rounded-full" />}
@@ -142,7 +142,7 @@ export function Hero() {
                         ))}
                     </div>
 
-                    <div className="pt-6 flex flex-col items-center gap-3 animate-fade-in-up delay-300">
+                    <div className="pt-2 flex flex-col items-center gap-2 animate-fade-in-up delay-300">
                         <div className="text-base md:text-lg font-semibold text-primary text-center">
                             {isFr ? "Des decks plus vite, sans repartir de zero" : "Build decks faster without starting from scratch"}
                         </div>
@@ -164,8 +164,8 @@ export function Hero() {
                     </div>
                 </motion.div>
 
-                <motion.div variants={itemVariants} className="w-full pt-8 md:pt-12">
-                    <DeckPreview />
+                <motion.div variants={itemVariants} className="w-full">
+                    <DemoFlowSection />
                 </motion.div>
             </motion.div>
         </section>

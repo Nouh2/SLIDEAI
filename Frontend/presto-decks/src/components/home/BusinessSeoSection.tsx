@@ -3,7 +3,7 @@ import { seoLandingLinks } from "@/content/seo/marketingPages";
 
 export function BusinessSeoSection() {
   return (
-    <section className="py-8 md:py-10 px-4 relative z-10">
+    <section className="pt-4 pb-8 md:pt-4 md:pb-10 px-4 relative z-10">
       <div className="max-w-6xl mx-auto space-y-6">
         <div className="text-center space-y-3">
           <h2 className="text-3xl md:text-5xl font-bold">Pages a forte intention pour vos presentations IA</h2>

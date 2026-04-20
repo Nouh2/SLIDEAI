@@ -51,7 +51,7 @@ export function WhyFreelance() {
         <motion.section
             ref={sectionRef}
             style={{ opacity: sectionOpacity }}
-            className="py-8 md:py-10 px-4 relative overflow-hidden z-10"
+            className="pt-4 pb-8 md:pt-4 md:pb-10 px-4 relative overflow-hidden z-10"
         >
             <motion.div
                 style={{ opacity: glowOpacity }}

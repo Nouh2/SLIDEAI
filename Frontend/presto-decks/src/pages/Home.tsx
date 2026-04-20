@@ -11,7 +11,6 @@ import { HowItWorks } from "@/components/home/HowItWorks";
 import { OfferSection } from "@/components/home/OfferSection";
 import { SubscriptionSection } from "@/components/home/SubscriptionSection";
 import { FaqSection } from "@/components/home/FaqSection";
-import { DemoFlowSection } from "@/components/home/DemoFlowSection";
 import { BeforeAfterSection } from "@/components/home/BeforeAfterSection";
 import { StickyTrialCta } from "@/components/home/StickyTrialCta";
 import { BusinessSeoSection } from "@/components/home/BusinessSeoSection";
@@ -152,8 +151,6 @@ export default function Home() {
         <HowItWorks />
       </div>
 
-      <DemoFlowSection />
-
       {/* Outils (FeatureGrid) */}
       <FeatureGrid />
 
@@ -176,7 +173,7 @@ export default function Home() {
       <FaqSection />
 
       {/* Bottom CTA Section */}
-      <section id="creer-premiere-presentation-30-secondes" className="relative py-8 md:py-12 px-4 overflow-hidden border-t border-border/50">
+      <section id="creer-premiere-presentation-30-secondes" className="relative pt-4 pb-8 md:pt-4 md:pb-12 px-4 overflow-hidden border-t border-border/50">
         <div className="max-w-4xl mx-auto text-center space-y-6 md:space-y-8">
           {/* Background decoration */}
           <div className="absolute inset-0 -z-10">

@@ -54,7 +54,7 @@ export function FeatureGrid() {
     },
   ];
   return (
-    <section className="relative py-8 md:py-12 px-4 overflow-hidden z-10">
+    <section className="relative pt-4 pb-8 md:pt-4 md:pb-12 px-4 overflow-hidden z-10">
       {/* Background */}
       <div className="absolute inset-0 -z-10">
         <div className="absolute bottom-0 right-1/4 w-60 md:w-96 h-60 md:h-96 bg-secondary/10 rounded-full blur-3xl animate-float-slow opacity-40" />

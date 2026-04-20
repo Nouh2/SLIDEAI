@@ -37,7 +37,7 @@ export function ProductShowcase() {
     ];
 
     return (
-        <section className="relative py-8 md:py-12 px-4 overflow-hidden z-10">
+        <section className="relative pt-4 pb-8 md:pt-4 md:pb-12 px-4 overflow-hidden z-10">
             {/* Background decorations */}
             <div className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-primary/5 via-transparent to-transparent" />
 
@@ -55,11 +55,11 @@ export function ProductShowcase() {
                 {features.map((feature, index) => (
                     <div
                         key={feature.id}
-                        className={`flex flex-col ${feature.reverse ? 'md:flex-row-reverse' : 'md:flex-row'} items-center gap-12 md:gap-24`}
+                        className={`flex flex-col ${feature.reverse ? 'md:flex-row-reverse' : 'md:flex-row'} items-center gap-10 md:gap-14`}
                     >
                         {/* Text Content */}
                         <motion.div
-                            className="flex-1 space-y-6"
+                            className="w-full md:basis-[34%] md:flex-none space-y-5"
                             initial={{ opacity: 0, x: feature.reverse ? 50 : -50 }}
                             whileInView={{ opacity: 1, x: 0 }}
                             transition={{ duration: 0.6, ease: "easeOut" }}
@@ -71,25 +71,24 @@ export function ProductShowcase() {
                             <h3 className="text-3xl md:text-4xl font-bold leading-tight">
                                 {feature.title}
                             </h3>
-                            <p className="text-xl text-foreground/60 leading-relaxed max-w-lg">
+                            <p className="text-xl text-foreground/60 leading-relaxed max-w-md">
                                 {feature.description}
                             </p>
                         </motion.div>
 
                         {/* Image/Visual Content */}
                         <motion.div
-                            className="flex-1 w-full"
+                            className="w-full md:basis-[66%] md:flex-none"
                             initial={{ opacity: 0, y: 50, scale: 0.95 }}
                             whileInView={{ opacity: 1, y: 0, scale: 1 }}
                             transition={{ duration: 0.8, delay: 0.2, ease: "easeOut" }}
                             viewport={{ once: true, margin: "-100px" }}
                         >
-                            <div className="relative group rounded-2xl overflow-hidden shadow-2xl ring-1 ring-border/50 bg-card/50 backdrop-blur-sm">
-                                <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none z-10" />
+                            <div className="relative group rounded-2xl overflow-hidden shadow-2xl ring-1 ring-border/50 bg-background">
                                 <img
                                     src={feature.image}
                                     alt={feature.title}
-                                    className="w-full h-auto rounded-2xl transform group-hover:scale-[1.02] transition-transform duration-700 ease-out"
+                                    className="block w-full h-auto rounded-2xl"
                                 />
                             </div>
                         </motion.div>

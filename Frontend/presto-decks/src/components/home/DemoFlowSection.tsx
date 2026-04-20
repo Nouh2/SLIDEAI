@@ -1,75 +1,86 @@
-import { useNavigate } from "react-router-dom";
+import { useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Button } from "@/components/ui/button";
-import { ArrowRight, Sparkles } from "lucide-react";
-import { useAuth } from "@/contexts/AuthContext";
-import { Analytics, ANALYTICS_EVENTS } from "@/lib/analytics";
-import generationShowcase from "@/assets/generation-showcase.png";
-import editorShowcase from "@/assets/editor-showcase.png";
-import dashboardShowcase from "@/assets/dashboard-showcase.png";
+import { Play } from "lucide-react";
+import { Analytics } from "@/lib/analytics";
+
+const DEMO_VIDEO_SRC = "/landing-video-hyperframes/slideai-demo-50s.mp4";
+const DEMO_POSTER_SRC = "/landing-video-hyperframes/slideai-demo-50s-poster.jpg";
 
 export function DemoFlowSection() {
   const { i18n } = useTranslation();
-  const navigate = useNavigate();
-  const { user } = useAuth();
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const [hasStarted, setHasStarted] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(false);
   const isFr = i18n.language.startsWith("fr");
-  const ctaPath = user ? "/create" : `/auth?returnTo=${encodeURIComponent("/create")}`;
 
-  const steps = isFr
-    ? [
-      { title: "1. Import", desc: "Ajoutez votre document ou votre brief.", image: generationShowcase },
-      { title: "2. Generation", desc: "Obtenez une base de deck structuree.", image: editorShowcase },
-      { title: "3. Livraison", desc: "Ajustez et exportez en PPTX/PDF.", image: dashboardShowcase },
-    ]
-    : [
-      { title: "1. Import", desc: "Add your document or brief.", image: generationShowcase },
-      { title: "2. Generate", desc: "Get a structured deck draft.", image: editorShowcase },
-      { title: "3. Deliver", desc: "Polish and export to PPTX/PDF.", image: dashboardShowcase },
-    ];
+  const handlePlay = async () => {
+    const video = videoRef.current;
+    if (!video) return;
 
-  const handleCta = () => {
-    Analytics.trackEvent(
-      ANALYTICS_EVENTS.ECOMMERCE.CATEGORY,
-      ANALYTICS_EVENTS.ECOMMERCE.SELECT_PLAN,
-      "Landing Demo 60s CTA"
-    );
-    navigate(ctaPath);
+    try {
+      await video.play();
+      setHasStarted(true);
+      setIsPlaying(true);
+      Analytics.trackEvent("Video", "Play", "Landing Hero Demo Video");
+    } catch {
+      setIsPlaying(false);
+    }
   };
 
   return (
-    <section className="py-8 md:py-10 px-4 relative z-10">
-      <div className="max-w-7xl mx-auto space-y-8">
-        <div className="text-center space-y-3">
-          <h2 className="text-3xl md:text-5xl font-bold">
-            {isFr ? "Demo produit en 60 secondes" : "60-second product demo"}
-          </h2>
-          <p className="text-lg text-muted-foreground">
-            {isFr ? "Le flux complet: document -> slides -> livraison client." : "Full flow: document -> slides -> client delivery."}
-          </p>
-        </div>
+    <div className="relative w-full pt-4 md:pt-4">
+      <div className="mx-auto max-w-6xl">
+        <div className="relative">
+          <div className="absolute inset-0 -z-10 rounded-[2.4rem] bg-gradient-to-r from-primary/20 via-transparent to-amber-400/20 blur-3xl opacity-70" />
 
-        <div className="grid md:grid-cols-3 gap-5">
-          {steps.map((step) => (
-            <div key={step.title} className="rounded-2xl border border-border/60 bg-card/60 overflow-hidden">
-              <div className="aspect-video bg-muted/40">
-                <img src={step.image} alt={step.title} className="w-full h-full object-cover" />
-              </div>
-              <div className="p-4 space-y-1">
-                <h3 className="text-lg font-bold">{step.title}</h3>
-                <p className="text-base text-muted-foreground">{step.desc}</p>
-              </div>
+          <div className="overflow-hidden rounded-[2rem] border border-border/60 bg-background/90 shadow-2xl">
+            <div className="flex items-center gap-2 border-b border-border/60 bg-background/95 px-4 py-3">
+              <span className="h-2.5 w-2.5 rounded-full bg-foreground/15" />
+              <span className="h-2.5 w-2.5 rounded-full bg-foreground/10" />
+              <span className="h-2.5 w-2.5 rounded-full bg-foreground/10" />
+              <span className="ml-auto rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
+                {isFr ? "Demo produit" : "Product demo"}
+              </span>
             </div>
-          ))}
-        </div>
 
-        <div className="text-center">
-          <Button onClick={handleCta} size="lg" className="font-bold">
-            <Sparkles className="w-4 h-4 mr-2" />
-            {isFr ? "Demarrer mon essai 7 jours" : "Start my 7-day trial"}
-            <ArrowRight className="w-4 h-4 ml-2" />
-          </Button>
+            <div className="relative aspect-video bg-muted/30">
+              <video
+                ref={videoRef}
+                className="h-full w-full object-cover"
+                poster={DEMO_POSTER_SRC}
+                preload="metadata"
+                playsInline
+                controls={hasStarted}
+                onPlay={() => {
+                  setHasStarted(true);
+                  setIsPlaying(true);
+                }}
+                onPause={() => setIsPlaying(false)}
+                onEnded={() => setIsPlaying(false)}
+              >
+                <source src={DEMO_VIDEO_SRC} type="video/mp4" />
+              </video>
+
+              {!isPlaying && (
+                <button
+                  type="button"
+                  onClick={handlePlay}
+                  className="absolute inset-0 flex items-center justify-center bg-gradient-to-t from-black/25 via-black/5 to-transparent transition-opacity hover:from-black/30"
+                  aria-label={isFr ? "Lire la demo produit" : "Play product demo"}
+                >
+                  <span className="inline-flex items-center gap-3 rounded-full border border-white/20 bg-white/92 px-5 py-3 text-sm md:text-base font-bold text-foreground shadow-xl backdrop-blur">
+                    <span className="flex h-11 w-11 items-center justify-center rounded-full bg-gradient-primary text-white shadow-lg">
+                      <Play className="ml-0.5 h-5 w-5 fill-current" />
+                    </span>
+                    {isFr ? "Lire la demo" : "Play demo"}
+                  </span>
+                </button>
+              )}
+            </div>
+          </div>
+
         </div>
       </div>
-    </section>
+    </div>
   );
 }

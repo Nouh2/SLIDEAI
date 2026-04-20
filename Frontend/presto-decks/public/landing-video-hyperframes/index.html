@@ -57,6 +57,26 @@
           <div class="stage-shadow"></div>
         </div>
 
+        <section class="opening-scene">
+          <div class="opening-card">
+            <p class="opening-kicker">SlideAI product demo</p>
+            <h1 class="opening-title">Du brief au deck livrable, dans un seul flow</h1>
+            <p class="opening-copy">
+              Prompt, import, generation, edition, export: vois le workflow complet des la premiere seconde.
+            </p>
+            <div class="opening-actions">
+              <div class="opening-play">
+                <span class="play-icon"></span>
+                <span>Voir la demo</span>
+              </div>
+              <div class="opening-pills">
+                <span class="opening-pill">50 secondes</span>
+                <span class="opening-pill">Produit reel</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
         <section class="chapter chapter-1">
           <div class="chapter-card card-top-left">
             <p class="chapter-kicker">01 - Point de depart</p>
@@ -212,6 +232,7 @@
         .orb,
         .brand-rail,
         .stage-wrap,
+        .opening-scene,
         .chapter,
         .outro-scene,
         .timeline-rail {
@@ -344,6 +365,98 @@
           background: radial-gradient(circle, rgba(14, 30, 43, 0.16), transparent 70%);
           filter: blur(24px);
           opacity: 0.55;
+        }
+
+        .opening-scene {
+          inset: 0;
+          z-index: 8;
+          pointer-events: none;
+        }
+
+        .opening-card {
+          position: absolute;
+          left: 76px;
+          top: 150px;
+          width: 540px;
+          padding: 30px 32px 28px;
+          border-radius: 30px;
+          background: rgba(255, 255, 255, 0.84);
+          border: 1px solid rgba(31, 182, 255, 0.16);
+          box-shadow:
+            0 28px 58px rgba(14, 30, 43, 0.12),
+            0 8px 20px rgba(31, 182, 255, 0.08);
+          backdrop-filter: blur(16px);
+        }
+
+        .opening-kicker {
+          margin: 0 0 10px;
+          font-size: 15px;
+          font-weight: 700;
+          letter-spacing: 0.12em;
+          text-transform: uppercase;
+          color: #1fb6ff;
+        }
+
+        .opening-title {
+          margin: 0;
+          font-family: "Sora", sans-serif;
+          font-size: 54px;
+          line-height: 0.98;
+          letter-spacing: -0.05em;
+        }
+
+        .opening-copy {
+          margin: 16px 0 0;
+          font-size: 24px;
+          line-height: 1.33;
+          color: #5a6b7a;
+        }
+
+        .opening-actions {
+          display: flex;
+          align-items: center;
+          gap: 16px;
+          margin-top: 24px;
+          flex-wrap: wrap;
+        }
+
+        .opening-play {
+          display: inline-flex;
+          align-items: center;
+          gap: 12px;
+          padding: 14px 18px;
+          border-radius: 999px;
+          background: linear-gradient(135deg, #1fb6ff, #56c8ff);
+          color: #ffffff;
+          font-family: "Sora", sans-serif;
+          font-size: 18px;
+          font-weight: 700;
+          box-shadow: 0 18px 36px rgba(31, 182, 255, 0.24);
+        }
+
+        .play-icon {
+          width: 0;
+          height: 0;
+          border-top: 8px solid transparent;
+          border-bottom: 8px solid transparent;
+          border-left: 13px solid #ffffff;
+          margin-left: 2px;
+        }
+
+        .opening-pills {
+          display: inline-flex;
+          gap: 10px;
+          flex-wrap: wrap;
+        }
+
+        .opening-pill {
+          padding: 10px 14px;
+          border-radius: 999px;
+          background: rgba(31, 182, 255, 0.1);
+          border: 1px solid rgba(31, 182, 255, 0.14);
+          font-size: 16px;
+          font-weight: 700;
+          color: #0e1e2b;
         }
 
         .stage-chrome {
@@ -580,28 +693,49 @@
 
         const tl = gsap.timeline({ paused: true });
         const chapterConfig = [
-          { selector: ".chapter-1", start: 0.5, duration: 4.4 },
-          { selector: ".chapter-2", start: 5.1, duration: 4.8 },
-          { selector: ".chapter-3", start: 10.1, duration: 4.8 },
-          { selector: ".chapter-4", start: 15.4, duration: 8.1 },
-          { selector: ".chapter-5", start: 23.9, duration: 8.0 },
-          { selector: ".chapter-6", start: 32.5, duration: 7.0 },
-          { selector: ".chapter-7", start: 39.9, duration: 4.5 },
+          { selector: ".chapter-1", start: 1.2, duration: 4.0 },
+          { selector: ".chapter-2", start: 5.5, duration: 4.3 },
+          { selector: ".chapter-3", start: 10.1, duration: 4.4 },
+          { selector: ".chapter-4", start: 15.0, duration: 7.4 },
+          { selector: ".chapter-5", start: 22.9, duration: 7.1 },
+          { selector: ".chapter-6", start: 30.5, duration: 6.9 },
+          { selector: ".chapter-7", start: 37.9, duration: 5.1 },
         ];
 
         tl.from(".brand-rail", {
-          y: -22,
-          opacity: 0,
-          duration: 0.8,
+          y: -10,
+          duration: 0.9,
           ease: "power3.out",
         }, 0);
 
         tl.from(".stage-wrap", {
-          y: 42,
-          opacity: 0,
-          duration: 1.1,
+          y: 16,
+          scale: 0.985,
+          duration: 1.0,
           ease: "power3.out",
-        }, 0.15);
+        }, 0);
+
+        tl.to(".opening-card", {
+          y: -18,
+          opacity: 0,
+          scale: 0.98,
+          duration: 0.65,
+          ease: "power2.inOut",
+        }, 0.95);
+
+        tl.to(".opening-scene", {
+          opacity: 0,
+          duration: 0.35,
+          ease: "power1.inOut",
+        }, 1.2);
+
+        tl.to(".opening-play", {
+          scale: 1.04,
+          duration: 0.85,
+          ease: "sine.inOut",
+          yoyo: true,
+          repeat: 1,
+        }, 0.1);
 
         tl.to(".timeline-fill", {
           scaleX: 1,

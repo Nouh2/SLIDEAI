@@ -32,12 +32,12 @@ export function SocialProofSection() {
   ];
 
   const line = isFr
-    ? "70+ professionnels l'ont deja utilise en beta"
+    ? "120+ professionnels l'utilise deja"
     : "70+ professionals have already used it in beta";
 
   return (
-    <section className="relative z-10 px-4 py-3 md:py-4">
-      <div className="mx-auto flex max-w-5xl flex-col items-center gap-3 px-4 py-2 sm:flex-row sm:justify-center sm:gap-5">
+    <section className="relative z-10 px-4 pt-0 pb-0">
+      <div className="mx-auto flex max-w-5xl flex-col items-center gap-2 px-4 py-0 sm:flex-row sm:justify-center sm:gap-4">
         <p className="text-center text-xs font-medium text-foreground/70 sm:text-left sm:text-sm">
           {line}
         </p>

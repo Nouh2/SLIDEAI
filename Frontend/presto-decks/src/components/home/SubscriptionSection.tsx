@@ -24,7 +24,7 @@ export function SubscriptionSection() {
     };
 
     return (
-        <section className="py-8 md:py-10 px-4 relative z-10">
+        <section className="pt-4 pb-8 md:pt-4 md:pb-10 px-4 relative z-10">
             <div className="max-w-7xl mx-auto">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center bg-secondary/5 rounded-3xl p-8 md:p-12 border border-white/5">
                     <div className="space-y-6">

@@ -26,7 +26,7 @@ export function OfferSection() {
     };
 
     return (
-        <section className="py-8 md:py-10 px-4 relative overflow-hidden z-10">
+        <section className="pt-4 pb-8 md:pt-4 md:pb-10 px-4 relative overflow-hidden z-10">
             <div className="absolute inset-0 bg-primary/5 -z-10" />
             <div className="max-w-4xl mx-auto">
                 <motion.div

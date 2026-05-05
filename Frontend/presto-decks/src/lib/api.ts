@@ -10,6 +10,8 @@ export interface GenerateRequest {
   tone?: string;
   length?: string;
   theme?: string;
+  deliverableType?: string;
+  evidenceMode?: 'standard' | 'strict';
   slideCount?: number;
   file?: File; // Optional document upload for RAG
   accessToken?: string; // Supabase auth token
@@ -203,6 +205,8 @@ export const api = {
         if (request.tone) formData.append('tone', request.tone);
         if (request.length) formData.append('length', request.length);
         if (request.theme) formData.append('theme', request.theme);
+        if (request.deliverableType) formData.append('deliverableType', request.deliverableType);
+        if (request.evidenceMode) formData.append('evidenceMode', request.evidenceMode);
         if (request.slideCount) formData.append('slideCount', String(request.slideCount));
 
         // Brand kit - Serialize objects to JSON strings for multipart
@@ -230,6 +234,8 @@ export const api = {
             tone: request.tone,
             length: request.length,
             theme: request.theme,
+            deliverableType: request.deliverableType,
+            evidenceMode: request.evidenceMode,
             slideCount: request.slideCount,
             brandColors: request.brandColors,
             brandFonts: request.brandFonts,
@@ -294,6 +300,8 @@ export const api = {
       language?: string;
       tone?: string;
       theme?: string;
+      deliverableType?: string;
+      evidenceMode?: 'standard' | 'strict';
       slideCount?: number;
       // Brand kit fields
       brandColors?: GenerateRequest['brandColors'];
@@ -534,6 +542,23 @@ export const api = {
       body: JSON.stringify(data),
     });
     if (!response.ok) throw new Error('Échec de la sauvegarde');
+    return response.json();
+  },
+
+  /**
+   * Duplicate a presentation into the current workspace
+   * POST /v1/presentations/:id/duplicate
+   */
+  async duplicatePresentation(id: string, accessToken: string): Promise<any> {
+    const response = await fetch(`${API_BASE_URL}/presentations/${id}/duplicate`, {
+      method: 'POST',
+      headers: buildHeaders(accessToken, 'application/json'),
+      body: JSON.stringify({}),
+    });
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({ message: 'Erreur' }));
+      throw new Error(err.message || 'Impossible de dupliquer la présentation');
+    }
     return response.json();
   },
 

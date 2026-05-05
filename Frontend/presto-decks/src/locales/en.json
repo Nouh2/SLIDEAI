@@ -206,6 +206,9 @@
     "paymentSuccess": "Payment successful! 🎉",
     "paymentSuccessMsg": "Your subscription is activated. Thank you for your trust!",
     "duplicate": "Duplicate",
+    "duplicateSuccess": "Presentation duplicated",
+    "duplicateSuccessMsg": "The copy is available in your presentations.",
+    "duplicateError": "Unable to duplicate this presentation.",
     "themes": {
       "startup": "Startup",
       "corporate": "Corporate",
@@ -220,7 +223,14 @@
       "marketing-campaign": "Marketing Campaign",
       "tech-modern": "Tech Modern",
       "health-medical": "Health & Medical",
-      "sustainability": "Sustainability"
+      "sustainability": "Sustainability",
+      "seo-audit": "SEO Audit",
+      "sales-proposal": "Sales Proposal",
+      "business-review": "Business Review / QBR",
+      "financial-audit": "Financial Audit",
+      "product-roadmap": "Product Roadmap",
+      "cybersecurity-audit": "Cybersecurity Audit",
+      "board-deck": "Board Deck"
     },
     "statuses": {
       "pending": "Pending",
@@ -1064,6 +1074,48 @@
         "desc": "Earth tones for ecological and CSR topics.",
         "badge": "CSR",
         "useCases": "carbon footprint, CSR strategy"
+      },
+      "seo-audit": {
+        "name": "SEO Client Audit",
+        "desc": "Structured diagnosis with priorities, roadmap and expected impact.",
+        "badge": "SEO",
+        "useCases": "technical audit, content, authority, SEO roadmap"
+      },
+      "sales-proposal": {
+        "name": "Sales Proposal",
+        "desc": "Client-ready offer with context, scope, pricing and next steps.",
+        "badge": "Sales",
+        "useCases": "client offer, quote, scope, pricing"
+      },
+      "business-review": {
+        "name": "Business Review / QBR",
+        "desc": "Executive summary for KPIs, risks, opportunities and priorities.",
+        "badge": "QBR",
+        "useCases": "quarterly review, business committee, KPI reporting"
+      },
+      "financial-audit": {
+        "name": "Financial Audit",
+        "desc": "Serious analysis of figures, risks, liquidity and recommendations.",
+        "badge": "Finance",
+        "useCases": "credit analysis, financial audit, risks"
+      },
+      "product-roadmap": {
+        "name": "Product Roadmap",
+        "desc": "Product priorities, user needs, timeline and success metrics.",
+        "badge": "Product",
+        "useCases": "SaaS roadmap, product strategy, prioritization"
+      },
+      "cybersecurity-audit": {
+        "name": "Cybersecurity Audit",
+        "desc": "Security posture, critical risks and remediation plan.",
+        "badge": "Cyber",
+        "useCases": "security audit, vulnerabilities, governance"
+      },
+      "board-deck": {
+        "name": "Board Deck",
+        "desc": "Executive deck for decisions, performance, risks and clear asks.",
+        "badge": "Board",
+        "useCases": "executive committee, board deck, strategic decisions"
       }
     }
   },

@@ -58,7 +58,8 @@ import {
   NotebookPen,
   Bookmark,
   MessageSquare,
-  TableProperties
+  TableProperties,
+  FileText
 } from "lucide-react";
 import {
   Sheet,
@@ -85,6 +86,7 @@ import { RegenerateSlideDialog } from "@/components/editor/RegenerateSlideDialog
 import { AddSlideDialog } from "@/components/editor/AddSlideDialog";
 import { LayoutSwitcher } from "@/components/editor/LayoutSwitcher";
 import { LibrarySidebar } from "@/components/editor/LibrarySidebar";
+import { EvidenceSidebar } from "@/components/editor/EvidenceSidebar";
 import { StoryboardView } from "@/components/editor/StoryboardView";
 import { BugReportDialog } from "@/components/editor/BugReportDialog";
 import { FontSelectorDialog, FontConfig, AVAILABLE_FONTS } from "@/components/editor/FontSelectorDialog";
@@ -172,6 +174,8 @@ const adaptDeck = (deck: any) => {
         items: s.items || s.content?.items,
         text: s.text || s.content?.text,
         variation: s.variation,
+        titleFontScale: s.titleFontScale,
+        textFontScale: s.textFontScale,
         content: s.content,
         unsplashPhotographer: s.unsplashPhotographer,
         illustration: s.illustration || {
@@ -194,6 +198,8 @@ const adaptDeck = (deck: any) => {
     // Custom Templates data
     brandLogoUrl: deck.brandLogoUrl || rootData.brandLogoUrl,
     templateOverlay: deck.templateOverlay || rootData.templateOverlay,
+    meta: deck.meta || rootData.meta || {},
+    evidenceMode: deck.evidenceMode || rootData.evidenceMode || deck.meta?.evidenceMode || rootData.meta?.evidenceMode,
     status: deck.status || rootData.status || "draft",
   };
 };
@@ -235,6 +241,7 @@ export default function Editor() {
   const [showSpeakerNotes, setShowSpeakerNotes] = useState(false);
   const [isLibraryOpen, setIsLibraryOpen] = useState(false);
   const [isCommentsOpen, setIsCommentsOpen] = useState(false);
+  const [isEvidenceOpen, setIsEvidenceOpen] = useState(false);
   const [currentUserEmail, setCurrentUserEmail] = useState<string | null>(null);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [showSharePulse, setShowSharePulse] = useState(false);
@@ -320,6 +327,7 @@ export default function Editor() {
   const canShareByLink = hasFeature(subscription, "public_link");
   const canShareCollaborative = hasFeature(subscription, "brand_kit"); // brand_kit = Pro+
   const canExportAnything = hasFeature(subscription, "export_pdf") || hasFeature(subscription, "export_pptx");
+  const hasEvidenceSources = Boolean(currentProject?.slides?.some((slide: any) => slide.sourceRef));
   const shareDisabledReason = canShareByLink
     ? undefined
     : t("editorPage.shareUpgrade");
@@ -791,7 +799,8 @@ export default function Editor() {
 
     // Split path: 'content.columns[0].title' -> ['content', 'columns', '0', 'title']
     // Regex matches . or [ or ] (but filter out empty strings from ] split)
-    const pathParts = path.replace(/\]/g, '').split(/[\.\[]/);
+    const toPathParts = (pathString: string) => pathString.replace(/\]/g, '').split(/[\.\[]/);
+    const pathParts = toPathParts(path);
 
     const newProject = { ...currentProject };
     const newSlides = [...newProject.slides];
@@ -799,6 +808,29 @@ export default function Editor() {
     // Update generic slide state recursively
     // We treat 'newSlides[selectedSlide]' as the root
     newSlides[selectedSlide] = updateDeep(newSlides[selectedSlide], pathParts, value);
+
+    // Magazine-grid stores the main story in two possible locations depending on
+    // generation history. Keep both in sync so the edited text is the rendered text.
+    const selectedId = selectedElement?.id || '';
+    if (selectedId.endsWith('-main-title')) {
+      newSlides[selectedSlide] = updateDeep(newSlides[selectedSlide], toPathParts('title'), value);
+      if (newSlides[selectedSlide]?.content?.items?.[0]) {
+        newSlides[selectedSlide] = updateDeep(newSlides[selectedSlide], toPathParts('content.items[0].title'), value);
+      }
+      if (newSlides[selectedSlide]?.items?.[0]) {
+        newSlides[selectedSlide] = updateDeep(newSlides[selectedSlide], toPathParts('items[0].title'), value);
+      }
+    }
+
+    if (selectedId.endsWith('-main-desc')) {
+      newSlides[selectedSlide] = updateDeep(newSlides[selectedSlide], toPathParts('content.description'), value);
+      if (newSlides[selectedSlide]?.content?.items?.[0]) {
+        newSlides[selectedSlide] = updateDeep(newSlides[selectedSlide], toPathParts('content.items[0].description'), value);
+      }
+      if (newSlides[selectedSlide]?.items?.[0]) {
+        newSlides[selectedSlide] = updateDeep(newSlides[selectedSlide], toPathParts('items[0].description'), value);
+      }
+    }
 
     // Also update local selected element for immediate feedback
     if (selectedElement) {
@@ -926,7 +958,9 @@ export default function Editor() {
         colorPalette: projectToSave.colorScheme,
         fontConfig: projectToSave.fontConfig,
         title: projectToSave.title,
-        subtitle: projectToSave.subtitle
+        subtitle: projectToSave.subtitle,
+        meta: projectToSave.meta,
+        evidenceMode: projectToSave.evidenceMode
       };
 
       await api.savePresentation(projectToSave.id, {
@@ -1241,6 +1275,19 @@ export default function Editor() {
                 <Bookmark className={`h-4 w-4 ${isLibraryOpen ? "fill-primary text-primary" : ""}`} />
                 <span className="hidden lg:inline text-xs font-semibold">{t('editorPage.actions.library')}</span>
               </Button>
+
+              {hasEvidenceSources && (
+                <Button
+                  variant={isEvidenceOpen ? "secondary" : "ghost"}
+                  size="sm"
+                  className="h-9 px-3 gap-2 rounded-lg"
+                  onClick={() => setIsEvidenceOpen(!isEvidenceOpen)}
+                  title="Sources"
+                >
+                  <FileText className={`h-4 w-4 ${isEvidenceOpen ? "text-primary" : ""}`} />
+                  <span className="hidden lg:inline text-xs font-semibold">Sources</span>
+                </Button>
+              )}
 
               <div className="h-6 w-px bg-[#E6E6E0]"></div>
 
@@ -1720,6 +1767,22 @@ export default function Editor() {
                     accessToken={accessToken}
                     onClose={() => setIsCommentsOpen(false)}
                     currentUserEmail={currentUserEmail || undefined}
+                  />
+                </div>
+              )}
+
+              {/* Evidence Sources Sidebar */}
+              {isEvidenceOpen && currentProject && (
+                <div className="w-[320px] border-l border-border bg-background z-30 shrink-0">
+                  <EvidenceSidebar
+                    slides={currentProject.slides}
+                    selectedSlide={selectedSlide}
+                    evidenceMode={currentProject.evidenceMode || currentProject.meta?.evidenceMode}
+                    onSelectSlide={(index) => {
+                      setSelectedSlide(index);
+                      setSelectedElement(null);
+                    }}
+                    onClose={() => setIsEvidenceOpen(false)}
                   />
                 </div>
               )}

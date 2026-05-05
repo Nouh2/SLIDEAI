@@ -1,7 +1,7 @@
 // src/components/editor/SourceCitation.tsx
 // Evidence Linking component - displays source page reference for slide content
 
-import { FileText } from "lucide-react";
+import { FileText, ShieldCheck, ShieldAlert } from "lucide-react";
 import {
     Popover,
     PopoverContent,
@@ -14,6 +14,7 @@ export interface SourceRef {
     pageStart: number;
     pageEnd: number;
     originalText?: string;
+    verified?: boolean;
 }
 
 interface SourceCitationProps {
@@ -54,6 +55,16 @@ export function SourceCitation({ sourceRef, className = "" }: SourceCitationProp
                         <FileText className="w-4 h-4 text-primary" />
                         Source du Contenu
                     </div>
+                    {sourceRef.verified !== undefined && (
+                        <Badge variant="outline" className={`text-[10px] ${sourceRef.verified ? "border-emerald-500/30 text-emerald-600" : "border-amber-500/30 text-amber-600"}`}>
+                            {sourceRef.verified ? (
+                                <ShieldCheck className="w-3 h-3 mr-1" />
+                            ) : (
+                                <ShieldAlert className="w-3 h-3 mr-1" />
+                            )}
+                            {sourceRef.verified ? "Vérifiée" : "À vérifier"}
+                        </Badge>
+                    )}
                 </div>
 
                 <div className="p-4 space-y-4 max-h-[400px] overflow-y-auto">

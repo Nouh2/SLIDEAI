@@ -61,6 +61,7 @@ export interface Slide {
         pageStart: number;
         pageEnd: number;
         originalText?: string;
+        verified?: boolean;
     };
     content: SlideContent;
     notes?: string;

@@ -11,6 +11,7 @@ import { api, ParseDocumentResponse, BrandKit } from "@/lib/api";
 import { motion, AnimatePresence } from "framer-motion";
 import { TemplateSelector } from "@/components/create/TemplateSelector";
 import { DocumentStructureStep } from "@/components/create/DocumentStructureStep";
+import { PromptStoryboardStep, PromptStoryboardSelection } from "@/components/create/PromptStoryboardStep";
 import { BrandKitSelector } from "@/components/brand/BrandKitSelector";
 import { getTemplateById } from "@/data/slideTemplates";
 import { projectService } from "@/lib/projects";
@@ -23,7 +24,7 @@ import { hasFeature } from "@/lib/subscription";
 
 
 export default function Create() {
-    const [step, setStep] = useState<'template' | 'customize' | 'document-structure'>("template");
+    const [step, setStep] = useState<'template' | 'customize' | 'storyboard' | 'document-structure'>("template");
     const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
     const [vision, setVision] = useState("");
     const { t, i18n } = useTranslation();
@@ -164,6 +165,7 @@ export default function Create() {
         sectionVisuals: Record<string, 'image' | 'chart-bar' | 'chart-pie' | 'chart-line' | 'text-only'>;
         structurePrompt: string; // NEW: Receive the plan instruction
         totalSlides: number; // NEW: Received from Smart Plan
+        evidenceMode?: 'standard' | 'strict';
     }) => {
         if (!parseToken) return;
 
@@ -192,6 +194,8 @@ export default function Create() {
                     sectionVisuals: selection.sectionVisuals,
                     language: contentLanguage,
                     theme: template?.id,
+                    deliverableType: template?.id,
+                    evidenceMode: selection.evidenceMode,
                     slideCount: selection.totalSlides, // USE SMART PLAN COUNT
                     // Brand kit integration
                     brandColors: selectedBrandKit?.colors,
@@ -233,8 +237,26 @@ export default function Create() {
         }
     };
 
-    const handleGenerate = async () => {
-        if (!vision.trim()) {
+    const handlePrepareStoryboard = () => {
+        if (parsedDocument?.document && parseToken) {
+            setStep('document-structure');
+            return;
+        }
+
+        if (!vision.trim() && !attachedFile) {
+            toast({
+                title: t('create.visionRequired'),
+                description: t('create.visionRequiredMsg'),
+                variant: "destructive",
+            });
+            return;
+        }
+
+        setStep('storyboard');
+    };
+
+    const handleGenerate = async (storyboard?: PromptStoryboardSelection) => {
+        if (!vision.trim() && !attachedFile) {
             toast({
                 title: t('create.visionRequired'),
                 description: t('create.visionRequiredMsg'),
@@ -268,13 +290,20 @@ export default function Create() {
                 finalPrompt += `\n\n[STYLE: Utiliser le template "${template.name}" (${template.description}). Cas d'usage: ${template.useCases.join(', ')}]`;
             }
 
+            if (storyboard?.structurePrompt) {
+                finalPrompt += storyboard.structurePrompt;
+            }
+
+            const finalSlideCount = storyboard?.totalSlides || slides[0];
+
             const data = await api.generate({
                 prompt: `${finalPrompt}. Objectif: Présentation. ${template ? `Theme suggéré: ${template.id}` : ''}`,
                 language: contentLanguage,
                 tone: "pro",
                 length: "medium",
-                slideCount: slides[0],
+                slideCount: finalSlideCount,
                 theme: template?.id,
+                deliverableType: template?.id,
                 file: attachedFile || undefined,
                 accessToken: session.access_token,
                 // Brand kit integration
@@ -291,7 +320,7 @@ export default function Create() {
                 id: traceId,
                 title: vision.split('\n')[0].substring(0, 40) || t('create.defaultTitle'),
                 prompt: finalPrompt,
-                slides: new Array(slides[0]).fill({}), // Placeholder count
+                slides: new Array(finalSlideCount).fill({}), // Placeholder count
                 theme: template ? { id: template.id, name: template.name } : "modern",
                 createdAt: new Date().toISOString().split('T')[0],
                 usage: 0,
@@ -346,6 +375,11 @@ export default function Create() {
                         <div className={`w-8 h-8 rounded-full flex items-center justify-center font-semibold ${step === 'customize' ? 'bg-primary text-white' : 'bg-muted'}`}>2</div>
                         <span className="text-sm font-medium hidden sm:inline">{t('create.step2')}</span>
                     </div>
+                    <div className="h-px w-16 bg-border"></div>
+                    <div className={`flex items-center gap-2 ${step === 'storyboard' || step === 'document-structure' ? 'text-primary' : 'text-muted-foreground'}`}>
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center font-semibold ${step === 'storyboard' || step === 'document-structure' ? 'bg-primary text-white' : 'bg-muted'}`}>3</div>
+                        <span className="text-sm font-medium hidden sm:inline">Plan</span>
+                    </div>
                 </div>
 
                 <AnimatePresence mode="wait">
@@ -386,6 +420,33 @@ export default function Create() {
                                     setParsedDocument(null);
                                     setParseToken(null);
                                 }}
+                                isGenerating={isGenerating}
+                            />
+                        </motion.div>
+                    ) : step === 'storyboard' ? (
+                        <motion.div
+                            key="storyboard"
+                            initial={{ opacity: 0, x: 20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: -20 }}
+                            className="space-y-6"
+                        >
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => setStep('customize')}
+                                className="gap-2"
+                            >
+                                <ChevronLeft className="h-4 w-4" />
+                                Retour au brief
+                            </Button>
+
+                            <PromptStoryboardStep
+                                template={selectedTemplate ? getTemplateById(selectedTemplate) : null}
+                                requestedSlides={slides[0]}
+                                prompt={vision}
+                                onBack={() => setStep('customize')}
+                                onConfirm={handleGenerate}
                                 isGenerating={isGenerating}
                             />
                         </motion.div>
@@ -655,7 +716,7 @@ export default function Create() {
                                                 <div className="mt-auto pt-2">
                                                     <Button
                                                         size="lg"
-                                                        onClick={handleGenerate}
+                                                        onClick={handlePrepareStoryboard}
                                                         disabled={(!vision.trim() && !attachedFile) || isGenerating}
                                                         className="w-full bg-gradient-to-r from-primary to-secondary hover:opacity-90 transition-all shadow-glow hover:shadow-glow-hover text-white font-semibold rounded-lg group h-12"
                                                     >
@@ -664,7 +725,7 @@ export default function Create() {
                                                         ) : (
                                                             <div className="flex items-center gap-2 justify-center">
                                                                 <Zap className="w-4 h-4 fill-current" />
-                                                                <span>{t('create.generate')}</span>
+                                                                <span>{parsedDocument?.document ? 'Configurer le plan' : 'Préparer le plan'}</span>
                                                             </div>
                                                         )}
                                                     </Button>

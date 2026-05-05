@@ -306,6 +306,33 @@ const TrendArrowIcon = ({
     );
 };
 
+const RelatedTopicIcon = ({ colors, index = 0 }: { colors: any; index?: number }) => {
+    const primary = colors.primary || '#2563EB';
+    const secondary = colors.secondary || colors.accent || primary;
+    const variants = [
+        <path key="network" d="M8 8h8M8 16h8M8 8v8M16 8v8" />,
+        <path key="pulse" d="M5 13h4l2-5 3 8 2-3h3" />,
+        <path key="layers" d="M12 5l7 4-7 4-7-4 7-4Zm-5 8 5 3 5-3" />,
+    ];
+
+    return (
+        <div
+            className="w-24 h-24 rounded-xl shrink-0 shadow-md flex items-center justify-center border"
+            style={{
+                background: `linear-gradient(135deg, ${primary}18, ${secondary}10)`,
+                borderColor: `${primary}25`,
+                color: primary,
+            }}
+        >
+            <svg width="42" height="42" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                {variants[index % variants.length]}
+                <circle cx="8" cy="8" r="2.1" fill={primary} opacity="0.85" />
+                <circle cx="16" cy="16" r="2.1" fill={secondary} opacity="0.75" />
+            </svg>
+        </div>
+    );
+};
+
 // Enhanced abstract background shapes - premium artistic look
 const AbstractShapes = ({ colors, variant = 'default' }: { colors: any; variant?: string }) => {
     const primary = colors.primary || '#2563EB';
@@ -5464,6 +5491,10 @@ const BentoGridLayout = ({ slide, colors, variation = 'default', onSelect, selec
     if (variation === 'magazine-grid') {
         const mainItem = displayItems[0];
         const sideItems = displayItems.slice(1);
+        const mainTitleValue = slide.title || mainItem?.title;
+        const mainTitlePath = slide.title ? 'title' : `${itemsPath}[0].title`;
+        const mainDescriptionValue = slide.content?.description || mainItem?.description;
+        const mainDescriptionPath = slide.content?.description ? 'content.description' : `${itemsPath}[0].description`;
 
         return (
             <div className="relative w-full h-full overflow-hidden p-12" style={{ backgroundColor: colors.bg }}>
@@ -5490,22 +5521,22 @@ const BentoGridLayout = ({ slide, colors, variation = 'default', onSelect, selec
                                 Cover Story
                             </span>
                             <EditableElement
-                                element={{ id: 'main-title', type: 'text', value: mainItem?.title || slide.title, path: items.length > 0 ? `${itemsPath}[0].title` : 'title', label: 'Main Title' }}
+                                element={{ id: 'main-title', type: 'text', value: mainTitleValue, path: mainTitlePath, label: 'Main Title' }}
                                 onSelect={onSelect}
                                 isSelected={selectedId === 'main-title'}
                                 className="mb-6"
                             >
                                 <h2 className="text-7xl font-bold text-white leading-tight" style={{ fontSize: `calc(var(--slide-font-scale, 1) * ${titleFontScale} * 4.5rem)` }}>
-                                    {mainItem?.title || slide.title}
+                                    {mainTitleValue}
                                 </h2>
                             </EditableElement>
                             <EditableElement
-                                element={{ id: 'main-desc', type: 'text', value: mainItem?.description || slide.content?.description, path: items.length > 0 ? `${itemsPath}[0].description` : 'content.description', label: 'Main Description' }}
+                                element={{ id: 'main-desc', type: 'text', value: mainDescriptionValue, path: mainDescriptionPath, label: 'Main Description' }}
                                 onSelect={onSelect}
                                 isSelected={selectedId === 'main-desc'}
                             >
-                                <p className={cn("text-3xl text-white/80 leading-relaxed max-w-2xl", renderMode === 'export' ? '' : 'line-clamp-3')} style={{ fontSize: `calc(var(--slide-font-scale, 1) * ${textFontScale} * 1.875rem)`, ...getExportConstrainedTextStyle(renderMode, 3) }}>
-                                    {mainItem?.description || slide.content?.description || "Detailed analysis of the key trends shaping this narrative."}
+                                <p className="text-3xl text-white/80 leading-relaxed max-w-2xl whitespace-normal break-words" style={{ fontSize: `calc(var(--slide-font-scale, 1) * ${textFontScale} * 1.875rem)` }}>
+                                    {mainDescriptionValue || "Detailed analysis of the key trends shaping this narrative."}
                                 </p>
                             </EditableElement>
                         </div>
@@ -5519,10 +5550,14 @@ const BentoGridLayout = ({ slide, colors, variation = 'default', onSelect, selec
                         </div>
 
                         {sideItems.map((item: any, i: number) => (
-                            <div key={i} className={cn("row-span-1 flex gap-6 items-center p-4 rounded-2xl transition-colors group cursor-pointer", renderMode === 'export' ? '' : 'hover:bg-black/5')}
+                            <div key={i} className={cn("row-span-1 flex gap-6 items-start p-4 rounded-2xl transition-colors group cursor-pointer", renderMode === 'export' ? '' : 'hover:bg-black/5')}
                                 style={{ backgroundColor: `${colors.bg}` }}>
-                                <div className={cn("w-24 h-24 rounded-xl bg-cover bg-center shrink-0 shadow-md transform transition-transform duration-500", renderMode === 'export' ? '' : 'group-hover:scale-105')}
-                                    style={{ backgroundImage: `url(${item.image || `https://source.unsplash.com/200x200/?${encodeURIComponent(item.title || 'abstract')}`})` }} />
+                                {item.image ? (
+                                    <div className={cn("w-24 h-24 rounded-xl bg-cover bg-center shrink-0 shadow-md transform transition-transform duration-500", renderMode === 'export' ? '' : 'group-hover:scale-105')}
+                                        style={{ backgroundImage: `url(${item.image})` }} />
+                                ) : (
+                                    <RelatedTopicIcon colors={colors} index={i} />
+                                )}
                                 <div className="flex-1 min-w-0">
                                     <EditableElement
                                         element={{ id: `side-${i}-title`, type: 'text', value: item.title, path: `${itemsPath}[${i + 1}].title`, label: `Side Item ${i + 1} Title` }}
@@ -5530,14 +5565,14 @@ const BentoGridLayout = ({ slide, colors, variation = 'default', onSelect, selec
                                         isSelected={selectedId === `side-${i}-title`}
                                         className="mb-2"
                                     >
-                                        <h3 className={cn("text-3xl font-bold transition-colors leading-[1.08]", renderMode === 'export' ? '' : 'truncate group-hover:text-primary')} style={{ color: colors.text, fontSize: `calc(var(--slide-font-scale, 1) * ${titleFontScale} * 1.875rem)`, ...getExportConstrainedTextStyle(renderMode, 2) }}>{item.title}</h3>
+                                        <h3 className={cn("text-2xl font-bold transition-colors leading-[1.12] whitespace-normal break-words", renderMode === 'export' ? '' : 'group-hover:text-primary')} style={{ color: colors.text, fontSize: `calc(var(--slide-font-scale, 1) * ${titleFontScale} * 1.5rem)` }}>{item.title}</h3>
                                     </EditableElement>
                                     <EditableElement
                                         element={{ id: `side-${i}-desc`, type: 'text', value: item.description, path: `${itemsPath}[${i + 1}].description`, label: `Side Item ${i + 1} Description` }}
                                         onSelect={onSelect}
                                         isSelected={selectedId === `side-${i}-desc`}
                                     >
-                                        <p className={cn("text-lg opacity-60 leading-relaxed", renderMode === 'export' ? '' : 'line-clamp-2')} style={{ color: colors.text, fontSize: `calc(var(--slide-font-scale, 1) * ${textFontScale} * 1.125rem)`, ...getExportConstrainedTextStyle(renderMode, 2) }}>{item.description}</p>
+                                        <p className="text-base opacity-60 leading-snug whitespace-normal break-words" style={{ color: colors.text, fontSize: `calc(var(--slide-font-scale, 1) * ${textFontScale} * 1rem)` }}>{item.description}</p>
                                     </EditableElement>
                                 </div>
                                 <div className={cn("w-10 h-10 rounded-full border flex items-center justify-center transition-opacity text-[0px]", renderMode === 'export' ? 'opacity-100' : 'opacity-0 group-hover:opacity-100')} style={{ borderColor: colors.primary, color: colors.primary }}>
@@ -7115,10 +7150,16 @@ export const ModernSlideRenderer = ({
     showWatermark,
     showPageNumber, // This is coming from props as override
     templateOverlay, // Destructure added prop
-    titleFontScale = 0.9,
-    textFontScale = 0.9
+    titleFontScale: globalTitleFontScale = 0.9,
+    textFontScale: globalTextFontScale = 0.9
 }: SlideRendererProps) => {
     const slide = repairStringLikeObjects(rawSlide);
+    const toFiniteScale = (value: any, fallback: number) => {
+        const numeric = Number(value);
+        return Number.isFinite(numeric) && numeric > 0 ? numeric : fallback;
+    };
+    const titleFontScale = toFiniteScale(slide?.titleFontScale ?? slide?.typography?.titleFontScale, globalTitleFontScale);
+    const textFontScale = toFiniteScale(slide?.textFontScale ?? slide?.typography?.textFontScale, globalTextFontScale);
     // Ensure theme is always a string to prevent .includes() errors
     const theme = typeof rawTheme === 'string' ? rawTheme : 'modern';
     // If templateOverlay config exists, prioritize its setting over the prop

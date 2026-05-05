@@ -28,6 +28,26 @@ import { createRequire } from 'module';
 
 // Maximum characters to extract from documents (60K = ~15K tokens)
 const MAX_DOCUMENT_CHARS = 60000;
+const DELIVERABLE_IDS = [
+  'startup-pitch',
+  'product-launch',
+  'corporate-report',
+  'creative-portfolio',
+  'educational',
+  'marketing-campaign',
+  'minimal-elegant',
+  'tech-modern',
+  'consulting',
+  'health-medical',
+  'sustainability',
+  'seo-audit',
+  'sales-proposal',
+  'business-review',
+  'financial-audit',
+  'product-roadmap',
+  'cybersecurity-audit',
+  'board-deck',
+] as const;
 
 /**
  * Extract text from PDF using pdfjs-dist v3 (Node 18 compatible)
@@ -164,19 +184,9 @@ const generateSchema = z.object({
     (val) => (typeof val === 'string' ? parseInt(val, 10) : val),
     z.number().int().min(3).max(50).default(8)
   ),
-  theme: z.enum([
-    'startup-pitch',
-    'product-launch',
-    'corporate-report',
-    'creative-portfolio',
-    'educational',
-    'marketing-campaign',
-    'minimal-elegant',
-    'tech-modern',
-    'consulting',
-    'health-medical',
-    'sustainability'
-  ]).default('startup-pitch'),
+  theme: z.enum(DELIVERABLE_IDS).default('startup-pitch'),
+  deliverableType: z.enum(DELIVERABLE_IDS).optional(),
+  evidenceMode: z.enum(['standard', 'strict']).optional().default('standard'),
   // Smart Report Parsing: Use previously parsed document instead of raw upload
   parseToken: z.string().optional(),
   // Section IDs to include (from /parse-document response). If empty, uses all sections.

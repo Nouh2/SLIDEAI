@@ -27,8 +27,7 @@ import {
 } from "@/lib/subscription";
 
 // ─── Stripe Price IDs ──────────────────────────────────────────────────────────
-// TODO: Create new Stripe prices for Pack Mission (€19) and Pack Trimestre (€39)
-// then replace these IDs. Current IDs are the legacy €7/€15 packs.
+// Vercel env vars can override pack price IDs without a frontend code change.
 const STRIPE_PRICE_IDS: Record<string, { monthly: string; yearly: string }> = {
   pro: {
     monthly: "price_1Sn5IN5KgGKgF82elQlvSUIf",
@@ -41,8 +40,14 @@ const STRIPE_PRICE_IDS: Record<string, { monthly: string; yearly: string }> = {
 };
 
 const PACK_PRICE_IDS: Record<string, { priceId: string; packType: string }> = {
-  "Pack Mission":   { priceId: "price_1TClZP5KgGKgF82eVUkjsrgT", packType: "pack_decouverte" },
-  "Pack Trimestre": { priceId: "price_1TClZP5KgGKgF82eIJO8gW7d", packType: "pack_power" },
+  "Pack Mission": {
+    priceId: import.meta.env.VITE_STRIPE_PACK_MISSION_PRICE_ID || "price_1TClZP5KgGKgF82eVUkjsrgT",
+    packType: "pack_decouverte",
+  },
+  "Pack Trimestre": {
+    priceId: import.meta.env.VITE_STRIPE_PACK_TRIMESTRE_PRICE_ID || "price_1TClZP5KgGKgF82eIJO8gW7d",
+    packType: "pack_power",
+  },
 };
 // ──────────────────────────────────────────────────────────────────────────────
 

@@ -77,6 +77,20 @@ export class PresentationController {
     }
 
     /**
+     * POST /v1/presentations/:id/duplicate
+     * Duplicate an accessible presentation into the current workspace
+     */
+    @Post(':id/duplicate')
+    async duplicatePresentation(
+        @Param('id') id: string,
+        @Req() req: FastifyRequest & { user: any },
+    ) {
+        const userId = req.user.sub;
+        const orgId = req.user.org_id;
+        return this.presentationService.duplicate(id, userId, orgId);
+    }
+
+    /**
      * POST /v1/presentations/:id/share
      * Generate a share link (owner only, requires subscription feature)
      * @param mode - 'edit' for collaborative access, 'view' for read-only access

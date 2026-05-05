@@ -1,3 +1,6 @@
+import { existsSync, readFileSync } from 'node:fs';
+import { join } from 'node:path';
+
 const DAY_MS = 24 * 60 * 60 * 1000;
 
 const BRAND = {
@@ -23,6 +26,12 @@ type Stat = {
   label: string;
 };
 
+type FeatureCard = {
+  imageUrl: string;
+  label: string;
+  ctaLabel: string;
+};
+
 type Spotlight = {
   tone: Tone;
   title: string;
@@ -44,7 +53,10 @@ export type EmailContent = {
   note?: string;
   unsubscribeUrl?: string;
   footerReason?: string;
-  layout?: 'default' | 'welcome';
+  layout?: 'default' | 'welcome' | 'newsletter';
+  heroImageUrl?: string;
+  featureGrid?: FeatureCard[];
+  darkFooterStats?: Stat[];
 };
 
 export type EmailContentPatch = Partial<EmailContent> & {
@@ -257,6 +269,151 @@ function wrapSignupWelcomeEmail(content: EmailContent) {
                 ${content.footerReason || 'Vous recevez cet email car vous avez cr&eacute;&eacute; un compte SlideAI.'}<br />
                 ${content.unsubscribeUrl ? `<a href="${content.unsubscribeUrl}" style="color: ${BRAND.primaryDark}; text-decoration: underline;">Se d&eacute;sabonner</a><br />` : ''}
                 SlideAI, plus rapide du brief client au deck final.
+              </td>
+            </tr>
+
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>`;
+}
+
+function wrapNewsletterEmail(content: EmailContent) {
+  const featureCards = (content.featureGrid ?? [])
+    .map(
+      (card) => `
+        <td valign="top" style="width: 33.33%; padding: 0 6px;">
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden;">
+            <tr>
+              <td style="padding: 0;">
+                <img src="${card.imageUrl}" alt="${card.label}" width="100%" style="display: block; width: 100%; height: auto; border-radius: 12px 12px 0 0;" />
+              </td>
+            </tr>
+            <tr>
+              <td style="padding: 12px 10px 14px 10px; text-align: center;">
+                <div style="font-size: 11px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: #0f172a; margin-bottom: 10px;">${card.label}</div>
+                <table role="presentation" cellpadding="0" cellspacing="0" style="margin: 0 auto;">
+                  <tr>
+                    <td style="border: 2px solid #f59e0b; border-radius: 6px;">
+                      <a href="${content.ctaUrl}" style="display: inline-block; padding: 6px 12px; font-size: 11px; font-weight: 800; color: #f59e0b; text-decoration: none; letter-spacing: 0.04em;">[${card.ctaLabel}]</a>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+          </table>
+        </td>`,
+    )
+    .join('');
+
+  const darkStats = (content.darkFooterStats ?? [])
+    .map(
+      (stat) => `
+        <td valign="middle" align="center" style="padding: 0 16px;">
+          <div style="font-size: 20px; font-weight: 800; color: #ffffff; line-height: 1;">${stat.value}</div>
+          <div style="font-size: 12px; color: #94a3b8; margin-top: 4px; line-height: 1.4;">${stat.label}</div>
+        </td>`,
+    )
+    .join('');
+
+  const heroStyle = content.heroImageUrl
+    ? `background: url('${content.heroImageUrl}') center center / cover no-repeat; position: relative;`
+    : `background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);`;
+
+  return `<!doctype html>
+<html lang="fr">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>${content.subject}</title>
+    <style>
+      @media only screen and (max-width: 600px) {
+        .nl-shell { width: 100% !important; }
+        .nl-hero { padding: 28px 20px !important; }
+        .nl-headline { font-size: 26px !important; line-height: 32px !important; }
+        .nl-feature-col { display: block !important; width: 100% !important; padding: 0 0 12px 0 !important; }
+        .nl-cta-btn { display: block !important; width: 100% !important; box-sizing: border-box !important; text-align: center !important; }
+      }
+    </style>
+  </head>
+  <body style="margin: 0; padding: 0; background: #f1f5f9; font-family: Inter, Arial, Helvetica, sans-serif;">
+    <div style="display: none; max-height: 0; overflow: hidden; opacity: 0; mso-hide: all;">${content.preview}</div>
+
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background: #f1f5f9; padding: 24px 0;">
+      <tr>
+        <td align="center">
+          <table class="nl-shell" role="presentation" cellpadding="0" cellspacing="0" style="max-width: 600px; width: 100%;">
+
+            <!-- Logo header -->
+            <tr>
+              <td style="background: #ffffff; border-radius: 16px 16px 0 0; padding: 20px 32px; text-align: center; border-bottom: 1px solid #e2e8f0;">
+                <img src="https://www.slideai.fr/logo.png" alt="SlideAI" width="90" style="display: inline-block; height: auto; border: 0;" />
+              </td>
+            </tr>
+
+            <!-- Hero image banner -->
+            <tr>
+              <td class="nl-hero" style="${heroStyle} padding: 36px 32px 36px 32px; text-align: center;">
+                <div style="background: rgba(0,0,0,0.5); border-radius: 12px; padding: 24px;">
+                  <div style="font-size: 12px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: #f59e0b; margin-bottom: 10px;">SlideAI.fr</div>
+                  <div style="font-size: 13px; color: #e2e8f0; line-height: 1.5;">${content.intro}</div>
+                </div>
+              </td>
+            </tr>
+
+            <!-- Main content: headline + CTA -->
+            <tr>
+              <td style="background: #ffffff; padding: 40px 40px 32px 40px; text-align: center;">
+                <h1 class="nl-headline" style="margin: 0 0 16px 0; font-size: 30px; line-height: 36px; font-weight: 900; color: #0f172a; text-transform: uppercase; letter-spacing: -0.01em;">
+                  ${content.title}
+                </h1>
+                <p style="margin: 0 0 28px 0; font-size: 15px; line-height: 24px; color: #475569;">
+                  ${content.body[0] ?? ''}
+                </p>
+                <table role="presentation" cellpadding="0" cellspacing="0" style="margin: 0 auto 28px auto;">
+                  <tr>
+                    <td style="border: 2px solid #f59e0b; border-radius: 8px; background: #fff7ed;">
+                      <a class="nl-cta-btn" href="${content.ctaUrl}" style="display: inline-block; padding: 14px 24px; font-size: 15px; font-weight: 900; color: #d97706; text-decoration: none; letter-spacing: 0.02em;">
+                        [${content.ctaLabel} &#9733;]
+                      </a>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+
+            ${content.featureGrid?.length ? `
+            <!-- Feature grid -->
+            <tr>
+              <td style="background: #f8fafc; padding: 32px 28px 36px 28px;">
+                <div style="text-align: center; font-size: 16px; font-weight: 900; color: #0f172a; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 20px;">
+                  Un style pour chaque mission.
+                </div>
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                  <tr>
+                    ${featureCards}
+                  </tr>
+                </table>
+              </td>
+            </tr>` : ''}
+
+            <!-- Dark footer with social proof -->
+            <tr>
+              <td style="background: #1e293b; border-radius: 0 0 16px 16px; padding: 32px 28px 28px 28px; text-align: center;">
+                <img src="https://www.slideai.fr/favicon.svg" alt="SlideAI" width="32" style="display: inline-block; margin-bottom: 16px; border: 0;" />
+                ${content.darkFooterStats?.length ? `
+                <table role="presentation" cellpadding="0" cellspacing="0" style="margin: 0 auto 20px auto;">
+                  <tr>${darkStats}</tr>
+                </table>` : ''}
+                <div style="font-size: 14px; font-weight: 800; color: #ffffff; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px;">
+                  ${content.note ?? 'SlideAI — Du brief au deck en quelques minutes.'}
+                </div>
+                <div style="font-size: 12px; color: #64748b; margin-top: 16px;">
+                  ${content.footerReason || 'Vous recevez cet email car vous utilisez SlideAI.'}<br />
+                  ${content.unsubscribeUrl ? `<a href="${content.unsubscribeUrl}" style="color: #94a3b8; text-decoration: underline;">Se désabonner</a>` : ''}
+                </div>
               </td>
             </tr>
 
@@ -993,19 +1150,19 @@ function buildEndingDay6Email(createUrl: string, pricingUrl: string, presentatio
     ],
     spotlight: {
       tone: 'warning',
-      title: 'Ce que vous prot\u00e9gez en passant \u00e0 Pro',
-      body: 'Votre vitesse de production, votre continuit\u00e9 de travail et la possibilit\u00e9 de reprendre vos prochains decks sans retour en arri\u00e8re.',
+      title: 'Ce qui change demain si vous ne faites rien',
+      body: 'La g\u00e9n\u00e9ration de nouveaux decks sera limit\u00e9e. Vos pr\u00e9sentations existantes restent consultables et exportables en PDF avec filigrane.',
     },
     body: [
-      'Si SlideAI vous a d\u00e9j\u00e0 aid\u00e9 \u00e0 produire plus vite, le plus logique est d\u2019\u00e9viter une coupure au moment o\u00f9 l\u2019outil commence \u00e0 entrer dans votre routine.',
-      'Passer \u00e0 Pro maintenant vous permet de garder l\u2019acc\u00e8s complet sans friction ni interruption.',
+      'Si SlideAI vous a d\u00e9j\u00e0 aid\u00e9 \u00e0 produire plus vite, le plus logique est d\u2019\u00e9viter une coupure.',
+      'Deux options selon votre rythme : Pro \u00e0 14\u20ac/mois pour une production r\u00e9guli\u00e8re, ou Pack Mission \u00e0 19\u20ac pour un usage plus ponctuel.',
     ],
     bullets: [
-      'Pas de rupture dans votre workflow',
-      'Acc\u00e8s continu \u00e0 la cr\u00e9ation et aux exports',
-      'Reprise imm\u00e9diate sur vos prochains decks',
+      'Pro (14\u20ac/mois) \u2014 acc\u00e8s illimit\u00e9, id\u00e9al si vous produisez r\u00e9guli\u00e8rement',
+      'Pack Mission (19\u20ac, 5 g\u00e9n\u00e9rations, 3 mois) \u2014 si votre besoin est ponctuel',
+      'Vos pr\u00e9sentations et exports restent accessibles apr\u00e8s l\u2019essai',
     ],
-    ctaLabel: 'Continuer avec Pro',
+    ctaLabel: 'Choisir ma suite',
     ctaUrl: pricingUrl,
     note: 'Le but ici est simple: garder l\u2019\u00e9lan, pas repartir \u00e0 z\u00e9ro demain.',
   };
@@ -1016,94 +1173,94 @@ function buildExpiredEmail(pricingUrl: string, legacyFree: boolean, presentation
 
   if (legacyFree) {
     return {
-      subject: 'Votre essai Pro est termin\u00e9',
-      preview: 'Votre compte repasse sur votre acc\u00e8s gratuit historique.',
-      badge: 'Retour au plan historique',
-      title: 'Votre essai est termin\u00e9, votre compte reste actif',
-      intro: 'Votre essai Pro est termin\u00e9. Votre compte revient maintenant sur votre acc\u00e8s gratuit historique.',
+      subject: 'Votre essai Pro est termin\u00e9 \u2014 votre compte reste actif',
+      preview: 'Vos pr\u00e9sentations sont toujours l\u00e0. Reprenez quand vous avez un nouveau deck \u00e0 livrer.',
+      badge: 'Essai termin\u00e9',
+      title: 'Votre compte reste actif. Vos donn\u00e9es aussi.',
+      intro: 'Votre essai Pro est termin\u00e9. Votre compte est toujours accessible : vous pouvez consulter et modifier vos pr\u00e9sentations existantes.',
       stats: [
         { value: 'Compte actif', label: 'Votre espace reste disponible' },
-        { value: 'Historique', label: 'Vos donn\u00e9es sont conserv\u00e9es' },
-        { value: 'Pro', label: 'Toujours accessible \u00e0 tout moment' },
+        { value: 'Vos decks', label: 'Toujours consultables et modifiables' },
+        { value: '19\u20ac', label: 'Pack Mission \u2014 5 g\u00e9n\u00e9rations' },
       ],
       spotlight: {
         tone: 'info',
-        title: 'La bonne logique maintenant',
-        body: 'Reprendre Pro quand vous avez un vrai besoin de production r\u00e9gulier, pour retrouver un workflow plus rapide et plus confortable.',
+        title: 'Ce qui reste accessible sans paiement',
+        body: 'Consultation de vos pr\u00e9sentations, \u00e9dition du texte, export PDF avec filigrane, partage par lien.',
       },
       body: [
-        'Vous pouvez continuer sur votre acc\u00e8s gratuit historique. En revanche, si vous voulez garder le confort et la vitesse du mode Pro, il faut maintenant passer \u00e0 l\u2019abonnement.',
-        'Le plus simple est de le faire au moment o\u00f9 vous avez de nouveaux decks \u00e0 produire.',
+        'Pour g\u00e9n\u00e9rer de nouveaux decks, choisissez un pack ponctuel ou un abonnement selon votre rythme de production.',
+        'Le Pack Mission \u00e0 19\u20ac vous donne 5 g\u00e9n\u00e9rations valables 3 mois \u2014 sans aucun engagement.',
       ],
       bullets: [
-        'Vous gardez votre compte',
-        'Vous gardez votre historique',
-        'Vous pouvez repasser \u00e0 Pro d\u00e8s qu\u2019un besoin r\u00e9gulier revient',
+        'Pack Mission (19\u20ac, 5 g\u00e9n\u00e9rations) pour un besoin ponctuel',
+        'Pro (14\u20ac/mois) si vous produisez r\u00e9guli\u00e8rement',
+        'Aucune carte enregistr\u00e9e sans votre accord',
       ],
-      ctaLabel: 'Voir l\u2019offre Pro',
+      ctaLabel: 'Voir les packs et abonnements',
       ctaUrl: pricingUrl,
     };
   }
 
   if (presentationCount === 0) {
     return {
-      subject: 'Votre essai Pro SlideAI est termin\u00e9',
-      preview: 'Les nouvelles cr\u00e9ations sont maintenant bloqu\u00e9es jusqu\u2019\u00e0 l\u2019abonnement.',
+      subject: 'Votre essai SlideAI est termin\u00e9 \u2014 votre compte reste actif',
+      preview: 'Vous n\u2019avez pas encore test\u00e9 SlideAI sur un vrai cas. Un pack \u00e0 19\u20ac peut y rem\u00e9dier.',
       badge: 'Essai termin\u00e9',
-      title: 'Votre acc\u00e8s Pro est coup\u00e9',
-      intro: 'Votre essai est termin\u00e9 et les nouvelles cr\u00e9ations sont maintenant bloqu\u00e9es.',
+      title: 'Votre compte est toujours l\u00e0.',
+      intro: 'Votre essai est termin\u00e9 sans que vous ayez eu le temps de tester SlideAI sur un vrai document. Votre compte reste accessible.',
       stats: [
-        { value: 'Bloqu\u00e9', label: 'Nouvelles cr\u00e9ations suspendues' },
-        { value: 'Pro', label: 'N\u00e9cessaire pour reprendre' },
-        { value: 'Immediat', label: 'R\u00e9activation d\u00e8s l\u2019abonnement' },
+        { value: 'Compte actif', label: 'Votre espace est pr\u00e9serv\u00e9' },
+        { value: '19\u20ac', label: 'Pack Mission \u2014 5 g\u00e9n\u00e9rations' },
+        { value: '3 mois', label: 'Pour les utiliser \u00e0 votre rythme' },
       ],
       spotlight: {
-        tone: 'warning',
-        title: 'La meilleure suite si vous voulez vraiment tester',
-        body: 'Passez \u00e0 Pro et utilisez SlideAI sur un vrai cas. Sans usage r\u00e9el, il est difficile de juger le gain de temps du produit.',
+        tone: 'info',
+        title: 'Le vrai test n\u2019a pas encore eu lieu',
+        body: 'Pas de jugement possible sans une vraie pr\u00e9sentation. Le Pack Mission vous donne 5 g\u00e9n\u00e9rations pour tester sur un cas concret, sans abonnement.',
       },
       body: [
-        'Si vous voulez continuer \u00e0 explorer SlideAI, l\u2019\u00e9tape utile maintenant est de passer \u00e0 Pro et de l\u2019utiliser sur un besoin concret.',
-        'Le bon crit\u00e8re n\u2019est pas “est-ce que j\u2019ai tout test\u00e9 ?”, mais “est-ce que l\u2019outil m\u2019aide vraiment \u00e0 livrer plus vite ?”',
+        'Le bon crit\u00e8re n\u2019est pas “est-ce que j\u2019ai tout visit\u00e9 ?”, mais “est-ce que l\u2019outil m\u2019aide \u00e0 livrer plus vite ?”',
+        'Un pack ponctuel vous permet de le valider sans aucun engagement mensuel.',
       ],
       bullets: [
-        'D\u00e9bloquez imm\u00e9diatement la cr\u00e9ation',
-        'Testez-le sur un vrai projet',
-        'Validez enfin le gain de temps dans votre contexte',
+        'Testez sur un vrai brief client ou un document existant',
+        'Voyez le gain de temps en une session',
+        'D\u00e9cidez ensuite si l\u2019abonnement Pro vaut le coup',
       ],
-      ctaLabel: 'D\u00e9bloquer SlideAI',
+      ctaLabel: 'Voir les options',
       ctaUrl: pricingUrl,
     };
   }
 
   return {
-    subject: 'Votre essai Pro SlideAI est termin\u00e9',
-    preview: 'Vos nouvelles cr\u00e9ations sont bloqu\u00e9es, mais vos donn\u00e9es sont toujours l\u00e0.',
+    subject: 'Votre essai est termin\u00e9 \u2014 votre compte reste actif',
+    preview: 'Vos pr\u00e9sentations sont toujours l\u00e0. Pour g\u00e9n\u00e9rer \u00e0 nouveau, un pack suffit.',
     badge: 'Essai termin\u00e9',
-    title: 'Ne perdez pas la dynamique que vous avez cr\u00e9\u00e9e',
-    intro: `Votre essai est termin\u00e9. Vous avez d\u00e9j\u00e0 cr\u00e9\u00e9 ${usageLabel}, mais les nouvelles cr\u00e9ations sont maintenant bloqu\u00e9es.`,
+    title: 'Votre compte reste actif. Vos pr\u00e9sentations aussi.',
+    intro: `Votre essai Pro est termin\u00e9. Vous avez d\u00e9j\u00e0 cr\u00e9\u00e9 ${usageLabel}. Votre compte est toujours accessible : consultation, \u00e9dition, export PDF avec filigrane.`,
     stats: [
-      { value: usageLabel, label: 'Cr\u00e9\u00e9es pendant l\u2019essai' },
-      { value: 'Bloqu\u00e9', label: 'Nouvelles cr\u00e9ations suspendues' },
-      { value: 'Vos donn\u00e9es', label: 'Toujours conserv\u00e9es' },
+      { value: usageLabel, label: 'D\u00e9j\u00e0 cr\u00e9\u00e9es pendant l\u2019essai' },
+      { value: 'Compte actif', label: 'Vos decks restent consultables' },
+      { value: '19\u20ac', label: 'Pack Mission \u2014 5 g\u00e9n\u00e9rations' },
     ],
     spotlight: {
-      tone: 'warning',
-      title: 'Ce que vous perdez si vous attendez',
-      body: 'La continuit\u00e9 de travail. Vous repassez sur un mode plus lent alors que vous avez d\u00e9j\u00e0 valid\u00e9 l\u2019int\u00e9r\u00eat du produit sur de vraies pr\u00e9sentations.',
+      tone: 'info',
+      title: 'Ce qui reste accessible sans paiement',
+      body: 'Consultation et \u00e9dition de vos pr\u00e9sentations, export PDF avec filigrane, partage par lien en lecture.',
     },
     body: [
-      'Le moment le plus logique pour passer \u00e0 Pro, c\u2019est maintenant: tant que SlideAI est encore frais dans votre workflow et que vos prochains decks arrivent.',
-      'Vos pr\u00e9sentations et votre historique sont toujours l\u00e0. Il vous suffit de r\u00e9activer l\u2019acc\u00e8s complet pour reprendre.',
+      'Pour g\u00e9n\u00e9rer de nouveaux decks, choisissez un pack ponctuel ou un abonnement selon votre rythme.',
+      'Le Pack Mission \u00e0 19\u20ac vous donne 5 g\u00e9n\u00e9rations valables 3 mois \u2014 sans aucun engagement mensuel.',
     ],
     bullets: [
-      'D\u00e9bloquez imm\u00e9diatement de nouvelles pr\u00e9sentations',
-      'Gardez vos exports et votre vitesse de production',
-      'Reprenez exactement l\u00e0 o\u00f9 vous vous \u00eates arr\u00eat\u00e9',
+      'Pack Mission (19\u20ac, 5 g\u00e9n\u00e9rations, 3 mois) pour un besoin ponctuel',
+      'Pack Trimestre (39\u20ac, 15 g\u00e9n\u00e9rations, 6 mois) pour plusieurs missions',
+      'Pro (14\u20ac/mois) si vous produisez chaque semaine',
     ],
-    ctaLabel: 'D\u00e9bloquer SlideAI',
+    ctaLabel: 'Voir les packs et abonnements',
     ctaUrl: pricingUrl,
-    note: 'Vos donn\u00e9es restent disponibles. Seule la cr\u00e9ation de nouveaux decks est bloqu\u00e9e.',
+    note: 'Vos pr\u00e9sentations et votre historique restent disponibles. Seule la g\u00e9n\u00e9ration de nouveaux decks est limit\u00e9e.',
   };
 }
 
@@ -1115,39 +1272,47 @@ function buildWinbackEmail(pricingUrl: string, presentationCount: number, offer?
   const ctaUrl = `${pricingUrl}${pricingUrl.includes('?') ? '&' : '?'}promo=${encodeURIComponent(promoCode)}`;
 
   return {
-    subject: `Reprenez SlideAI avec -${percentOff}% sur votre premier mois`,
-    preview: `Votre offre de relance expire sous ${expiresInHours} heures.`,
+    subject: activated
+      ? `Reprenez SlideAI \u2014 Pack Mission 19\u20ac ou -${percentOff}% sur Pro`
+      : `Testez vraiment SlideAI \u2014 Pack Mission 19\u20ac, sans abonnement`,
+    preview: activated
+      ? `Vous avez d\u00e9j\u00e0 vu la valeur. Voici deux fa\u00e7ons simples de reprendre.`
+      : `Un pack ponctuel suffit pour faire le vrai test. Votre offre expire dans ${expiresInHours}\u00a0h.`,
     badge: 'Offre de relance',
     title: activated
-      ? 'Vous avez d\u00e9j\u00e0 vu la valeur. Voici une raison concr\u00e8te de reprendre.'
-      : 'Si le timing n\u2019\u00e9tait pas bon, voici une derni\u00e8re fen\u00eatre.',
+      ? 'Vous avez d\u00e9j\u00e0 vu la valeur. Voici deux fa\u00e7ons de reprendre.'
+      : 'Le vrai test n\u2019a pas encore eu lieu.',
     intro: activated
-      ? 'Vous avez d\u00e9j\u00e0 test\u00e9 SlideAI sur de vraies pr\u00e9sentations. Cette offre est l\u00e0 pour vous aider \u00e0 reprendre sans trop h\u00e9siter.'
-      : 'Vous n\u2019avez peut-\u00eatre pas eu le bon moment pour tester SlideAI correctement. Voici une derni\u00e8re occasion de le reprendre dans de bonnes conditions.',
+      ? `Vous avez d\u00e9j\u00e0 test\u00e9 SlideAI sur de vraies pr\u00e9sentations. Deux options pour reprendre : un Pack Mission ponctuel \u00e0 19\u20ac, ou Pro avec -${percentOff}% sur le premier mois.`
+      : `Votre essai s\u2019est termin\u00e9 sans que vous ayez eu le temps de tester SlideAI sur un vrai document. Le Pack Mission \u00e0 19\u20ac vous donne 5 g\u00e9n\u00e9rations valables 3 mois \u2014 sans aucun abonnement.`,
     stats: [
-      { value: `-${percentOff}%`, label: 'Sur votre premier mois' },
-      { value: promoCode, label: 'Code \u00e0 utiliser au checkout' },
+      { value: '19\u20ac', label: 'Pack Mission \u2014 5 g\u00e9n\u00e9rations, 3 mois' },
+      { value: `-${percentOff}%`, label: `Pro avec le code ${promoCode}` },
       { value: `${expiresInHours}h`, label: 'Fen\u00eatre limit\u00e9e' },
     ],
     spotlight: {
       tone: 'success',
-      title: 'Offre temporaire',
-      body: `Le code <strong>${promoCode}</strong> vous donne -${percentOff}% sur votre premier mois. C\u2019est une relance simple, limit\u00e9e dans le temps, pour reprendre sans friction.`,
+      title: activated ? 'Deux options, selon votre rythme' : 'Commencez sans engagement',
+      body: activated
+        ? `Pack Mission (19\u20ac, 5 g\u00e9n\u00e9rations) si votre besoin est ponctuel. Pro avec le code <strong>${promoCode}</strong> (-${percentOff}% sur le premier mois) si vous produisez r\u00e9guli\u00e8rement.`
+        : `Le Pack Mission \u00e0 19\u20ac vous donne 5 g\u00e9n\u00e9rations valables 3 mois pour faire un vrai test \u2014 sans abonnement, sans engagement. Si vous trouvez la valeur, vous pouvez passer \u00e0 Pro avec le code <strong>${promoCode}</strong> (-${percentOff}%).`,
     },
     body: [
       activated
-        ? 'Vous savez d\u00e9j\u00e0 ce que SlideAI peut vous faire gagner. Si vous comptez l\u2019utiliser \u00e0 nouveau, autant reprendre maintenant avec cette remise.'
-        : 'Si vous vouliez tester SlideAI plus s\u00e9rieusement mais que le timing n\u2019\u00e9tait pas bon, cette fen\u00eatre est faite pour vous.',
-      'Pass\u00e9 le d\u00e9lai de 72 heures, l\u2019offre dispara\u00eet. Si vous pensez que SlideAI peut r\u00e9ellement acc\u00e9l\u00e9rer votre production, c\u2019est le bon moment pour reprendre.',
+        ? 'Vous savez d\u00e9j\u00e0 ce que SlideAI peut vous faire gagner. La bonne question est juste votre fr\u00e9quence d\u2019usage : ponctuel ou r\u00e9gulier.'
+        : 'Il n\u2019y a pas de jugement possible sans une vraie pr\u00e9sentation. Un pack ponctuel est le moyen le plus simple de le valider sans pression.',
+      `L\u2019offre promo sur Pro expire dans ${expiresInHours}\u00a0heures. Le Pack Mission, lui, est disponible en permanence.`,
     ],
     bullets: [
-      'Code promo simple \u00e0 utiliser',
-      'R\u00e9duction valable sur le premier mois',
-      'Reprise rapide de votre acc\u00e8s Pro',
+      'Pack Mission (19\u20ac, 5 g\u00e9n\u00e9rations, 3 mois) \u2014 sans abonnement',
+      activated
+        ? `Pro avec le code ${promoCode} \u2014 -${percentOff}% sur le premier mois`
+        : `Pro avec le code ${promoCode} apr\u00e8s avoir valid\u00e9 la valeur`,
+      'Votre compte et vos donn\u00e9es restent disponibles',
     ],
-    ctaLabel: 'Activer mon offre',
+    ctaLabel: 'Voir les packs et abonnements',
     ctaUrl,
-    note: `Utilisez le code ${promoCode} au moment du paiement. L'offre expire dans ${expiresInHours} heures.`,
+    note: `Code ${promoCode} valable sur Pro uniquement, pendant ${expiresInHours}\u00a0heures. Le Pack Mission est sans code.`,
   };
 }
 
@@ -1258,9 +1423,129 @@ export function buildTrialEmailContent(params: {
     return null;
   }
 
+  const bundled = buildBundledCampaignEmail(params.emailType);
+  if (bundled) {
+    return bundled;
+  }
+
   return {
     subject: content.subject,
-    html: content.layout === 'welcome' ? wrapSignupWelcomeEmail(content) : wrapEmail(content),
+    html: content.layout === 'welcome'
+      ? wrapSignupWelcomeEmail(content)
+      : content.layout === 'newsletter'
+        ? wrapNewsletterEmail(content)
+        : wrapEmail(content),
+  };
+}
+
+function buildBundledCampaignEmail(emailType: string): { subject: string; html: string } | null {
+  const emailIdByType: Record<string, number> = {
+    signup_welcome: 1,
+    trial_welcome: 1,
+    signup_day1_no_presentation: 2,
+    trial_inactive_day1: 2,
+    signup_day3_no_presentation: 3,
+    trial_value_day4: 3,
+    signup_day5_activated: 4,
+    trial_ending_day6: 5,
+    trial_expired: 6,
+    inactive_7d: 7,
+    inactive_14d: 7,
+    inactive_21d_offer: 7,
+    trial_winback_day2: 7,
+  };
+
+  const emailId = emailIdByType[emailType];
+  if (!emailId) return null;
+
+  const candidates = [
+    join(process.cwd(), 'SlideAI - Campagne Email.html'),
+    join(process.cwd(), '..', '..', '..', 'SlideAI - Campagne Email.html'),
+    join(process.cwd(), '..', '..', 'SlideAI - Campagne Email.html'),
+  ];
+  const campaignPath = candidates.find((candidate) => existsSync(candidate));
+  if (!campaignPath) return null;
+
+  try {
+    const bundle = readFileSync(campaignPath, 'utf8');
+    const templateMatch = bundle.match(/<script type="__bundler\/template">\s*([\s\S]*?)\s*<\/script>/);
+    if (!templateMatch) return null;
+
+    const campaignHtml = JSON.parse(templateMatch[1]) as string;
+    const startToken = `<div class="email-preview" id="email-${emailId}">`;
+    const start = campaignHtml.indexOf(startToken);
+    if (start < 0) return null;
+
+    const next = campaignHtml.indexOf('<div class="email-preview" id="email-', start + startToken.length);
+    const endMarker = '</div><!-- /preview-area -->';
+    const end = next > -1 ? next : campaignHtml.indexOf(endMarker, start);
+    if (end < 0) return null;
+
+    const styles = campaignHtml.match(/<style>[\s\S]*?<\/style>/g)?.join('\n') ?? '';
+    const rawBlock = campaignHtml.slice(start, end).replace('class="email-preview"', 'class="email-preview active"');
+    const subject =
+      rawBlock.match(/chrome-subject">(?:[^:]+:\s*)?([^<]+)</)?.[1]?.trim() ||
+      `SlideAI email ${emailId}`;
+
+    return {
+      subject,
+      html: `<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${subject}</title>
+  ${styles}
+  <style>
+    body { margin: 0 !important; padding: 8px 0 !important; background: #EEF3F8 !important; display: block !important; height: auto !important; overflow: visible !important; }
+    .email-preview { display: block !important; width: 100% !important; max-width: 620px !important; margin: 0 auto !important; }
+    .email-preview.active { display: block !important; }
+    .email-chrome { border-radius: 14px 14px 0 0 !important; }
+  </style>
+</head>
+<body>
+  ${rawBlock}
+</body>
+</html>`,
+    };
+  } catch {
+    return null;
+  }
+}
+
+export type BroadcastEmailParams = {
+  subject: string;
+  badge: string;
+  title: string;
+  intro: string;
+  body: string[];
+  bullets?: string[];
+  ctaLabel: string;
+  ctaUrl: string;
+  note?: string;
+  unsubscribeUrl?: string;
+  footerReason?: string;
+};
+
+export function buildBroadcastEmailContent(params: BroadcastEmailParams): { subject: string; html: string } {
+  const content: EmailContent = {
+    subject: params.subject,
+    preview: params.intro,
+    badge: params.badge,
+    title: params.title,
+    intro: params.intro,
+    body: params.body,
+    bullets: params.bullets,
+    ctaLabel: params.ctaLabel,
+    ctaUrl: params.ctaUrl,
+    note: params.note,
+    unsubscribeUrl: params.unsubscribeUrl,
+    footerReason: params.footerReason || 'Vous recevez cet email car vous utilisez SlideAI.',
+  };
+
+  return {
+    subject: params.subject,
+    html: wrapEmail(content),
   };
 }
 
@@ -1270,7 +1555,7 @@ export async function sendLifecycleEmail(params: {
   html: string;
 }) {
   const resendApiKey = process.env.RESEND_API_KEY;
-  const from = process.env.EMAIL_FROM || 'Noe de SlideAI <noe@slideai.fr>';
+  const from = process.env.EMAIL_FROM || 'SlideAI <noreply@slideai.fr>';
 
   if (!resendApiKey) {
     console.warn('[LifecycleEmail] RESEND_API_KEY missing, skipping actual send');

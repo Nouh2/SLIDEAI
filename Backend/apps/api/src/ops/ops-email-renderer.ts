@@ -1,3 +1,6 @@
+import { existsSync, readFileSync } from 'node:fs';
+import { join } from 'node:path';
+
 const DAY_MS = 24 * 60 * 60 * 1000;
 
 const BRAND = {
@@ -1420,6 +1423,11 @@ export function buildTrialEmailContent(params: {
     return null;
   }
 
+  const bundled = buildBundledCampaignEmail(params.emailType);
+  if (bundled) {
+    return bundled;
+  }
+
   return {
     subject: content.subject,
     html: content.layout === 'welcome'
@@ -1428,6 +1436,81 @@ export function buildTrialEmailContent(params: {
         ? wrapNewsletterEmail(content)
         : wrapEmail(content),
   };
+}
+
+function buildBundledCampaignEmail(emailType: string): { subject: string; html: string } | null {
+  const emailIdByType: Record<string, number> = {
+    signup_welcome: 1,
+    trial_welcome: 1,
+    signup_day1_no_presentation: 2,
+    trial_inactive_day1: 2,
+    signup_day3_no_presentation: 3,
+    trial_value_day4: 3,
+    signup_day5_activated: 4,
+    trial_ending_day6: 5,
+    trial_expired: 6,
+    inactive_7d: 7,
+    inactive_14d: 7,
+    inactive_21d_offer: 7,
+    trial_winback_day2: 7,
+  };
+
+  const emailId = emailIdByType[emailType];
+  if (!emailId) return null;
+
+  const candidates = [
+    join(process.cwd(), 'SlideAI - Campagne Email.html'),
+    join(process.cwd(), '..', '..', '..', 'SlideAI - Campagne Email.html'),
+    join(process.cwd(), '..', '..', 'SlideAI - Campagne Email.html'),
+  ];
+  const campaignPath = candidates.find((candidate) => existsSync(candidate));
+  if (!campaignPath) return null;
+
+  try {
+    const bundle = readFileSync(campaignPath, 'utf8');
+    const templateMatch = bundle.match(/<script type="__bundler\/template">\s*([\s\S]*?)\s*<\/script>/);
+    if (!templateMatch) return null;
+
+    const campaignHtml = JSON.parse(templateMatch[1]) as string;
+    const startToken = `<div class="email-preview" id="email-${emailId}">`;
+    const start = campaignHtml.indexOf(startToken);
+    if (start < 0) return null;
+
+    const next = campaignHtml.indexOf('<div class="email-preview" id="email-', start + startToken.length);
+    const endMarker = '</div><!-- /preview-area -->';
+    const end = next > -1 ? next : campaignHtml.indexOf(endMarker, start);
+    if (end < 0) return null;
+
+    const styles = campaignHtml.match(/<style>[\s\S]*?<\/style>/g)?.join('\n') ?? '';
+    const rawBlock = campaignHtml.slice(start, end).replace('class="email-preview"', 'class="email-preview active"');
+    const subject =
+      rawBlock.match(/chrome-subject">(?:[^:]+:\s*)?([^<]+)</)?.[1]?.trim() ||
+      `SlideAI email ${emailId}`;
+
+    return {
+      subject,
+      html: `<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${subject}</title>
+  ${styles}
+  <style>
+    body { margin: 0 !important; padding: 8px 0 !important; background: #EEF3F8 !important; display: block !important; height: auto !important; overflow: visible !important; }
+    .email-preview { display: block !important; width: 100% !important; max-width: 620px !important; margin: 0 auto !important; }
+    .email-preview.active { display: block !important; }
+    .email-chrome { border-radius: 14px 14px 0 0 !important; }
+  </style>
+</head>
+<body>
+  ${rawBlock}
+</body>
+</html>`,
+    };
+  } catch {
+    return null;
+  }
 }
 
 export type BroadcastEmailParams = {

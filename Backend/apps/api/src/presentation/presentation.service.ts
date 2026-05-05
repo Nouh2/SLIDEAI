@@ -3,7 +3,7 @@ import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/commo
 import { PrismaService } from '../prisma.service.js';
 import { SubscriptionService } from '../subscription/subscription.service.js';
 import { QueueService } from '../queues/queue.service.js';
-import { randomBytes } from 'crypto';
+import { randomBytes, randomUUID } from 'crypto';
 import { ulid } from 'ulid';
 import { SupabaseMirrorService } from '../supabase-mirror/supabase-mirror.service.js';
 
@@ -143,6 +143,42 @@ export class PresentationService {
                 ...(slidesPayload !== undefined && { slides: slidesPayload }),
                 ...(data.title !== undefined && { title: data.title }),
                 ...(data.status !== undefined && { status: data.status }),
+            },
+        });
+    }
+
+    /**
+     * Duplicate an accessible presentation into the current user workspace.
+     */
+    async duplicate(id: string, userId: string, orgId: string | null = null) {
+        const presentation = await this.findOne(id, userId, orgId);
+        const now = new Date();
+        const clonedSlides = JSON.parse(JSON.stringify(presentation.slides || {}));
+        const title = `${presentation.title || 'Presentation'} (copy)`;
+
+        if (clonedSlides && typeof clonedSlides === 'object' && !Array.isArray(clonedSlides)) {
+            clonedSlides.id = undefined;
+            clonedSlides.title = title;
+            clonedSlides.meta = {
+                ...(clonedSlides.meta || {}),
+                duplicatedFrom: presentation.id,
+                duplicatedAt: now.toISOString(),
+            };
+        }
+
+        return this.prisma.presentations.create({
+            data: {
+                id: randomUUID(),
+                user_id: userId,
+                orgId: orgId || null,
+                title,
+                slides: clonedSlides,
+                theme: presentation.theme,
+                status: 'ready',
+                created_at: now,
+                updated_at: now,
+                shared_with_user_ids: [],
+                view_only_user_ids: [],
             },
         });
     }

@@ -23,6 +23,7 @@ import {
 
 // Local modules
 import { THEMES, normalizeTheme, type ThemeConfig } from './config/themes.js';
+import { enforceDeliverableOnDeck, resolveDeliverable } from './config/deliverables.js';
 import { DECK_ARCHITECT_PROMPT, buildUserPrompt } from './prompts/deck-architect.js';
 import { SLIDE_REGENERATOR_PROMPT, buildSlideRegeneratorPrompt } from './prompts/slide-regenerator.js';
 import { SLIDE_ADDER_PROMPT, buildSlideAdderPrompt } from './prompts/slide-adder.js';
@@ -666,7 +667,7 @@ const generateWorker = new Worker(
   'generate',
   async (job) => {
     const { traceId, data, user } = job.data as any;
-    let { prompt, slideCount, theme, language, documentText, brandLogoUrl, templateOverlay, brandColors, brandFonts } = data ?? {};
+    let { prompt, slideCount, theme, language, documentText, brandLogoUrl, templateOverlay, brandColors, brandFonts, deliverableType, evidenceMode } = data ?? {};
     const userId = user?.sub || 'anonymous'; // Extract user ID from JWT
     const orgId = user?.org; // Extract orgId from user context
 
@@ -686,13 +687,15 @@ const generateWorker = new Worker(
 
     try {
       // 1. Infer theme if not provided
-      const inferredTheme = inferThemeFromPrompt(prompt, theme);
+      const deliverable = resolveDeliverable(deliverableType || theme);
+      const inferredTheme = inferThemeFromPrompt(prompt, deliverable.baseTheme || theme);
       const themeConfig = normalizeTheme(inferredTheme);
 
       console.log(`[Generate] Theme resolved: "${inferredTheme}" -> "${themeConfig.id}"`);
+      console.log(`[Generate] Deliverable resolved: "${deliverableType || theme}" -> "${deliverable.id}"`);
 
       // 2. Call OpenAI with the Deck Architect prompt (with optional document context)
-      const userMessage = buildUserPrompt(prompt, slideCount, themeConfig.id, language, documentText);
+      const userMessage = buildUserPrompt(prompt, slideCount, themeConfig.id, language, documentText, deliverable.id, evidenceMode || 'standard');
 
       // Use higher token limit for document mode (needs more slides)
       // Gemini 3 Flash supports up to 64K output tokens
@@ -896,7 +899,8 @@ const generateWorker = new Worker(
       }
 
       deck = sanitizeDeck(deck, prompt);
-      deck.theme = themeConfig.id;
+      deck = enforceDeliverableOnDeck(deck, deliverable);
+      deck.theme = deliverable.id;
       deck.themeConfig = themeConfig;
 
       // === POST-PROCESSING: Enrich SourceRef with Content Snippets ===
@@ -917,11 +921,77 @@ const generateWorker = new Worker(
             }
           }
         });
+
+        if (documentText && evidenceMode === 'strict') {
+          deck.slides = deck.slides.map((slide, index) => {
+            if (index === 0) return slide;
+
+            if (slide.sourceRef?.sectionTitle) {
+              return {
+                ...slide,
+                sourceRef: {
+                  ...slide.sourceRef,
+                  verified: true,
+                } as any,
+              };
+            }
+
+            const fallbackSection = sectionMeta[Math.min(index - 1, sectionMeta.length - 1)];
+            if (!fallbackSection) return slide;
+
+            return {
+              ...slide,
+              sourceRef: {
+                sectionTitle: fallbackSection.title,
+                pageStart: fallbackSection.pageStart,
+                pageEnd: fallbackSection.pageEnd,
+                originalText: fallbackSection.content,
+                verified: false,
+              } as any,
+            };
+          });
+
+          const referencedSections = new Map<string, any>();
+          deck.slides.forEach((slide: any) => {
+            if (slide.sourceRef?.sectionTitle) {
+              const key = `${slide.sourceRef.sectionTitle}-${slide.sourceRef.pageStart}-${slide.sourceRef.pageEnd}`;
+              referencedSections.set(key, slide.sourceRef);
+            }
+          });
+
+          if (referencedSections.size > 0) {
+            deck.slides.push({
+              id: `appendix-sources-${Date.now()}`,
+              layout: 'table',
+              title: language === 'fr' ? 'Annexe - Sources utilisées' : language === 'es' ? 'Anexo - Fuentes utilizadas' : 'Appendix - Sources used',
+              imageSearchQuery: 'document sources references',
+              isAppendix: true,
+              content: {
+                subtitle: evidenceMode === 'strict' ? 'Mode preuves strict: chaque slide est rattachée au document source.' : 'Source references used in this deck.',
+                table: {
+                  columns: language === 'fr' ? ['Section source', 'Pages'] : ['Source section', 'Pages'],
+                  rows: Array.from(referencedSections.values()).map((ref: any) => [
+                    ref.sectionTitle || '',
+                    ref.pageStart === ref.pageEnd ? `p.${ref.pageStart}` : `p.${ref.pageStart}-${ref.pageEnd}`,
+                  ]),
+                },
+              },
+            } as any);
+          }
+        }
       }
 
       // Inject Custom Templates data
       if (brandLogoUrl) deck.brandLogoUrl = brandLogoUrl;
       if (templateOverlay) deck.templateOverlay = templateOverlay;
+      if (documentText && evidenceMode) {
+        (deck as any).evidenceMode = evidenceMode;
+        (deck as any).meta = {
+          ...((deck as any).meta || {}),
+          evidenceMode,
+          sourceStrict: evidenceMode === 'strict',
+        };
+      }
 
       // === DEBUG: Save final processed deck to file ===
       fs.writeFileSync(
@@ -975,7 +1045,7 @@ const generateWorker = new Worker(
               orgId: orgId, // Save orgId
               title: deck.title || 'Untitled Presentation',
               slides: deck, // Now contains images
-              theme: themeConfig.id,
+              theme: deliverable.id,
               status: 'ready',
               created_at: new Date().toISOString(),
               updated_at: new Date().toISOString()

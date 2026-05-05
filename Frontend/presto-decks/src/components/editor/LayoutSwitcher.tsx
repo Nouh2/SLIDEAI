@@ -195,6 +195,18 @@ export function LayoutSwitcher({ currentSlide, theme, colors, onUpdateSlide, onU
     };
 
     const variations = getNativeVariations(context);
+    const scaleOptions = [0.5, 0.75, 0.9, 1, 1.1, 1.25, 1.5, 1.75, 2, 2.5];
+    const hasSlideTitleScale = Object.prototype.hasOwnProperty.call(currentSlide, 'titleFontScale') && currentSlide.titleFontScale != null;
+    const hasSlideTextScale = Object.prototype.hasOwnProperty.call(currentSlide, 'textFontScale') && currentSlide.textFontScale != null;
+    const globalTitleScale = theme?.titleFontScale || theme?.fontScale || 0.9;
+    const globalTextScale = theme?.textFontScale || theme?.fontScale || 0.9;
+
+    const handleSlideFontScaleChange = (key: 'titleFontScale' | 'textFontScale', value: string) => {
+        onUpdateSlide({
+            ...currentSlide,
+            [key]: value === 'inherit' ? undefined : parseFloat(value),
+        });
+    };
 
     // Handler
     const handleSelectVariation = (v: any) => {
@@ -295,45 +307,101 @@ export function LayoutSwitcher({ currentSlide, theme, colors, onUpdateSlide, onU
                             <Type className="w-3 h-3" /> {t('editor.typography')}
                         </h3>
                     </div>
-                    <div className="flex items-center gap-2">
-                        {/* Title Scale Selector */}
-                        <div className="flex-1 space-y-1">
-                            <span className="text-[9px] uppercase tracking-wider opacity-60 font-semibold pl-1">{t('editor.title')}</span>
-                            <Select
-                                value={String(theme?.titleFontScale || theme?.fontScale || 0.9)}
-                                onValueChange={(val) => onUpdateTheme('titleFontScale', parseFloat(val))}
-                            >
-                                <SelectTrigger className="h-7 text-xs bg-background/50 border-input/50">
-                                    <SelectValue placeholder="100%" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {[0.5, 0.75, 0.9, 1, 1.1, 1.25, 1.5, 1.75, 2, 2.5].map((scale) => (
-                                        <SelectItem key={scale} value={String(scale)} className="text-xs">
-                                            {Math.round(scale * 100)}%
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
+                    <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                            <span className="text-[9px] uppercase tracking-wider opacity-60 font-semibold pl-1">Global</span>
+                            <span className="text-[9px] uppercase tracking-wider opacity-50">Tout le deck</span>
                         </div>
+                        <div className="flex items-center gap-2">
+                            {/* Global Title Scale Selector */}
+                            <div className="flex-1 space-y-1">
+                                <span className="text-[9px] uppercase tracking-wider opacity-60 font-semibold pl-1">{t('editor.title')}</span>
+                                <Select
+                                    value={String(globalTitleScale)}
+                                    onValueChange={(val) => onUpdateTheme('titleFontScale', parseFloat(val))}
+                                >
+                                    <SelectTrigger className="h-7 text-xs bg-background/50 border-input/50">
+                                        <SelectValue placeholder="100%" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {scaleOptions.map((scale) => (
+                                            <SelectItem key={scale} value={String(scale)} className="text-xs">
+                                                {Math.round(scale * 100)}%
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
 
-                        {/* Body Scale Selector */}
-                        <div className="flex-1 space-y-1">
-                            <span className="text-[9px] uppercase tracking-wider opacity-60 font-semibold pl-1">{t('editor.body')}</span>
-                            <Select
-                                value={String(theme?.textFontScale || theme?.fontScale || 0.9)}
-                                onValueChange={(val) => onUpdateTheme('textFontScale', parseFloat(val))}
-                            >
-                                <SelectTrigger className="h-7 text-xs bg-background/50 border-input/50">
-                                    <SelectValue placeholder="100%" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {[0.5, 0.75, 0.9, 1, 1.1, 1.25, 1.5, 1.75, 2, 2.5].map((scale) => (
-                                        <SelectItem key={scale} value={String(scale)} className="text-xs">
-                                            {Math.round(scale * 100)}%
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
+                            {/* Global Body Scale Selector */}
+                            <div className="flex-1 space-y-1">
+                                <span className="text-[9px] uppercase tracking-wider opacity-60 font-semibold pl-1">{t('editor.body')}</span>
+                                <Select
+                                    value={String(globalTextScale)}
+                                    onValueChange={(val) => onUpdateTheme('textFontScale', parseFloat(val))}
+                                >
+                                    <SelectTrigger className="h-7 text-xs bg-background/50 border-input/50">
+                                        <SelectValue placeholder="100%" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {scaleOptions.map((scale) => (
+                                            <SelectItem key={scale} value={String(scale)} className="text-xs">
+                                                {Math.round(scale * 100)}%
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                            <span className="text-[9px] uppercase tracking-wider opacity-60 font-semibold pl-1">Cette slide</span>
+                            <span className="text-[9px] uppercase tracking-wider opacity-50">Override</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            {/* Slide Title Scale Selector */}
+                            <div className="flex-1 space-y-1">
+                                <span className="text-[9px] uppercase tracking-wider opacity-60 font-semibold pl-1">{t('editor.title')}</span>
+                                <Select
+                                    value={hasSlideTitleScale ? String(currentSlide.titleFontScale) : 'inherit'}
+                                    onValueChange={(val) => handleSlideFontScaleChange('titleFontScale', val)}
+                                >
+                                    <SelectTrigger className="h-7 text-xs bg-background/50 border-input/50">
+                                        <SelectValue placeholder="Global" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="inherit" className="text-xs">Global ({Math.round(globalTitleScale * 100)}%)</SelectItem>
+                                        {scaleOptions.map((scale) => (
+                                            <SelectItem key={scale} value={String(scale)} className="text-xs">
+                                                {Math.round(scale * 100)}%
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+
+                            {/* Slide Body Scale Selector */}
+                            <div className="flex-1 space-y-1">
+                                <span className="text-[9px] uppercase tracking-wider opacity-60 font-semibold pl-1">{t('editor.body')}</span>
+                                <Select
+                                    value={hasSlideTextScale ? String(currentSlide.textFontScale) : 'inherit'}
+                                    onValueChange={(val) => handleSlideFontScaleChange('textFontScale', val)}
+                                >
+                                    <SelectTrigger className="h-7 text-xs bg-background/50 border-input/50">
+                                        <SelectValue placeholder="Global" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="inherit" className="text-xs">Global ({Math.round(globalTextScale * 100)}%)</SelectItem>
+                                        {scaleOptions.map((scale) => (
+                                            <SelectItem key={scale} value={String(scale)} className="text-xs">
+                                                {Math.round(scale * 100)}%
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
                         </div>
                     </div>
                 </div>

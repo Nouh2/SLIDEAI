@@ -79,7 +79,10 @@ export function FeatureDiscoveryCard({ userId, planType }: FeatureDiscoveryCardP
     if (!visible || !planType) return null;
 
     const c = CONTENT[planType];
-    const ctaTarget = planType === "business" ? `/org/settings` : "/dashboard";
+    const currentOrgId = typeof localStorage !== "undefined" ? localStorage.getItem("slideai-org-id") : null;
+    const ctaTarget = planType === "business" && currentOrgId && currentOrgId !== "personal"
+        ? `/org/${currentOrgId}/settings`
+        : "/dashboard";
 
     return (
         <div className={`relative rounded-xl border ${c.border} bg-gradient-to-r ${c.bg} p-4 animate-fade-in-up`}>

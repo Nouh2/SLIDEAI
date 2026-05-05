@@ -47,6 +47,7 @@ export default function Dashboard() {
   const [activeTab, setActiveTab] = useState<TabType>("owned");
   const { toast } = useToast();
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [duplicatingId, setDuplicatingId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [ownedPresentations, setOwnedPresentations] = useState<Presentation[]>([]);
   const [sharedPresentations, setSharedPresentations] = useState<Presentation[]>([]);
@@ -141,6 +142,36 @@ export default function Dashboard() {
       });
     } finally {
       setDeletingId(null);
+    }
+  };
+
+  const handleDuplicate = async (presentation: Presentation) => {
+    if (!currentAccessToken) {
+      toast({
+        title: t("common.error"),
+        description: t("create.sessionExpired"),
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      setDuplicatingId(presentation.id);
+      const duplicated = await api.duplicatePresentation(presentation.id, currentAccessToken);
+      setOwnedPresentations((prev) => [duplicated, ...prev]);
+      setActiveTab("owned");
+      toast({
+        title: t("dashboard.duplicateSuccess", { defaultValue: "Présentation dupliquée" }),
+        description: t("dashboard.duplicateSuccessMsg", { defaultValue: "La copie est disponible dans vos présentations." }),
+      });
+    } catch (error: any) {
+      toast({
+        title: t("common.error"),
+        description: error?.message || t("dashboard.duplicateError", { defaultValue: "Impossible de dupliquer cette présentation." }),
+        variant: "destructive",
+      });
+    } finally {
+      setDuplicatingId(null);
     }
   };
 
@@ -430,8 +461,18 @@ export default function Dashboard() {
                     </Button>
                   )}
 
-                  <Button size="sm" variant="outline" title={t("dashboard.duplicate")}>
-                    <Copy className="h-4 w-4" />
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    title={t("dashboard.duplicate")}
+                    onClick={() => handleDuplicate(presentation)}
+                    disabled={duplicatingId === presentation.id}
+                  >
+                    {duplicatingId === presentation.id ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Copy className="h-4 w-4" />
+                    )}
                   </Button>
 
                   {activeTab === "owned" && (

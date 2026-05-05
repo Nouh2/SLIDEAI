@@ -9,6 +9,7 @@
  * - Create professional narrative flow
  */
 import { THEMES } from '../config/themes.js';
+import { resolveDeliverable } from '../config/deliverables.js';
 
 export const DECK_ARCHITECT_PROMPT = `
 You are **SlideAI Deliverable Architect**, an expert at creating professional client deliverables for consultants and freelancers.
@@ -211,7 +212,18 @@ Respond ONLY with valid JSON. **DO NOT include colorPalette** - it will be injec
 /**
  * Get specific instruction based on theme ID
  */
-function getThemeInstruction(themeId: string): string {
+function getThemeInstruction(themeId: string, deliverableId?: string): string {
+  const deliverable = resolveDeliverable(deliverableId || themeId);
+  const deliverableInstruction = `
+      **SELECTED DELIVERABLE: ${deliverable.label}**
+      - This selected deliverable is binding. Do not generate a generic deck or a deck for another use case.
+      - Expected business sections: ${deliverable.expectedSections.join(' > ')}.
+      - Preferred layouts: ${deliverable.preferredLayouts.join(', ')}.
+      - Allowed layouts: ${deliverable.allowedLayouts.join(', ')}.
+      - Required semantic anchors: ${deliverable.requiredKeywords.join(', ')}.
+      - If the user prompt conflicts with the selected deliverable, keep the user's topic but adapt the structure to this deliverable type.
+  `;
+
   const instructions: Record<string, string> = {
     'marketing-campaign': `
       **DELIVERABLE TYPE: Campagne Publicitaire / Creative Concept**
@@ -346,7 +358,7 @@ function getThemeInstruction(themeId: string): string {
     `
   };
 
-  return instructions[themeId] || instructions['startup-pitch'];
+  return `${deliverableInstruction}\n${instructions[themeId] || instructions['startup-pitch']}`;
 }
 
 /**
@@ -390,7 +402,9 @@ export function buildUserPrompt(
   slideCount: number | undefined,
   theme: string | undefined,
   language: string = 'en',
-  documentText?: string
+  documentText?: string,
+  deliverableType?: string,
+  evidenceMode: 'standard' | 'strict' = 'standard'
 ): string {
   const langInstruction =
     language === 'fr'
@@ -399,8 +413,9 @@ export function buildUserPrompt(
         ? 'Responde en español.'
         : 'Respond in English.';
 
-  const themeConfig = THEMES[theme || 'startup-pitch'] || THEMES['startup-pitch'];
-  const themeInstruction = getThemeInstruction(themeConfig.id);
+  const deliverable = resolveDeliverable(deliverableType || theme);
+  const themeConfig = THEMES[deliverable.baseTheme] || THEMES[theme || 'startup-pitch'] || THEMES['startup-pitch'];
+  const themeInstruction = getThemeInstruction(themeConfig.id, deliverable.id);
   const densityInstruction = getDensityInstruction(themeConfig.preferredDensity);
 
   // Base prompt structure
@@ -408,6 +423,9 @@ export function buildUserPrompt(
 Topic: ${prompt}
 
 Requested slides: ${slideCount || 8}
+
+Selected deliverable ID: ${deliverable.id}
+Selected deliverable name: ${deliverable.label}
 
 ${themeInstruction}
 
@@ -444,6 +462,12 @@ CRITICAL OVERRIDE INSTRUCTIONS:
 4. **LAYOUT PREFERENCE**: Prioritize text-columns, table, and section layouts. Use text-columns for all dense explanatory slides.
 5. This is for a CONSULTING REPORT / study document, NOT a stage presentation.
 6. Fill the slides with dense, actionable content. No empty spaces.
+${evidenceMode === 'strict' ? `
+7. **STRICT EVIDENCE MODE**: Use ONLY facts, figures, names, claims, recommendations, risks, dates, and conclusions that are present in the source document material below.
+8. Do NOT invent benchmark numbers, market statistics, client results, budgets, timelines, or recommendations that are not grounded in the source.
+9. If the source document does not contain enough information for a requested point, explicitly say that the source does not specify it instead of fabricating details.
+10. Every non-cover slide MUST include sourceRef from the most relevant source section.
+` : ''}
 
 ═══════════════════════════════════════════════════
 📍 SOURCE REFERENCE (EVIDENCE LINKING) - MANDATORY

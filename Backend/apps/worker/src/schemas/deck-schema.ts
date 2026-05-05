@@ -247,7 +247,8 @@ export const DECK_RESPONSE_SCHEMA = {
                         properties: {
                             sectionTitle: { type: SchemaType.STRING, description: "Original section title from the source document" },
                             pageStart: { type: SchemaType.NUMBER, description: "Starting page number in source document" },
-                            pageEnd: { type: SchemaType.NUMBER, description: "Ending page number in source document" }
+                            pageEnd: { type: SchemaType.NUMBER, description: "Ending page number in source document" },
+                            verified: { type: SchemaType.BOOLEAN, nullable: true, description: "Whether the source reference was verified by strict evidence post-processing" }
                         },
                         required: ["sectionTitle", "pageStart", "pageEnd"]
                     }

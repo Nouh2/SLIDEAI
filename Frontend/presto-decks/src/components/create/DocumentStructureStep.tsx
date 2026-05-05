@@ -50,6 +50,7 @@ interface DocumentStructureStepProps {
         sectionVisuals: Record<string, VisualType>;
         structurePrompt: string; // NEW: The constructed plan prompt
         totalSlides: number; // NEW: The calculated total
+        evidenceMode?: 'standard' | 'strict';
     }) => void;
     onCancel: () => void;
     isGenerating?: boolean;
@@ -64,6 +65,7 @@ export function DocumentStructureStep({
     const [plan, setPlan] = useState<PresentationChapter[]>([]);
     const [sectionVisuals, setSectionVisuals] = useState<Record<string, VisualType>>({});
     const [suggestion, setSuggestion] = useState<{ id: string, label: string, indices: number[] } | null>(null);
+    const [strictEvidenceMode, setStrictEvidenceMode] = useState(true);
 
     // Initial Grouping Logic on Mount
     useEffect(() => {
@@ -277,6 +279,10 @@ export function DocumentStructureStep({
         // This is where we inject the "User Plan" into the AI logic
         let promptStructure = `\n\n[PLAN DE PRÉSENTATION IMPOSÉ]:\nLa présentation DOIT suivre strictement ce plan (${totalSlides} slides au total) :\n`;
 
+        if (strictEvidenceMode) {
+            promptStructure += `Mode preuves strict activé: utilise uniquement les informations présentes dans le document source. N'invente aucun chiffre, nom, fait, résultat ou recommandation non supporté par les sections sources. Si une information manque, indique clairement que le document source ne la précise pas.\n`;
+        }
+
         activeChapters.forEach((ch, index) => {
             promptStructure += `${index + 1}. ${ch.title} (~${ch.slideCount} slides)\n`;
 
@@ -294,7 +300,8 @@ export function DocumentStructureStep({
             sectionIds: allSectionIds,
             sectionVisuals: finalVisuals,
             structurePrompt: promptStructure,
-            totalSlides: totalSlides
+            totalSlides: totalSlides,
+            evidenceMode: strictEvidenceMode ? 'strict' : 'standard',
         });
     };
 
@@ -322,6 +329,19 @@ export function DocumentStructureStep({
             </CardHeader>
 
             <CardContent className="flex-1 overflow-y-auto min-h-0 space-y-4 p-6 pb-28">
+                <div className="rounded-xl border border-blue-200 bg-blue-50/70 p-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between dark:border-blue-900/50 dark:bg-blue-950/20">
+                    <div className="space-y-1">
+                        <p className="text-sm font-semibold text-foreground">Mode preuves strict</p>
+                        <p className="text-xs text-muted-foreground">
+                            L'IA s'appuie uniquement sur les sections sources et ajoute une traçabilité par slide.
+                        </p>
+                    </div>
+                    <Switch
+                        checked={strictEvidenceMode}
+                        onCheckedChange={setStrictEvidenceMode}
+                        className="data-[state=checked]:bg-primary"
+                    />
+                </div>
 
                 {/* SUGGESTION BANNER */}
                 {suggestion && (

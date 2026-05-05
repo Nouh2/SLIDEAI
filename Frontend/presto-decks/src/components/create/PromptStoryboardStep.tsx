@@ -42,6 +42,41 @@ const VISUAL_OPTIONS: Array<{ value: StoryboardVisual; label: string; icon: Reac
 ];
 
 const DELIVERABLE_PLANS: Record<string, Array<{ title: string; visual: StoryboardVisual }>> = {
+  "product-launch": [
+    { title: "Objectifs du lancement et contexte marché", visual: "text" },
+    { title: "Audience cible, besoins et segmentation", visual: "comparison" },
+    { title: "Positionnement produit et messages clés", visual: "visual" },
+    { title: "Plan go-to-market, canaux et calendrier", visual: "timeline" },
+    { title: "Budget, KPIs et critères de succès", visual: "data" },
+  ],
+  "minimal-elegant": [
+    { title: "Contexte et objectif de la présentation", visual: "text" },
+    { title: "Constats essentiels", visual: "text" },
+    { title: "Options ou axes d'analyse", visual: "comparison" },
+    { title: "Recommandation principale", visual: "text" },
+    { title: "Décisions attendues et prochaines étapes", visual: "timeline" },
+  ],
+  "creative-portfolio": [
+    { title: "Positionnement créatif et intention", visual: "visual" },
+    { title: "Sélection de projets ou travaux clés", visual: "visual" },
+    { title: "Études de cas et résultats obtenus", visual: "comparison" },
+    { title: "Processus créatif et méthode de travail", visual: "timeline" },
+    { title: "Services, formats et prise de contact", visual: "text" },
+  ],
+  educational: [
+    { title: "Objectifs pédagogiques et prérequis", visual: "text" },
+    { title: "Notions clés à comprendre", visual: "text" },
+    { title: "Méthode, étapes ou cadre d'apprentissage", visual: "timeline" },
+    { title: "Exemples guidés et mises en pratique", visual: "comparison" },
+    { title: "Exercices, quiz et points à retenir", visual: "text" },
+  ],
+  "tech-modern": [
+    { title: "Contexte technique et problème à résoudre", visual: "text" },
+    { title: "Architecture ou solution proposée", visual: "visual" },
+    { title: "Fonctionnalités, flux et intégrations", visual: "comparison" },
+    { title: "Sécurité, scalabilité et contraintes", visual: "text" },
+    { title: "Roadmap technique et métriques de succès", visual: "timeline" },
+  ],
   "marketing-campaign": [
     { title: "Contexte marque et objectif de campagne", visual: "text" },
     { title: "Audience cible et insight consommateur", visual: "comparison" },
@@ -94,6 +129,20 @@ const DELIVERABLE_PLANS: Record<string, Array<{ title: string; visual: Storyboar
     { title: "Décisions stratégiques à prendre", visual: "comparison" },
     { title: "Risques, impact financier et demandes", visual: "text" },
   ],
+  "health-medical": [
+    { title: "Contexte clinique ou sanitaire", visual: "text" },
+    { title: "Objectifs, population et méthodologie", visual: "text" },
+    { title: "Résultats, observations ou données clés", visual: "data" },
+    { title: "Discussion, limites et implications", visual: "comparison" },
+    { title: "Conclusion et recommandations de suivi", visual: "text" },
+  ],
+  sustainability: [
+    { title: "Engagement, contexte et périmètre RSE", visual: "text" },
+    { title: "Diagnostic environnemental ou social", visual: "data" },
+    { title: "Initiatives, progrès et impacts mesurés", visual: "data" },
+    { title: "Objectifs, conformité et parties prenantes", visual: "comparison" },
+    { title: "Feuille de route durable", visual: "timeline" },
+  ],
   consulting: [
     { title: "Executive summary", visual: "data" },
     { title: "Analyse de situation", visual: "text" },
@@ -145,7 +194,7 @@ function buildPlanPrompt(sections: StoryboardSection[], totalSlides: number) {
     prompt += `${index + 1}. ${section.title} (~${section.slideCount} slides, contenu attendu: ${visual})\n`;
   });
 
-  prompt += "\nNe remplace pas ce storyboard par une structure générique. Si le sujet manque de détails, complète prudemment tout en restant cohérent avec ces parties.";
+  prompt += "\nNe remplace pas ce storyboard par une structure générique ou par une structure de pitch deck. Si le sujet manque de détails, complète prudemment tout en restant cohérent avec ces parties et avec le livrable sélectionné.";
   return prompt;
 }
 
@@ -303,4 +352,3 @@ export function PromptStoryboardStep({ template, requestedSlides, prompt, onBack
     </Card>
   );
 }
-

@@ -44,7 +44,7 @@ export function Hero() {
             ANALYTICS_EVENTS.ECOMMERCE.SELECT_PLAN,
             `Landing Hero CTA - ${pageLabel}`
         );
-        navigate(`/auth?returnTo=${encodeURIComponent("/create")}`);
+        navigate(localize("/pricing"));
     };
 
     const handleExamplesCta = () => {
@@ -148,8 +148,8 @@ export function Hero() {
                         </div>
                         <div className="text-sm text-muted-foreground text-center">
                             {isFr
-                                ? "Essai sans carte, export editable, workflow pense pour des livrables reels"
-                                : "No-card trial, editable export, workflow built for real deliverables"}
+                                ? "2,99EUR/mois pendant 3 mois, export editable, workflow pense pour des livrables reels"
+                                : "2.99EUR/mo for 3 months, editable export, workflow built for real deliverables"}
                         </div>
                         <div className="flex flex-wrap justify-center gap-2">
                             {heroContent.trustChips.map((chip) => (

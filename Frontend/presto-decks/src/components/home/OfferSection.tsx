@@ -20,9 +20,9 @@ export function OfferSection() {
         Analytics.trackEvent(
             ANALYTICS_EVENTS.ECOMMERCE.CATEGORY,
             ANALYTICS_EVENTS.ECOMMERCE.SELECT_PLAN,
-            "Landing Trial Section CTA - 7d Trial"
+            "Landing Intro Offer CTA"
         );
-        navigate(`/auth?returnTo=${encodeURIComponent("/create")}`);
+        navigate("/pricing");
     };
 
     return (

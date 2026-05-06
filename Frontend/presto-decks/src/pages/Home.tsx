@@ -37,9 +37,9 @@ export default function Home() {
     operatingSystem: "Web",
     offers: {
       "@type": "Offer",
-      price: "0",
+      price: "2.99",
       priceCurrency: "EUR",
-      category: isFr ? "Essai gratuit 7 jours" : "7-day free trial",
+      category: isFr ? "Offre de lancement Pro" : "Pro launch offer",
     },
     description: seoDescription,
   };
@@ -113,7 +113,7 @@ export default function Home() {
     Analytics.trackEvent(
       ANALYTICS_EVENTS.ECOMMERCE.CATEGORY,
       ANALYTICS_EVENTS.ECOMMERCE.SELECT_PLAN,
-      "Landing Bottom CTA - 7d Trial"
+      "Landing Bottom CTA - Intro Offer"
     );
     navigate(`/auth?returnTo=${encodeURIComponent("/create")}`);
   };
@@ -163,7 +163,7 @@ export default function Home() {
 
       <BeforeAfterSection />
 
-      {/* Offre essai 7 jours */}
+      {/* Offre de lancement */}
       <OfferSection />
 
       {/* Abonnement Pro */}

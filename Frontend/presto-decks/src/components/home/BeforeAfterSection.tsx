@@ -2,15 +2,12 @@ import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Sparkles } from "lucide-react";
-import { useAuth } from "@/contexts/AuthContext";
 import { Analytics, ANALYTICS_EVENTS } from "@/lib/analytics";
 
 export function BeforeAfterSection() {
   const { i18n } = useTranslation();
   const navigate = useNavigate();
-  const { user } = useAuth();
   const isFr = i18n.language.startsWith("fr");
-  const ctaPath = user ? "/create" : `/auth?returnTo=${encodeURIComponent("/create")}`;
 
   const rows = isFr
     ? [
@@ -54,7 +51,7 @@ export function BeforeAfterSection() {
       ANALYTICS_EVENTS.ECOMMERCE.SELECT_PLAN,
       "Landing Before After CTA"
     );
-    navigate(ctaPath);
+    navigate("/pricing");
   };
 
   return (
@@ -84,7 +81,7 @@ export function BeforeAfterSection() {
         <div className="text-center">
           <Button onClick={handleCta} size="lg" className="font-bold">
             <Sparkles className="w-4 h-4 mr-2" />
-            {isFr ? "Demarrer mon essai 7 jours" : "Start my 7-day trial"}
+            {isFr ? "Profiter de l'offre a 2,99EUR" : "Get the 2.99EUR offer"}
             <ArrowRight className="w-4 h-4 ml-2" />
           </Button>
         </div>

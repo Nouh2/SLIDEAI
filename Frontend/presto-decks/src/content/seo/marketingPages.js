@@ -33,22 +33,22 @@ export const homePageContent = {
   fr: {
     title: "Generateur PowerPoint IA | Creer des slides pro",
     description:
-      "Creez une presentation PowerPoint avec l'IA a partir d'un brief, d'un PDF ou d'un document. Essai 7 jours sans carte et export PPTX editable.",
+      "Creez une presentation PowerPoint avec l'IA a partir d'un brief, d'un PDF ou d'un document. Offre Pro a 2,99EUR/mois pendant 3 mois et export PPTX editable.",
     hero: {
       badge: "SlideAI pour PowerPoint",
       headline: "Generateur PowerPoint IA pour creer des presentations pro plus vite",
       subtitle:
         "Passez d'un brief, d'un PDF ou d'un document a un deck editable en quelques minutes. Concu pour consultants, freelances et equipes qui presentent souvent.",
-      primaryCta: "Demarrer l'essai 7 jours",
+      primaryCta: "Profiter de l'offre a 2,99EUR",
       secondaryCta: "Voir des exemples",
-      trialNote: "Essai 7 jours sans carte bancaire",
+      trialNote: "2,99EUR/mois pendant 3 mois, puis 19,90EUR/mois",
       segments: ["Consulting", "Freelance", "Marketing", "Sales"],
       microProofs: [
         "Part d'un brief, d'un PDF ou d'un doc",
         "Export PowerPoint editable",
         "Concu pour des livrables client-ready",
       ],
-      trustChips: ["Sans carte bancaire", "Export PPTX", "Workflow B2B"],
+      trustChips: ["Annulation possible", "Export PPTX", "Workflow B2B"],
     },
     staticSections: {
       eyebrow: "Landing page SEO principale",
@@ -63,7 +63,7 @@ export const homePageContent = {
         },
         {
           title: "Conversion simple",
-          description: "Essai 7 jours sans carte bancaire puis export PowerPoint editable.",
+          description: "Offre Pro a 2,99EUR/mois pendant 3 mois puis export PowerPoint editable.",
         },
       ],
       faqTitle: "Questions frequentes",
@@ -86,22 +86,22 @@ export const homePageContent = {
   en: {
     title: "AI PowerPoint Generator | Create editable decks",
     description:
-      "Turn a brief, PDF, or document into an editable PowerPoint deck with AI. Start a 7-day trial with no credit card.",
+      "Turn a brief, PDF, or document into an editable PowerPoint deck with AI. Start Pro at 2.99EUR/month for 3 months.",
     hero: {
       badge: "SlideAI for PowerPoint",
       headline: "AI PowerPoint generator for faster professional presentations",
       subtitle:
         "Go from a brief, PDF, or working document to an editable deck in minutes. Built for consultants, freelancers, and teams that present often.",
-      primaryCta: "Start 7-day trial",
+      primaryCta: "Get the 2.99EUR offer",
       secondaryCta: "View examples",
-      trialNote: "7-day trial with no credit card",
+      trialNote: "2.99EUR/month for 3 months, then 19.90EUR/month",
       segments: ["Consulting", "Freelance", "Marketing", "Sales"],
       microProofs: [
         "Start from a brief, PDF, or doc",
         "Editable PowerPoint export",
         "Built for client-ready decks",
       ],
-      trustChips: ["No credit card", "PPTX export", "B2B workflow"],
+      trustChips: ["Cancel anytime", "PPTX export", "B2B workflow"],
     },
     staticSections: {
       eyebrow: "Primary SEO landing page",
@@ -116,7 +116,7 @@ export const homePageContent = {
         },
         {
           title: "Simple conversion",
-          description: "7-day no-card trial followed by editable PowerPoint export.",
+          description: "Pro at 2.99EUR/month for 3 months followed by editable PowerPoint export.",
         },
       ],
       faqTitle: "Frequently asked questions",
@@ -285,7 +285,7 @@ export const pdfToPowerPointPageContent = {
   eyebrow: "Page SEO prioritaire",
   url: "/pdf-to-powerpoint",
   keyword: "convertir pdf en powerpoint",
-  primaryCta: "Demarrer l'essai 7 jours",
+  primaryCta: "Profiter de l'offre a 2,99EUR",
   secondaryCta: "Voir des exemples",
   highlights: [
     {

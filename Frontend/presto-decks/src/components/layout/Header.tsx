@@ -27,6 +27,7 @@ export const Header = () => {
   const { localize } = useLocalePath();
   const isLandingForLoggedOut = !user && stripLocalePrefix(location.pathname) === "/";
   const createCtaPath = user ? "/create" : `/auth?returnTo=${encodeURIComponent("/create")}`;
+  const trialPricingPath = `${localize("/pricing")}?startTrial=1`;
 
   const handleSignOut = async () => {
     await signOut();
@@ -36,9 +37,9 @@ export const Header = () => {
     Analytics.trackEvent(
       ANALYTICS_EVENTS.ECOMMERCE.CATEGORY,
       ANALYTICS_EVENTS.ECOMMERCE.SELECT_PLAN,
-      "Landing Header CTA - 7d Trial"
+      "Landing Header CTA - Trial Pricing"
     );
-    navigate(createCtaPath);
+    navigate(trialPricingPath);
     setOpen(false);
   };
 

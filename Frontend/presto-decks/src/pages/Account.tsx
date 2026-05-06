@@ -27,7 +27,6 @@ export default function Account() {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [updatingPassword, setUpdatingPassword] = useState(false);
-  const [startingTrial, setStartingTrial] = useState(false);
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => {
@@ -78,33 +77,6 @@ export default function Account() {
     setSigningOut(true);
     await supabase.auth.signOut();
     navigate("/");
-  };
-
-  const handleStartTrial = async () => {
-    setStartingTrial(true);
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        navigate("/auth");
-        return;
-      }
-
-      const nextSubscription = await api.startTrial(session.access_token);
-      setSubscription(nextSubscription);
-      toast({
-        title: t("common.success"),
-        description: t("account.trialStarted", { defaultValue: "Your 7-day Pro trial is now active." }),
-      });
-      navigate("/create");
-    } catch (error: any) {
-      toast({
-        title: t("common.error"),
-        description: error.message || t("common.error"),
-        variant: "destructive",
-      });
-    } finally {
-      setStartingTrial(false);
-    }
   };
 
   const handleChangePassword = async () => {
@@ -165,7 +137,6 @@ export default function Account() {
   const isLegacyAccess = isLegacySubscription(subscription);
   const isFree = !subscription || (isLegacyAccess && !isPackActive);
   const isUnlimited = subscription?.creditsRemaining === -1;
-  const canStartTrial = Boolean(subscription?.canStartTrial);
   const canUseBrandKit = hasFeature(subscription, "brand_kit");
   const displayPlanKey = getPlanDisplayKey(subscription);
   const planColor = isPackActive ? "text-amber-700" : isFree ? "text-muted-foreground" : "text-primary";
@@ -191,16 +162,13 @@ export default function Account() {
               {t("account.subtitle")}
             </p>
           </div>
-          {(isFree || isPackActive || canStartTrial) && (
+          {(isFree || isPackActive) && (
             <Button
-              onClick={canStartTrial ? handleStartTrial : () => navigate("/pricing")}
-              disabled={startingTrial}
+              onClick={() => navigate("/pricing")}
               className="hidden md:flex bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 text-white shadow-lg hover:shadow-xl transition-all duration-300"
             >
-              {startingTrial ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
-              {canStartTrial
-                ? t("account.startTrial", { defaultValue: "Start 7-day Pro trial" })
-                : t("account.upgradeToProBtn")}
+              <Sparkles className="mr-2 h-4 w-4" />
+              {t("account.upgradeToProBtn")}
             </Button>
           )}
         </div>
@@ -413,16 +381,7 @@ export default function Account() {
                 )}
 
                 <div className="pt-6 border-t border-border/50 flex flex-col gap-3">
-                  {canStartTrial ? (
-                    <Button
-                      onClick={handleStartTrial}
-                      className="w-full h-12 text-lg font-bold bg-gradient-to-r from-primary to-purple-600 hover:opacity-90 transition-opacity"
-                      disabled={startingTrial}
-                    >
-                      {startingTrial ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <Sparkles className="mr-2 h-5 w-5" />}
-                      {t("account.startTrial", { defaultValue: "Start 7-day Pro trial" })}
-                    </Button>
-                  ) : isPackActive ? (
+                  {isPackActive ? (
                     <>
                       <Button onClick={() => navigate("/pricing")} className="w-full h-12 text-lg font-bold bg-gradient-to-r from-primary to-purple-600 hover:opacity-90 transition-opacity">
                         {t("account.upgradeToPro")} <Sparkles className="ml-2 h-5 w-5" />

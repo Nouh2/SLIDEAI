@@ -40,6 +40,7 @@ export class StripeService implements OnModuleInit {
         origin?: string,
         stripeCustomerId?: string | null,
         promotionCode?: string,
+        introOffer?: boolean,
     ) {
         if (!this.stripe) throw new Error('Stripe is not initialized');
 
@@ -47,6 +48,9 @@ export class StripeService implements OnModuleInit {
         const frontendUrl = origin || this.configService.get('FRONTEND_URL');
         const appliedPromotionCodeId = promotionCode
             ? await this.resolvePromotionCodeId(promotionCode)
+            : null;
+        const introCouponId = !appliedPromotionCodeId && introOffer && plan === 'pro'
+            ? await this.getOrCreateIntroOfferCoupon(priceId)
             : null;
 
         const session = await this.stripe.checkout.sessions.create({
@@ -64,9 +68,11 @@ export class StripeService implements OnModuleInit {
             cancel_url: `${frontendUrl}/pricing`,
             metadata: {
                 plan,
+                ...(introCouponId ? { introOffer: 'first_3_months_299' } : {}),
             },
-            allow_promotion_codes: !appliedPromotionCodeId,
+            allow_promotion_codes: !appliedPromotionCodeId && !introCouponId,
             ...(appliedPromotionCodeId ? { discounts: [{ promotion_code: appliedPromotionCodeId }] } : {}),
+            ...(introCouponId ? { discounts: [{ coupon: introCouponId }] } : {}),
         });
 
         return { url: session.url };
@@ -312,5 +318,61 @@ export class StripeService implements OnModuleInit {
         }
 
         return promotionCode.id;
+    }
+
+    private async getOrCreateIntroOfferCoupon(priceId: string): Promise<string | null> {
+        const configuredCouponId = this.configService.get<string>('STRIPE_INTRO_OFFER_COUPON_ID');
+        if (configuredCouponId) {
+            return configuredCouponId;
+        }
+
+        const price = await this.stripe.prices.retrieve(priceId);
+        const unitAmount = price.unit_amount || 0;
+        const currency = price.currency || 'eur';
+        const targetAmount = Number(this.configService.get<string>('INTRO_OFFER_TARGET_AMOUNT_CENTS') || 299);
+        const months = Number(this.configService.get<string>('INTRO_OFFER_MONTHS') || 3);
+        const amountOff = unitAmount - targetAmount;
+
+        if (!price.recurring || price.recurring.interval !== 'month' || amountOff <= 0) {
+            return null;
+        }
+
+        const couponId = `slideai_intro_${targetAmount}_${months}m_${unitAmount}_${currency}`;
+
+        try {
+            const existing = await this.stripe.coupons.retrieve(couponId);
+            return existing.id;
+        } catch (error: any) {
+            if (error?.code !== 'resource_missing') {
+                throw error;
+            }
+        }
+
+        try {
+            const coupon = await this.stripe.coupons.create({
+                id: couponId,
+                name: `SlideAI ${targetAmount / 100}€ pendant ${months} mois`,
+                amount_off: amountOff,
+                currency,
+                duration: 'repeating',
+                duration_in_months: months,
+                metadata: {
+                    offerType: 'intro_299_first_3_months',
+                    targetAmountCents: String(targetAmount),
+                    regularAmountCents: String(unitAmount),
+                    months: String(months),
+                    priceId,
+                },
+            } as any);
+
+            return coupon.id;
+        } catch (error: any) {
+            if (error?.code === 'resource_already_exists') {
+                const existing = await this.stripe.coupons.retrieve(couponId);
+                return existing.id;
+            }
+
+            throw error;
+        }
     }
 }

@@ -31,13 +31,13 @@
     "badge": "SlideAI v2.0",
     "title": "Une présentation client-ready en 40 secondes.",
     "subtitle": "Importez votre brief, votre audit ou vos données client. SlideAI génère la structure, le contenu et le design. Vous livrez.",
-    "cta": "Démarrer l'essai 7 jours",
+    "cta": "Profiter de l'offre à 2,99€",
     "microProofs": {
       "target": "Conçu pour cabinets de conseil, audit, marketing et freelances",
       "roi": "Plusieurs heures gagnées par mission",
       "features": "Export PDF/PPTX | Partage client | Design pro"
     },
-    "trialNote": "Essai gratuit 7 jours. Sans carte bancaire. Compte requis pour sauvegarder vos decks.",
+    "trialNote": "Offre de lancement : 2,99€/mois pendant 3 mois, puis 19,90€/mois. Annulation possible à tout moment.",
     "segments": {
       "consulting": "Consulting",
       "audit": "Audit",
@@ -124,20 +124,20 @@
   },
   "offer": {
     "freelancePack": {
-      "title": "Essai gratuit 7 jours - sans carte",
+      "title": "Offre de lancement Pro",
       "subtitle": "Testez l'outil IA présentation sur vos vrais livrables clients.",
       "features": {
-        "presents": "Générations de présentations pendant 7 jours",
+        "presents": "Générations de présentations illimitées",
         "import": "Import PDF et Word",
         "design": "Design et structure automatiques",
         "export": "Export PDF et PPTX",
         "subscription": "Annulation à tout moment",
-        "noCard": "Sans carte bancaire"
+        "noCard": "Annulation à tout moment"
       },
       "uniquenessNote": "Chaque génération s'adapte au contenu, au client et au contexte. Même sur une mission similaire, le livrable reste adapté.",
-      "price": "7 jours gratuits",
-      "cta": "Démarrer l'essai",
-      "helper": "Aucune carte demandée. Activez votre essai en moins de 30 secondes."
+      "price": "2,99€/mois",
+      "cta": "Voir l'offre",
+      "helper": "Pendant 3 mois, puis 19,90€/mois. Paiement sécurisé par Stripe."
     },
     "proSubscription": {
       "title": "Besoin régulier ? Passez à l'abonnement Pro",
@@ -157,7 +157,7 @@
     "questions": {
       "subscription": {
         "q": "Y a-t-il un abonnement obligatoire ?",
-        "a": "Non. Vous pouvez démarrer un essai 7 jours sans carte, puis choisir un abonnement ou acheter un pack en paiement unique."
+        "a": "Non. Vous pouvez choisir l'offre de lancement Pro ou acheter un pack en paiement unique."
       },
       "deliver": {
         "q": "Puis-je vraiment livrer ces slides à un client ?",
@@ -172,8 +172,8 @@
         "a": "Non. Import -> génération -> ajustement -> livraison."
       },
       "trial": {
-        "q": "L'essai 7 jours demande-t-il une carte bancaire ?",
-        "a": "Non. Vous pouvez démarrer l'essai sans carte bancaire."
+        "q": "Comment fonctionne l'offre de lancement ?",
+        "a": "Vous payez 2,99€/mois pendant 3 mois, puis l'abonnement passe à 19,90€/mois. Vous pouvez annuler à tout moment."
       },
       "security": {
         "q": "Mes documents clients sont-ils sécurisés ?",
@@ -183,8 +183,8 @@
   },
   "finalCta": {
     "title": "Votre prochaine présentation client, prête en 40 secondes.",
-    "subtitle": "Démarrez votre essai gratuit de 7 jours.\nSans carte bancaire. Sans engagement.",
-    "button": "Démarrer mon essai 7 jours"
+    "subtitle": "Démarrez Pro à 2,99€/mois pendant 3 mois.\nPuis 19,90€/mois, annulable à tout moment.",
+    "button": "Profiter de l'offre"
   },
   "dashboard": {
     "title": "Tableau de bord",
@@ -1234,7 +1234,9 @@
     "billedYearly": "Facturé annuellement ({{price}}€)",
     "billedMonthly": "Facturé mensuellement",
     "startFree": "Démarrer l'essai",
-    "tryFree": "Démarrer l'essai 7 jours",
+    "tryFree": "Démarrer l'offre de lancement",
+    "startIntroOffer": "Commencer à 2,99€",
+    "startTrialSecondary": "Tester gratuitement 7 jours",
     "contactSales": "Contacter les ventes",
     "unsubscribe": "Se désabonner",
     "included": "Inclus",
@@ -1242,11 +1244,17 @@
     "monthly": "Mensuel",
     "yearly": "Annuel",
     "discount": "-20%",
-    "allCardsAccepted": "Paiement sécurisé uniquement si vous continuez après l'essai.",
-    "noSubscription": "Essai 7 jours sans carte bancaire",
+    "allCardsAccepted": "Paiement sécurisé par Stripe. Annulation possible à tout moment.",
+    "noSubscription": "Abonnement annuel Pro, sans engagement caché",
+    "introBillingLine": "Pendant 3 mois, puis 19,90€/mois",
+    "introRenewalLine": "Offre de lancement limitée",
+    "introLegalLine": "2,99€/mois pendant 3 mois, puis 19,90€/mois. Annulation possible à tout moment.",
+    "introOrTrialLine": "Choisissez l'offre à 2,99€ maintenant, ou testez 7 jours gratuitement sans carte.",
     "trialStarted": "Votre essai Pro 7 jours est maintenant actif.",
     "continueTrial": "Continuer l'essai",
     "choosePro": "Choisir Pro",
+    "createFreeTrialCta": "Créer gratuitement",
+    "createFreeTrialNote": "Active votre essai gratuit de 7 jours. Sans carte bancaire.",
     "packActiveBannerLabel": "Pack actif",
     "packActiveBannerTitle": "Vous avez encore {{count}} génération(s) ponctuelle(s)",
     "packActiveBannerDesc": "Les packs ajoutent des générations one-shot avec export PDF/PPTX. Pour débloquer les fonctionnalités avancées et un usage régulier, passez à Pro.",
@@ -1345,11 +1353,11 @@
         "cta": "Acheter le pack"
       }
     },
-    "trialLine": "Essai 7 jours sans carte bancaire avant de choisir Starter ou Pro.",
+    "trialLine": "Offre de lancement Pro : 2,99€/mois pendant 3 mois, puis 19,90€/mois.",
     "winbackCodeApplied": "Offre de relance détectée : le code {{code}} sera appliqué au checkout.",
-    "heroBadge": "Paiement unique • Sans engagement",
-    "heroTitle": "Payez ce que vous utilisez.",
-    "heroTagline": "Un pack pour un projet, un abonnement pour un usage régulier. Votre compte reste actif à vie.",
+    "heroBadge": "Offre de lancement • 3 mois à 2,99€",
+    "heroTitle": "Passez à Pro sans barrière.",
+    "heroTagline": "Commencez à 2,99€/mois pendant 3 mois, puis gardez SlideAI si l'outil devient utile dans votre workflow.",
     "packsSectionBadge": "Recommandé",
     "packsTitle": "Packs ponctuels",
     "packsSubtitle": "Idéal pour les consultants qui livrent un projet tous les 2-3 mois.",
@@ -1387,7 +1395,7 @@
     "packOneShot": "Paiement unique • Pas d'abonnement",
     "subscriptionSectionBadge": "Usage régulier",
     "subscriptionTitle": "Abonnements",
-    "subscriptionSubtitle": "Pour un usage hebdomadaire, des brand kits d'équipe et des exports illimités.",
+    "subscriptionSubtitle": "Démarrez à 2,99€/mois pendant 3 mois, puis 19,90€/mois pour un usage régulier.",
     "freeAccessTitle": "Votre compte reste actif à vie",
     "freeAccessSubtitle": "Même sans pack ni abonnement actif, vous gardez accès à vos présentations.",
     "freeAccessFeatures": [
@@ -1400,6 +1408,6 @@
     ]
   },
   "home": {
-    "freeNote": "Essai 7 jours gratuit | sans carte bancaire"
+    "freeNote": "Offre Pro : 2,99€/mois pendant 3 mois"
   }
 }

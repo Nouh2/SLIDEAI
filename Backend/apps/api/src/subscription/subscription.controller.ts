@@ -29,7 +29,11 @@ export class SubscriptionController {
      */
     @Post('checkout')
     @UseGuards(SupabaseGuard)
-    async createCheckout(@Req() req: any, @Body() body: { priceId: string; plan: string; promotionCode?: string }, @Headers('origin') origin: string) {
+    async createCheckout(
+        @Req() req: any,
+        @Body() body: { priceId: string; plan: string; promotionCode?: string; introOffer?: boolean },
+        @Headers('origin') origin: string,
+    ) {
         const userId = req.user.sub;
         const userEmail = req.user.email;
 
@@ -45,6 +49,7 @@ export class SubscriptionController {
             origin,
             stripeCustomerId,
             body.promotionCode,
+            body.introOffer,
         );
     }
 

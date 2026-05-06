@@ -19,8 +19,6 @@ import { Analytics, ANALYTICS_EVENTS } from "@/lib/analytics";
 import { api } from "@/lib/api";
 import { SEO } from "@/components/common/SEO";
 import {
-  getPlanDisplayKey,
-  getPlanRank,
   isExpiredTrialSubscription,
   isPackSubscription,
   isTrialingSubscription,
@@ -30,12 +28,12 @@ import {
 // Vercel env vars can override pack price IDs without a frontend code change.
 const STRIPE_PRICE_IDS: Record<string, { monthly: string; yearly: string }> = {
   pro: {
-    monthly: "price_1Sn5IN5KgGKgF82elQlvSUIf",
-    yearly: "price_1Sn5Jd5KgGKgF82erWwaHW8G",
+    monthly: import.meta.env.VITE_STRIPE_PRO_MONTHLY_PRICE_ID || "price_1Sn5IN5KgGKgF82elQlvSUIf",
+    yearly: import.meta.env.VITE_STRIPE_PRO_YEARLY_PRICE_ID || "price_1Sn5Jd5KgGKgF82erWwaHW8G",
   },
   business: {
-    monthly: "price_1Sn5JB5KgGKgF82egl8duDWF",
-    yearly: "price_1Sn5KK5KgGKgF82eSgoyWSnS",
+    monthly: import.meta.env.VITE_STRIPE_BUSINESS_MONTHLY_PRICE_ID || "price_1Sn5JB5KgGKgF82egl8duDWF",
+    yearly: import.meta.env.VITE_STRIPE_BUSINESS_YEARLY_PRICE_ID || "price_1Sn5KK5KgGKgF82eSgoyWSnS",
   },
 };
 
@@ -53,20 +51,25 @@ const PACK_PRICE_IDS: Record<string, { priceId: string; packType: string }> = {
 
 export default function Pricing() {
   const { t } = useTranslation();
-  const [billingCycle, setBillingCycle] = useState<"monthly" | "yearly">("yearly");
+  const [billingCycle, setBillingCycle] = useState<"monthly" | "yearly">("monthly");
   const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
   const [loadingPack, setLoadingPack] = useState<string | null>(null);
   const [subscription, setSubscription] = useState<any>(null);
+  const [autoTrialStarted, setAutoTrialStarted] = useState(false);
+  const [autoCheckoutStarted, setAutoCheckoutStarted] = useState(false);
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { user } = useAuth();
   const promotionCode = searchParams.get("promo")?.trim() || "";
+  const shouldAutoStartTrial = searchParams.get("startTrial") === "1";
+  const shouldAutoStartIntroCheckout = searchParams.get("checkout") === "pro_intro";
 
   const isPackActive = isPackSubscription(subscription);
   const packCreditsRemaining = subscription?.packCreditsRemaining ?? 0;
 
   const redirectToAuth = () => navigate(`/auth?returnTo=${encodeURIComponent("/pricing")}`);
-  const createCtaPath = user ? "/create" : `/auth?returnTo=${encodeURIComponent("/create")}`;
+  const redirectToAuthForTrial = () => navigate(`/auth?returnTo=${encodeURIComponent("/pricing?startTrial=1")}`);
+  const redirectToAuthForIntroCheckout = () => navigate(`/auth?returnTo=${encodeURIComponent("/pricing?checkout=pro_intro")}`);
 
   const refreshSubscription = async (accessToken: string) => {
     const response = await fetch(`${import.meta.env.VITE_API_URL}/subscription`, {
@@ -94,6 +97,24 @@ export default function Pricing() {
     Analytics.trackEvent(ANALYTICS_EVENTS.ECOMMERCE.CATEGORY, ANALYTICS_EVENTS.ECOMMERCE.VIEW_PRICING);
   }, []);
 
+  useEffect(() => {
+    if (!shouldAutoStartTrial || !user || autoTrialStarted || !subscription?.canStartTrial) {
+      return;
+    }
+
+    setAutoTrialStarted(true);
+    handleStartTrial();
+  }, [shouldAutoStartTrial, user, autoTrialStarted, subscription?.canStartTrial]);
+
+  useEffect(() => {
+    if (!shouldAutoStartIntroCheckout || !user || autoCheckoutStarted || isTrialingSubscription(subscription) || subscription?.plan === "pro") {
+      return;
+    }
+
+    setAutoCheckoutStarted(true);
+    handleSubscribe("pro");
+  }, [shouldAutoStartIntroCheckout, user, autoCheckoutStarted, subscription?.plan, subscription?.accessState]);
+
   const handleSubscribe = async (planKey: "pro" | "business") => {
     Analytics.trackEvent(ANALYTICS_EVENTS.ECOMMERCE.CATEGORY, ANALYTICS_EVENTS.ECOMMERCE.SELECT_PLAN, planKey);
     if (planKey === "business") {
@@ -103,13 +124,13 @@ export default function Pricing() {
     setLoadingPlan(planKey);
     try {
       const { data: { session } } = await supabase.auth.getSession();
-      if (!session) { toast.error(t("auth.noAccount")); redirectToAuth(); return; }
-
-      if (planKey === "pro" && subscription?.canStartTrial) {
-        await api.startTrial(session.access_token);
-        await refreshSubscription(session.access_token);
-        toast.success(t("pricing.trialStarted", { defaultValue: "Your 7-day Pro trial is now active." }));
-        navigate("/create");
+      if (!session) {
+        if (planKey === "pro" && billingCycle === "monthly") {
+          redirectToAuthForIntroCheckout();
+          return;
+        }
+        toast.error(t("auth.noAccount"));
+        redirectToAuth();
         return;
       }
 
@@ -117,7 +138,12 @@ export default function Pricing() {
       const response = await fetch(`${import.meta.env.VITE_API_URL}/subscription/checkout`, {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${session.access_token}` },
-        body: JSON.stringify({ priceId, plan: planKey, promotionCode: promotionCode || undefined }),
+        body: JSON.stringify({
+          priceId,
+          plan: planKey,
+          promotionCode: promotionCode || undefined,
+          introOffer: planKey === "pro" && billingCycle === "monthly" && !promotionCode,
+        }),
       });
       const data = await response.json();
       if (data.url) window.location.href = data.url;
@@ -130,27 +156,26 @@ export default function Pricing() {
     }
   };
 
-  const handleStartTrial = () => {
-    Analytics.trackEvent(ANALYTICS_EVENTS.ECOMMERCE.CATEGORY, ANALYTICS_EVENTS.ECOMMERCE.SELECT_PLAN, "Pricing Start Trial CTA");
-    if (!user) { navigate(createCtaPath); return; }
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
-      if (!session) { navigate(createCtaPath); return; }
-      if (subscription?.canStartTrial) {
-        try {
-          setLoadingPlan("trial");
-          await api.startTrial(session.access_token);
-          await refreshSubscription(session.access_token);
-          toast.success(t("pricing.trialStarted", { defaultValue: "Your 7-day Pro trial is now active." }));
-          navigate("/create");
-        } catch (error: any) {
-          toast.error(error.message || t("pricing.errors.generic"));
-        } finally {
-          setLoadingPlan(null);
-        }
-        return;
-      }
-      navigate(createCtaPath);
-    });
+  const handleStartTrial = async () => {
+    Analytics.trackEvent(
+      ANALYTICS_EVENTS.ECOMMERCE.CATEGORY,
+      ANALYTICS_EVENTS.ECOMMERCE.SELECT_PLAN,
+      "Pricing Secondary Trial CTA"
+    );
+    setLoadingPlan("trial");
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) { redirectToAuthForTrial(); return; }
+
+      await api.startTrial(session.access_token);
+      await refreshSubscription(session.access_token);
+      toast.success(t("pricing.trialStarted", { defaultValue: "Your 7-day Pro trial is now active." }));
+      navigate("/create");
+    } catch (error: any) {
+      toast.error(error.message || t("pricing.errors.generic"));
+    } finally {
+      setLoadingPlan(null);
+    }
   };
 
   const handleCancelSubscription = async () => {
@@ -200,22 +225,22 @@ export default function Pricing() {
     }
   };
 
-  const currentPlanLevel = getPlanRank(getPlanDisplayKey(subscription));
   const isTrialing = isTrialingSubscription(subscription);
   const isExpired = isExpiredTrialSubscription(subscription);
   const isCurrentPro = subscription?.plan === "pro" && !isTrialing && !isExpired;
   const isCurrentBusiness = subscription?.plan === "business" && !isExpired;
+  const canShowTrialCta = !user || Boolean(subscription?.canStartTrial);
 
-  const proPrice = billingCycle === "yearly" ? "14€" : "19€";
+  const proPrice = billingCycle === "yearly" ? "14€" : "2,99€";
   const businessPrice = billingCycle === "yearly" ? "24€" : "29€";
 
-  const proCtaLabel = subscription?.canStartTrial
-    ? t("pricing.tryFree")
-    : isCurrentPro
+  const proCtaLabel = isCurrentPro
       ? t("pricing.unsubscribe")
       : isTrialing
         ? t("pricing.continueTrial", { defaultValue: "Continue trial" })
-        : t("pricing.choosePro", { defaultValue: "Choose Pro" });
+        : billingCycle === "monthly"
+          ? t("pricing.startIntroOffer", { defaultValue: "Start for 2.99€" })
+          : t("pricing.choosePro", { defaultValue: "Choose Pro" });
 
   return (
     <div className="min-h-screen pb-20">
@@ -243,6 +268,28 @@ export default function Pricing() {
           {promotionCode && (
             <div className="rounded-full border border-emerald-300/50 bg-emerald-50 px-4 py-2 text-sm font-medium text-emerald-700 inline-block">
               {t("pricing.winbackCodeApplied", { code: promotionCode })}
+            </div>
+          )}
+
+          {canShowTrialCta && !isCurrentPro && !isCurrentBusiness && (
+            <div className="flex flex-col items-center gap-2 pt-1">
+              <Button
+                variant="outline"
+                className="rounded-xl font-bold h-11 px-6"
+                onClick={isTrialing ? () => navigate("/create") : handleStartTrial}
+                disabled={loadingPlan === "trial"}
+              >
+                {loadingPlan === "trial" ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : isTrialing ? (
+                  t("pricing.continueTrial", { defaultValue: "Continue trial" })
+                ) : (
+                  t("pricing.createFreeTrialCta", { defaultValue: "Create for free" })
+                )}
+              </Button>
+              <p className="text-xs text-muted-foreground">
+                {t("pricing.createFreeTrialNote", { defaultValue: "Activates your 7-day free trial. No card required." })}
+              </p>
             </div>
           )}
         </div>
@@ -441,8 +488,13 @@ export default function Pricing() {
                   <p className="text-xs text-muted-foreground mt-1">
                     {billingCycle === "yearly"
                       ? t("pricing.billedYearly", { price: 168 })
-                      : t("pricing.billedMonthly")}
+                      : t("pricing.introBillingLine")}
                   </p>
+                  {billingCycle === "monthly" && (
+                    <p className="text-xs font-semibold text-primary mt-1">
+                      {t("pricing.introRenewalLine")}
+                    </p>
+                  )}
                 </div>
               </CardHeader>
               <CardContent className="flex flex-col gap-5 pb-7">
@@ -463,9 +515,9 @@ export default function Pricing() {
                   <Button
                     className="w-full rounded-xl font-bold h-12 shadow-lg shadow-primary/20"
                     onClick={() => handleSubscribe("pro")}
-                    disabled={loadingPlan === "pro" || loadingPlan === "trial"}
+                    disabled={loadingPlan === "pro"}
                   >
-                    {loadingPlan === "pro" || loadingPlan === "trial" ? (
+                    {loadingPlan === "pro" ? (
                       <Loader2 className="h-4 w-4 animate-spin" />
                     ) : (
                       proCtaLabel
@@ -489,9 +541,11 @@ export default function Pricing() {
                   ))}
                 </div>
 
-                {subscription?.canStartTrial && (
-                  <p className="text-xs text-center text-muted-foreground">{t("pricing.noSubscription")}</p>
-                )}
+                <p className="text-xs text-center text-muted-foreground">
+                  {billingCycle === "monthly"
+                      ? t("pricing.introLegalLine")
+                      : t("pricing.noSubscription")}
+                </p>
               </CardContent>
             </Card>
 

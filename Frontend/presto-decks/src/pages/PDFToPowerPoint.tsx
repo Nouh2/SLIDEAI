@@ -4,16 +4,13 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft, ArrowRight, CheckCircle2, FileText, Laptop, MessageSquare, Sparkles, Zap } from "lucide-react";
 import { SEO } from "@/components/common/SEO";
 import { pdfToPowerPointPageContent } from "@/content/seo/marketingPages";
-import { useAuth } from "@/contexts/AuthContext";
 import { useLocalePath } from "@/hooks/use-locale-path";
 import { Analytics, ANALYTICS_EVENTS } from "@/lib/analytics";
 
 export default function PDFToPowerPoint() {
     const navigate = useNavigate();
-    const { user } = useAuth();
     const { localize } = useLocalePath();
     const page = pdfToPowerPointPageContent;
-    const ctaPath = user ? "/create" : `/auth?returnTo=${encodeURIComponent("/create")}`;
     const useCaseIcons = [<FileText className="w-6 h-6" />, <Laptop className="w-6 h-6" />, <Zap className="w-6 h-6" />];
 
     const faqSchema = {
@@ -65,7 +62,7 @@ export default function PDFToPowerPoint() {
             ANALYTICS_EVENTS.ECOMMERCE.SELECT_PLAN,
             "SEO CTA - /pdf-to-powerpoint"
         );
-        navigate(ctaPath);
+        navigate(localize("/pricing", "fr"));
     };
 
     const handleExamplesCta = () => {
@@ -220,7 +217,7 @@ export default function PDFToPowerPoint() {
                     </p>
                     <div className="flex flex-col sm:flex-row gap-4 justify-center">
                         <Button size="lg" onClick={handlePrimaryCta} className="h-14 px-8 font-bold rounded-xl">
-                            Demarrer l'essai 7 jours
+                            Profiter de l'offre a 2,99EUR
                         </Button>
                         <Button size="lg" variant="outline" onClick={() => navigate(localize("/pricing", "fr"))} className="h-14 px-8 font-bold rounded-xl">
                             Voir les tarifs

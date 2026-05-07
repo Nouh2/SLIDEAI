@@ -21,8 +21,8 @@ export const viewportPreset = {
 export const createRevealVariants = (isMobile = false, offset = 28): Variants => ({
   hidden: {
     opacity: 0,
-    y: isMobile ? Math.min(offset, 18) : offset,
-    filter: isMobile ? "none" : "blur(10px)",
+    y: isMobile ? Math.min(offset, 14) : offset,
+    filter: `blur(${isMobile ? 6 : 10}px)`,
   },
   visible: {
     opacity: 1,
@@ -32,21 +32,8 @@ export const createRevealVariants = (isMobile = false, offset = 28): Variants =>
   },
 });
 
-export const createCardVariants = (isMobile = false): Variants => ({
-  hidden: {
-    opacity: 0,
-    y: isMobile ? 16 : 34,
-    scale: isMobile ? 1 : 0.985,
-    filter: isMobile ? "none" : "blur(8px)",
-  },
-  visible: {
-    opacity: 1,
-    y: 0,
-    scale: 1,
-    filter: "blur(0px)",
-    transition: isMobile ? mobileTransition : premiumTransition,
-  },
-});
+export const createCardVariants = (isMobile = false): Variants =>
+  createRevealVariants(isMobile, isMobile ? 14 : 28);
 
 export const createStaggerContainer = (isMobile = false): Variants => ({
   hidden: {},

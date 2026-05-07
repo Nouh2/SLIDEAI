@@ -63,7 +63,7 @@ export function DeckPreview() {
                             initial={{
                                 opacity: 0,
                                 y: prefersCompactMotion ? 18 : 46,
-                                scale: prefersCompactMotion ? 0.9 : 0.86,
+                                filter: `blur(${prefersCompactMotion ? 6 : 10}px)`,
                                 rotateY: prefersCompactMotion ? 0 : -5,
                                 rotateX: prefersCompactMotion ? 0 : 8,
                                 z: prefersCompactMotion ? 0 : -60,
@@ -71,7 +71,7 @@ export function DeckPreview() {
                             whileInView={{
                                 opacity: prefersCompactMotion ? 0.32 : 0.42,
                                 y: prefersCompactMotion ? -18 : -42,
-                                scale: prefersCompactMotion ? 0.9 : 0.88,
+                                filter: "blur(0px)",
                                 rotateY: prefersCompactMotion ? 0 : -5,
                                 rotateX: prefersCompactMotion ? 0 : 8,
                                 z: prefersCompactMotion ? 0 : -60,
@@ -98,7 +98,7 @@ export function DeckPreview() {
                             initial={{
                                 opacity: 0,
                                 y: prefersCompactMotion ? 16 : 42,
-                                scale: prefersCompactMotion ? 0.94 : 0.9,
+                                filter: `blur(${prefersCompactMotion ? 6 : 10}px)`,
                                 rotateY: prefersCompactMotion ? 0 : -2,
                                 rotateX: prefersCompactMotion ? 0 : 4,
                                 z: prefersCompactMotion ? 0 : -30,
@@ -106,7 +106,7 @@ export function DeckPreview() {
                             whileInView={{
                                 opacity: prefersCompactMotion ? 0.62 : 0.72,
                                 y: prefersCompactMotion ? -8 : -18,
-                                scale: prefersCompactMotion ? 0.95 : 0.94,
+                                filter: "blur(0px)",
                                 rotateY: prefersCompactMotion ? 0 : -2,
                                 rotateX: prefersCompactMotion ? 0 : 4,
                                 z: prefersCompactMotion ? 0 : -30,
@@ -131,8 +131,8 @@ export function DeckPreview() {
 
                         {/* Slide 1 (Front - Hero) */}
                         <motion.div
-                            initial={{ opacity: 0, y: prefersCompactMotion ? 16 : 38, scale: prefersCompactMotion ? 0.98 : 0.95 }}
-                            whileInView={{ opacity: 1, y: 0, scale: 1 }}
+                            initial={{ opacity: 0, y: prefersCompactMotion ? 14 : 28, filter: `blur(${prefersCompactMotion ? 6 : 10}px)` }}
+                            whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
                             transition={{ ...deckTransition, delay: prefersCompactMotion ? 0.12 : 0.24 }}
                             viewport={viewportPreset}
                             className="absolute w-[85%] md:w-[70%] aspect-[4/5] md:aspect-video rounded-2xl border-2 border-primary/40 shadow-neon-hover overflow-hidden z-10 glass-premium"
@@ -208,8 +208,8 @@ export function DeckPreview() {
 
                 {/* Bottom Info */}
                 <motion.div
-                    initial={{ opacity: 0, y: prefersCompactMotion ? 12 : 20 }}
-                    whileInView={{ opacity: 1, y: 0 }}
+                    initial={{ opacity: 0, y: prefersCompactMotion ? 14 : 28, filter: `blur(${prefersCompactMotion ? 6 : 10}px)` }}
+                    whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
                     transition={{ ...premiumTransition, delay: prefersCompactMotion ? 0.08 : 0.3 }}
                     viewport={viewportPreset}
                     className="text-center mt-12 md:mt-16"

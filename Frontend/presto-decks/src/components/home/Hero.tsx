@@ -30,11 +30,12 @@ export function Hero() {
     };
 
     const itemVariants: Variants = {
-        hidden: { opacity: 0, y: 20 },
+        hidden: { opacity: 0, y: 20, filter: "blur(10px)" },
         visible: {
             opacity: 1,
             y: 0,
-            transition: { duration: 0.5, ease: "easeOut" },
+            filter: "blur(0px)",
+            transition: { duration: 0.82, ease: [0.16, 1, 0.3, 1] },
         },
     };
 

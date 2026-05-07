@@ -1,13 +1,18 @@
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import { useTranslation } from "react-i18next";
-import { Wand2, Layout, Share2, Zap } from "lucide-react";
+import { Wand2, Layout, Zap } from "lucide-react";
 
 import editorShowcase from "@/assets/editor-showcase.png";
 import dashboardShowcase from "@/assets/dashboard-showcase.png";
 import generationShowcase from "@/assets/generation-showcase.png";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { createRevealVariants, premiumTransition, viewportPreset } from "./motionPresets";
 
 export function ProductShowcase() {
     const { t } = useTranslation();
+    const isMobile = useIsMobile();
+    const shouldReduceMotion = useReducedMotion();
+    const prefersCompactMotion = isMobile || shouldReduceMotion;
 
     const features = [
         {
@@ -35,6 +40,8 @@ export function ProductShowcase() {
             reverse: false,
         },
     ];
+    const textVariants = createRevealVariants(prefersCompactMotion, 26);
+    const imageVariants = createRevealVariants(prefersCompactMotion, 34);
 
     return (
         <section className="relative pt-4 pb-8 md:pt-4 md:pb-12 px-4 overflow-hidden z-10">
@@ -60,10 +67,10 @@ export function ProductShowcase() {
                         {/* Text Content */}
                         <motion.div
                             className="w-full md:basis-[34%] md:flex-none space-y-5"
-                            initial={{ opacity: 0, x: feature.reverse ? 50 : -50 }}
-                            whileInView={{ opacity: 1, x: 0 }}
-                            transition={{ duration: 0.6, ease: "easeOut" }}
-                            viewport={{ once: true, margin: "-100px" }}
+                            variants={textVariants}
+                            initial="hidden"
+                            whileInView="visible"
+                            viewport={viewportPreset}
                         >
                             <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-primary/10 text-primary mb-4">
                                 <feature.icon className="w-6 h-6" />
@@ -79,18 +86,23 @@ export function ProductShowcase() {
                         {/* Image/Visual Content */}
                         <motion.div
                             className="w-full md:basis-[66%] md:flex-none"
-                            initial={{ opacity: 0, y: 50, scale: 0.95 }}
-                            whileInView={{ opacity: 1, y: 0, scale: 1 }}
-                            transition={{ duration: 0.8, delay: 0.2, ease: "easeOut" }}
-                            viewport={{ once: true, margin: "-100px" }}
+                            variants={imageVariants}
+                            initial="hidden"
+                            whileInView="visible"
+                            transition={{ ...premiumTransition, delay: prefersCompactMotion ? 0.04 : 0.12 }}
+                            viewport={viewportPreset}
                         >
-                            <div className="relative group rounded-2xl overflow-hidden shadow-2xl ring-1 ring-border/50 bg-background">
+                            <motion.div
+                                whileHover={prefersCompactMotion ? undefined : { y: -6, scale: 1.01 }}
+                                transition={premiumTransition}
+                                className="relative group rounded-2xl overflow-hidden shadow-2xl ring-1 ring-border/50 bg-background will-change-transform"
+                            >
                                 <img
                                     src={feature.image}
                                     alt={feature.title}
                                     className="block w-full h-auto rounded-2xl"
                                 />
-                            </div>
+                            </motion.div>
                         </motion.div>
                     </div>
                 ))}

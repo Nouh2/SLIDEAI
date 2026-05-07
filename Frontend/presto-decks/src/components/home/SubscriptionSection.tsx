@@ -1,12 +1,19 @@
 import { useTranslation } from "react-i18next";
+import { motion, useReducedMotion } from "framer-motion";
 import { Check, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { Analytics, ANALYTICS_EVENTS } from "@/lib/analytics";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { createCardVariants, viewportPreset } from "./motionPresets";
 
 export function SubscriptionSection() {
     const { t } = useTranslation();
     const navigate = useNavigate();
+    const isMobile = useIsMobile();
+    const shouldReduceMotion = useReducedMotion();
+    const prefersCompactMotion = isMobile || shouldReduceMotion;
+    const cardVariants = createCardVariants(prefersCompactMotion);
 
     const features = [
         t('offer.proSubscription.features.unlimited'),
@@ -26,7 +33,14 @@ export function SubscriptionSection() {
     return (
         <section className="pt-4 pb-8 md:pt-4 md:pb-10 px-4 relative z-10">
             <div className="max-w-7xl mx-auto">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center bg-secondary/5 rounded-3xl p-8 md:p-12 border border-white/5">
+                <motion.div
+                    className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center bg-secondary/5 rounded-3xl p-8 md:p-12 border border-white/5 will-change-transform"
+                    variants={cardVariants}
+                    initial="hidden"
+                    whileInView="visible"
+                    viewport={viewportPreset}
+                    whileHover={prefersCompactMotion ? undefined : { y: -5, scale: 1.004 }}
+                >
                     <div className="space-y-6">
                         <h2 className="text-3xl md:text-4xl font-bold">{t('offer.proSubscription.title')}</h2>
                         <p className="text-xl text-muted-foreground">{t('offer.proSubscription.subtitle')}</p>
@@ -55,7 +69,7 @@ export function SubscriptionSection() {
                             <ArrowRight className="w-4 h-4 ml-2" />
                         </Button>
                     </div>
-                </div>
+                </motion.div>
             </div>
         </section>
     );

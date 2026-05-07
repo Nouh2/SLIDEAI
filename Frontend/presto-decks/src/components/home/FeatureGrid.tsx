@@ -1,10 +1,16 @@
-import { motion } from "framer-motion";
-import { Zap, Palette, Brain, Sparkles, Clock, Share2, Settings, Layers } from "lucide-react";
+import { motion, useReducedMotion } from "framer-motion";
+import { Zap, Palette, Brain, Clock, Share2, Layers } from "lucide-react";
 
 import { useTranslation } from "react-i18next";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { createCardVariants, premiumTransition, viewportPreset } from "./motionPresets";
 
 export function FeatureGrid() {
   const { t } = useTranslation();
+  const isMobile = useIsMobile();
+  const shouldReduceMotion = useReducedMotion();
+  const prefersCompactMotion = isMobile || shouldReduceMotion;
+  const cardVariants = createCardVariants(prefersCompactMotion);
 
   const features = [
     {
@@ -80,13 +86,18 @@ export function FeatureGrid() {
             return (
               <motion.div
                 key={feature.id}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.1, duration: 0.5 }}
-                viewport={{ once: true, amount: 0.2 }}
+                variants={cardVariants}
+                initial="hidden"
+                whileInView="visible"
+                transition={{ ...premiumTransition, delay: prefersCompactMotion ? index * 0.035 : index * 0.07 }}
+                viewport={viewportPreset}
                 className={`${feature.size} group`}
               >
-                <div className={`glass-premium p-6 md:p-8 h-full rounded-2xl border border-primary/10 hover:border-primary/30 transition-all duration-300 cursor-pointer overflow-hidden relative`}>
+                <motion.div
+                  whileHover={prefersCompactMotion ? undefined : { y: -6, scale: 1.008 }}
+                  transition={premiumTransition}
+                  className={`glass-premium p-6 md:p-8 h-full rounded-2xl border border-primary/10 hover:border-primary/30 transition-[border-color,box-shadow] duration-500 cursor-pointer overflow-hidden relative will-change-transform`}
+                >
                   {/* Background gradient */}
                   <div className={`absolute inset-0 bg-gradient-to-br ${feature.gradient} opacity-0 group-hover:opacity-100 transition-opacity duration-300 -z-10`} />
 
@@ -97,7 +108,7 @@ export function FeatureGrid() {
                   <div className="relative z-10 space-y-4">
                     <motion.div
                       className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-primary/10 text-primary group-hover:bg-primary/20 group-hover:scale-110 transition-all duration-300"
-                      whileHover={{ rotate: 10 }}
+                      whileHover={prefersCompactMotion ? undefined : { rotate: 8 }}
                     >
                       <Icon className="w-6 h-6" />
                     </motion.div>
@@ -115,10 +126,10 @@ export function FeatureGrid() {
                     <motion.div
                       className="flex items-center gap-2 text-sm md:text-base text-primary/60 opacity-0 group-hover:opacity-100 transition-opacity"
                       initial={{ x: -10 }}
-                      whileHover={{ x: 0 }}
+                      whileHover={prefersCompactMotion ? undefined : { x: 0 }}
                     >
                       <span className="font-medium">{t('tools.learnMore')}</span>
-                      <motion.span animate={{ x: [0, 4, 0] }} transition={{ repeat: Infinity, duration: 1.5 }}>
+                      <motion.span animate={prefersCompactMotion ? undefined : { x: [0, 4, 0] }} transition={{ repeat: Infinity, duration: 1.7, ease: "easeInOut" }}>
                         →
                       </motion.span>
                     </motion.div>
@@ -126,7 +137,7 @@ export function FeatureGrid() {
 
                   {/* Corner accent */}
                   <div className="absolute bottom-0 right-0 w-24 h-24 bg-primary/5 rounded-full blur-2xl group-hover:bg-primary/10 transition-all duration-300 -z-10" />
-                </div>
+                </motion.div>
               </motion.div>
             );
           })}

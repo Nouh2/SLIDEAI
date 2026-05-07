@@ -1,13 +1,19 @@
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import { useTranslation } from "react-i18next";
 import { Check, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { Analytics, ANALYTICS_EVENTS } from "@/lib/analytics";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { createCardVariants, viewportPreset } from "./motionPresets";
 
 export function OfferSection() {
     const { t } = useTranslation();
     const navigate = useNavigate();
+    const isMobile = useIsMobile();
+    const shouldReduceMotion = useReducedMotion();
+    const prefersCompactMotion = isMobile || shouldReduceMotion;
+    const cardVariants = createCardVariants(prefersCompactMotion);
 
     const features = [
         t('offer.freelancePack.features.presents'),
@@ -30,10 +36,12 @@ export function OfferSection() {
             <div className="absolute inset-0 bg-primary/5 -z-10" />
             <div className="max-w-4xl mx-auto">
                 <motion.div
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    whileInView={{ opacity: 1, scale: 1 }}
-                    viewport={{ once: true, amount: 0.25 }}
-                    className="glass-premium rounded-3xl p-8 md:p-12 border border-primary/20 shadow-2xl relative overflow-hidden"
+                    variants={cardVariants}
+                    initial="hidden"
+                    whileInView="visible"
+                    viewport={viewportPreset}
+                    whileHover={prefersCompactMotion ? undefined : { y: -5, scale: 1.006 }}
+                    className="glass-premium rounded-3xl p-8 md:p-12 border border-primary/20 shadow-2xl relative overflow-hidden will-change-transform"
                 >
                     {/* Background Glow */}
                     <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 rounded-full blur-3xl -z-10" />

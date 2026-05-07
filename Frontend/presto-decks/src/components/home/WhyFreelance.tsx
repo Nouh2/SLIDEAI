@@ -1,44 +1,29 @@
 import { useRef } from "react";
-import { motion, useScroll, useTransform, Variants } from "framer-motion";
+import { motion, useReducedMotion, useScroll, useTransform } from "framer-motion";
 import { useTranslation } from "react-i18next";
 import { Clock, Target, Briefcase, Rocket } from "lucide-react";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { createCardVariants, createStaggerContainer, viewportPreset } from "./motionPresets";
 
 export function WhyFreelance() {
     const { t } = useTranslation();
     const sectionRef = useRef<HTMLElement | null>(null);
+    const isMobile = useIsMobile();
+    const shouldReduceMotion = useReducedMotion();
+    const prefersCompactMotion = isMobile || shouldReduceMotion;
 
     const { scrollYProgress } = useScroll({
         target: sectionRef,
         offset: ["start 82%", "end 28%"],
     });
 
-    const sectionOpacity = useTransform(scrollYProgress, [0, 0.2, 1], [0.45, 1, 1]);
-    const headingY = useTransform(scrollYProgress, [0, 1], [32, -10]);
-    const gridY = useTransform(scrollYProgress, [0, 1], [48, -12]);
-    const glowOpacity = useTransform(scrollYProgress, [0, 0.4, 1], [0.08, 0.18, 0.1]);
+    const sectionOpacity = useTransform(scrollYProgress, [0, 0.16, 1], prefersCompactMotion ? [1, 1, 1] : [0.76, 1, 1]);
+    const headingY = useTransform(scrollYProgress, [0, 1], prefersCompactMotion ? [0, 0] : [18, -6]);
+    const gridY = useTransform(scrollYProgress, [0, 1], prefersCompactMotion ? [0, 0] : [24, -8]);
+    const glowOpacity = useTransform(scrollYProgress, [0, 0.45, 1], prefersCompactMotion ? [0.08, 0.1, 0.08] : [0.1, 0.2, 0.12]);
 
-    const containerVariants: Variants = {
-        hidden: {},
-        visible: {
-            transition: {
-                staggerChildren: 0.12,
-                delayChildren: 0.08,
-            },
-        },
-    };
-
-    const cardVariants: Variants = {
-        hidden: { opacity: 0, y: 42, scale: 0.97 },
-        visible: {
-            opacity: 1,
-            y: 0,
-            scale: 1,
-            transition: {
-                duration: 0.65,
-                ease: [0.22, 1, 0.36, 1],
-            },
-        },
-    };
+    const containerVariants = createStaggerContainer(prefersCompactMotion);
+    const cardVariants = createCardVariants(prefersCompactMotion);
 
     const points = [
         { icon: Clock, text: t('whyFreelance.points.time'), color: "text-blue-400" },
@@ -71,14 +56,14 @@ export function WhyFreelance() {
                     variants={containerVariants}
                     initial="hidden"
                     whileInView="visible"
-                    viewport={{ once: true, amount: 0.22 }}
+                    viewport={viewportPreset}
                 >
                     {points.map((point, index) => (
                         <motion.div
                             key={index}
                             variants={cardVariants}
-                            whileHover={{ y: -6, scale: 1.01 }}
-                            className="glass-premium p-6 rounded-2xl flex items-center gap-4 border border-white/5 hover:border-primary/20 transition-all duration-300"
+                            whileHover={prefersCompactMotion ? undefined : { y: -5, scale: 1.008 }}
+                            className="glass-premium p-6 rounded-2xl flex items-center gap-4 border border-white/5 hover:border-primary/20 transition-[border-color,box-shadow,transform] duration-500 will-change-transform"
                         >
                             <div className={`p-3 rounded-xl bg-white/5 ${point.color}`}>
                                 <point.icon className="w-6 h-6" />

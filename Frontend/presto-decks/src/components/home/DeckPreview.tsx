@@ -1,10 +1,15 @@
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import { Sparkles, Zap } from "lucide-react";
 
 import { useTranslation } from "react-i18next";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { premiumEase, premiumTransition, viewportPreset } from "./motionPresets";
 
 export function DeckPreview() {
     const { t } = useTranslation();
+    const isMobile = useIsMobile();
+    const shouldReduceMotion = useReducedMotion();
+    const prefersCompactMotion = isMobile || shouldReduceMotion;
 
     const examples = [
         t('livrables.examples.audit'),
@@ -13,6 +18,10 @@ export function DeckPreview() {
         t('livrables.examples.pitch'),
         t('livrables.examples.strategy'),
     ];
+    const deckTransition = {
+        duration: prefersCompactMotion ? 0.5 : 0.95,
+        ease: premiumEase,
+    };
 
     return (
         <section className="relative w-full py-10 md:py-16 px-4 overflow-hidden z-10">
@@ -51,14 +60,26 @@ export function DeckPreview() {
                     }}>
                         {/* Slide 3 (Back) */}
                         <motion.div
-                            initial={{ opacity: 0, y: 50, scale: 0.85 }}
-                            whileInView={{ opacity: 0.4, y: -50, scale: 0.88 }}
-                            transition={{ duration: 0.8, delay: 0.1 }}
-                            viewport={{ once: true, amount: 0.35 }}
-                            className="absolute w-[65%] md:w-[60%] aspect-video rounded-2xl border border-primary/10 shadow-lg overflow-hidden"
-                            style={{
-                                transform: "translateZ(-60px) rotateY(-5deg) rotateX(8deg)",
+                            initial={{
+                                opacity: 0,
+                                y: prefersCompactMotion ? 18 : 46,
+                                scale: prefersCompactMotion ? 0.9 : 0.86,
+                                rotateY: prefersCompactMotion ? 0 : -5,
+                                rotateX: prefersCompactMotion ? 0 : 8,
+                                z: prefersCompactMotion ? 0 : -60,
                             }}
+                            whileInView={{
+                                opacity: prefersCompactMotion ? 0.32 : 0.42,
+                                y: prefersCompactMotion ? -18 : -42,
+                                scale: prefersCompactMotion ? 0.9 : 0.88,
+                                rotateY: prefersCompactMotion ? 0 : -5,
+                                rotateX: prefersCompactMotion ? 0 : 8,
+                                z: prefersCompactMotion ? 0 : -60,
+                            }}
+                            transition={{ ...deckTransition, delay: prefersCompactMotion ? 0.04 : 0.08 }}
+                            viewport={viewportPreset}
+                            className="absolute w-[65%] md:w-[60%] aspect-video rounded-2xl border border-primary/10 shadow-lg overflow-hidden"
+                            style={{ transformStyle: "preserve-3d" }}
                         >
                             <div className="w-full h-full bg-gradient-surface p-6 md:p-8 flex flex-col gap-4 opacity-60">
                                 <div className="h-8 w-1/2 bg-primary/20 rounded-lg animate-pulse" />
@@ -74,14 +95,26 @@ export function DeckPreview() {
 
                         {/* Slide 2 (Middle) */}
                         <motion.div
-                            initial={{ opacity: 0, y: 50, scale: 0.9 }}
-                            whileInView={{ opacity: 0.7, y: -20, scale: 0.94 }}
-                            transition={{ duration: 0.8, delay: 0.2 }}
-                            viewport={{ once: true, amount: 0.35 }}
-                            className="absolute w-[70%] md:w-[65%] aspect-video rounded-2xl border border-primary/20 shadow-neon overflow-hidden"
-                            style={{
-                                transform: "translateZ(-30px) rotateY(-2deg) rotateX(4deg)",
+                            initial={{
+                                opacity: 0,
+                                y: prefersCompactMotion ? 16 : 42,
+                                scale: prefersCompactMotion ? 0.94 : 0.9,
+                                rotateY: prefersCompactMotion ? 0 : -2,
+                                rotateX: prefersCompactMotion ? 0 : 4,
+                                z: prefersCompactMotion ? 0 : -30,
                             }}
+                            whileInView={{
+                                opacity: prefersCompactMotion ? 0.62 : 0.72,
+                                y: prefersCompactMotion ? -8 : -18,
+                                scale: prefersCompactMotion ? 0.95 : 0.94,
+                                rotateY: prefersCompactMotion ? 0 : -2,
+                                rotateX: prefersCompactMotion ? 0 : 4,
+                                z: prefersCompactMotion ? 0 : -30,
+                            }}
+                            transition={{ ...deckTransition, delay: prefersCompactMotion ? 0.08 : 0.16 }}
+                            viewport={viewportPreset}
+                            className="absolute w-[70%] md:w-[65%] aspect-video rounded-2xl border border-primary/20 shadow-neon overflow-hidden"
+                            style={{ transformStyle: "preserve-3d" }}
                         >
                             <div className="w-full h-full bg-gradient-surface p-6 md:p-8 flex flex-col gap-6 opacity-80">
                                 <div className="h-10 w-2/3 bg-primary/20 rounded-lg" />
@@ -98,21 +131,19 @@ export function DeckPreview() {
 
                         {/* Slide 1 (Front - Hero) */}
                         <motion.div
-                            initial={{ opacity: 0, y: 50, scale: 0.95 }}
+                            initial={{ opacity: 0, y: prefersCompactMotion ? 16 : 38, scale: prefersCompactMotion ? 0.98 : 0.95 }}
                             whileInView={{ opacity: 1, y: 0, scale: 1 }}
-                            transition={{ duration: 0.8, delay: 0.3 }}
-                            viewport={{ once: true, amount: 0.35 }}
+                            transition={{ ...deckTransition, delay: prefersCompactMotion ? 0.12 : 0.24 }}
+                            viewport={viewportPreset}
                             className="absolute w-[85%] md:w-[70%] aspect-[4/5] md:aspect-video rounded-2xl border-2 border-primary/40 shadow-neon-hover overflow-hidden z-10 glass-premium"
-                            style={{
-                                transform: "translateZ(0px)",
-                            }}
+                            style={{ transformStyle: "preserve-3d" }}
                         >
                             <div className="w-full h-full bg-gradient-accent rounded-2xl overflow-hidden relative group">
                                 {/* Animated background elements */}
                                 <div className="absolute inset-0">
                                     <motion.div
                                         className="absolute top-0 right-0 w-80 h-80 bg-primary/20 rounded-full blur-3xl"
-                                        animate={{
+                                        animate={prefersCompactMotion ? undefined : {
                                             x: [0, 20, 0],
                                             y: [0, -20, 0]
                                         }}
@@ -120,7 +151,7 @@ export function DeckPreview() {
                                     />
                                     <motion.div
                                         className="absolute bottom-0 left-0 w-72 h-72 bg-secondary/20 rounded-full blur-3xl"
-                                        animate={{
+                                        animate={prefersCompactMotion ? undefined : {
                                             x: [0, -20, 0],
                                             y: [0, 20, 0]
                                         }}
@@ -132,7 +163,7 @@ export function DeckPreview() {
                                 <div className="absolute inset-0 p-4 md:p-10 flex flex-col justify-center items-center text-center space-y-2 md:space-y-6 z-10">
                                     <motion.div
                                         className="inline-flex items-center gap-2 px-3 py-1.5 md:px-4 md:py-2 rounded-full bg-white/40 backdrop-blur-md border border-white/50 shadow-sm"
-                                        animate={{ scale: [1, 1.05, 1] }}
+                                        animate={prefersCompactMotion ? undefined : { scale: [1, 1.035, 1] }}
                                         transition={{ duration: 3, repeat: Infinity }}
                                     >
                                         <Sparkles className="w-3 h-3 md:w-4 md:h-4 text-primary" />
@@ -155,17 +186,17 @@ export function DeckPreview() {
                                     <div className="flex gap-3 mt-4 md:mt-6">
                                         <motion.div
                                             className="h-3 w-3 rounded-full bg-primary"
-                                            animate={{ scale: [1, 1.2, 1] }}
+                                            animate={prefersCompactMotion ? undefined : { scale: [1, 1.16, 1] }}
                                             transition={{ duration: 2, repeat: Infinity }}
                                         />
                                         <motion.div
                                             className="h-3 w-3 rounded-full bg-primary/60"
-                                            animate={{ scale: [1, 1.2, 1] }}
+                                            animate={prefersCompactMotion ? undefined : { scale: [1, 1.16, 1] }}
                                             transition={{ duration: 2, repeat: Infinity, delay: 0.3 }}
                                         />
                                         <motion.div
                                             className="h-3 w-3 rounded-full bg-primary/30"
-                                            animate={{ scale: [1, 1.2, 1] }}
+                                            animate={prefersCompactMotion ? undefined : { scale: [1, 1.16, 1] }}
                                             transition={{ duration: 2, repeat: Infinity, delay: 0.6 }}
                                         />
                                     </div>
@@ -177,10 +208,10 @@ export function DeckPreview() {
 
                 {/* Bottom Info */}
                 <motion.div
-                    initial={{ opacity: 0, y: 20 }}
+                    initial={{ opacity: 0, y: prefersCompactMotion ? 12 : 20 }}
                     whileInView={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.6 }}
-                    viewport={{ once: true, amount: 0.4 }}
+                    transition={{ ...premiumTransition, delay: prefersCompactMotion ? 0.08 : 0.3 }}
+                    viewport={viewportPreset}
                     className="text-center mt-12 md:mt-16"
                 >
                     <p className="text-lg font-medium text-gradient-primary">

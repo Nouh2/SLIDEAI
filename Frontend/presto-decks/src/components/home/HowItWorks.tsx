@@ -1,42 +1,27 @@
 import { useRef } from "react";
-import { motion, useScroll, useTransform, Variants } from "framer-motion";
+import { motion, useReducedMotion, useScroll, useTransform } from "framer-motion";
 import { useTranslation } from "react-i18next";
 import { FileText, Wand2, Send } from "lucide-react";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { createCardVariants, createStaggerContainer, viewportPreset } from "./motionPresets";
 
 export function HowItWorks() {
     const { t } = useTranslation();
     const sectionRef = useRef<HTMLElement | null>(null);
+    const isMobile = useIsMobile();
+    const shouldReduceMotion = useReducedMotion();
+    const prefersCompactMotion = isMobile || shouldReduceMotion;
 
     const { scrollYProgress } = useScroll({
         target: sectionRef,
         offset: ["start 82%", "end 30%"],
     });
 
-    const sectionOpacity = useTransform(scrollYProgress, [0, 0.18, 1], [0.4, 1, 1]);
-    const headingY = useTransform(scrollYProgress, [0, 1], [34, -8]);
-    const sectionY = useTransform(scrollYProgress, [0, 1], [56, -14]);
-    const containerVariants: Variants = {
-        hidden: {},
-        visible: {
-            transition: {
-                staggerChildren: 0.14,
-                delayChildren: 0.06,
-            },
-        },
-    };
-
-    const stepVariants: Variants = {
-        hidden: { opacity: 0, y: 48, scale: 0.96 },
-        visible: {
-            opacity: 1,
-            y: 0,
-            scale: 1,
-            transition: {
-                duration: 0.7,
-                ease: [0.22, 1, 0.36, 1],
-            },
-        },
-    };
+    const sectionOpacity = useTransform(scrollYProgress, [0, 0.16, 1], prefersCompactMotion ? [1, 1, 1] : [0.76, 1, 1]);
+    const headingY = useTransform(scrollYProgress, [0, 1], prefersCompactMotion ? [0, 0] : [18, -6]);
+    const sectionY = useTransform(scrollYProgress, [0, 1], prefersCompactMotion ? [0, 0] : [24, -8]);
+    const containerVariants = createStaggerContainer(prefersCompactMotion);
+    const stepVariants = createCardVariants(prefersCompactMotion);
 
     const steps = [
         {
@@ -74,14 +59,14 @@ export function HowItWorks() {
                     variants={containerVariants}
                     initial="hidden"
                     whileInView="visible"
-                    viewport={{ once: true, amount: 0.22 }}
+                    viewport={viewportPreset}
                 >
                     {steps.map((step, index) => (
                         <motion.div
                             key={index}
                             variants={stepVariants}
-                            whileHover={{ y: -6 }}
-                            className="relative flex flex-col items-center text-center space-y-4 rounded-3xl border border-border/50 bg-background/40 px-5 py-6 backdrop-blur-sm shadow-[0_16px_50px_-36px_rgba(0,0,0,0.45)]"
+                            whileHover={prefersCompactMotion ? undefined : { y: -5, scale: 1.006 }}
+                            className="relative flex flex-col items-center text-center space-y-4 rounded-3xl border border-border/50 bg-background/40 px-5 py-6 backdrop-blur-sm shadow-[0_16px_50px_-36px_rgba(0,0,0,0.45)] transition-[box-shadow,border-color,transform] duration-500 will-change-transform"
                         >
                             <div className="w-24 h-24 rounded-full glass-premium flex items-center justify-center border border-primary/20 shadow-lg relative z-10 bg-background/50 backdrop-blur-xl">
                                 <step.icon className="w-10 h-10 text-primary" />

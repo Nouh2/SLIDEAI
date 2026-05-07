@@ -19,7 +19,7 @@ export function DeckPreview() {
         t('livrables.examples.strategy'),
     ];
     const deckTransition = {
-        duration: prefersCompactMotion ? 0.5 : 0.95,
+        duration: prefersCompactMotion ? 0.78 : 0.95,
         ease: premiumEase,
     };
 

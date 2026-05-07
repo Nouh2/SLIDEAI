@@ -8,7 +8,7 @@ export const premiumTransition: Transition = {
 };
 
 export const mobileTransition: Transition = {
-  duration: 0.46,
+  duration: 0.72,
   ease: premiumEase,
 };
 
@@ -52,8 +52,8 @@ export const createStaggerContainer = (isMobile = false): Variants => ({
   hidden: {},
   visible: {
     transition: {
-      staggerChildren: isMobile ? 0.055 : 0.095,
-      delayChildren: isMobile ? 0.02 : 0.06,
+      staggerChildren: isMobile ? 0.075 : 0.095,
+      delayChildren: isMobile ? 0.04 : 0.06,
     },
   },
 });

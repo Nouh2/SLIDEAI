@@ -1,5 +1,4 @@
-import { useRef } from "react";
-import { motion, useReducedMotion, useScroll, useTransform } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import { useTranslation } from "react-i18next";
 import { FileText, Wand2, Send } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -7,19 +6,10 @@ import { createCardVariants, createStaggerContainer, viewportPreset } from "./mo
 
 export function HowItWorks() {
     const { t } = useTranslation();
-    const sectionRef = useRef<HTMLElement | null>(null);
     const isMobile = useIsMobile();
     const shouldReduceMotion = useReducedMotion();
     const prefersCompactMotion = isMobile || shouldReduceMotion;
 
-    const { scrollYProgress } = useScroll({
-        target: sectionRef,
-        offset: ["start 82%", "end 30%"],
-    });
-
-    const sectionOpacity = useTransform(scrollYProgress, [0, 0.16, 1], prefersCompactMotion ? [1, 1, 1] : [0.76, 1, 1]);
-    const headingY = useTransform(scrollYProgress, [0, 1], prefersCompactMotion ? [0, 0] : [18, -6]);
-    const sectionY = useTransform(scrollYProgress, [0, 1], prefersCompactMotion ? [0, 0] : [24, -8]);
     const containerVariants = createStaggerContainer(prefersCompactMotion);
     const stepVariants = createCardVariants(prefersCompactMotion);
 
@@ -42,20 +32,15 @@ export function HowItWorks() {
     ];
 
     return (
-        <motion.section
-            ref={sectionRef}
-            style={{ opacity: sectionOpacity }}
-            className="pt-4 pb-8 md:pt-4 md:pb-10 px-4 relative z-10"
-        >
+        <section className="pt-4 pb-8 md:pt-4 md:pb-10 px-4 relative z-10">
             <div className="absolute inset-0 bg-gradient-to-b from-transparent via-primary/5 to-transparent -z-10" />
             <div className="max-w-7xl mx-auto">
-                <motion.div className="text-center mb-10" style={{ y: headingY }}>
+                <div className="text-center mb-10">
                     <h2 className="text-3xl md:text-5xl font-bold mb-4">{t('howItWorks.title')}</h2>
-                </motion.div>
+                </div>
 
                 <motion.div
                     className="grid grid-cols-1 md:grid-cols-3 gap-8 relative"
-                    style={{ y: sectionY }}
                     variants={containerVariants}
                     initial="hidden"
                     whileInView="visible"
@@ -82,10 +67,10 @@ export function HowItWorks() {
                     ))}
                 </motion.div>
 
-                <motion.div className="mt-4 text-center" style={{ y: sectionY }}>
+                <div className="mt-4 text-center">
                     <p className="text-xl md:text-2xl font-medium text-gradient-secondary">{t('howItWorks.time')}</p>
-                </motion.div>
+                </div>
             </div>
-        </motion.section>
+        </section>
     );
 }

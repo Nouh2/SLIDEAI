@@ -31,13 +31,13 @@
     "badge": "SlideAI v2.0",
     "title": "Une présentation client-ready en 40 secondes.",
     "subtitle": "Importez votre brief, votre audit ou vos données client. SlideAI génère la structure, le contenu et le design. Vous livrez.",
-    "cta": "Profiter de l'offre à 2,99€",
+    "cta": "Profiter de l'offre à 9,90€",
     "microProofs": {
       "target": "Conçu pour cabinets de conseil, audit, marketing et freelances",
       "roi": "Plusieurs heures gagnées par mission",
       "features": "Export PDF/PPTX | Partage client | Design pro"
     },
-    "trialNote": "Offre de lancement : 2,99€/mois pendant 3 mois, puis 19,90€/mois. Annulation possible à tout moment.",
+    "trialNote": "Offre de lancement : 9,90€ le premier mois, puis 19,90€/mois. Annulation possible à tout moment.",
     "segments": {
       "consulting": "Consulting",
       "audit": "Audit",
@@ -135,9 +135,9 @@
         "noCard": "Annulation à tout moment"
       },
       "uniquenessNote": "Chaque génération s'adapte au contenu, au client et au contexte. Même sur une mission similaire, le livrable reste adapté.",
-      "price": "2,99€/mois",
+      "price": "9,90€ le 1er mois",
       "cta": "Voir l'offre",
-      "helper": "Pendant 3 mois, puis 19,90€/mois. Paiement sécurisé par Stripe."
+      "helper": "Puis 19,90€/mois. Paiement sécurisé par Stripe."
     },
     "proSubscription": {
       "title": "Besoin régulier ? Passez à l'abonnement Pro",
@@ -173,7 +173,7 @@
       },
       "trial": {
         "q": "Comment fonctionne l'offre de lancement ?",
-        "a": "Vous payez 2,99€/mois pendant 3 mois, puis l'abonnement passe à 19,90€/mois. Vous pouvez annuler à tout moment."
+        "a": "Vous payez 9,90€ le premier mois, puis l'abonnement passe à 19,90€/mois. Vous pouvez annuler à tout moment."
       },
       "security": {
         "q": "Mes documents clients sont-ils sécurisés ?",
@@ -183,7 +183,7 @@
   },
   "finalCta": {
     "title": "Votre prochaine présentation client, prête en 40 secondes.",
-    "subtitle": "Démarrez Pro à 2,99€/mois pendant 3 mois.\nPuis 19,90€/mois, annulable à tout moment.",
+    "subtitle": "Démarrez Pro à 9,90€ le premier mois.\nPuis 19,90€/mois, annulable à tout moment.",
     "button": "Profiter de l'offre"
   },
   "dashboard": {
@@ -937,7 +937,7 @@
   },
   "outOfCredits": {
     "title": "Générations épuisées",
-    "description": "Vos générations disponibles sont utilisées. Votre compte reste actif — consultation, édition et export PDF toujours disponibles.",
+    "description": "Vos générations disponibles sont utilisées. Prenez un pack ou passez à Pro pour continuer à générer et exporter.",
     "packs": {
       "title": "Pack Mission — 19 €",
       "desc": "5 générations valables 3 mois, sans abonnement. Idéal pour un besoin ponctuel."
@@ -1235,7 +1235,7 @@
     "billedMonthly": "Facturé mensuellement",
     "startFree": "Démarrer l'essai",
     "tryFree": "Démarrer l'offre de lancement",
-    "startIntroOffer": "Commencer à 2,99€",
+    "startIntroOffer": "Commencer à 9,90€",
     "startTrialSecondary": "Tester gratuitement 7 jours",
     "contactSales": "Contacter les ventes",
     "unsubscribe": "Se désabonner",
@@ -1246,10 +1246,14 @@
     "discount": "-20%",
     "allCardsAccepted": "Paiement sécurisé par Stripe. Annulation possible à tout moment.",
     "noSubscription": "Abonnement annuel Pro, sans engagement caché",
-    "introBillingLine": "Pendant 3 mois, puis 19,90€/mois",
+    "introBillingLine": "Premier mois à 9,90€, puis 19,90€/mois",
     "introRenewalLine": "Offre de lancement limitée",
-    "introLegalLine": "2,99€/mois pendant 3 mois, puis 19,90€/mois. Annulation possible à tout moment.",
-    "introOrTrialLine": "Choisissez l'offre à 2,99€ maintenant, ou testez 7 jours gratuitement sans carte.",
+    "introLegalLine": "9,90€ le premier mois, puis 19,90€/mois. Annulation possible à tout moment.",
+    "introOrTrialLine": "Choisissez l'offre à 9,90€ maintenant, ou testez 7 jours gratuitement sans carte.",
+    "introComparisonDetail": "9,90€ le 1er mois",
+    "proYearlyComparisonDetail": "14€/mois",
+    "businessMonthlyComparisonDetail": "29€/mois",
+    "businessYearlyComparisonDetail": "24€/mois",
     "trialStarted": "Votre essai Pro 7 jours est maintenant actif.",
     "continueTrial": "Continuer l'essai",
     "choosePro": "Choisir Pro",
@@ -1353,11 +1357,11 @@
         "cta": "Acheter le pack"
       }
     },
-    "trialLine": "Offre de lancement Pro : 2,99€/mois pendant 3 mois, puis 19,90€/mois.",
+    "trialLine": "Offre de lancement Pro : 9,90€ le premier mois, puis 19,90€/mois.",
     "winbackCodeApplied": "Offre de relance détectée : le code {{code}} sera appliqué au checkout.",
-    "heroBadge": "Offre de lancement • 3 mois à 2,99€",
+    "heroBadge": "Offre de lancement • 1er mois à 9,90€",
     "heroTitle": "Passez à Pro sans barrière.",
-    "heroTagline": "Commencez à 2,99€/mois pendant 3 mois, puis gardez SlideAI si l'outil devient utile dans votre workflow.",
+    "heroTagline": "Commencez à 9,90€ le premier mois, puis gardez SlideAI si l'outil devient utile dans votre workflow.",
     "packsSectionBadge": "Recommandé",
     "packsTitle": "Packs ponctuels",
     "packsSubtitle": "Idéal pour les consultants qui livrent un projet tous les 2-3 mois.",
@@ -1395,19 +1399,63 @@
     "packOneShot": "Paiement unique • Pas d'abonnement",
     "subscriptionSectionBadge": "Usage régulier",
     "subscriptionTitle": "Abonnements",
-    "subscriptionSubtitle": "Démarrez à 2,99€/mois pendant 3 mois, puis 19,90€/mois pour un usage régulier.",
-    "freeAccessTitle": "Votre compte reste actif à vie",
-    "freeAccessSubtitle": "Même sans pack ni abonnement actif, vous gardez accès à vos présentations.",
-    "freeAccessFeatures": [
-      "Visualisation de vos présentations",
-      "Édition du texte des slides",
-      "Export PDF avec filigrane",
-      "Partage par lien (lecture seule)",
-      "Traduction IA des slides",
-      "Régénération de contenu IA"
+    "subscriptionSubtitle": "Démarrez à 9,90€ le premier mois, puis 19,90€/mois pour un usage régulier.",
+    "comparison": {
+      "badge": "Comparaison",
+      "title": "Comparez les accès",
+      "subtitle": "Choisissez entre un essai complet, un pack ponctuel ou un abonnement selon votre rythme de production.",
+      "featureColumn": "Fonctionnalité",
+      "included": "Inclus",
+      "plans": {
+        "trial": {
+          "name": "Essai Pro",
+          "detail": "7 jours gratuits"
+        }
+      },
+      "sections": {
+        "creation": "Création",
+        "aiEditing": "Édition IA",
+        "brandExport": "Branding & export",
+        "shareTeam": "Partage & équipe"
+      },
+      "rows": {
+        "generations": "Générations de présentations",
+        "projects": "Présentations actives",
+        "pdfPages": "Pages PDF importables",
+        "documentImport": "Import PDF, DOCX, TXT, MD, PPTX",
+        "languages": "Langues de génération",
+        "aiAdd": "Ajout de slides IA par deck",
+        "aiRegen": "Régénération IA par deck",
+        "colorAi": "Modification de palette par IA",
+        "storyboard": "Plan/storyboard avant génération",
+        "brandKit": "Brand Kit, logo, couleurs, polices",
+        "pdfExport": "Export PDF",
+        "pptxExport": "Export PowerPoint",
+        "editablePptx": "Export PowerPoint éditable",
+        "noWatermark": "Exports sans filigrane",
+        "publicLink": "Lien public et viewer web",
+        "comments": "Commentaires et partage de deck",
+        "teamWorkspace": "Workspace équipe",
+        "prioritySupport": "Support prioritaire"
+      },
+      "values": {
+        "trialSevenDays": "7 jours",
+        "unlimited": "Illimité",
+        "unlimitedTrial": "Illimité pendant l'essai"
+      }
+    },
+    "trialAccessTitle": "Essayez Pro gratuitement pendant 7 jours",
+    "trialAccessSubtitle": "Pas de plan gratuit permanent : l'essai sert à tester toutes les fonctionnalités Pro sans carte bancaire.",
+    "trialAccessFeatures": [
+      "Accès Pro complet pendant 7 jours",
+      "Générations illimitées pendant l'essai",
+      "Export PDF et PowerPoint",
+      "Brand Kit inclus",
+      "Sans carte bancaire",
+      "Passez ensuite à un pack ou à Pro"
     ]
   },
   "home": {
-    "freeNote": "Offre Pro : 2,99€/mois pendant 3 mois"
+    "freeNote": "Offre Pro : 9,90€ le premier mois"
   }
 }

@@ -108,7 +108,7 @@ export class PresentationService {
             }
         }
 
-        // Check if owner has 'no_watermark' feature (starter, pro, business)
+        // Check if owner has 'no_watermark' feature.
         // Note: For Org, we should check Org subscription? Or Owner's?
         // Usually Org has its own subscription. For now, check owner's (who created it) or maybe the user calling?
         // Let's stick to owner for simplicity for now.
@@ -185,7 +185,7 @@ export class PresentationService {
 
     /**
      * Generate a share link for a presentation
-     * Requires: user is owner AND has 'public_link' feature (starter, pro, business)
+     * Requires: user is owner AND has 'public_link' feature.
      * @param mode - 'edit' for collaborative access, 'view' for read-only access
      */
     async generateShareLink(id: string, userId: string, userEmail?: string, mode: 'edit' | 'view' = 'edit') {
@@ -206,7 +206,7 @@ export class PresentationService {
         const hasFeature = await this.subscriptionService.hasFeature(userId, 'public_link');
         if (!hasFeature) {
             throw new ForbiddenException(
-                'Le partage de lien est réservé aux abonnements Starter, Pro et Business. Mettez à niveau votre compte pour débloquer cette fonctionnalité.',
+                'Le partage de lien est disponible avec un pack actif, Pro ou Business. Mettez à niveau votre compte pour débloquer cette fonctionnalité.',
             );
         }
 

@@ -319,13 +319,13 @@ export default function Dashboard() {
           <div className="flex-1 space-y-1">
             <p className="text-sm font-bold text-foreground">
               {i18n.language.startsWith("fr")
-                ? "Votre compte reste actif — vos présentations aussi."
-                : "Your account is still active — your presentations too."}
+                ? "Votre essai Pro est terminé."
+                : "Your Pro trial has ended."}
             </p>
             <p className="text-sm text-muted-foreground">
               {i18n.language.startsWith("fr")
-                ? "Consultation, édition et export PDF (avec filigrane) sont toujours disponibles. Pour générer de nouveaux decks, prenez un Pack Mission à 19 €."
-                : "Viewing, editing, and PDF export (with watermark) are still available. To generate new decks, get a Pack Mission for €19."}
+                ? "Pour générer, exporter ou continuer votre workflow, prenez un Pack Mission à 19 € ou passez à Pro."
+                : "To generate, export, or continue your workflow, get a Mission Pack for €19 or upgrade to Pro."}
             </p>
           </div>
           <Button size="sm" variant="solid" asChild className="shrink-0">

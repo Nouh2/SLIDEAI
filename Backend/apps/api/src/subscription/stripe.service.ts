@@ -68,7 +68,7 @@ export class StripeService implements OnModuleInit {
             cancel_url: `${frontendUrl}/pricing`,
             metadata: {
                 plan,
-                ...(introCouponId ? { introOffer: 'first_3_months_299' } : {}),
+                ...(introCouponId ? { introOffer: 'first_month_990' } : {}),
             },
             allow_promotion_codes: !appliedPromotionCodeId && !introCouponId,
             ...(appliedPromotionCodeId ? { discounts: [{ promotion_code: appliedPromotionCodeId }] } : {}),
@@ -321,7 +321,7 @@ export class StripeService implements OnModuleInit {
     }
 
     private async getOrCreateIntroOfferCoupon(priceId: string): Promise<string | null> {
-        const configuredCouponId = this.configService.get<string>('STRIPE_INTRO_OFFER_COUPON_ID');
+        const configuredCouponId = this.configService.get<string>('STRIPE_INTRO_990_COUPON_ID');
         if (configuredCouponId) {
             return configuredCouponId;
         }
@@ -329,15 +329,17 @@ export class StripeService implements OnModuleInit {
         const price = await this.stripe.prices.retrieve(priceId);
         const unitAmount = price.unit_amount || 0;
         const currency = price.currency || 'eur';
-        const targetAmount = Number(this.configService.get<string>('INTRO_OFFER_TARGET_AMOUNT_CENTS') || 299);
-        const months = Number(this.configService.get<string>('INTRO_OFFER_MONTHS') || 3);
+        const targetAmount = Number(this.configService.get<string>('INTRO_990_TARGET_AMOUNT_CENTS') || 990);
+        const months = Number(this.configService.get<string>('INTRO_990_MONTHS') || 1);
         const amountOff = unitAmount - targetAmount;
 
         if (!price.recurring || price.recurring.interval !== 'month' || amountOff <= 0) {
             return null;
         }
 
-        const couponId = `slideai_intro_${targetAmount}_${months}m_${unitAmount}_${currency}`;
+        const couponId = months <= 1
+            ? `slideai_intro_${targetAmount}_once_${unitAmount}_${currency}`
+            : `slideai_intro_${targetAmount}_${months}m_${unitAmount}_${currency}`;
 
         try {
             const existing = await this.stripe.coupons.retrieve(couponId);
@@ -354,10 +356,10 @@ export class StripeService implements OnModuleInit {
                 name: `SlideAI ${targetAmount / 100}€ pendant ${months} mois`,
                 amount_off: amountOff,
                 currency,
-                duration: 'repeating',
-                duration_in_months: months,
+                duration: months <= 1 ? 'once' : 'repeating',
+                ...(months > 1 ? { duration_in_months: months } : {}),
                 metadata: {
-                    offerType: 'intro_299_first_3_months',
+                    offerType: months <= 1 ? 'intro_990_first_month' : `intro_${targetAmount}_${months}_months`,
                     targetAmountCents: String(targetAmount),
                     regularAmountCents: String(unitAmount),
                     months: String(months),

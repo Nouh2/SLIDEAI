@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { Fragment, useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
@@ -12,6 +12,7 @@ import {
   Timer,
   FileText,
   Lock,
+  ChevronDown,
 } from "lucide-react";
 import { supabase, useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
@@ -57,6 +58,7 @@ export default function Pricing() {
   const [subscription, setSubscription] = useState<any>(null);
   const [autoTrialStarted, setAutoTrialStarted] = useState(false);
   const [autoCheckoutStarted, setAutoCheckoutStarted] = useState(false);
+  const [isComparisonExpanded, setIsComparisonExpanded] = useState(false);
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { user } = useAuth();
@@ -231,15 +233,85 @@ export default function Pricing() {
   const isCurrentBusiness = subscription?.plan === "business" && !isExpired;
   const canShowTrialCta = !user || Boolean(subscription?.canStartTrial);
 
-  const proPrice = billingCycle === "yearly" ? "14€" : "2,99€";
+  const proPrice = billingCycle === "yearly" ? "14€" : "9,90€";
   const businessPrice = billingCycle === "yearly" ? "24€" : "29€";
+  const comparisonPlans = [
+    { key: "trial", name: t("pricing.comparison.plans.trial.name"), detail: t("pricing.comparison.plans.trial.detail") },
+    { key: "mission", name: t("pricing.packMission.name"), detail: "19€" },
+    { key: "trimestre", name: t("pricing.packTrimestre.name"), detail: "39€" },
+    { key: "pro", name: t("pricing.plans.pro.name"), detail: billingCycle === "yearly" ? t("pricing.proYearlyComparisonDetail") : t("pricing.introComparisonDetail") },
+    { key: "business", name: t("pricing.plans.business.name"), detail: billingCycle === "yearly" ? t("pricing.businessYearlyComparisonDetail") : t("pricing.businessMonthlyComparisonDetail") },
+  ];
+  const comparisonSections = [
+    {
+      title: t("pricing.comparison.sections.creation"),
+      rows: [
+        { label: t("pricing.comparison.rows.generations"), values: { trial: t("pricing.comparison.values.trialSevenDays"), mission: "5", trimestre: "15", pro: t("pricing.comparison.values.unlimited"), business: t("pricing.comparison.values.unlimited") } },
+        { label: t("pricing.comparison.rows.projects"), values: { trial: t("pricing.comparison.values.unlimitedTrial"), mission: "20", trimestre: "20", pro: t("pricing.comparison.values.unlimited"), business: t("pricing.comparison.values.unlimited") } },
+        { label: t("pricing.comparison.rows.pdfPages"), values: { trial: "200", mission: "50", trimestre: "50", pro: "200", business: "500" } },
+        { label: t("pricing.comparison.rows.documentImport"), values: { trial: true, mission: true, trimestre: true, pro: true, business: true } },
+        { label: t("pricing.comparison.rows.languages"), values: { trial: "FR / EN / ES", mission: "FR / EN / ES", trimestre: "FR / EN / ES", pro: "FR / EN / ES", business: "FR / EN / ES" } },
+      ],
+    },
+    {
+      title: t("pricing.comparison.sections.aiEditing"),
+      rows: [
+        { label: t("pricing.comparison.rows.aiAdd"), values: { trial: t("pricing.comparison.values.unlimited"), mission: "5", trimestre: "5", pro: t("pricing.comparison.values.unlimited"), business: t("pricing.comparison.values.unlimited") } },
+        { label: t("pricing.comparison.rows.aiRegen"), values: { trial: t("pricing.comparison.values.unlimited"), mission: t("pricing.comparison.values.unlimited"), trimestre: t("pricing.comparison.values.unlimited"), pro: t("pricing.comparison.values.unlimited"), business: t("pricing.comparison.values.unlimited") } },
+        { label: t("pricing.comparison.rows.colorAi"), values: { trial: true, mission: true, trimestre: true, pro: true, business: true } },
+        { label: t("pricing.comparison.rows.storyboard"), values: { trial: true, mission: true, trimestre: true, pro: true, business: true } },
+      ],
+    },
+    {
+      title: t("pricing.comparison.sections.brandExport"),
+      rows: [
+        { label: t("pricing.comparison.rows.brandKit"), values: { trial: true, mission: false, trimestre: false, pro: true, business: true } },
+        { label: t("pricing.comparison.rows.pdfExport"), values: { trial: true, mission: true, trimestre: true, pro: true, business: true } },
+        { label: t("pricing.comparison.rows.pptxExport"), values: { trial: true, mission: true, trimestre: true, pro: true, business: true } },
+        { label: t("pricing.comparison.rows.editablePptx"), values: { trial: true, mission: true, trimestre: true, pro: true, business: true } },
+        { label: t("pricing.comparison.rows.noWatermark"), values: { trial: true, mission: true, trimestre: true, pro: true, business: true } },
+      ],
+    },
+    {
+      title: t("pricing.comparison.sections.shareTeam"),
+      rows: [
+        { label: t("pricing.comparison.rows.publicLink"), values: { trial: true, mission: true, trimestre: true, pro: true, business: true } },
+        { label: t("pricing.comparison.rows.comments"), values: { trial: true, mission: true, trimestre: true, pro: true, business: true } },
+        { label: t("pricing.comparison.rows.teamWorkspace"), values: { trial: false, mission: false, trimestre: false, pro: false, business: true } },
+        { label: t("pricing.comparison.rows.prioritySupport"), values: { trial: true, mission: false, trimestre: true, pro: true, business: true } },
+      ],
+    },
+  ];
+  const mobileComparisonPreviewCount = 3;
+  const mobileComparisonRows = comparisonSections.flatMap((section) =>
+    section.rows.map((row) => ({ ...row, sectionTitle: section.title }))
+  );
+  const visibleMobileComparisonRows = isComparisonExpanded
+    ? mobileComparisonRows
+    : mobileComparisonRows.slice(0, mobileComparisonPreviewCount);
+  const visibleMobileComparisonSections = comparisonSections
+    .map((section) => ({
+      ...section,
+      rows: visibleMobileComparisonRows.filter((row) => row.sectionTitle === section.title),
+    }))
+    .filter((section) => section.rows.length > 0);
+  const hasHiddenMobileComparisonRows = mobileComparisonRows.length > mobileComparisonPreviewCount;
+  const renderComparisonValue = (value: string | boolean) => {
+    if (value === true) {
+      return <CheckCircle2 className="h-4 w-4 text-primary" aria-label={t("pricing.comparison.included")} />;
+    }
+    if (value === false) {
+      return <span className="text-muted-foreground">-</span>;
+    }
+    return <span>{value}</span>;
+  };
 
   const proCtaLabel = isCurrentPro
       ? t("pricing.unsubscribe")
       : isTrialing
         ? t("pricing.continueTrial", { defaultValue: "Continue trial" })
         : billingCycle === "monthly"
-          ? t("pricing.startIntroOffer", { defaultValue: "Start for 2.99€" })
+          ? t("pricing.startIntroOffer", { defaultValue: "Start for 9.90€" })
           : t("pricing.choosePro", { defaultValue: "Choose Pro" });
 
   return (
@@ -605,17 +677,115 @@ export default function Pricing() {
         {/* ══════════════════════════════════════════════
             SECTION 3 — ACCÈS GRATUIT (reassurance)
         ══════════════════════════════════════════════ */}
+        <section>
+          <div className="text-center mb-8 space-y-2">
+            <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
+              {t("pricing.comparison.badge")}
+            </p>
+            <h2 className="text-3xl md:text-4xl font-bold">{t("pricing.comparison.title")}</h2>
+            <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
+              {t("pricing.comparison.subtitle")}
+            </p>
+          </div>
+
+          <div className="md:hidden space-y-7">
+            {visibleMobileComparisonSections.map((section) => (
+              <div key={section.title} className="space-y-3">
+                <h3 className="text-xl font-bold text-foreground">{section.title}</h3>
+                {section.rows.map((row) => (
+                  <div key={row.label} className="overflow-hidden rounded-xl border border-border/60 bg-background">
+                    <div className="border-b border-border/60 px-4 py-4">
+                      <div className="break-words text-base font-semibold text-foreground">
+                        {row.label}
+                      </div>
+                    </div>
+                    <div className="divide-y divide-border/50 px-4">
+                      {comparisonPlans.map((plan) => (
+                        <div key={`${row.label}-${plan.key}`} className="flex items-center justify-between gap-4 py-3">
+                          <div className="min-w-0">
+                            <div className="break-words text-sm font-semibold text-foreground">{plan.name}</div>
+                            <div className="mt-0.5 break-words text-xs text-muted-foreground">{plan.detail}</div>
+                          </div>
+                          <span className="flex shrink-0 justify-end text-right text-sm font-semibold text-foreground">
+                            {renderComparisonValue((row.values as Record<string, string | boolean>)[plan.key])}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ))}
+            {hasHiddenMobileComparisonRows && (
+              <div className="flex justify-center pt-1">
+                <Button
+                  type="button"
+                  variant="secondary"
+                  className="h-10 rounded-lg px-5 font-bold"
+                  onClick={() => setIsComparisonExpanded((current) => !current)}
+                >
+                  {isComparisonExpanded
+                    ? t("pricing.comparison.showLess", { defaultValue: "Voir moins" })
+                    : t("pricing.comparison.showMore", { defaultValue: "Afficher plus" })}
+                  <ChevronDown className={`ml-2 h-4 w-4 transition-transform ${isComparisonExpanded ? "rotate-180" : ""}`} />
+                </Button>
+              </div>
+            )}
+          </div>
+
+          <div className="hidden overflow-x-auto rounded-2xl border border-border/60 bg-background md:block">
+            <table className="w-full min-w-[920px] text-sm">
+              <thead>
+                <tr className="border-b border-border/60 bg-muted/30">
+                  <th className="sticky left-0 z-10 bg-muted/30 px-5 py-5 text-left font-semibold text-foreground min-w-[240px]">
+                    {t("pricing.comparison.featureColumn")}
+                  </th>
+                  {comparisonPlans.map((plan) => (
+                    <th key={plan.key} className="px-4 py-5 text-left align-top min-w-[132px]">
+                      <div className="font-bold text-foreground">{plan.name}</div>
+                      <div className="mt-1 text-xs font-medium text-muted-foreground">{plan.detail}</div>
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {comparisonSections.map((section) => (
+                  <Fragment key={section.title}>
+                    <tr className="border-b border-border/60">
+                      <td colSpan={comparisonPlans.length + 1} className="bg-secondary/20 px-5 py-3 text-left text-xs font-bold uppercase tracking-widest text-muted-foreground">
+                        {section.title}
+                      </td>
+                    </tr>
+                    {section.rows.map((row) => (
+                      <tr key={row.label} className="border-b border-border/50 last:border-b-0">
+                        <td className="sticky left-0 z-10 bg-background px-5 py-4 font-medium text-foreground">
+                          {row.label}
+                        </td>
+                        {comparisonPlans.map((plan) => (
+                          <td key={`${row.label}-${plan.key}`} className="px-4 py-4 font-semibold text-foreground">
+                            {renderComparisonValue((row.values as Record<string, string | boolean>)[plan.key])}
+                          </td>
+                        ))}
+                      </tr>
+                    ))}
+                  </Fragment>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+
         <section className="max-w-2xl mx-auto">
           <div className="rounded-2xl border border-border/50 bg-muted/20 p-8 text-center space-y-4">
             <div className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-muted border border-border">
               <Lock className="h-5 w-5 text-muted-foreground" />
             </div>
             <div>
-              <h3 className="text-xl font-bold">{t("pricing.freeAccessTitle")}</h3>
-              <p className="text-muted-foreground text-sm mt-1">{t("pricing.freeAccessSubtitle")}</p>
+              <h3 className="text-xl font-bold">{t("pricing.trialAccessTitle")}</h3>
+              <p className="text-muted-foreground text-sm mt-1">{t("pricing.trialAccessSubtitle")}</p>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm text-left max-w-md mx-auto">
-              {(t("pricing.freeAccessFeatures", { returnObjects: true }) as string[]).map((f, i) => (
+              {(t("pricing.trialAccessFeatures", { returnObjects: true }) as string[]).map((f, i) => (
                 <div key={i} className="flex items-center gap-2 text-muted-foreground">
                   <div className="w-1.5 h-1.5 rounded-full bg-muted-foreground/50 shrink-0" />
                   <span>{f}</span>

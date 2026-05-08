@@ -71,11 +71,11 @@ export function ExportDialog({ open, onOpenChange, presentation, accessToken, su
         : 'Export requires an active plan';
     const exportUpgradeDescription = isExpiredTrialSubscription(subscription)
         ? (i18n.language.startsWith('fr')
-            ? 'Votre essai est termine. Reprenez un abonnement Starter ou Pro pour exporter vos decks.'
-            : 'Your trial has ended. Upgrade to Starter or Pro to export your decks.')
+            ? 'Votre essai est termine. Achetez un pack ou passez a Pro pour exporter vos decks.'
+            : 'Your trial has ended. Buy a pack or upgrade to Pro to export your decks.')
         : (i18n.language.startsWith('fr')
-            ? 'L export PDF et PowerPoint est disponible selon votre plan. Passez a Starter ou Pro pour le debloquer.'
-            : 'PDF and PowerPoint export depend on your plan. Upgrade to Starter or Pro to unlock it.');
+            ? 'L export PDF et PowerPoint est disponible avec les packs et Pro.'
+            : 'PDF and PowerPoint export are available with packs and Pro.');
 
     const pollTranslationStatus = async (traceId: string): Promise<any> => {
         return new Promise((resolve, reject) => {
@@ -358,8 +358,8 @@ export function ExportDialog({ open, onOpenChange, presentation, accessToken, su
                             <p className="text-[10px] text-muted-foreground">
                                 {!canExportPptx
                                     ? (i18n.language.startsWith('fr')
-                                        ? 'L export PowerPoint est disponible a partir du plan Starter.'
-                                        : 'PowerPoint export is available from Starter.')
+                                        ? 'L export PowerPoint est disponible avec un pack ou Pro.'
+                                        : 'PowerPoint export is available with a pack or Pro.')
                                     : pptxMode === 'pixel-perfect'
                                     ? t('export.pptxModePixelPerfectDesc', { defaultValue: 'Visual fidelity max. Slides are exported as images in PowerPoint.' })
                                     : t('export.pptxModeEditableDesc', { defaultValue: 'Editable PowerPoint objects, with partial fidelity depending on layout/variants.' })}
@@ -428,8 +428,8 @@ export function ExportDialog({ open, onOpenChange, presentation, accessToken, su
                                 <p className="text-xs text-muted-foreground text-center">
                                     {!canExportPptx
                                         ? (i18n.language.startsWith('fr')
-                                            ? 'Disponible a partir du plan Starter.'
-                                            : 'Available from Starter.')
+                                            ? 'Disponible avec un pack ou Pro.'
+                                            : 'Available with a pack or Pro.')
                                         : pptxMode === 'pixel-perfect'
                                         ? t('export.pptxDescription')
                                         : editableModeDescription}

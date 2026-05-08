@@ -31,13 +31,13 @@
     "badge": "SlideAI v2.0",
     "title": "A client-ready presentation in 40 seconds.",
     "subtitle": "Upload your brief, audit, or client data. SlideAI generates the structure, content, and design. You deliver.",
-    "cta": "Get the 2.99€ offer",
+    "cta": "Get the 9.90€ offer",
     "microProofs": {
       "target": "Built for consulting, audit, marketing teams and freelancers",
       "roi": "Save hours per mission",
       "features": "PDF/PPTX Export | Client Sharing | Pro Design"
     },
-    "trialNote": "Launch offer: 2.99€/mo for 3 months, then 19.90€/mo. Cancel anytime.",
+    "trialNote": "Launch offer: 9.90€ for the first month, then 19.90€/mo. Cancel anytime.",
     "segments": {
       "consulting": "Consulting",
       "audit": "Audit",
@@ -135,9 +135,9 @@
         "noCard": "Cancel anytime"
       },
       "uniquenessNote": "Each generation adapts to content, client, and context. Even for similar missions, output stays tailored.",
-      "price": "2.99€/mo",
+      "price": "9.90€ first month",
       "cta": "View offer",
-      "helper": "For 3 months, then 19.90€/mo. Secure payment by Stripe."
+      "helper": "Then 19.90€/mo. Secure payment by Stripe."
     },
     "proSubscription": {
       "title": "Need regular usage? Upgrade to Pro",
@@ -158,7 +158,7 @@
     "ctaSubtitle": "Join thousands of professionals who transform their ideas into exceptional presentations with SlideAI",
     "ctaButton": "Start now",
     "viewPricing": "View pricing",
-    "freeNote": "Pro offer: 2.99€/mo for 3 months"
+    "freeNote": "Pro offer: 9.90€ first month"
   },
   "dashboard": {
     "title": "Dashboard",
@@ -950,7 +950,7 @@
       },
       "trial": {
         "q": "How does the launch offer work?",
-        "a": "You pay 2.99€/mo for 3 months, then the subscription renews at 19.90€/mo. You can cancel anytime."
+        "a": "You pay 9.90€ for the first month, then the subscription renews at 19.90€/mo. You can cancel anytime."
       },
       "security": {
         "q": "Are client documents secure?",
@@ -960,7 +960,7 @@
   },
   "finalCta": {
     "title": "Your next client presentation, ready in 40 seconds.",
-    "subtitle": "Start Pro at 2.99€/mo for 3 months.\nThen 19.90€/mo, cancel anytime.",
+    "subtitle": "Start Pro at 9.90€ for the first month.\nThen 19.90€/mo, cancel anytime.",
     "button": "Get the offer"
   },
   "deckPreview": {
@@ -980,7 +980,7 @@
   },
   "outOfCredits": {
     "title": "No more generations",
-    "description": "Your generations are used up. Your account stays active — viewing, editing, and PDF export are still available.",
+    "description": "Your available generations are used up. Buy a pack or upgrade to Pro to keep generating and exporting.",
     "packs": {
       "title": "Pack Mission — €19",
       "desc": "5 generations valid for 3 months, no subscription. Perfect for occasional needs."
@@ -1256,7 +1256,7 @@
     "billedMonthly": "Billed monthly",
     "startFree": "Start trial",
     "tryFree": "Start launch offer",
-    "startIntroOffer": "Start for 2.99€",
+    "startIntroOffer": "Start for 9.90€",
     "startTrialSecondary": "Try free for 7 days",
     "contactSales": "Contact Sales",
     "unsubscribe": "Unsubscribe",
@@ -1267,10 +1267,14 @@
     "discount": "-20%",
     "allCardsAccepted": "Secure payment by Stripe. Cancel anytime.",
     "noSubscription": "Annual Pro subscription, no hidden commitment",
-    "introBillingLine": "For 3 months, then 19.90€/mo",
+    "introBillingLine": "First month at 9.90€, then 19.90€/mo",
     "introRenewalLine": "Limited launch offer",
-    "introLegalLine": "2.99€/mo for 3 months, then 19.90€/mo. Cancel anytime.",
-    "introOrTrialLine": "Choose the 2.99€ offer now, or try free for 7 days with no card.",
+    "introLegalLine": "9.90€ for the first month, then 19.90€/mo. Cancel anytime.",
+    "introOrTrialLine": "Choose the 9.90€ offer now, or try free for 7 days with no card.",
+    "introComparisonDetail": "9.90€ first month",
+    "proYearlyComparisonDetail": "14€/mo",
+    "businessMonthlyComparisonDetail": "29€/mo",
+    "businessYearlyComparisonDetail": "24€/mo",
     "trialStarted": "Your 7-day Pro trial is now active.",
     "continueTrial": "Continue trial",
     "choosePro": "Choose Pro",
@@ -1375,10 +1379,10 @@
         "cta": "Buy Pack"
       }
     },
-    "trialLine": "Pro launch offer: 2.99€/mo for 3 months, then 19.90€/mo.",
-    "heroBadge": "Launch offer • 3 months at 2.99€",
+    "trialLine": "Pro launch offer: 9.90€ for the first month, then 19.90€/mo.",
+    "heroBadge": "Launch offer • first month at 9.90€",
     "heroTitle": "Upgrade to Pro without the barrier.",
-    "heroTagline": "Start at 2.99€/mo for 3 months, then keep SlideAI if it becomes useful in your workflow.",
+    "heroTagline": "Start at 9.90€ for the first month, then keep SlideAI if it becomes useful in your workflow.",
     "packsSectionBadge": "Recommended",
     "packsTitle": "One-shot packs",
     "packsSubtitle": "Ideal for consultants delivering one project every 2–3 months.",
@@ -1416,16 +1420,60 @@
     "packOneShot": "One-time payment • No subscription",
     "subscriptionSectionBadge": "Regular usage",
     "subscriptionTitle": "Subscriptions",
-    "subscriptionSubtitle": "Start at 2.99€/mo for 3 months, then 19.90€/mo for regular usage.",
-    "freeAccessTitle": "Your account stays active forever",
-    "freeAccessSubtitle": "Even without an active pack or subscription, you keep access to your presentations.",
-    "freeAccessFeatures": [
-      "View your presentations",
-      "Edit slide text",
-      "PDF export with watermark",
-      "Read-only link sharing",
-      "AI slide translation",
-      "AI content regeneration"
+    "subscriptionSubtitle": "Start at 9.90€ for the first month, then 19.90€/mo for regular usage.",
+    "comparison": {
+      "badge": "Comparison",
+      "title": "Compare access",
+      "subtitle": "Choose between a full trial, a one-shot pack, or a subscription depending on your production rhythm.",
+      "featureColumn": "Feature",
+      "included": "Included",
+      "plans": {
+        "trial": {
+          "name": "Pro Trial",
+          "detail": "7 days free"
+        }
+      },
+      "sections": {
+        "creation": "Creation",
+        "aiEditing": "AI editing",
+        "brandExport": "Branding & export",
+        "shareTeam": "Sharing & team"
+      },
+      "rows": {
+        "generations": "Presentation generations",
+        "projects": "Active presentations",
+        "pdfPages": "Importable PDF pages",
+        "documentImport": "PDF, DOCX, TXT, MD, PPTX import",
+        "languages": "Generation languages",
+        "aiAdd": "AI slide additions per deck",
+        "aiRegen": "AI regenerations per deck",
+        "colorAi": "AI color palette changes",
+        "storyboard": "Plan/storyboard before generation",
+        "brandKit": "Brand Kit, logo, colors, fonts",
+        "pdfExport": "PDF export",
+        "pptxExport": "PowerPoint export",
+        "editablePptx": "Editable PowerPoint export",
+        "noWatermark": "No watermark exports",
+        "publicLink": "Public link and web viewer",
+        "comments": "Comments and deck sharing",
+        "teamWorkspace": "Team workspace",
+        "prioritySupport": "Priority support"
+      },
+      "values": {
+        "trialSevenDays": "7 days",
+        "unlimited": "Unlimited",
+        "unlimitedTrial": "Unlimited during trial"
+      }
+    },
+    "trialAccessTitle": "Try Pro free for 7 days",
+    "trialAccessSubtitle": "There is no permanent free plan: the trial lets you test all Pro features without a card.",
+    "trialAccessFeatures": [
+      "Full Pro access for 7 days",
+      "Unlimited generations during trial",
+      "PDF and PowerPoint export",
+      "Brand Kit included",
+      "No card required",
+      "Then choose a pack or Pro"
     ]
   },
   "view": {

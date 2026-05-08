@@ -217,7 +217,7 @@ export default function PDFToPowerPoint() {
                     </p>
                     <div className="flex flex-col sm:flex-row gap-4 justify-center">
                         <Button size="lg" onClick={handlePrimaryCta} className="h-14 px-8 font-bold rounded-xl">
-                            Profiter de l'offre a 2,99EUR
+                            Profiter de l'offre a 9,90EUR
                         </Button>
                         <Button size="lg" variant="outline" onClick={() => navigate(localize("/pricing", "fr"))} className="h-14 px-8 font-bold rounded-xl">
                             Voir les tarifs

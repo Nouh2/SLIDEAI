@@ -1439,78 +1439,84 @@ export function buildTrialEmailContent(params: {
 }
 
 function buildBundledCampaignEmail(emailType: string): { subject: string; html: string } | null {
-  const emailIdByType: Record<string, number> = {
-    signup_welcome: 1,
-    trial_welcome: 1,
-    signup_day1_no_presentation: 2,
-    trial_inactive_day1: 2,
-    signup_day3_no_presentation: 3,
-    trial_value_day4: 3,
-    signup_day5_activated: 4,
-    trial_ending_day6: 5,
-    trial_expired: 6,
-    inactive_7d: 7,
-    inactive_14d: 7,
-    inactive_21d_offer: 7,
-    trial_winback_day2: 7,
+  const fileByType: Record<string, string> = {
+    confirmation: '00-confirmation.html',
+    signup_welcome: '01-bienvenue.html',
+    trial_welcome: '01-bienvenue.html',
+    signup_day1_no_presentation: '02-activation.html',
+    trial_inactive_day1: '02-activation.html',
+    signup_day3_no_presentation: '03-pedagogique.html',
+    trial_value_day4: '03-pedagogique.html',
+    signup_day5_activated: '04-social-proof.html',
+    trial_ending_day6: '05-relance.html',
+    trial_expired: '06-conversion.html',
+    inactive_7d: '07-reactivation.html',
+    inactive_14d: '07-reactivation.html',
+    inactive_21d_offer: '07-reactivation.html',
+    trial_winback_day2: '07-reactivation.html',
+    newsletter: '08-newsletter.html',
   };
 
-  const emailId = emailIdByType[emailType];
-  if (!emailId) return null;
+  const fileName = fileByType[emailType];
+  if (!fileName) return null;
 
   const candidates = [
-    join(process.cwd(), 'SlideAI - Campagne Email.html'),
-    join(process.cwd(), '..', '..', '..', 'SlideAI - Campagne Email.html'),
-    join(process.cwd(), '..', '..', 'SlideAI - Campagne Email.html'),
+    join(process.cwd(), 'SlideAIemail', 'emails', 'standalone', fileName),
+    join(process.cwd(), '..', '..', '..', 'SlideAIemail', 'emails', 'standalone', fileName),
+    join(process.cwd(), '..', '..', 'SlideAIemail', 'emails', 'standalone', fileName),
   ];
-  const campaignPath = candidates.find((candidate) => existsSync(candidate));
-  if (!campaignPath) return null;
+  const standalonePath = candidates.find((candidate) => existsSync(candidate));
+  if (!standalonePath) return null;
 
   try {
-    const bundle = readFileSync(campaignPath, 'utf8');
-    const templateMatch = bundle.match(/<script type="__bundler\/template">\s*([\s\S]*?)\s*<\/script>/);
-    if (!templateMatch) return null;
-
-    const campaignHtml = JSON.parse(templateMatch[1]) as string;
-    const startToken = `<div class="email-preview" id="email-${emailId}">`;
-    const start = campaignHtml.indexOf(startToken);
-    if (start < 0) return null;
-
-    const next = campaignHtml.indexOf('<div class="email-preview" id="email-', start + startToken.length);
-    const endMarker = '</div><!-- /preview-area -->';
-    const end = next > -1 ? next : campaignHtml.indexOf(endMarker, start);
-    if (end < 0) return null;
-
-    const styles = campaignHtml.match(/<style>[\s\S]*?<\/style>/g)?.join('\n') ?? '';
-    const rawBlock = campaignHtml.slice(start, end).replace('class="email-preview"', 'class="email-preview active"');
+    const raw = readFileSync(standalonePath, 'utf8');
     const subject =
-      rawBlock.match(/chrome-subject">(?:[^:]+:\s*)?([^<]+)</)?.[1]?.trim() ||
-      `SlideAI email ${emailId}`;
+      raw.match(/<title>(.*?)<\/title>/)?.[1]?.trim() ||
+      raw.match(/chrome-subject">(?:[^:]+:\s*)?([^<]+)</)?.[1]?.trim() ||
+      'SlideAI';
 
-    return {
-      subject,
-      html: `<!doctype html>
-<html lang="fr">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>${subject}</title>
-  ${styles}
-  <style>
-    body { margin: 0 !important; padding: 8px 0 !important; background: #EEF3F8 !important; display: block !important; height: auto !important; overflow: visible !important; }
-    .email-preview { display: block !important; width: 100% !important; max-width: 620px !important; margin: 0 auto !important; }
-    .email-preview.active { display: block !important; }
-    .email-chrome { border-radius: 14px 14px 0 0 !important; }
-  </style>
-</head>
-<body>
-  ${rawBlock}
-</body>
-</html>`,
-    };
+    return { subject, html: makeEmailSafeHtml(raw) };
   } catch {
     return null;
   }
+}
+
+// Email clients (Gmail, Outlook, Apple Mail) do not all resolve CSS custom properties
+// and the standalone preview file uses `body { display: flex; height: 100vh; overflow: hidden }`
+// which collapses the email body inside a webmail iframe. This helper inlines var() references
+// against the :root block and injects email-safe overrides so the rendered email matches
+// the standalone preview pixel-for-pixel.
+function makeEmailSafeHtml(html: string): string {
+  const vars: Record<string, string> = {};
+  const rootRegex = /:root\s*\{([^}]*)\}/g;
+  let rootMatch: RegExpExecArray | null;
+  while ((rootMatch = rootRegex.exec(html))) {
+    const varRegex = /--([a-zA-Z0-9-]+)\s*:\s*([^;]+);/g;
+    let varMatch: RegExpExecArray | null;
+    while ((varMatch = varRegex.exec(rootMatch[1]))) {
+      vars[varMatch[1]] = varMatch[2].trim();
+    }
+  }
+
+  let out = html.replace(
+    /var\(\s*--([a-zA-Z0-9-]+)(?:\s*,\s*([^)]+))?\s*\)/g,
+    (_, name: string, fallback?: string) =>
+      vars[name] ?? (fallback ? fallback.trim() : 'inherit'),
+  );
+
+  const overrideStyles =
+    '<style>' +
+    "body{margin:0 !important;padding:0 !important;background:#F0F4F8 !important;color:#0D1117 !important;display:block !important;height:auto !important;overflow:visible !important;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif !important;}" +
+    '.email-wrapper{max-width:620px !important;margin:0 auto !important;background:#FFFFFF !important;}' +
+    '</style>';
+
+  if (out.includes('</head>')) {
+    out = out.replace('</head>', `${overrideStyles}\n</head>`);
+  } else {
+    out = `${overrideStyles}\n${out}`;
+  }
+
+  return out;
 }
 
 export type BroadcastEmailParams = {

@@ -1,0 +1,210 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="x-apple-disable-message-reformatting">
+<meta name="color-scheme" content="only light">
+<meta name="supported-color-schemes" content="only light">
+<title>Deux retours que j'ai eus cette semaine</title>
+<style>
+  :root { color-scheme: only light; supported-color-schemes: only light; }
+  body,table,td,a { -webkit-text-size-adjust:100%; -ms-text-size-adjust:100%; }
+  table,td { mso-table-lspace:0pt; mso-table-rspace:0pt; }
+  img { -ms-interpolation-mode:bicubic; border:0; outline:none; text-decoration:none; }
+  table { border-collapse:collapse !important; }
+  body { margin:0 !important; padding:0 !important; width:100% !important; height:100% !important; background:#F0F4F8; }
+  a { color:#2BB5FF; }
+  /* Mobile-first responsive — phones get the priority since that's where most opens happen */
+  @media only screen and (max-width:620px) {
+    .em-shell { width:100% !important; max-width:100% !important; }
+    .em-pad { padding-left:20px !important; padding-right:20px !important; }
+    .em-hero-pad { padding:30px 20px 26px !important; }
+    .em-hero-h1 { font-size:23px !important; line-height:1.22 !important; letter-spacing:-0.5px !important; }
+    .em-hero-sub { font-size:15px !important; line-height:1.55 !important; }
+    .em-cta a { display:block !important; padding:15px 18px !important; font-size:15px !important; }
+    .em-cta-ghost a { display:block !important; padding:13px 18px !important; }
+    /* Body paragraphs slightly larger on mobile for readability */
+    .em-text-body, .em-text-body * { font-size:15px !important; line-height:1.7 !important; }
+    /* Steps: keep the number column tight and the title/body readable */
+    .em-step-num-cell { width:38px !important; padding-right:12px !important; }
+    .em-step-title { font-size:14.5px !important; line-height:1.4 !important; }
+    .em-step-body { font-size:14px !important; line-height:1.55 !important; }
+    /* Features 2x2 grid collapses to 1-column stack on mobile */
+    .em-feature-row { display:block !important; width:100% !important; }
+    .em-feature-cell { display:block !important; width:100% !important; padding:0 0 10px 0 !important; box-sizing:border-box !important; }
+    /* Testimonial keeps the avatar+name tight, slightly larger quote */
+    .em-quote { font-size:15px !important; line-height:1.7 !important; }
+    /* Newsletter feature blocks: icon + text */
+    .em-nl-title { font-size:14.5px !important; }
+    .em-nl-body { font-size:14px !important; }
+    /* Footer text size: keep small but legible */
+    .em-text-footer, .em-text-footer * { font-size:12px !important; line-height:1.6 !important; }
+    /* Pills wrap naturally on mobile */
+    .em-pill-cell { display:inline-block !important; }
+    /* Header badge small on tiny screens to stay on the same row as the logo */
+    .em-badge { font-size:9.5px !important; padding:4px 9px !important; }
+    /* Urgency block big number scales down */
+    .em-urgency-title { font-size:18px !important; }
+  }
+  /* Extra-small phones (≤ 375px) */
+  @media only screen and (max-width:380px) {
+    .em-pad { padding-left:16px !important; padding-right:16px !important; }
+    .em-hero-pad { padding:26px 16px 22px !important; }
+    .em-hero-h1 { font-size:21px !important; }
+  }
+  /* Lock design colors when client (Apple Mail / iOS Gmail / native Outlook) auto-applies dark mode.
+     Without this, Gmail mobile inverts dark text to white but keeps the light hero background,
+     producing white-on-white text. */
+  @media (prefers-color-scheme: dark) {
+    body, .em-shell { background:#F0F4F8 !important; background-color:#F0F4F8 !important; }
+    .em-shell { background:#FFFFFF !important; background-color:#FFFFFF !important; }
+    .em-bg-white { background:#FFFFFF !important; background-color:#FFFFFF !important; }
+    .em-bg-blue-pale { background:#EBF6FF !important; background-color:#EBF6FF !important; }
+    .em-bg-surface { background:#F8FAFC !important; background-color:#F8FAFC !important; }
+    .em-bg-navy { background:#0D1117 !important; background-color:#0D1117 !important; }
+    .em-text-main, .em-text-main * { color:#0D1117 !important; }
+    .em-text-muted, .em-text-muted * { color:#6B7A90 !important; }
+    .em-text-body, .em-text-body * { color:#2A3545 !important; }
+    .em-text-blue, .em-text-blue * { color:#2BB5FF !important; }
+    .em-text-white, .em-text-white * { color:#FFFFFF !important; }
+    .em-text-footer, .em-text-footer * { color:#A0AABB !important; }
+    .em-badge { color:#6B7A90 !important; background:#EBF6FF !important; background-color:#EBF6FF !important; }
+  }
+  /* Outlook.com / Outlook 365 webmail dark mode (uses [data-ogsc] selector prefix) */
+  [data-ogsc] .em-bg-white { background:#FFFFFF !important; background-color:#FFFFFF !important; }
+  [data-ogsc] .em-bg-blue-pale { background:#EBF6FF !important; background-color:#EBF6FF !important; }
+  [data-ogsc] .em-bg-surface { background:#F8FAFC !important; background-color:#F8FAFC !important; }
+  [data-ogsc] .em-text-main, [data-ogsc] .em-text-main * { color:#0D1117 !important; }
+  [data-ogsc] .em-text-muted, [data-ogsc] .em-text-muted * { color:#6B7A90 !important; }
+  [data-ogsc] .em-text-body, [data-ogsc] .em-text-body * { color:#2A3545 !important; }
+</style>
+</head>
+<body bgcolor="#F0F4F8" style="margin:0;padding:0;background:#F0F4F8;background-color:#F0F4F8;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;color:#0D1117;">
+<div style="display:none;max-height:0;overflow:hidden;opacity:0;mso-hide:all;">Comment Marie et Thomas s'en servent vraiment. Sans filtre.</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#F0F4F8" style="background:#F0F4F8;background-color:#F0F4F8;">
+  <tr>
+    <td align="center" style="padding:0;">
+      <table role="presentation" class="em-shell em-bg-white" width="620" cellpadding="0" cellspacing="0" border="0" bgcolor="#FFFFFF" style="width:620px;max-width:620px;background:#FFFFFF;background-color:#FFFFFF;">
+<tr>
+    <td class="em-pad em-bg-white" bgcolor="#FFFFFF" style="padding:22px 36px 20px;background:#FFFFFF;background-color:#FFFFFF;border-bottom:1px solid #E4EAF0;">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td align="left" valign="middle" style="padding:0;">
+            <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+              <tr>
+                <td valign="middle" width="28" height="28" style="width:28px;height:28px;font-size:0;line-height:0;">
+                  <img src="https://www.slideai.fr/logo.png" width="28" height="28" alt="SlideAI" style="display:block;width:28px;height:28px;border:0;outline:none;text-decoration:none;">
+                </td>
+                <td valign="middle" class="em-text-main" style="padding:0 0 0 9px;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;font-size:16px;font-weight:700;color:#0D1117;letter-spacing:-0.3px;line-height:28px;white-space:nowrap;">
+                  Slide<span style="color:#2BB5FF;">AI</span>
+                </td>
+              </tr>
+            </table>
+          </td>
+          
+        </tr>
+      </table>
+    </td>
+  </tr>
+<tr>
+    <td class="em-pad em-hero-pad em-bg-blue-pale" bgcolor="#EBF6FF" style="padding:36px 36px 32px;background:#EBF6FF;background-color:#EBF6FF;background-image:linear-gradient(135deg,#EBF6FF 0%,#F5FBFF 60%,#FFFFFF 100%);border-bottom:2px solid #2BB5FF;">
+      <h1 class="em-hero-h1 em-text-main" style="margin:0;padding:0;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;font-size:26px;font-weight:800;color:#0D1117;line-height:1.2;letter-spacing:-0.7px;">Deux retours<br>que j'ai eus<br><span style="color:#2BB5FF;font-weight:800;">cette semaine.</span></h1>
+      <p class="em-hero-sub em-text-muted" style="margin:10px 0 0;padding:0;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;font-size:14.5px;color:#6B7A90;line-height:1.65;">Ce qu'ils m'ont dit, sans filtre.</p>
+    </td>
+  </tr>
+<tr>
+    <td class="em-pad em-bg-white" bgcolor="#FFFFFF" style="padding:0;background-color:#FFFFFF;font-size:0;line-height:0;">
+      <img src="https://www.slideai.fr/email-assets/04-social-proof-illustration.png" width="620" alt="5 étoiles, 170+ professionnels font confiance à SlideAI" style="display:block;width:100%;max-width:620px;height:auto;border:0;outline:none;text-decoration:none;">
+    </td>
+  </tr>
+<tr><td class="em-bg-white" bgcolor="#FFFFFF" style="height:24px;line-height:24px;font-size:0;background-color:#FFFFFF;">&nbsp;</td></tr>
+<tr>
+    <td class="em-pad em-bg-white" bgcolor="#FFFFFF" style="padding:0 36px;background-color:#FFFFFF;"><p class="em-text-body" style="margin:0 0 16px 0;padding:0;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;font-size:14.5px;color:#2A3545;line-height:1.75;">Bonjour,</p><p class="em-text-body" style="margin:0;padding:0;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;font-size:14.5px;color:#2A3545;line-height:1.75;">Voilà deux échanges récents avec des utilisateurs. Je vous les partage tels qu'ils m'ont parlé.</p></td>
+  </tr>
+<tr><td class="em-bg-white" bgcolor="#FFFFFF" style="height:16px;line-height:16px;font-size:0;background-color:#FFFFFF;">&nbsp;</td></tr>
+<tr>
+    <td class="em-pad em-bg-white" bgcolor="#FFFFFF" style="padding:0 36px;background-color:#FFFFFF;">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#FFFFFF" style="background:#FFFFFF;background-color:#FFFFFF;border:1px solid #E4EAF0;border-radius:10px;">
+        <tr>
+          <td bgcolor="#FFFFFF" style="padding:20px 22px;background-color:#FFFFFF;">
+            <blockquote class="em-quote em-text-body" style="margin:0 0 14px;padding:0;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;font-size:14.5px;font-style:italic;color:#2A3545;line-height:1.7;">"Honnêtement j'étais sceptique. J'ai eu un audit comm en retard, je l'ai utilisé un soir tard. Premier rendu à 70 %. J'ai retouché plusieurs slides, mais 70 % partis de rien c'est ce qui m'a fait gagner ma soirée."</blockquote>
+            <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+              <tr>
+                <td valign="middle" width="34" height="34" bgcolor="#2BB5FF" style="background:#2BB5FF;background-color:#2BB5FF;border-radius:17px;width:34px;height:34px;">
+                  <div style="font-family:'Inter',Arial,sans-serif;font-size:12px;font-weight:700;color:#FFFFFF;line-height:34px;text-align:center;">ML</div>
+                </td>
+                <td valign="middle" style="padding:0 0 0 10px;">
+                  <strong class="em-text-main" style="display:block;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;font-size:13px;font-weight:600;color:#0D1117;line-height:1.3;">Marie L.</strong>
+                  <span class="em-text-muted" style="display:block;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;font-size:12px;color:#6B7A90;line-height:1.3;">Consultante stratégie indépendante</span>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+<tr><td class="em-bg-white" bgcolor="#FFFFFF" style="height:16px;line-height:16px;font-size:0;background-color:#FFFFFF;">&nbsp;</td></tr>
+<tr>
+    <td class="em-pad em-bg-white" bgcolor="#FFFFFF" style="padding:0 36px;background-color:#FFFFFF;">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#FFFFFF" style="background:#FFFFFF;background-color:#FFFFFF;border:1px solid #E4EAF0;border-radius:10px;">
+        <tr>
+          <td bgcolor="#FFFFFF" style="padding:20px 22px;background-color:#FFFFFF;">
+            <blockquote class="em-quote em-text-body" style="margin:0 0 14px;padding:0;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;font-size:14.5px;font-style:italic;color:#2A3545;line-height:1.7;">"On préparait nos pitchs sur des templates internes. Maintenant on génère, on adapte 20 %, on envoie. Sur les RFP du trimestre, on a divisé le temps par 3 ou 4."</blockquote>
+            <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+              <tr>
+                <td valign="middle" width="34" height="34" bgcolor="#2BB5FF" style="background:#2BB5FF;background-color:#2BB5FF;border-radius:17px;width:34px;height:34px;">
+                  <div style="font-family:'Inter',Arial,sans-serif;font-size:12px;font-weight:700;color:#FFFFFF;line-height:34px;text-align:center;">TK</div>
+                </td>
+                <td valign="middle" style="padding:0 0 0 10px;">
+                  <strong class="em-text-main" style="display:block;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;font-size:13px;font-weight:600;color:#0D1117;line-height:1.3;">Thomas K.</strong>
+                  <span class="em-text-muted" style="display:block;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;font-size:12px;color:#6B7A90;line-height:1.3;">Responsable commercial, agence digitale</span>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+<tr><td class="em-bg-white" bgcolor="#FFFFFF" style="height:24px;line-height:24px;font-size:0;background-color:#FFFFFF;">&nbsp;</td></tr>
+<tr>
+    <td class="em-pad em-bg-white" bgcolor="#FFFFFF" style="padding:0 36px;background-color:#FFFFFF;"><p class="em-text-body" style="margin:0 0 16px 0;padding:0;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;font-size:14.5px;color:#2A3545;line-height:1.75;">Il vous reste <strong>2 jours</strong> d'essai. Si SlideAI peut faire ça pour vous aussi, c'est le bon moment.</p></td>
+  </tr>
+<tr><td class="em-bg-white" bgcolor="#FFFFFF" style="height:16px;line-height:16px;font-size:0;background-color:#FFFFFF;">&nbsp;</td></tr>
+<tr>
+    <td class="em-cta em-pad em-bg-white" bgcolor="#FFFFFF" align="center" style="padding:0 36px 4px;background-color:#FFFFFF;">
+      <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:0 auto;">
+        <tr>
+          <td align="center" bgcolor="#2BB5FF" style="border-radius:8px;background:#2BB5FF;background-color:#2BB5FF;">
+            <!--[if mso]>
+            <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="{{CTA_URL}}" style="height:48px;v-text-anchor:middle;width:280px;" arcsize="17%" stroke="f" fillcolor="#2BB5FF">
+              <w:anchorlock/>
+              <center style="color:#ffffff;font-family:Arial,sans-serif;font-size:14px;font-weight:600;">Créer mon deck</center>
+            </v:roundrect>
+            <![endif]-->
+            <!--[if !mso]><!-- -->
+            <a href="{{CTA_URL}}" style="display:inline-block;padding:13px 32px;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;font-size:14px;font-weight:600;color:#FFFFFF;text-decoration:none;letter-spacing:-0.2px;border-radius:8px;mso-padding-alt:0;">Créer mon deck</a>
+            <!--<![endif]-->
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+<tr><td class="em-bg-white" bgcolor="#FFFFFF" style="height:24px;line-height:24px;font-size:0;background-color:#FFFFFF;">&nbsp;</td></tr>
+<tr>
+    <td class="em-pad em-bg-white em-text-muted" bgcolor="#FFFFFF" style="padding:16px 36px;background-color:#FFFFFF;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;font-size:13px;color:#6B7A90;line-height:1.65;font-style:italic;">PS : Noé.</td>
+  </tr>
+<tr>
+    <td class="em-pad em-bg-surface" align="center" bgcolor="#F8FAFC" style="padding:22px 36px;background:#F8FAFC;background-color:#F8FAFC;border-top:1px solid #E4EAF0;text-align:center;">
+      <p class="em-text-footer" style="margin:0 0 5px;padding:0;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;font-size:11.5px;color:#A0AABB;line-height:1.65;">Noé · Fondateur SlideAI · <a href="mailto:noe@slideai.fr" style="color:#2BB5FF;text-decoration:none;">noe@slideai.fr</a></p><p class="em-text-footer" style="margin:0 0 5px;padding:0;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;font-size:11.5px;color:#A0AABB;line-height:1.65;"><a href="{{UNSUBSCRIBE_URL}}" style="color:#2BB5FF;text-decoration:none;">Se désabonner</a></p>
+    </td>
+  </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+</body>
+</html>

@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Votre essai expire demain — dernière chance</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --brand-navy: #0D1117;
+  --brand-blue: #2BB5FF;
+  --brand-blue-mid: #7DD3FC;
+  --brand-blue-pale: #EBF6FF;
+  --brand-blue-border: #C8E8FA;
+  --bg-app: #F0F4F8;
+  --text-main: #0D1117;
+  --text-muted: #6B7A90;
+  --border: #E4EAF0;
+  --white: #FFFFFF;
+  --grid-line: rgba(43,181,255,0.07);
+}
+body { margin: 0; padding: 0; background: #F0F4F8; font-family: 'Inter', -apple-system, sans-serif; }
+.email-wrapper { max-width: 620px; margin: 0 auto; background: white; }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --brand-navy:   #0D1117;
+    --brand-blue:   #2BB5FF;
+    --brand-blue-mid: #7DD3FC;
+    --brand-blue-pale: #EBF6FF;
+    --brand-blue-border: #C8E8FA;
+    --bg-app:       #F0F4F8;
+    --bg-sidebar:   #0D1117;
+    --text-main:    #0D1117;
+    --text-muted:   #6B7A90;
+    --border:       #E4EAF0;
+    --white:        #FFFFFF;
+    --grid-line:    rgba(43,181,255,0.07);
+  }
+
+  body {
+    font-family: 'Inter', -apple-system, sans-serif;
+    background: var(--bg-app);
+    color: var(--text-main);
+    display: flex;
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  /* SIDEBAR */
+  aside {
+    width: 282px;
+    flex-shrink: 0;
+    background: var(--bg-sidebar);
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    border-right: 1px solid #1A2030;
+  }
+  .sidebar-logo {
+    padding: 22px 20px 18px;
+    border-bottom: 1px solid #1A2030;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .sidebar-logo-icon {
+    width: 28px; height: 28px; border-radius: 7px;
+    background: var(--brand-blue);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .sidebar-logo-icon svg { width: 14px; height: 14px; }
+  .sidebar-logo-text {
+    font-size: 15px; font-weight: 700; color: white; letter-spacing: -0.3px;
+  }
+  .sidebar-logo-text em { font-style: normal; color: var(--brand-blue); }
+  .sidebar-sub {
+    font-size: 10px; color: #3A4560; margin-top: 3px;
+    text-transform: uppercase; letter-spacing: 0.8px; font-weight: 600;
+  }
+  .sidebar-logo-wrap { display: flex; flex-direction: column; }
+
+  .sidebar-section {
+    padding: 18px 20px 6px;
+    font-size: 9.5px; text-transform: uppercase;
+    letter-spacing: 1.2px; color: #3A4560; font-weight: 700;
+  }
+  .email-nav-item {
+    display: flex; align-items: flex-start; gap: 10px;
+    padding: 10px 20px; cursor: pointer;
+    border-left: 2px solid transparent;
+    transition: background 0.12s, border-color 0.12s;
+  }
+  .email-nav-item:hover { background: #141C2E; }
+  .email-nav-item.active { background: #0E1828; border-left-color: var(--brand-blue); }
+  .nav-badge {
+    flex-shrink: 0; width: 24px; height: 24px; border-radius: 6px;
+    background: #1A2438; color: #3A5070;
+    font-size: 9px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center; margin-top: 1px;
+  }
+  .email-nav-item.active .nav-badge { background: var(--brand-blue); color: white; }
+  .nav-text { flex: 1; min-width: 0; }
+  .nav-title { font-size: 12.5px; font-weight: 500; color: #5A7090; line-height: 1.3; }
+  .email-nav-item.active .nav-title { color: white; }
+  .nav-timing { font-size: 10px; color: #2A3550; margin-top: 2px; }
+
+  /* MAIN */
+  main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+  .topbar {
+    background: white; border-bottom: 1px solid var(--border);
+    padding: 14px 28px; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0;
+  }
+  .topbar-left h2 { font-size: 14px; font-weight: 600; color: var(--text-main); }
+  .topbar-left p { font-size: 11.5px; color: var(--text-muted); margin-top: 2px; }
+  .topbar-badge {
+    background: var(--brand-blue-pale); color: var(--brand-blue);
+    font-size: 11px; font-weight: 600; padding: 4px 11px; border-radius: 20px;
+    border: 1px solid var(--brand-blue-border);
+  }
+  .preview-area {
+    flex: 1; overflow-y: auto; padding: 32px;
+    display: flex; justify-content: center;
+    background: var(--bg-app);
+  }
+
+  /* EMAIL WRAPPER */
+  .email-preview {
+    width: 100%; max-width: 620px;
+    background: white; border-radius: 14px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 0 0 1px var(--border);
+    overflow: hidden; display: none;
+  }
+  .email-preview.active { display: block; }
+
+  /* EMAIL CHROME */
+  .email-chrome {
+    background: #F5F7FA; border-bottom: 1px solid var(--border);
+    padding: 11px 16px; display: flex; gap: 7px; align-items: center;
+  }
+  .chrome-dot { width: 10px; height: 10px; border-radius: 50%; }
+  .chrome-dot:nth-child(1){ background: #FF5F57; }
+  .chrome-dot:nth-child(2){ background: #FEBC2E; }
+  .chrome-dot:nth-child(3){ background: #28C840; }
+  .chrome-subject { flex: 1; font-size: 11.5px; color: #8A9AB0; font-family: monospace; text-align: center; }
+
+  /* ────────────────────────────────
+     EMAIL BODY
+  ──────────────────────────────── */
+  .em-body { font-family: 'Inter', -apple-system, sans-serif; color: var(--text-main); line-height: 1.65; }
+
+  /* Header with grid bg */
+  .em-header {
+    background: white;
+    background-image:
+      linear-gradient(var(--grid-line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+    background-size: 32px 32px;
+    padding: 22px 36px 20px;
+    display: flex; align-items: center; justify-content: space-between;
+    border-bottom: 1px solid var(--border);
+  }
+  .em-logo-wrap { display: flex; align-items: center; gap: 8px; }
+  .em-logo-icon {
+    width: 26px; height: 26px; border-radius: 6px;
+    background: var(--brand-blue);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .em-logo-icon svg { width: 13px; height: 13px; }
+  .em-logo { font-size: 16px; font-weight: 700; color: var(--brand-navy); letter-spacing: -0.3px; }
+  .em-logo em { font-style: normal; color: var(--brand-blue); }
+  .em-header-tag {
+    font-size: 10px; font-weight: 600; letter-spacing: 0.8px;
+    text-transform: uppercase; color: var(--text-muted);
+    background: var(--brand-blue-pale); padding: 4px 10px;
+    border-radius: 20px; border: 1px solid var(--brand-blue-border);
+  }
+
+  /* Hero band */
+  .em-hero {
+    background: linear-gradient(135deg, #EBF6FF 0%, #F5FBFF 60%, white 100%);
+    padding: 36px 36px 32px;
+    border-bottom: 2px solid var(--brand-blue);
+    position: relative;
+    overflow: hidden;
+  }
+  .em-hero::after {
+    content: '';
+    position: absolute; inset: 0;
+    background-image:
+      linear-gradient(rgba(43,181,255,0.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(43,181,255,0.05) 1px, transparent 1px);
+    background-size: 28px 28px;
+    pointer-events: none;
+  }
+  .em-hero h1 {
+    font-size: 26px; font-weight: 800; color: var(--brand-navy);
+    line-height: 1.2; letter-spacing: -0.7px; text-wrap: pretty;
+    position: relative; z-index: 1;
+  }
+  .em-hero h1 em { font-style: normal; color: var(--brand-blue); }
+  .em-hero p {
+    font-size: 14.5px; color: var(--text-muted); margin-top: 10px;
+    line-height: 1.65; position: relative; z-index: 1; max-width: 480px;
+  }
+
+  /* Image placeholder */
+  .em-img-placeholder {
+    margin: 0 36px;
+    border-radius: 10px; overflow: hidden;
+    border: 1px solid var(--border);
+    position: relative;
+  }
+  .em-img-placeholder svg { display: block; width: 100%; }
+  .em-img-label {
+    position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 6px;
+  }
+  .em-img-label span {
+    font-family: 'Courier New', monospace;
+    font-size: 11px; color: #8A9AB0;
+    background: rgba(255,255,255,0.85); padding: 4px 10px; border-radius: 4px;
+    text-align: center; line-height: 1.5;
+  }
+
+  .em-content { padding: 28px 36px; }
+  .em-content p { font-size: 14.5px; color: #2A3545; margin-bottom: 16px; line-height: 1.75; }
+  .em-content p:last-child { margin-bottom: 0; }
+
+  .em-cta-block { padding: 0 36px 4px; text-align: center; }
+  .em-btn {
+    display: inline-block; background: var(--brand-blue); color: white !important;
+    font-size: 14px; font-weight: 600; padding: 13px 32px;
+    border-radius: 8px; text-decoration: none; letter-spacing: -0.2px;
+    box-shadow: 0 4px 14px rgba(43,181,255,0.35);
+  }
+  .em-btn-ghost {
+    display: inline-block; border: 1.5px solid var(--brand-navy); color: var(--brand-navy) !important;
+    font-size: 13.5px; font-weight: 600; padding: 11px 28px;
+    border-radius: 8px; text-decoration: none;
+  }
+
+  .em-divider { height: 1px; background: var(--border); margin: 20px 36px; }
+  .em-spacer { height: 24px; }
+  .em-spacer-sm { height: 14px; }
+
+  .em-steps { padding: 0 36px; display: flex; flex-direction: column; gap: 14px; }
+  .em-step { display: flex; gap: 14px; align-items: flex-start; }
+  .em-step-num {
+    flex-shrink: 0; width: 28px; height: 28px; border-radius: 50%;
+    background: var(--brand-blue); color: white;
+    font-size: 12px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .em-step-text strong { display: block; font-size: 13.5px; font-weight: 600; color: var(--text-main); margin-bottom: 2px; }
+  .em-step-text span { font-size: 13px; color: var(--text-muted); line-height: 1.5; }
+
+  .em-highlight {
+    background: var(--brand-blue-pale); border-left: 3px solid var(--brand-blue);
+    border-radius: 0 8px 8px 0; padding: 15px 18px; margin: 0 36px;
+    font-size: 13.5px; color: #1A3050; line-height: 1.65;
+  }
+  .em-highlight strong { color: var(--brand-blue); }
+
+  .em-tip {
+    background: #F8FAFC; border-radius: 10px; padding: 16px 18px;
+    margin: 0 36px; font-size: 13.5px; color: var(--text-muted);
+    line-height: 1.65; border: 1px solid var(--border);
+  }
+  .em-tip strong { color: var(--text-main); }
+  .em-tip-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--brand-blue); margin-bottom: 7px; }
+
+  .em-testimonial {
+    background: white; border-radius: 10px; padding: 20px 22px;
+    margin: 0 36px; border: 1px solid var(--border);
+    box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+  }
+  .em-testimonial blockquote { font-size: 14.5px; font-style: italic; color: #2A3545; line-height: 1.7; margin-bottom: 14px; }
+  .em-testimonial-author { display: flex; align-items: center; gap: 10px; }
+  .em-avatar {
+    width: 34px; height: 34px; border-radius: 50%;
+    background: var(--brand-blue); color: white;
+    font-size: 12px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  .em-author-info strong { display: block; font-size: 13px; font-weight: 600; color: var(--text-main); }
+  .em-author-info span { font-size: 12px; color: var(--text-muted); }
+
+  .em-urgency {
+    background: var(--brand-navy); border-radius: 10px;
+    padding: 18px 22px; margin: 0 36px; text-align: center;
+  }
+  .em-urgency strong { display: block; font-size: 20px; font-weight: 800; color: white; letter-spacing: -0.5px; }
+  .em-urgency span { font-size: 13px; color: #4A6080; margin-top: 5px; display: block; }
+
+  .em-features {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 0 36px;
+  }
+  .em-feature {
+    border: 1px solid var(--border); border-radius: 8px; padding: 14px 15px;
+    background: #FAFBFD;
+  }
+  .em-feature-icon { font-size: 18px; margin-bottom: 7px; }
+  .em-feature strong { display: block; font-size: 13px; font-weight: 600; color: var(--text-main); margin-bottom: 3px; }
+  .em-feature span { font-size: 12px; color: var(--text-muted); line-height: 1.5; }
+
+  /* Pills row */
+  .em-pills { display: flex; flex-wrap: wrap; gap: 8px; padding: 0 36px; }
+  .em-pill {
+    font-size: 12px; font-weight: 500; padding: 5px 12px; border-radius: 20px;
+    background: var(--brand-blue-pale); color: #1A6090;
+    border: 1px solid var(--brand-blue-border);
+  }
+
+  .em-ps { padding: 16px 36px; font-size: 13px; color: var(--text-muted); line-height: 1.65; font-style: italic; }
+
+  .em-footer {
+    padding: 22px 36px; border-top: 1px solid var(--border);
+    background: #F8FAFC; text-align: center;
+  }
+  .em-footer p { font-size: 11.5px; color: #A0AABB; line-height: 1.65; margin-bottom: 5px; }
+  .em-footer p:last-child { margin-bottom: 0; }
+  .em-footer a { color: var(--brand-blue); text-decoration: none; }
+
+  /* Newsletter */
+  .em-nl-section { padding: 0 36px; }
+  .em-nl-section h3 { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--brand-blue); margin-bottom: 10px; }
+  .em-nl-feature { display: flex; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--border); }
+  .em-nl-feature:last-child { border-bottom: none; }
+  .em-nl-feature-icon {
+    width: 36px; height: 36px; border-radius: 8px;
+    background: var(--brand-blue-pale); border: 1px solid var(--brand-blue-border);
+    display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0;
+  }
+  .em-nl-feature-text strong { display: block; font-size: 13.5px; font-weight: 600; color: var(--text-main); margin-bottom: 2px; }
+  .em-nl-feature-text span { font-size: 13px; color: var(--text-muted); line-height: 1.5; }
+
+/* Override for standalone */
+.em-header { background-image: linear-gradient(var(--grid-line) 1px, transparent 1px), linear-gradient(90deg, var(--grid-line) 1px, transparent 1px); background-size: 32px 32px; }
+</style>
+</head>
+<body>
+<div class="email-wrapper">
+  <div class="em-body">
+
+        <div class="em-header">
+          <div class="em-logo-wrap">
+            <div class="em-logo-icon"><svg viewBox="0 0 13 13" fill="none"><rect x="1" y="1" width="4.5" height="4.5" rx="1" fill="white"/><rect x="7.5" y="1" width="4.5" height="4.5" rx="1" fill="white" opacity="0.6"/><rect x="1" y="7.5" width="4.5" height="4.5" rx="1" fill="white" opacity="0.6"/><rect x="7.5" y="7.5" width="4.5" height="4.5" rx="1" fill="white" opacity="0.3"/></svg></div>
+            <div class="em-logo">Slide<em>AI</em></div>
+          </div>
+          <div class="em-header-tag">Urgence · J+6</div>
+        </div>
+        <div class="em-hero">
+          <h1>Plus que <em>24 heures</em><br>sur votre essai.</h1>
+          <p>Demain, l'accès aux fonctionnalités complètes sera suspendu. Dernière occasion de tester.</p>
+        </div>
+        <div class="em-spacer"></div>
+        <div class="em-urgency">
+          <strong>⏱ 24h restantes</strong>
+          <span>Votre trial expire demain — agissez maintenant pour ne pas perdre l'accès</span>
+        </div>
+        <div class="em-spacer"></div>
+
+        
+        <!-- Illustration: compte à rebours 24h -->
+        <div style="margin: 0 36px; border-radius: 10px; overflow: hidden; border: 1px solid #1A2438; background: #0D1117;">
+          <svg viewBox="0 0 548 100" xmlns="http://www.w3.org/2000/svg" style="display:block;width:100%;height:100px">
+            <text x="274" y="24" text-anchor="middle" font-family="Inter,sans-serif" font-size="11" font-weight="600" letter-spacing="2" fill="#3A5070">TRIAL EXPIRE DANS</text>
+            <text x="274" y="62" text-anchor="middle" font-family="Inter,sans-serif" font-size="40" font-weight="800" letter-spacing="-2" fill="white">24 : 00 : 00</text>
+            <text x="195" y="78" text-anchor="middle" font-family="Inter,sans-serif" font-size="9" fill="#2A3550">heures</text>
+            <text x="274" y="78" text-anchor="middle" font-family="Inter,sans-serif" font-size="9" fill="#2A3550">minutes</text>
+            <text x="353" y="78" text-anchor="middle" font-family="Inter,sans-serif" font-size="9" fill="#2A3550">secondes</text>
+            <rect x="60" y="88" width="428" height="5" rx="2.5" fill="#1A2438"/>
+            <rect x="60" y="88" width="393" height="5" rx="2.5" fill="#2BB5FF" opacity="0.5"/>
+            <rect x="453" y="88" width="35" height="5" rx="2.5" fill="#2BB5FF"/>
+          </svg>
+        </div>
+
+        <div class="em-spacer"></div>
+        <div class="em-highlight">
+          <strong>Rappel :</strong> Aucune carte bancaire requise. L'abonnement ne se déclenche que si vous choisissez de continuer.
+        </div>
+        <div class="em-spacer"></div>
+        <div class="em-cta-block">
+          <a class="em-btn" href="https://www.slideai.fr/dashboard">Utiliser mes dernières heures →</a>
+        </div>
+        <div class="em-spacer-sm"></div>
+        <div class="em-cta-block">
+          <a class="em-btn-ghost" href="https://www.slideai.fr/pricing">Voir les plans →</a>
+        </div>
+        <div class="em-spacer"></div>
+        <div class="em-ps">PS — Des questions sur les tarifs ? Répondez ici, je vous réponds dans la journée.</div>
+        <div class="em-footer">
+          <p>Noé · SlideAI · <a href="#">noe@slideai.fr</a></p>
+          <p><a href="#">Se désabonner</a></p>
+        </div>
+      
+  </div>
+</div>
+</body>
+</html>

@@ -6,6 +6,8 @@
  */
 
 import { createClient } from '@supabase/supabase-js';
+import { existsSync, readFileSync } from 'node:fs';
+import { join } from 'node:path';
 
 const SUPABASE_URL = 'https://dntcdhabtctfbylynlcr.supabase.co';
 const EMAIL_FROM = 'SlideAI <noreply@slideai.fr>';
@@ -33,67 +35,56 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
   auth: { persistSession: false, autoRefreshToken: false },
 });
 
+function makeEmailSafeHtml(html: string): string {
+  const vars: Record<string, string> = {};
+  const rootRegex = /:root\s*\{([^}]*)\}/g;
+  let rootMatch: RegExpExecArray | null;
+  while ((rootMatch = rootRegex.exec(html))) {
+    const varRegex = /--([a-zA-Z0-9-]+)\s*:\s*([^;]+);/g;
+    let varMatch: RegExpExecArray | null;
+    while ((varMatch = varRegex.exec(rootMatch[1]))) {
+      vars[varMatch[1]] = varMatch[2].trim();
+    }
+  }
+
+  let out = html.replace(
+    /var\(\s*--([a-zA-Z0-9-]+)(?:\s*,\s*([^)]+))?\s*\)/g,
+    (_, name: string, fallback?: string) =>
+      vars[name] ?? (fallback ? fallback.trim() : 'inherit'),
+  );
+
+  const overrideStyles =
+    '<style>' +
+    "body{margin:0 !important;padding:0 !important;background:#F0F4F8 !important;color:#0D1117 !important;display:block !important;height:auto !important;overflow:visible !important;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif !important;}" +
+    '.email-wrapper{max-width:620px !important;margin:0 auto !important;background:#FFFFFF !important;}' +
+    '</style>';
+
+  if (out.includes('</head>')) {
+    out = out.replace('</head>', `${overrideStyles}\n</head>`);
+  } else {
+    out = `${overrideStyles}\n${out}`;
+  }
+
+  return out;
+}
+
 function buildConfirmationEmail(confirmUrl: string): string {
-  return `<!DOCTYPE html>
-<html lang="fr">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Confirmez votre compte SlideAI</title>
-</head>
-<body style="margin:0;padding:0;background:#f4fbff;font-family:'Segoe UI',Arial,sans-serif;">
-  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f4fbff;padding:40px 0;">
-    <tr>
-      <td align="center">
-        <table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:12px;border:1px solid #dbeafe;overflow:hidden;max-width:600px;">
-          <!-- Header -->
-          <tr>
-            <td style="background:#1fb6ff;padding:28px 40px;">
-              <span style="font-size:22px;font-weight:700;color:#ffffff;letter-spacing:-0.5px;">SlideAI</span>
-            </td>
-          </tr>
-          <!-- Body -->
-          <tr>
-            <td style="padding:40px;">
-              <p style="margin:0 0 8px;font-size:13px;font-weight:600;color:#1fb6ff;text-transform:uppercase;letter-spacing:1px;">Bienvenue</p>
-              <h1 style="margin:0 0 20px;font-size:26px;font-weight:700;color:#0f172a;line-height:1.2;">Confirmez votre compte SlideAI</h1>
-              <p style="margin:0 0 16px;font-size:15px;color:#475569;line-height:1.6;">
-                Merci de vous être inscrit sur SlideAI&nbsp;! Pour activer votre compte et accéder à toutes les fonctionnalités, veuillez confirmer votre adresse email en cliquant sur le bouton ci-dessous.
-              </p>
-              <p style="margin:0 0 32px;font-size:15px;color:#475569;line-height:1.6;">
-                Ce lien est valable <strong>24 heures</strong>.
-              </p>
-              <!-- CTA -->
-              <table cellpadding="0" cellspacing="0">
-                <tr>
-                  <td style="border-radius:8px;background:#1fb6ff;">
-                    <a href="${confirmUrl}" style="display:inline-block;padding:14px 32px;font-size:15px;font-weight:600;color:#ffffff;text-decoration:none;border-radius:8px;">
-                      Confirmer mon adresse email
-                    </a>
-                  </td>
-                </tr>
-              </table>
-              <p style="margin:28px 0 0;font-size:13px;color:#94a3b8;">
-                Si le bouton ne fonctionne pas, copiez ce lien dans votre navigateur&nbsp;:<br />
-                <a href="${confirmUrl}" style="color:#1fb6ff;word-break:break-all;">${confirmUrl}</a>
-              </p>
-            </td>
-          </tr>
-          <!-- Footer -->
-          <tr>
-            <td style="padding:20px 40px;border-top:1px solid #dbeafe;background:#f4fbff;">
-              <p style="margin:0;font-size:12px;color:#94a3b8;line-height:1.5;">
-                Vous recevez cet email car vous venez de créer un compte sur SlideAI.<br />
-                Si vous n'êtes pas à l'origine de cette inscription, ignorez simplement ce message.
-              </p>
-            </td>
-          </tr>
-        </table>
-      </td>
-    </tr>
-  </table>
-</body>
-</html>`;
+  const candidates = [
+    join(process.cwd(), 'SlideAIemail', 'emails', 'standalone', '00-confirmation.html'),
+    join(process.cwd(), '..', 'SlideAIemail', 'emails', 'standalone', '00-confirmation.html'),
+    join(process.cwd(), '..', '..', 'SlideAIemail', 'emails', 'standalone', '00-confirmation.html'),
+  ];
+  const templatePath = candidates.find((candidate) => existsSync(candidate));
+  if (!templatePath) {
+    throw new Error('Missing SlideAIemail/emails/standalone/00-confirmation.html');
+  }
+
+  const raw = readFileSync(templatePath, 'utf8').replace(
+    /href="https:\/\/www\.slideai\.fr\/dashboard"/g,
+    `href="${confirmUrl}"`,
+  );
+
+  return makeEmailSafeHtml(raw);
 }
 
 async function sendViaResend(to: string, subject: string, html: string) {

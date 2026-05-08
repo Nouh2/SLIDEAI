@@ -1,26 +1,35 @@
-﻿import { useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { useTranslation } from "react-i18next";
 import { Hero } from "@/components/home/Hero";
-import { FeatureGrid } from "@/components/home/FeatureGrid";
-import { ProductShowcase } from "@/components/home/ProductShowcase";
-import { Button } from "@/components/ui/button";
-import { ArrowRight, Sparkles } from "lucide-react";
-import { WhyFreelance } from "@/components/home/WhyFreelance";
+import { DemoFlowSection } from "@/components/home/DemoFlowSection";
 import { HowItWorks } from "@/components/home/HowItWorks";
-import { OfferSection } from "@/components/home/OfferSection";
-import { SubscriptionSection } from "@/components/home/SubscriptionSection";
-import { FaqSection } from "@/components/home/FaqSection";
+import { BentoOutputs } from "@/components/home/BentoOutputs";
 import { BeforeAfterSection } from "@/components/home/BeforeAfterSection";
-import { StickyTrialCta } from "@/components/home/StickyTrialCta";
+import { TestimonialBand } from "@/components/home/TestimonialBand";
+import { PricingSection } from "@/components/home/PricingSection";
+import { FaqSection } from "@/components/home/FaqSection";
 import { BusinessSeoSection } from "@/components/home/BusinessSeoSection";
+import { PromoBar } from "@/components/home/PromoBar";
+import { StickyTrialCta } from "@/components/home/StickyTrialCta";
 import { SEO } from "@/components/common/SEO";
-import { Analytics, ANALYTICS_EVENTS } from "@/lib/analytics";
 import { toAbsoluteUrl } from "@/lib/localeRouting";
 import { homePageContent } from "@/content/seo/marketingPages";
 
+/**
+ * Compact 8-section landing flow (was 11 sections):
+ *   1. PromoBar (sticky)
+ *   2. Hero (with TemplatePicker)
+ *   3. DemoFlowSection (50s product video)
+ *   4. HowItWorks (3 isometric SVG steps)
+ *   5. BentoOutputs (6 real deck PNGs — replaces FeatureGrid + ProductShowcase)
+ *   6. BeforeAfterSection (table)
+ *   7. TestimonialBand (single dark quote)
+ *   8. PricingSection (launch offer + 3 tiers — replaces OfferSection + SubscriptionSection + BottomCTA)
+ *   9. FaqSection
+ *   - BusinessSeoSection moved to bottom (SEO-only, low visual prominence)
+ *   - WhyFreelance dropped (its bullets duplicated the H1 + BeforeAfter)
+ */
 export default function Home() {
-  const navigate = useNavigate();
   const { t, i18n } = useTranslation();
   const isFr = i18n.language.startsWith("fr");
   const pageContent = isFr ? homePageContent.fr : homePageContent.en;
@@ -37,47 +46,38 @@ export default function Home() {
     operatingSystem: "Web",
     offers: {
       "@type": "Offer",
-      price: "2.99",
+      price: "9.90",
       priceCurrency: "EUR",
       category: isFr ? "Offre de lancement Pro" : "Pro launch offer",
     },
     description: seoDescription,
   };
   const faqItems = [
+    { q: t("faq.questions.trial.q"), a: t("faq.questions.trial.a") },
+    { q: t("faq.questions.deliver.q"), a: t("faq.questions.deliver.a") },
+    { q: t("faq.questions.pdf.q"), a: t("faq.questions.pdf.a") },
+    { q: t("faq.questions.security.q"), a: t("faq.questions.security.a") },
+    { q: t("faq.questions.usage.q"), a: t("faq.questions.usage.a") },
     {
-      q: t("faq.questions.trial.q"),
-      a: t("faq.questions.trial.a"),
-    },
-    {
-      q: t("faq.questions.deliver.q"),
-      a: t("faq.questions.deliver.a"),
-    },
-    {
-      q: t("faq.questions.pdf.q"),
-      a: t("faq.questions.pdf.a"),
-    },
-    {
-      q: t("faq.questions.security.q"),
-      a: t("faq.questions.security.a"),
-    },
-    {
-      q: t("faq.questions.usage.q"),
-      a: t("faq.questions.usage.a"),
-    },
-    {
-      q: isFr ? "La qualité est-elle suffisante pour un comité de direction ?" : "Is the quality good enough for executive reviews?",
+      q: isFr
+        ? "La qualité est-elle suffisante pour un comité de direction ?"
+        : "Is the quality good enough for executive reviews?",
       a: isFr
         ? "Oui. Vous obtenez une base claire et professionnelle, puis vous ajustez les messages clés avant livraison."
         : "Yes. You get a clear professional draft, then refine key messages before delivery.",
     },
     {
-      q: isFr ? "Mes documents clients restent-ils confidentiels ?" : "Do my client documents stay confidential?",
+      q: isFr
+        ? "Mes documents clients restent-ils confidentiels ?"
+        : "Do my client documents stay confidential?",
       a: isFr
         ? "Les documents sont traités de façon sécurisée. Vous gardez le contrôle sur ce que vous importez et exportez."
         : "Documents are handled through secure workflows. You keep control over what you import and export.",
     },
     {
-      q: isFr ? "Puis-je garder la charte graphique du client ?" : "Can I keep the client's visual identity?",
+      q: isFr
+        ? "Puis-je garder la charte graphique du client ?"
+        : "Can I keep the client's visual identity?",
       a: isFr
         ? "Oui. Vous pouvez adapter styles, couleurs et structure pour coller à votre contexte client."
         : "Yes. You can adapt style, colors, and structure to match your client context.",
@@ -109,14 +109,6 @@ export default function Home() {
       url: "https://www.slideai.fr/logo.png",
     },
   };
-  const handleBottomCta = () => {
-    Analytics.trackEvent(
-      ANALYTICS_EVENTS.ECOMMERCE.CATEGORY,
-      ANALYTICS_EVENTS.ECOMMERCE.SELECT_PLAN,
-      "Landing Bottom CTA - Intro Offer"
-    );
-    navigate(`/auth?returnTo=${encodeURIComponent("/create")}`);
-  };
 
   return (
     <div className="min-h-screen w-full relative pb-16 md:pb-0">
@@ -135,73 +127,67 @@ export default function Home() {
         <script type="application/ld+json">{JSON.stringify(websiteSchema)}</script>
       </Helmet>
 
-      {/* SlideAI DNA: Grid Background - Full Page */}
-      <div className="fixed inset-0 z-0 h-full w-full bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px] pointer-events-none"></div>
+      {/* Static grid background — absolute, not fixed (no permanent compositor layer) */}
+      <div
+        aria-hidden
+        className="absolute inset-0 z-0 h-full w-full bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px] pointer-events-none"
+      ></div>
 
-      {/* Hero Section */}
+      {/* 1. Promo bar (sticky-ish at top of flow) */}
+      <PromoBar />
+
+      {/* 2. Hero with template picker */}
       <Hero />
 
-      {/* Pourquoi Freelance */}
-      <div id="pourquoi-outil-ia-presentation">
-        <WhyFreelance />
-      </div>
+      {/* 3. Demo video — section header + lazy mount */}
+      <section className="relative z-10 px-4 pt-2 pb-8 md:pt-4 md:pb-12 lp-defer">
+        <div className="mx-auto max-w-6xl text-center mb-6 md:mb-8">
+          <h2 className="text-3xl md:text-4xl font-bold tracking-tight">
+            {isFr ? "SlideAI en 50 secondes" : "SlideAI in 50 seconds"}
+          </h2>
+          <p className="mt-2 text-base md:text-lg text-foreground/60">
+            {isFr
+              ? "Du brief importé au PowerPoint éditable. Tout le workflow en une seule prise."
+              : "From imported brief to editable PowerPoint. The full workflow in one take."}
+          </p>
+        </div>
+        <DemoFlowSection />
+      </section>
 
-      {/* Comment ça marche */}
-      <div id="creer-powerpoint-avec-ia">
+      {/* 4. How it works (3 steps + isometric SVG illustrations) */}
+      <div id="creer-powerpoint-avec-ia" className="lp-defer">
         <HowItWorks />
       </div>
 
-      {/* Outils (FeatureGrid) */}
-      <FeatureGrid />
-
-      <BusinessSeoSection />
-
-      {/* Produit en action */}
-      <div id="generer-presentation-automatiquement">
-        <ProductShowcase />
+      {/* 5. Bento outputs — 6 real deck use cases */}
+      <div id="generer-presentation-automatiquement" className="lp-defer">
+        <BentoOutputs />
       </div>
 
-      <BeforeAfterSection />
+      {/* 6. Before / After comparison */}
+      <div className="lp-defer">
+        <BeforeAfterSection />
+      </div>
 
-      {/* Offre de lancement */}
-      <OfferSection />
+      {/* 7. Single dark testimonial — visual break */}
+      <div className="lp-defer">
+        <TestimonialBand />
+      </div>
 
-      {/* Abonnement Pro */}
-      <SubscriptionSection />
+      {/* 8. Unified pricing (launch offer + tiers) */}
+      <div id="creer-premiere-presentation-30-secondes" className="lp-defer">
+        <PricingSection />
+      </div>
 
-      {/* FAQ */}
-      <FaqSection />
+      {/* 9. FAQ */}
+      <div className="lp-defer">
+        <FaqSection />
+      </div>
 
-      {/* Bottom CTA Section */}
-      <section id="creer-premiere-presentation-30-secondes" className="relative pt-4 pb-8 md:pt-4 md:pb-12 px-4 overflow-hidden border-t border-border/50">
-        <div className="max-w-4xl mx-auto text-center space-y-6 md:space-y-8">
-          {/* Background decoration */}
-          <div className="absolute inset-0 -z-10">
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-60 md:w-96 h-60 md:h-96 bg-gradient-to-br from-primary/10 to-secondary/10 rounded-full blur-3xl opacity-40" />
-          </div>
-
-          <div className="space-y-4">
-            <h2 className="text-3xl md:text-5xl font-bold px-2">
-              {t('finalCta.title')}
-            </h2>
-            <p className="text-base md:text-lg text-foreground/60 max-w-2xl mx-auto px-4 whitespace-pre-line">
-              {t('finalCta.subtitle')}
-            </p>
-          </div>
-
-          <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4 px-4">
-            <Button
-              size="lg"
-              onClick={handleBottomCta}
-              className="h-12 md:h-14 text-sm md:text-base font-bold rounded-xl bg-gradient-primary hover:shadow-neon-hover transition-all duration-300 group text-foreground w-full sm:w-auto"
-            >
-              <Sparkles className="w-4 h-4 md:w-5 md:h-5 mr-2" />
-              {t('finalCta.button')}
-              <ArrowRight className="w-4 h-4 md:w-5 md:h-5 ml-2 group-hover:translate-x-1 transition-transform" />
-            </Button>
-          </div>
-        </div>
-      </section>
+      {/* SEO footer block — low visual prominence, useful for crawlers */}
+      <div id="pourquoi-outil-ia-presentation" className="lp-defer">
+        <BusinessSeoSection />
+      </div>
 
       <StickyTrialCta />
     </div>

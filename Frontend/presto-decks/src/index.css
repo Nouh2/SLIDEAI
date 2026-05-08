@@ -141,6 +141,13 @@ All colors MUST be HSL.
 
 @layer utilities {
 
+  /* Landing perf — defer paint/layout for sections far below fold.
+   * Saves significant rendering work on weak GPUs/CPUs. */
+  .lp-defer {
+    content-visibility: auto;
+    contain-intrinsic-size: 1px 700px;
+  }
+
   /* Text Gradients - Now using solid cyan blue like "intelligents" */
   .text-gradient {
     color: #1fb6ff;

@@ -100,6 +100,10 @@ export function ProductShowcase() {
                                 <img
                                     src={feature.image}
                                     alt={feature.title}
+                                    loading="lazy"
+                                    decoding="async"
+                                    width={1280}
+                                    height={720}
                                     className="block w-full h-auto rounded-2xl"
                                 />
                             </motion.div>

@@ -17,21 +17,21 @@ export function FaqSection() {
         { q: t('faq.questions.security.q'), a: t('faq.questions.security.a') },
         { q: t('faq.questions.usage.q'), a: t('faq.questions.usage.a') },
         {
-            q: isFr ? "La qualite est-elle suffisante pour un comite de direction ?" : "Is the quality good enough for executive reviews?",
+            q: isFr ? "La qualité est-elle suffisante pour un comité de direction ?" : "Is the quality good enough for executive reviews?",
             a: isFr
-                ? "Oui. Vous obtenez une base claire et professionnelle, puis vous ajustez les messages cles avant livraison."
+                ? "Oui. Vous obtenez une base claire et professionnelle, puis vous ajustez les messages clés avant livraison."
                 : "Yes. You get a clear professional draft, then refine key messages before delivery.",
         },
         {
             q: isFr ? "Mes documents clients restent-ils confidentiels ?" : "Do my client documents stay confidential?",
             a: isFr
-                ? "Les documents sont traites de facon securisee. Vous gardez le controle sur ce que vous importez et exportez."
+                ? "Les documents sont traités de façon sécurisée. Vous gardez le contrôle sur ce que vous importez et exportez."
                 : "Documents are handled through secure workflows. You keep control over what you import and export.",
         },
         {
             q: isFr ? "Puis-je garder la charte graphique du client ?" : "Can I keep the client's visual identity?",
             a: isFr
-                ? "Oui. Vous pouvez adapter styles, couleurs et structure pour coller a votre contexte client."
+                ? "Oui. Vous pouvez adapter styles, couleurs et structure pour coller à votre contexte client."
                 : "Yes. You can adapt style, colors, and structure to match your client context.",
         },
     ];

@@ -21,14 +21,14 @@ export function BeforeAfterSection() {
   const rows = isFr
     ? [
       {
-        label: "Temps de preparation",
-        before: "2 a 4h par presentation",
+        label: "Temps de préparation",
+        before: "2 à 4h par présentation",
         after: "Base en quelques minutes",
       },
       {
         label: "Structure des slides",
-        before: "Manuelle et repetitive",
-        after: "Generee automatiquement",
+        before: "Manuelle et répétitive",
+        after: "Générée automatiquement",
       },
       {
         label: "Focus du consultant",
@@ -102,7 +102,7 @@ export function BeforeAfterSection() {
         <div className="text-center">
           <Button onClick={handleCta} size="lg" className="font-bold">
             <Sparkles className="w-4 h-4 mr-2" />
-            {isFr ? "Profiter de l'offre a 2,99EUR" : "Get the 2.99EUR offer"}
+            {isFr ? "Profiter de l'offre à 9,90€" : "Get the 9.90€ offer"}
             <ArrowRight className="w-4 h-4 ml-2" />
           </Button>
         </div>

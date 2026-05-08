@@ -44,7 +44,14 @@ export function OfferSection() {
                     className="glass-premium rounded-3xl p-8 md:p-12 border border-primary/20 shadow-2xl relative overflow-hidden will-change-transform"
                 >
                     {/* Background Glow */}
-                    <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 rounded-full blur-3xl -z-10" />
+                    <div
+                      aria-hidden
+                      className="absolute top-0 right-0 w-64 h-64 opacity-70 -z-10"
+                      style={{
+                        background:
+                          "radial-gradient(closest-side, hsl(var(--primary) / 0.18), transparent 75%)",
+                      }}
+                    />
 
                     <div className="flex flex-col md:flex-row gap-12 items-center">
                         <div className="flex-1 space-y-6">

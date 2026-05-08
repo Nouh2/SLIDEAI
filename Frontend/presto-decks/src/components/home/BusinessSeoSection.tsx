@@ -22,7 +22,7 @@ export function BusinessSeoSection() {
           whileInView="visible"
           viewport={viewportPreset}
         >
-          <h2 className="text-3xl md:text-5xl font-bold">Pages a forte intention pour vos presentations IA</h2>
+          <h2 className="text-3xl md:text-5xl font-bold">Pages à forte intention pour vos présentations IA</h2>
           <p className="max-w-3xl mx-auto text-muted-foreground">
             Un cluster de pages pour capter les recherches les plus proches de l'action, puis renvoyer vers l'essai ou les exemples.
           </p>

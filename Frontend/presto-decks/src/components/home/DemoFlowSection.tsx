@@ -31,7 +31,14 @@ export function DemoFlowSection() {
     <div className="relative w-full pt-4 md:pt-4">
       <div className="mx-auto max-w-6xl">
         <div className="relative">
-          <div className="absolute inset-0 -z-10 rounded-[2.4rem] bg-gradient-to-r from-primary/20 via-transparent to-amber-400/20 blur-3xl opacity-70" />
+          <div
+            aria-hidden
+            className="absolute inset-0 -z-10 rounded-[2.4rem] opacity-70"
+            style={{
+              background:
+                "radial-gradient(60% 60% at 0% 50%, hsl(var(--primary) / 0.18), transparent 70%), radial-gradient(60% 60% at 100% 50%, rgba(251, 191, 36, 0.18), transparent 70%)",
+            }}
+          />
 
           <div className="overflow-hidden rounded-[2rem] border border-border/60 bg-background/90 shadow-2xl">
             <div className="flex items-center gap-2 border-b border-border/60 bg-background/95 px-4 py-3">

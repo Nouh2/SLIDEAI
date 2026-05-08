@@ -63,7 +63,14 @@ export function FeatureGrid() {
     <section className="relative pt-4 pb-8 md:pt-4 md:pb-12 px-4 overflow-hidden z-10">
       {/* Background */}
       <div className="absolute inset-0 -z-10">
-        <div className="absolute bottom-0 right-1/4 w-60 md:w-96 h-60 md:h-96 bg-secondary/10 rounded-full blur-3xl animate-float-slow opacity-40" />
+        <div
+          aria-hidden
+          className="absolute bottom-0 right-1/4 w-60 md:w-96 h-60 md:h-96 opacity-50"
+          style={{
+            background:
+              "radial-gradient(closest-side, hsl(var(--secondary) / 0.18), transparent 75%)",
+          }}
+        />
       </div>
 
       <div className="max-w-7xl mx-auto">
@@ -129,14 +136,19 @@ export function FeatureGrid() {
                       whileHover={prefersCompactMotion ? undefined : { x: 0 }}
                     >
                       <span className="font-medium">{t('tools.learnMore')}</span>
-                      <motion.span animate={prefersCompactMotion ? undefined : { x: [0, 4, 0] }} transition={{ repeat: Infinity, duration: 1.7, ease: "easeInOut" }}>
-                        →
-                      </motion.span>
+                      <span aria-hidden className="transition-transform duration-300 group-hover:translate-x-1">→</span>
                     </motion.div>
                   </div>
 
-                  {/* Corner accent */}
-                  <div className="absolute bottom-0 right-0 w-24 h-24 bg-primary/5 rounded-full blur-2xl group-hover:bg-primary/10 transition-all duration-300 -z-10" />
+                  {/* Corner accent — static gradient, no blur */}
+                  <div
+                    aria-hidden
+                    className="pointer-events-none absolute bottom-0 right-0 w-24 h-24 opacity-60 group-hover:opacity-100 transition-opacity duration-300 -z-10"
+                    style={{
+                      background:
+                        "radial-gradient(closest-side, hsl(var(--primary) / 0.18), transparent 75%)",
+                    }}
+                  />
                 </motion.div>
               </motion.div>
             );

@@ -22,7 +22,14 @@ export function WhyFreelance() {
 
     return (
         <section className="pt-4 pb-8 md:pt-4 md:pb-10 px-4 relative overflow-hidden z-10">
-            <div className="absolute inset-x-0 top-10 -z-10 mx-auto h-64 max-w-4xl rounded-full bg-primary/10 blur-3xl opacity-15" />
+            <div
+              aria-hidden
+              className="absolute inset-x-0 top-10 -z-10 mx-auto h-64 max-w-4xl opacity-40"
+              style={{
+                background:
+                  "radial-gradient(closest-side, hsl(var(--primary) / 0.14), transparent 75%)",
+              }}
+            />
 
             <div className="max-w-6xl mx-auto">
                 <div className="text-center mb-10">

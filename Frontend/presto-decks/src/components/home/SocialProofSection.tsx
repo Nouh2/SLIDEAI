@@ -32,8 +32,8 @@ export function SocialProofSection() {
   ];
 
   const line = isFr
-    ? "120+ professionnels l'utilise deja"
-    : "70+ professionals have already used it in beta";
+    ? "170+ professionnels l'utilisent déjà"
+    : "170+ professionals already using it";
 
   return (
     <section className="relative z-10 px-4 pt-0 pb-0">

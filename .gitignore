@@ -49,3 +49,7 @@ coverage/
 
 # Local Google credentials
 G4A/
+
+# Local research / agent artifacts (never commit)
+.landing-research/
+.playwright-mcp/

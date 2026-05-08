@@ -45,7 +45,7 @@ async function sendOne(file) {
     body: JSON.stringify({
       from,
       to: [to],
-      subject: `[v3 email-safe] ${file.replace('.html', '')} — ${subject}`,
+      subject,
       html,
     }),
   });

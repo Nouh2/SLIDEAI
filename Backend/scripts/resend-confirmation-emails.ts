@@ -35,56 +35,21 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
   auth: { persistSession: false, autoRefreshToken: false },
 });
 
-function makeEmailSafeHtml(html: string): string {
-  const vars: Record<string, string> = {};
-  const rootRegex = /:root\s*\{([^}]*)\}/g;
-  let rootMatch: RegExpExecArray | null;
-  while ((rootMatch = rootRegex.exec(html))) {
-    const varRegex = /--([a-zA-Z0-9-]+)\s*:\s*([^;]+);/g;
-    let varMatch: RegExpExecArray | null;
-    while ((varMatch = varRegex.exec(rootMatch[1]))) {
-      vars[varMatch[1]] = varMatch[2].trim();
-    }
-  }
-
-  let out = html.replace(
-    /var\(\s*--([a-zA-Z0-9-]+)(?:\s*,\s*([^)]+))?\s*\)/g,
-    (_, name: string, fallback?: string) =>
-      vars[name] ?? (fallback ? fallback.trim() : 'inherit'),
-  );
-
-  const overrideStyles =
-    '<style>' +
-    "body{margin:0 !important;padding:0 !important;background:#F0F4F8 !important;color:#0D1117 !important;display:block !important;height:auto !important;overflow:visible !important;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif !important;}" +
-    '.email-wrapper{max-width:620px !important;margin:0 auto !important;background:#FFFFFF !important;}' +
-    '</style>';
-
-  if (out.includes('</head>')) {
-    out = out.replace('</head>', `${overrideStyles}\n</head>`);
-  } else {
-    out = `${overrideStyles}\n${out}`;
-  }
-
-  return out;
-}
-
 function buildConfirmationEmail(confirmUrl: string): string {
   const candidates = [
-    join(process.cwd(), 'SlideAIemail', 'emails', 'standalone', '00-confirmation.html'),
-    join(process.cwd(), '..', 'SlideAIemail', 'emails', 'standalone', '00-confirmation.html'),
-    join(process.cwd(), '..', '..', 'SlideAIemail', 'emails', 'standalone', '00-confirmation.html'),
+    join(process.cwd(), 'SlideAIemail', 'emails', 'email-safe', '00-confirmation.html'),
+    join(process.cwd(), '..', 'SlideAIemail', 'emails', 'email-safe', '00-confirmation.html'),
+    join(process.cwd(), '..', '..', 'SlideAIemail', 'emails', 'email-safe', '00-confirmation.html'),
   ];
   const templatePath = candidates.find((candidate) => existsSync(candidate));
   if (!templatePath) {
-    throw new Error('Missing SlideAIemail/emails/standalone/00-confirmation.html');
+    throw new Error('Missing SlideAIemail/emails/email-safe/00-confirmation.html');
   }
 
-  const raw = readFileSync(templatePath, 'utf8').replace(
-    /href="https:\/\/www\.slideai\.fr\/dashboard"/g,
-    `href="${confirmUrl}"`,
-  );
-
-  return makeEmailSafeHtml(raw);
+  return readFileSync(templatePath, 'utf8')
+    .split('{{CTA_URL}}').join(confirmUrl)
+    .split('{{UNSUBSCRIBE_URL}}').join('https://www.slideai.fr/unsubscribe')
+    .split('{{PRIVACY_URL}}').join('https://www.slideai.fr/privacy');
 }
 
 async function sendViaResend(to: string, subject: string, html: string) {

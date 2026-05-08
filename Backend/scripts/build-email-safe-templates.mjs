@@ -300,12 +300,17 @@ function footer(lines, options = {}) {
 // Frontend/presto-decks/public/email-assets/{name}-illustration.png.
 // `inset` true = card with side margins (548px), false = edge-to-edge banner (620px).
 // `alt` = required for accessibility + image-blocked clients.
+//
+// Outset (banner) cells skip the .em-pad class so the image goes truly
+// edge-to-edge on mobile. .em-pad would otherwise inject 20px padding on
+// small screens and the image would no longer touch the email's edges.
 function illustration({ name, inset = true, alt = 'Illustration' }) {
   const widthAttr = inset ? 548 : 620;
+  const cellClasses = inset ? 'em-pad em-bg-white' : 'em-bg-white';
   const cellPadding = inset ? '8px 36px' : '0';
   const url = `https://www.slideai.fr/email-assets/${name}-illustration.png`;
   return `<tr>
-    <td class="em-pad em-bg-white" bgcolor="${C.white}" style="padding:${cellPadding};background-color:${C.white};font-size:0;line-height:0;">
+    <td class="${cellClasses}" bgcolor="${C.white}" style="padding:${cellPadding};background-color:${C.white};font-size:0;line-height:0;">
       <img src="${url}" width="${widthAttr}" alt="${alt}" style="display:block;width:100%;max-width:${widthAttr}px;height:auto;border:0;outline:none;text-decoration:none;${inset ? 'border-radius:10px;' : ''}">
     </td>
   </tr>`;

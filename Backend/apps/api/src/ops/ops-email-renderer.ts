@@ -1423,7 +1423,16 @@ export function buildTrialEmailContent(params: {
     return null;
   }
 
-  const bundled = buildBundledCampaignEmail(params.emailType);
+  const appUrl = process.env.FRONTEND_URL || 'https://slideai.fr';
+  const baseUrl = appUrl.replace(/\/$/, '');
+  const bundled = buildBundledCampaignEmail(params.emailType, {
+    createUrl: `${baseUrl}/create`,
+    pricingUrl: `${baseUrl}/pricing`,
+    examplesUrl: `${baseUrl}/examples`,
+    unsubscribeUrl: params.unsubscribeUrl || `${baseUrl}/unsubscribe`,
+    privacyUrl: `${baseUrl}/privacy`,
+    prefsUrl: `${baseUrl}/preferences`,
+  });
   if (bundled) {
     return bundled;
   }
@@ -1438,7 +1447,19 @@ export function buildTrialEmailContent(params: {
   };
 }
 
-function buildBundledCampaignEmail(emailType: string): { subject: string; html: string } | null {
+type BundledUrls = {
+  createUrl: string;
+  pricingUrl: string;
+  examplesUrl: string;
+  unsubscribeUrl: string;
+  privacyUrl: string;
+  prefsUrl: string;
+};
+
+function buildBundledCampaignEmail(
+  emailType: string,
+  urls: BundledUrls,
+): { subject: string; html: string } | null {
   const fileByType: Record<string, string> = {
     confirmation: '00-confirmation.html',
     signup_welcome: '01-bienvenue.html',
@@ -1461,62 +1482,41 @@ function buildBundledCampaignEmail(emailType: string): { subject: string; html: 
   if (!fileName) return null;
 
   const candidates = [
-    join(process.cwd(), 'SlideAIemail', 'emails', 'standalone', fileName),
-    join(process.cwd(), '..', '..', '..', 'SlideAIemail', 'emails', 'standalone', fileName),
-    join(process.cwd(), '..', '..', 'SlideAIemail', 'emails', 'standalone', fileName),
+    join(process.cwd(), 'SlideAIemail', 'emails', 'email-safe', fileName),
+    join(process.cwd(), '..', '..', '..', 'SlideAIemail', 'emails', 'email-safe', fileName),
+    join(process.cwd(), '..', '..', 'SlideAIemail', 'emails', 'email-safe', fileName),
   ];
-  const standalonePath = candidates.find((candidate) => existsSync(candidate));
-  if (!standalonePath) return null;
+  const templatePath = candidates.find((candidate) => existsSync(candidate));
+  if (!templatePath) return null;
+
+  // CTA destination depends on the funnel stage: conversion-oriented emails
+  // point at /pricing (the launch offer), the rest send people back to /create.
+  const ctaUrl =
+    emailType === 'trial_ending_day6' ||
+    emailType === 'trial_expired' ||
+    emailType === 'inactive_21d_offer' ||
+    emailType === 'trial_winback_day2'
+      ? urls.pricingUrl
+      : urls.createUrl;
+
+  const replacements: Record<string, string> = {
+    '{{CTA_URL}}': ctaUrl,
+    '{{PRICING_URL}}': urls.pricingUrl,
+    '{{UNSUBSCRIBE_URL}}': urls.unsubscribeUrl,
+    '{{PRIVACY_URL}}': urls.privacyUrl,
+    '{{PREFS_URL}}': urls.prefsUrl,
+  };
 
   try {
-    const raw = readFileSync(standalonePath, 'utf8');
-    const subject =
-      raw.match(/<title>(.*?)<\/title>/)?.[1]?.trim() ||
-      raw.match(/chrome-subject">(?:[^:]+:\s*)?([^<]+)</)?.[1]?.trim() ||
-      'SlideAI';
-
-    return { subject, html: makeEmailSafeHtml(raw) };
+    let html = readFileSync(templatePath, 'utf8');
+    for (const [token, value] of Object.entries(replacements)) {
+      html = html.split(token).join(value);
+    }
+    const subject = html.match(/<title>([\s\S]*?)<\/title>/i)?.[1]?.trim() || 'SlideAI';
+    return { subject, html };
   } catch {
     return null;
   }
-}
-
-// Email clients (Gmail, Outlook, Apple Mail) do not all resolve CSS custom properties
-// and the standalone preview file uses `body { display: flex; height: 100vh; overflow: hidden }`
-// which collapses the email body inside a webmail iframe. This helper inlines var() references
-// against the :root block and injects email-safe overrides so the rendered email matches
-// the standalone preview pixel-for-pixel.
-function makeEmailSafeHtml(html: string): string {
-  const vars: Record<string, string> = {};
-  const rootRegex = /:root\s*\{([^}]*)\}/g;
-  let rootMatch: RegExpExecArray | null;
-  while ((rootMatch = rootRegex.exec(html))) {
-    const varRegex = /--([a-zA-Z0-9-]+)\s*:\s*([^;]+);/g;
-    let varMatch: RegExpExecArray | null;
-    while ((varMatch = varRegex.exec(rootMatch[1]))) {
-      vars[varMatch[1]] = varMatch[2].trim();
-    }
-  }
-
-  let out = html.replace(
-    /var\(\s*--([a-zA-Z0-9-]+)(?:\s*,\s*([^)]+))?\s*\)/g,
-    (_, name: string, fallback?: string) =>
-      vars[name] ?? (fallback ? fallback.trim() : 'inherit'),
-  );
-
-  const overrideStyles =
-    '<style>' +
-    "body{margin:0 !important;padding:0 !important;background:#F0F4F8 !important;color:#0D1117 !important;display:block !important;height:auto !important;overflow:visible !important;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif !important;}" +
-    '.email-wrapper{max-width:620px !important;margin:0 auto !important;background:#FFFFFF !important;}' +
-    '</style>';
-
-  if (out.includes('</head>')) {
-    out = out.replace('</head>', `${overrideStyles}\n</head>`);
-  } else {
-    out = `${overrideStyles}\n${out}`;
-  }
-
-  return out;
 }
 
 export type BroadcastEmailParams = {

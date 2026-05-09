@@ -2,7 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { motion, useReducedMotion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Sparkles } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { Analytics, ANALYTICS_EVENTS } from "@/lib/analytics";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { createCardVariants, createRevealVariants, createStaggerContainer, viewportPreset } from "./motionPresets";
@@ -101,7 +101,6 @@ export function BeforeAfterSection() {
 
         <div className="text-center">
           <Button onClick={handleCta} size="lg" className="font-bold">
-            <Sparkles className="w-4 h-4 mr-2" />
             {isFr ? "Profiter de l'offre à 9,90€" : "Get the 9.90€ offer"}
             <ArrowRight className="w-4 h-4 ml-2" />
           </Button>

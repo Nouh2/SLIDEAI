@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Sparkles, Check } from "lucide-react";
+import { ArrowRight, Check } from "lucide-react";
 import { Analytics, ANALYTICS_EVENTS } from "@/lib/analytics";
 import { useLocalePath } from "@/hooks/use-locale-path";
 import { homePageContent } from "@/content/seo/marketingPages";
@@ -87,7 +87,6 @@ export function Hero() {
               onClick={handleHeroCta}
               className="group h-14 rounded-xl bg-gradient-primary px-7 text-base font-bold text-foreground transition-all duration-300 hover:shadow-[0_18px_40px_-18px_hsl(var(--primary)/0.6)]"
             >
-              <Sparkles className="mr-2 h-5 w-5" />
               {heroContent.primaryCta}
               <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
             </Button>

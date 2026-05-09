@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { Check, ArrowRight, Sparkles } from "lucide-react";
+import { Check, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Analytics, ANALYTICS_EVENTS } from "@/lib/analytics";
 
@@ -181,8 +181,7 @@ export function PricingSection() {
 
           <div className="relative grid gap-8 p-7 md:grid-cols-[1.2fr_0.8fr] md:gap-10 md:p-10">
             <div>
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider backdrop-blur-sm">
-                <Sparkles className="h-3 w-3" />
+              <span className="inline-flex items-center rounded-full bg-white/10 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider backdrop-blur-sm">
                 {isFr ? "Offre de lancement limitée" : "Limited launch offer"}
               </span>
               <h3 className="mt-3 text-2xl md:text-3xl font-bold leading-tight">

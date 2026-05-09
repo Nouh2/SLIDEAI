@@ -63,6 +63,7 @@ const PERSONA_LABELS: Record<string, { fr: string; en: string }> = {
     "responsable-formation": { fr: "Responsable formation", en: "Training manager" },
     "consultant-cybersecurite": { fr: "Consultant cybersecurite", en: "Cybersecurity consultant" },
     "sales-manager": { fr: "Sales manager", en: "Sales manager" },
+    "agence-communication": { fr: "Agence de communication", en: "Communications agency" },
 };
 
 function normalizeLanguage(language?: string): "fr" | "en" {
@@ -215,6 +216,9 @@ function inferPersona(slug: string, title: string): string | undefined {
     }
     if (source.includes("sales") || source.includes("commercial")) {
         return "sales-manager";
+    }
+    if (source.includes("agence-communication") || source.includes("agence de communication") || source.includes("agence digitale") || source.includes("agence marketing")) {
+        return "agence-communication";
     }
 
     return undefined;

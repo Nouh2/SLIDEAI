@@ -46,6 +46,7 @@ const PERSONA_LABELS = {
   freelance: { fr: "Freelance", en: "Freelancer" },
   "product-manager": { fr: "Product manager", en: "Product manager" },
   "sales-manager": { fr: "Sales manager", en: "Sales manager" },
+  "agence-communication": { fr: "Agence de communication", en: "Communications agency" },
 };
 
 function normalizeLocale(value) {

@@ -82,7 +82,8 @@ function DeckCoverSvg({ template, active }: { template: DeckTemplate; active: bo
   );
   return (
     <svg
-      viewBox="0 0 160 96"
+      viewBox="0 0 160 100"
+      preserveAspectRatio="xMidYMid slice"
       className="block w-full h-full"
       xmlns="http://www.w3.org/2000/svg"
       role="img"
@@ -94,9 +95,9 @@ function DeckCoverSvg({ template, active }: { template: DeckTemplate; active: bo
           <stop offset="100%" stopColor={bg[1]} />
         </linearGradient>
       </defs>
-      <rect width="160" height="96" rx="6" fill={`url(#bg-${id})`} />
-      {/* accent corner */}
-      <rect x="0" y="0" width="3" height="96" fill={accent} opacity={active ? 1 : 0.7} />
+      <rect width="160" height="100" fill={`url(#bg-${id})`} />
+      {/* accent strip on the left edge */}
+      <rect x="0" y="0" width="3" height="100" fill={accent} opacity={active ? 1 : 0.7} />
       {/* logo dot */}
       <circle cx="14" cy="12" r="3" fill={accent} />
       <rect x="20" y="10" width="14" height="3" rx="1" fill={ink} opacity={0.55} />
@@ -176,7 +177,7 @@ function DeckCoverSvg({ template, active }: { template: DeckTemplate; active: bo
       )}
 
       {/* page number */}
-      <rect x="142" y="86" width="6" height="2" rx="1" fill={inkSoft} />
+      <rect x="142" y="90" width="6" height="2" rx="1" fill={inkSoft} />
     </svg>
   );
 }
@@ -226,15 +227,10 @@ export function TemplatePicker() {
           </span>
         </div>
 
-        {/* Big preview */}
-        <div className="relative aspect-[16/10] bg-gradient-to-br from-slate-50 to-sky-50">
-          <div className="absolute inset-0 flex items-center justify-center p-6 md:p-10">
-            <div
-              key={activeTpl.id}
-              className="w-full max-w-[480px] aspect-[16/9] rounded-xl shadow-2xl ring-1 ring-black/5 overflow-hidden tp-fade"
-            >
-              <DeckCoverSvg template={activeTpl} active />
-            </div>
+        {/* Big preview — SVG fills the entire area, no padding/inner frame */}
+        <div className="relative aspect-[16/10] overflow-hidden">
+          <div key={activeTpl.id} className="absolute inset-0 tp-fade">
+            <DeckCoverSvg template={activeTpl} active />
           </div>
           {/* fake cursor */}
           {!isMobile && !reduceMotion && (

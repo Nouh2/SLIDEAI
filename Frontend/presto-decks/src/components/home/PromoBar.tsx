@@ -77,12 +77,18 @@ export function PromoBar() {
       role="region"
       aria-label={isFr ? "Offre de lancement" : "Launch offer"}
     >
-      <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-3 sm:px-6 py-2 text-xs sm:text-sm">
+      <div className="mx-auto flex max-w-7xl items-center justify-between gap-2 sm:gap-3 px-3 sm:px-6 py-2 text-xs sm:text-sm">
         <div className="flex min-w-0 items-center gap-2 sm:gap-3">
           <span className="truncate font-semibold">
-            {isFr
-              ? "Offre lancement Pro à 9,90€ le 1er mois"
-              : "Pro launch offer at 9.90€ first month"}
+            {/* Shorter copy on mobile so the message doesn't get truncated next to the countdown + button */}
+            <span className="sm:hidden">
+              {isFr ? "Pro à 9,90€ le 1er mois" : "Pro at 9.90€ first month"}
+            </span>
+            <span className="hidden sm:inline">
+              {isFr
+                ? "Offre lancement Pro à 9,90€ le 1er mois"
+                : "Pro launch offer at 9.90€ first month"}
+            </span>
           </span>
           <span className="hidden sm:inline opacity-80">|</span>
           <span className="hidden font-mono tabular-nums opacity-95 sm:inline">
@@ -91,7 +97,7 @@ export function PromoBar() {
         </div>
 
         <div className="flex shrink-0 items-center gap-2 sm:gap-3">
-          <span className="font-mono tabular-nums opacity-90 sm:hidden">{remaining}</span>
+          <span className="font-mono tabular-nums opacity-90 text-[11px] sm:hidden">{remaining}</span>
           <button
             type="button"
             onClick={handleCta}

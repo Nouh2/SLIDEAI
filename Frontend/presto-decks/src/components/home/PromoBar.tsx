@@ -78,11 +78,16 @@ export function PromoBar() {
       aria-label={isFr ? "Offre de lancement" : "Launch offer"}
     >
       <div className="mx-auto flex max-w-7xl items-center justify-between gap-2 sm:gap-3 px-3 sm:px-6 py-2 text-xs sm:text-sm">
-        {/* Left: full message — truncates only on the smallest screens */}
+        {/* Left: medium-length message on mobile, full version from sm+ */}
         <span className="min-w-0 truncate font-semibold">
-          {isFr
-            ? "Offre lancement Pro à 9,90€ le 1er mois"
-            : "Pro launch offer at 9.90€ first month"}
+          <span className="sm:hidden">
+            {isFr ? "Offre Pro à 9,90€ le 1er mois" : "Pro offer at 9.90€ first month"}
+          </span>
+          <span className="hidden sm:inline">
+            {isFr
+              ? "Offre lancement Pro à 9,90€ le 1er mois"
+              : "Pro launch offer at 9.90€ first month"}
+          </span>
         </span>
 
         {/* Right: countdown + CTA */}

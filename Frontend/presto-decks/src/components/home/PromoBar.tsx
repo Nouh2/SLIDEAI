@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { Sparkles, ArrowRight } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { Analytics, ANALYTICS_EVENTS } from "@/lib/analytics";
 
 /**
@@ -69,15 +69,16 @@ export function PromoBar() {
     <div
       className="relative z-40 w-full text-white"
       style={{
+        // Brand-only gradient: primary cyan -> deep navy (both colors already
+        // used elsewhere on the site — testimonial band, isometric illustrations).
         background:
-          "linear-gradient(90deg, hsl(var(--primary)) 0%, #2563EB 50%, #7C3AED 100%)",
+          "linear-gradient(90deg, hsl(var(--primary)) 0%, #0B2545 100%)",
       }}
       role="region"
       aria-label={isFr ? "Offre de lancement" : "Launch offer"}
     >
       <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-3 sm:px-6 py-2 text-xs sm:text-sm">
         <div className="flex min-w-0 items-center gap-2 sm:gap-3">
-          <Sparkles className="h-3.5 w-3.5 shrink-0 sm:h-4 sm:w-4" />
           <span className="truncate font-semibold">
             {isFr
               ? "Offre lancement Pro à 9,90€ le 1er mois"

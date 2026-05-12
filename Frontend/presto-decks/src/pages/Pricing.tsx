@@ -79,12 +79,10 @@ export default function Pricing() {
 
   const isPackActive = isPackSubscription(subscription);
   const packCreditsRemaining = subscription?.packCreditsRemaining ?? 0;
-  const isPaidProSubscription = Boolean(
-    subscription?.plan === "pro" &&
-    subscription?.stripeSubscriptionId &&
-    !isTrialingSubscription(subscription) &&
-    !isExpiredTrialSubscription(subscription)
-  );
+  const isTrialing = isTrialingSubscription(subscription);
+  const isExpired = isExpiredTrialSubscription(subscription);
+  const hasActiveProAccess = Boolean(subscription?.plan === "pro" && !isTrialing && !isExpired);
+  const isPaidProSubscription = Boolean(hasActiveProAccess && subscription?.stripeSubscriptionId);
 
   const buildPricingReturnPath = (updates: Record<string, string>) => {
     const params = new URLSearchParams(searchParams);
@@ -133,13 +131,13 @@ export default function Pricing() {
   }, [shouldAutoStartTrial, user, autoTrialStarted, subscription?.canStartTrial]);
 
   useEffect(() => {
-    if (!shouldAutoStartIntroCheckout || !user || autoCheckoutStarted || isPaidProSubscription) {
+    if (!shouldAutoStartIntroCheckout || !user || autoCheckoutStarted || hasActiveProAccess) {
       return;
     }
 
     setAutoCheckoutStarted(true);
     handleSubscribe("pro");
-  }, [shouldAutoStartIntroCheckout, user, autoCheckoutStarted, isPaidProSubscription]);
+  }, [shouldAutoStartIntroCheckout, user, autoCheckoutStarted, hasActiveProAccess]);
 
   const handleSubscribe = async (planKey: "pro" | "business") => {
     Analytics.trackEvent(ANALYTICS_EVENTS.ECOMMERCE.CATEGORY, ANALYTICS_EVENTS.ECOMMERCE.SELECT_PLAN, planKey);
@@ -217,13 +215,22 @@ export default function Pricing() {
   };
 
   const handleCancelSubscription = async () => {
-    if (!isPaidProSubscription) {
+    if (!hasActiveProAccess) {
       if (isTrialingSubscription(subscription)) {
         await handleSubscribe("pro");
         return;
       }
 
       navigate("/pricing?checkout=pro_intro");
+      return;
+    }
+
+    if (!isPaidProSubscription) {
+      toast.error(
+        t("pricing.errors.noStripeSubscription", {
+          defaultValue: "Ce compte Pro n'a pas d'abonnement Stripe actif à annuler.",
+        })
+      );
       return;
     }
 
@@ -282,9 +289,7 @@ export default function Pricing() {
     }
   };
 
-  const isTrialing = isTrialingSubscription(subscription);
-  const isExpired = isExpiredTrialSubscription(subscription);
-  const isCurrentPro = isPaidProSubscription;
+  const isCurrentPro = hasActiveProAccess;
   const isCurrentBusiness = Boolean(subscription?.plan === "business" && subscription?.stripeSubscriptionId && !isExpired);
   const canShowTrialCta = !user || Boolean(subscription?.canStartTrial);
 

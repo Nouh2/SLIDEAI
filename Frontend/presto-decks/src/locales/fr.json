@@ -1286,6 +1286,7 @@
       "generic": "Une erreur est survenue.",
       "cancelConfirm": "Êtes-vous sûr de vouloir annuler votre abonnement ?",
       "cancel": "Erreur lors de l'annulation de l'abonnement.",
+      "noStripeSubscription": "Ce compte Pro n'a pas d'abonnement Stripe actif à annuler.",
       "packNotFound": "Pack introuvable."
     },
     "success": {

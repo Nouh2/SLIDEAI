@@ -13,7 +13,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 const DEFAULT_PROJECT_REF = 'dntcdhabtctfbylynlcr';
-const CONFIRMATION_SUBJECT = 'Connectez-vous \u00e0 votre compte SlideAI';
+const CONFIRMATION_SUBJECT = 'Confirmez votre compte SlideAI';
 
 function requireEnv(name: 'SUPABASE_ACCESS_TOKEN') {
   const value = process.env[name];

@@ -1308,6 +1308,7 @@
       "generic": "An error occurred.",
       "cancelConfirm": "Are you sure you want to cancel your subscription?",
       "cancel": "Error cancelling subscription.",
+      "alreadyPro": "Your account is already Pro.",
       "noStripeSubscription": "This Pro account has no active Stripe subscription to cancel.",
       "packNotFound": "Pack not found."
     },

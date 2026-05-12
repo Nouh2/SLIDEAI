@@ -60,18 +60,27 @@ const PACK_CHECKOUT_VALUE_BY_KEY: Record<string, number> = {
   "Pack Trimestre": 39,
 };
 
+const isActiveProSubscription = (candidate: any) =>
+  Boolean(
+    (candidate?.accessState === "active_paid" && candidate?.effectivePlan === "pro") ||
+      (candidate?.plan === "pro" &&
+        !isTrialingSubscription(candidate) &&
+        !isExpiredTrialSubscription(candidate))
+  );
+
 export default function Pricing() {
   const { t } = useTranslation();
   const [billingCycle, setBillingCycle] = useState<"monthly" | "yearly">("monthly");
   const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
   const [loadingPack, setLoadingPack] = useState<string | null>(null);
   const [subscription, setSubscription] = useState<any>(null);
+  const [subscriptionLoading, setSubscriptionLoading] = useState(true);
   const [autoTrialStarted, setAutoTrialStarted] = useState(false);
   const [autoCheckoutStarted, setAutoCheckoutStarted] = useState(false);
   const [isComparisonExpanded, setIsComparisonExpanded] = useState(false);
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const promotionCode = searchParams.get("promo")?.trim() || "";
   const shouldAutoStartTrial = searchParams.get("startTrial") === "1";
   const shouldAutoStartIntroCheckout = searchParams.get("checkout") === "pro_intro";
@@ -81,8 +90,9 @@ export default function Pricing() {
   const packCreditsRemaining = subscription?.packCreditsRemaining ?? 0;
   const isTrialing = isTrialingSubscription(subscription);
   const isExpired = isExpiredTrialSubscription(subscription);
-  const hasActiveProAccess = Boolean(subscription?.plan === "pro" && !isTrialing && !isExpired);
+  const hasActiveProAccess = isActiveProSubscription(subscription);
   const isPaidProSubscription = Boolean(hasActiveProAccess && subscription?.stripeSubscriptionId);
+  const isPricingStateLoading = authLoading || Boolean(user && subscriptionLoading);
 
   const buildPricingReturnPath = (updates: Record<string, string>) => {
     const params = new URLSearchParams(searchParams);
@@ -108,16 +118,30 @@ export default function Pricing() {
   };
 
   useEffect(() => {
+    if (authLoading) return;
+
     const fetchSubscription = async () => {
       const { data: { session } } = await supabase.auth.getSession();
-      if (!session) return;
+      if (!session) {
+        setSubscription(null);
+        setSubscriptionLoading(false);
+        return;
+      }
+
+      setSubscriptionLoading(true);
       try {
         await refreshSubscription(session.access_token);
       } catch (error) {
         console.error("Error fetching subscription:", error);
+      } finally {
+        setSubscriptionLoading(false);
       }
     };
+
     fetchSubscription();
+  }, [authLoading, user?.id]);
+
+  useEffect(() => {
     Analytics.trackEvent(ANALYTICS_EVENTS.ECOMMERCE.CATEGORY, ANALYTICS_EVENTS.ECOMMERCE.VIEW_PRICING);
   }, []);
 
@@ -131,13 +155,13 @@ export default function Pricing() {
   }, [shouldAutoStartTrial, user, autoTrialStarted, subscription?.canStartTrial]);
 
   useEffect(() => {
-    if (!shouldAutoStartIntroCheckout || !user || autoCheckoutStarted || hasActiveProAccess) {
+    if (!shouldAutoStartIntroCheckout || !user || autoCheckoutStarted || isPricingStateLoading || hasActiveProAccess) {
       return;
     }
 
     setAutoCheckoutStarted(true);
     handleSubscribe("pro");
-  }, [shouldAutoStartIntroCheckout, user, autoCheckoutStarted, hasActiveProAccess]);
+  }, [shouldAutoStartIntroCheckout, user, autoCheckoutStarted, isPricingStateLoading, hasActiveProAccess]);
 
   const handleSubscribe = async (planKey: "pro" | "business") => {
     Analytics.trackEvent(ANALYTICS_EVENTS.ECOMMERCE.CATEGORY, ANALYTICS_EVENTS.ECOMMERCE.SELECT_PLAN, planKey);
@@ -156,6 +180,18 @@ export default function Pricing() {
         toast.error(t("auth.noAccount"));
         redirectToAuth();
         return;
+      }
+
+      if (planKey === "pro") {
+        const latestSubscription = await refreshSubscription(session.access_token);
+        if (isActiveProSubscription(latestSubscription)) {
+          toast.error(
+            t("pricing.errors.alreadyPro", {
+              defaultValue: "Votre compte est déjà Pro.",
+            })
+          );
+          return;
+        }
       }
 
       const priceId = STRIPE_PRICE_IDS[planKey][billingCycle];
@@ -291,7 +327,7 @@ export default function Pricing() {
 
   const isCurrentPro = hasActiveProAccess;
   const isCurrentBusiness = Boolean(subscription?.plan === "business" && subscription?.stripeSubscriptionId && !isExpired);
-  const canShowTrialCta = !user || Boolean(subscription?.canStartTrial);
+  const canShowTrialCta = !authLoading && (!user || (!subscriptionLoading && Boolean(subscription?.canStartTrial)));
 
   const proPrice = billingCycle === "yearly" ? "14€" : "9,90€";
   const businessPrice = billingCycle === "yearly" ? "24€" : "29€";
@@ -634,9 +670,16 @@ export default function Pricing() {
                   <Button
                     className="w-full rounded-xl font-bold h-12 shadow-lg shadow-primary/20"
                     onClick={() => handleSubscribe("pro")}
-                    disabled={loadingPlan === "pro"}
+                    disabled={loadingPlan === "pro" || isPricingStateLoading}
                   >
-                    {loadingPlan === "pro" ? <Loader2 className="h-4 w-4 animate-spin" /> : proCtaLabel}
+                    {loadingPlan === "pro" || isPricingStateLoading ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        {t("common.loading")}
+                      </>
+                    ) : (
+                      proCtaLabel
+                    )}
                   </Button>
                 ) : isCurrentPro ? (
                   <Button
@@ -651,10 +694,13 @@ export default function Pricing() {
                   <Button
                     className="w-full rounded-xl font-bold h-12 shadow-lg shadow-primary/20"
                     onClick={() => handleSubscribe("pro")}
-                    disabled={loadingPlan === "pro"}
+                    disabled={loadingPlan === "pro" || isPricingStateLoading}
                   >
-                    {loadingPlan === "pro" ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
+                    {loadingPlan === "pro" || isPricingStateLoading ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        {t("common.loading")}
+                      </>
                     ) : (
                       proCtaLabel
                     )}

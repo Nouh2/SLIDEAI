@@ -66,6 +66,12 @@ export default function BrandKitPage() {
                     title="Brand Kit — disponible avec Pro"
                     description="Enregistrez vos couleurs, polices et logos pour toutes vos présentations. Idéal pour les agences qui gèrent plusieurs clients : appliquez une charte graphique différente en un clic sur chaque deck."
                     cta="Passer à Pro"
+                    analyticsContext={{
+                        surface: "brand_kit_page",
+                        reason: "feature_locked",
+                        feature: "brand_kit",
+                        plan: "pro",
+                    }}
                     onUpgrade={() => navigate("/pricing")}
                 />
             )}

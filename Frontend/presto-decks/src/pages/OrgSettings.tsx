@@ -114,6 +114,12 @@ export default function OrgSettings() {
                     title="Team workspace required"
                     description="Organization creation and member management are available on the Team plan."
                     cta="View plans"
+                    analyticsContext={{
+                        surface: "org_settings",
+                        reason: "feature_locked",
+                        feature: "team_workspace",
+                        plan: "business",
+                    }}
                     onUpgrade={() => navigate("/pricing")}
                 />
             </div>

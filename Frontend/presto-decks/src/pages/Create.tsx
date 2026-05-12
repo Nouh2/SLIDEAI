@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -19,15 +19,21 @@ import { supabase } from "@/contexts/AuthContext";
 import { OutOfCreditsModal } from "@/components/OutOfCreditsModal";
 import { Analytics, ANALYTICS_EVENTS } from "@/lib/analytics";
 import { hasFeature } from "@/lib/subscription";
+import { ACTIVATION_USE_CASES, ActivationUseCaseId, getActivationUseCase } from "@/lib/activation";
 
 
 
 
 export default function Create() {
-    const [step, setStep] = useState<'template' | 'customize' | 'storyboard' | 'document-structure'>("template");
+    const initialParams = new URLSearchParams(window.location.search);
+    const [step, setStep] = useState<'activation' | 'template' | 'customize' | 'storyboard' | 'document-structure'>(
+        initialParams.get("onboarding") === "1" && !initialParams.get("activation") ? "activation" : "template"
+    );
     const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
     const [vision, setVision] = useState("");
+    const [activationUseCase, setActivationUseCase] = useState<ActivationUseCaseId | null>(null);
     const { t, i18n } = useTranslation();
+    const [searchParams, setSearchParams] = useSearchParams();
 
     const [contentLanguage, setContentLanguage] = useState<string>(i18n.language === 'fr' ? 'fr' : i18n.language === 'es' ? 'es' : 'en');
 
@@ -50,6 +56,30 @@ export default function Create() {
     const { toast } = useToast();
     const canUseBrandKit = hasFeature(subscription, "brand_kit");
 
+    const applyActivationUseCase = (id: ActivationUseCaseId, surface: string) => {
+        const useCase = getActivationUseCase(id);
+        if (!useCase) return;
+
+        setActivationUseCase(useCase.id);
+        setSelectedTemplate(useCase.templateId);
+        setVision((current) => current.trim() ? current : useCase.prompt);
+        setSlides([useCase.slideCount]);
+        setStep("customize");
+
+        const nextParams = new URLSearchParams(searchParams);
+        nextParams.set("activation", useCase.id);
+        nextParams.delete("onboarding");
+        setSearchParams(nextParams, { replace: true });
+
+        Analytics.trackActivationStep({
+            step: "activation_use_case_selected",
+            surface,
+            useCase: useCase.id,
+            templateId: useCase.templateId,
+            slideCount: useCase.slideCount,
+        });
+    };
+
     useEffect(() => {
         const loadSubscription = async () => {
             const { data: { session } } = await supabase.auth.getSession();
@@ -67,6 +97,25 @@ export default function Create() {
 
         loadSubscription();
     }, []);
+
+    useEffect(() => {
+        const requestedUseCase = getActivationUseCase(searchParams.get("activation"));
+        if (!requestedUseCase || activationUseCase === requestedUseCase.id) return;
+
+        setActivationUseCase(requestedUseCase.id);
+        setSelectedTemplate(requestedUseCase.templateId);
+        setVision((current) => current.trim() ? current : requestedUseCase.prompt);
+        setSlides([requestedUseCase.slideCount]);
+        setStep("customize");
+
+        Analytics.trackActivationStep({
+            step: "activation_onboarding_started",
+            surface: "create_url",
+            useCase: requestedUseCase.id,
+            templateId: requestedUseCase.templateId,
+            slideCount: requestedUseCase.slideCount,
+        });
+    }, [searchParams, activationUseCase]);
 
     useEffect(() => {
         if (!canUseBrandKit && selectedBrandKit) {
@@ -172,6 +221,14 @@ export default function Create() {
         try {
             setIsGenerating(true);
             Analytics.trackEvent(ANALYTICS_EVENTS.PRESENTATION.CATEGORY, ANALYTICS_EVENTS.PRESENTATION.GENERATE_START);
+            Analytics.trackActivationStep({
+                step: "create_started",
+                surface: "document_structure",
+                useCase: activationUseCase,
+                templateId: selectedTemplate,
+                slideCount: selection.totalSlides,
+                hasFile: true,
+            });
 
             const { data: { session } } = await supabase.auth.getSession();
             if (!session) {
@@ -223,7 +280,7 @@ export default function Create() {
                 description: t('create.redirecting'),
             });
 
-            navigate(`/editor/${traceId}`);
+            navigate(`/editor/${traceId}${activationUseCase ? `?activation=${activationUseCase}` : ""}`);
             Analytics.trackEvent(ANALYTICS_EVENTS.PRESENTATION.CATEGORY, ANALYTICS_EVENTS.PRESENTATION.GENERATE_COMPLETE);
         } catch (e: any) {
             const errorMessage = e?.message ?? t('create.errorGenerating');
@@ -268,6 +325,14 @@ export default function Create() {
         try {
             setIsGenerating(true);
             Analytics.trackEvent(ANALYTICS_EVENTS.PRESENTATION.CATEGORY, ANALYTICS_EVENTS.PRESENTATION.GENERATE_START);
+            Analytics.trackActivationStep({
+                step: "create_started",
+                surface: "prompt_storyboard",
+                useCase: activationUseCase,
+                templateId: selectedTemplate,
+                slideCount: storyboard?.totalSlides || slides[0],
+                hasFile: Boolean(attachedFile),
+            });
 
             // Get current session for auth token
             const { data: { session } } = await supabase.auth.getSession();
@@ -331,7 +396,7 @@ export default function Create() {
                 description: t('create.redirecting'),
             });
 
-            navigate(`/editor/${traceId}`);
+            navigate(`/editor/${traceId}${activationUseCase ? `?activation=${activationUseCase}` : ""}`);
             Analytics.trackEvent(ANALYTICS_EVENTS.PRESENTATION.CATEGORY, ANALYTICS_EVENTS.PRESENTATION.GENERATE_COMPLETE);
         } catch (e: any) {
             // Check if this is a credit limit error
@@ -383,7 +448,56 @@ export default function Create() {
                 </div>
 
                 <AnimatePresence mode="wait">
-                    {step === 'document-structure' && parsedDocument?.document ? (
+                    {step === 'activation' ? (
+                        <motion.div
+                            key="activation"
+                            initial={{ opacity: 0, y: 18 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, x: -20 }}
+                            className="mx-auto max-w-5xl space-y-6"
+                        >
+                            <div className="text-center space-y-3">
+                                <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-xs font-bold text-primary">
+                                    <Sparkles className="h-3.5 w-3.5" />
+                                    Premier deck utile
+                                </div>
+                                <h1 className="text-4xl md:text-5xl font-bold">
+                                    Choisissez un cas concret
+                                </h1>
+                                <p className="mx-auto max-w-2xl text-muted-foreground">
+                                    SlideAI va pre-remplir le brief, le style et le nombre de slides pour vous faire arriver plus vite au resultat.
+                                </p>
+                            </div>
+
+                            <div className="grid gap-4 md:grid-cols-2">
+                                {ACTIVATION_USE_CASES.map((item) => (
+                                    <button
+                                        key={item.id}
+                                        type="button"
+                                        onClick={() => applyActivationUseCase(item.id, "create_onboarding")}
+                                        className="group rounded-2xl border border-border bg-white p-5 text-left shadow-sm transition hover:-translate-y-1 hover:border-primary/60 hover:shadow-lg"
+                                    >
+                                        <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                                            {item.id === "pdf_to_powerpoint" ? <FileText className="h-5 w-5" /> : <Wand2 className="h-5 w-5" />}
+                                        </div>
+                                        <h3 className="text-lg font-bold text-foreground group-hover:text-primary">{item.title}</h3>
+                                        <p className="mt-2 text-sm text-muted-foreground">{item.description}</p>
+                                        <div className="mt-4 flex items-center justify-between text-xs font-semibold text-muted-foreground">
+                                            <span>{item.slideCount} slides</span>
+                                            <span>{getTemplateById(item.templateId)?.name}</span>
+                                        </div>
+                                    </button>
+                                ))}
+                            </div>
+
+                            <div className="flex justify-center">
+                                <Button variant="ghost" onClick={() => setStep("template")}>
+                                    Partir d'un template
+                                    <ArrowRight className="ml-2 h-4 w-4" />
+                                </Button>
+                            </div>
+                        </motion.div>
+                    ) : step === 'document-structure' && parsedDocument?.document ? (
                         <motion.div
                             key="document-structure"
                             initial={{ opacity: 0, x: 20 }}

@@ -74,6 +74,37 @@ export interface JobStatusResponse {
   newPresentationId?: string;
 }
 
+export interface CheckoutSessionSummary {
+  id: string;
+  mode: string | null;
+  status: string | null;
+  paymentStatus: string | null;
+  amountTotal: number | null;
+  currency: string | null;
+  clientReferenceId: string | null;
+  plan: string | null;
+  packType: string | null;
+  introOffer: string | null;
+  attribution: {
+    source: string | null;
+    medium: string | null;
+    campaign: string | null;
+    content: string | null;
+    term: string | null;
+    emailId: string | null;
+    emailType: string | null;
+  } | null;
+  priceId: string | null;
+  productName: string | null;
+}
+
+export interface LifecycleEmailClickRequest {
+  emailTrackingId: string;
+  emailType?: string | null;
+  landingPath?: string | null;
+  attribution?: Record<string, string | undefined | null>;
+}
+
 // ========== SMART REPORT PARSING TYPES ==========
 export interface DocumentSection {
   id: string;
@@ -699,6 +730,25 @@ export const api = {
     return response.json();
   },
 
+  async getCheckoutSession(sessionId: string, accessToken: string): Promise<CheckoutSessionSummary> {
+    const response = await fetch(`${API_BASE_URL}/subscription/checkout-session/${encodeURIComponent(sessionId)}`, {
+      headers: buildHeaders(accessToken),
+    });
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({ message: 'Impossible de charger la session Stripe' }));
+      throw new Error(err.message || 'Impossible de charger la session Stripe');
+    }
+    return response.json();
+  },
+
+  async recordLifecycleEmailClick(payload: LifecycleEmailClickRequest): Promise<void> {
+    await fetch(`${API_BASE_URL}/subscription/email-click`, {
+      method: 'POST',
+      headers: buildHeaders(undefined, 'application/json'),
+      body: JSON.stringify(payload),
+    });
+  },
+
   async saveHearAboutUs(source: string, accessToken: string): Promise<void> {
     await fetch(`${API_BASE_URL}/subscription/hear-about-us`, {
       method: 'POST',
@@ -967,6 +1017,22 @@ export const api = {
       headers: buildHeaders(accessToken),
     });
     if (!response.ok) throw new Error('Impossible de charger les logs email');
+    return response.json();
+  },
+
+  async getOpsEmailFunnel(accessToken: string, days = 30): Promise<any> {
+    const response = await fetch(`${API_BASE_URL}/ops/email-funnel?days=${days}`, {
+      headers: buildHeaders(accessToken),
+    });
+    if (!response.ok) throw new Error('Impossible de charger le funnel email');
+    return response.json();
+  },
+
+  async getOpsActivationFunnel(accessToken: string, days = 30): Promise<any> {
+    const response = await fetch(`${API_BASE_URL}/ops/activation-funnel?days=${days}`, {
+      headers: buildHeaders(accessToken),
+    });
+    if (!response.ok) throw new Error('Impossible de charger le funnel activation');
     return response.json();
   },
 

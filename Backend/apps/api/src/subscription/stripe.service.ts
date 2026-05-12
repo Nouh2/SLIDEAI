@@ -11,6 +11,16 @@ const STRIPE_PRICE_PLAN_BY_ID: Record<string, 'starter' | 'pro' | 'business'> = 
     price_1Sn5KK5KgGKgF82eSgoyWSnS: 'business',
 };
 
+export type CheckoutAttribution = {
+    source?: string | null;
+    medium?: string | null;
+    campaign?: string | null;
+    content?: string | null;
+    term?: string | null;
+    emailId?: string | null;
+    emailType?: string | null;
+};
+
 @Injectable()
 export class StripeService implements OnModuleInit {
     private stripe!: Stripe;
@@ -41,6 +51,7 @@ export class StripeService implements OnModuleInit {
         stripeCustomerId?: string | null,
         promotionCode?: string,
         introOffer?: boolean,
+        attribution?: CheckoutAttribution,
     ) {
         if (!this.stripe) throw new Error('Stripe is not initialized');
 
@@ -69,6 +80,7 @@ export class StripeService implements OnModuleInit {
             metadata: {
                 plan,
                 ...(introCouponId ? { introOffer: 'first_month_990' } : {}),
+                ...this.buildAttributionMetadata(attribution),
             },
             allow_promotion_codes: !appliedPromotionCodeId && !introCouponId,
             ...(appliedPromotionCodeId ? { discounts: [{ promotion_code: appliedPromotionCodeId }] } : {}),
@@ -91,7 +103,7 @@ export class StripeService implements OnModuleInit {
     /**
      * Creates a checkout session for a one-time credit pack purchase.
      */
-    async createCreditPackCheckout(userId: string, userEmail: string, priceId: string, packType: string, origin?: string) {
+    async createCreditPackCheckout(userId: string, userEmail: string, priceId: string, packType: string, origin?: string, attribution?: CheckoutAttribution) {
         if (!this.stripe) throw new Error('Stripe is not initialized');
 
         // Use the request origin if permitted (handled by CORS in main.ts), otherwise fallback to env
@@ -108,15 +120,24 @@ export class StripeService implements OnModuleInit {
             mode: 'payment', // One-time payment, not subscription
             customer_email: userEmail,
             client_reference_id: userId,
-            success_url: `${frontendUrl}/app?pack_success=true`,
+            success_url: `${frontendUrl}/app?pack_success=true&session_id={CHECKOUT_SESSION_ID}`,
             cancel_url: `${frontendUrl}/pricing`,
             metadata: {
                 packType,
+                ...this.buildAttributionMetadata(attribution),
             },
             allow_promotion_codes: true,
         });
 
         return { url: session.url };
+    }
+
+    async getCheckoutSession(sessionId: string) {
+        if (!this.stripe) throw new Error('Stripe is not initialized');
+
+        return this.stripe.checkout.sessions.retrieve(sessionId, {
+            expand: ['line_items.data.price.product'],
+        });
     }
 
     /**
@@ -190,6 +211,28 @@ export class StripeService implements OnModuleInit {
 
     isReady() {
         return Boolean(this.stripe);
+    }
+
+    private buildAttributionMetadata(attribution?: CheckoutAttribution) {
+        if (!attribution) return {};
+
+        const metadata: Record<string, string> = {};
+        const entries: Array<[string, string | null | undefined]> = [
+            ['utm_source', attribution.source],
+            ['utm_medium', attribution.medium],
+            ['utm_campaign', attribution.campaign],
+            ['utm_content', attribution.content],
+            ['utm_term', attribution.term],
+            ['email_id', attribution.emailId],
+            ['email_type', attribution.emailType],
+        ];
+
+        for (const [key, value] of entries) {
+            const normalized = typeof value === 'string' ? value.trim().slice(0, 500) : '';
+            if (normalized) metadata[key] = normalized;
+        }
+
+        return metadata;
     }
 
     async findActiveSubscriptionByEmail(email: string): Promise<{

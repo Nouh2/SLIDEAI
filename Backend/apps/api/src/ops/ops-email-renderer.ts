@@ -1428,6 +1428,7 @@ export function buildTrialEmailContent(params: {
   const bundled = buildBundledCampaignEmail(params.emailType, {
     createUrl: `${baseUrl}/create`,
     pricingUrl: `${baseUrl}/pricing`,
+    proIntroUrl: `${baseUrl}/pricing?checkout=pro_intro`,
     examplesUrl: `${baseUrl}/examples`,
     unsubscribeUrl: params.unsubscribeUrl || `${baseUrl}/unsubscribe`,
     privacyUrl: `${baseUrl}/privacy`,
@@ -1450,6 +1451,7 @@ export function buildTrialEmailContent(params: {
 type BundledUrls = {
   createUrl: string;
   pricingUrl: string;
+  proIntroUrl: string;
   examplesUrl: string;
   unsubscribeUrl: string;
   privacyUrl: string;
@@ -1489,19 +1491,20 @@ function buildBundledCampaignEmail(
   const templatePath = candidates.find((candidate) => existsSync(candidate));
   if (!templatePath) return null;
 
-  // CTA destination depends on the funnel stage: conversion-oriented emails
-  // point at /pricing (the launch offer), the rest send people back to /create.
+  // CTA destination depends on the funnel stage.
   const ctaUrl =
-    emailType === 'trial_ending_day6' ||
-    emailType === 'trial_expired' ||
-    emailType === 'inactive_21d_offer' ||
-    emailType === 'trial_winback_day2'
-      ? urls.pricingUrl
-      : urls.createUrl;
+    emailType === 'trial_ending_day6'
+      ? urls.proIntroUrl
+      : emailType === 'trial_expired' ||
+          emailType === 'inactive_21d_offer' ||
+          emailType === 'trial_winback_day2'
+        ? urls.pricingUrl
+        : urls.createUrl;
 
   const replacements: Record<string, string> = {
     '{{CTA_URL}}': ctaUrl,
     '{{PRICING_URL}}': urls.pricingUrl,
+    '{{PRO_INTRO_URL}}': urls.proIntroUrl,
     '{{UNSUBSCRIBE_URL}}': urls.unsubscribeUrl,
     '{{PRIVACY_URL}}': urls.privacyUrl,
     '{{PREFS_URL}}': urls.prefsUrl,

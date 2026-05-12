@@ -12,7 +12,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { BarChart3, Mail, Rocket, RefreshCcw, Send, ShieldCheck, Sparkles } from "lucide-react";
+import { BarChart3, Mail, MousePointerClick, RefreshCcw, Rocket, Send, ShieldCheck, Sparkles, Target, TrendingUp } from "lucide-react";
 
 type TemplateFormState = {
   subject: string;
@@ -123,19 +123,29 @@ function formatDate(value?: string | null) {
   return new Date(value).toLocaleString("fr-FR");
 }
 
+function formatPercent(value?: number) {
+  return `${Number(value || 0).toLocaleString("fr-FR", { maximumFractionDigits: 1 })}%`;
+}
+
 export default function OpsDashboard() {
   const { toast } = useToast();
   const [bootstrapping, setBootstrapping] = useState(true);
-  const [activeTab, setActiveTab] = useState<"overview" | "templates" | "flows" | "logs">("overview");
+  const [activeTab, setActiveTab] = useState<"overview" | "activation" | "funnel" | "templates" | "flows" | "logs">("overview");
   const [overview, setOverview] = useState<any>(null);
+  const [activationFunnel, setActivationFunnel] = useState<any>(null);
+  const [emailFunnel, setEmailFunnel] = useState<any>(null);
   const [templates, setTemplates] = useState<any[]>([]);
   const [flows, setFlows] = useState<any[]>([]);
   const [logs, setLogs] = useState<any[]>([]);
   const [overviewLoaded, setOverviewLoaded] = useState(false);
+  const [activationLoaded, setActivationLoaded] = useState(false);
+  const [funnelLoaded, setFunnelLoaded] = useState(false);
   const [templatesLoaded, setTemplatesLoaded] = useState(false);
   const [flowsLoaded, setFlowsLoaded] = useState(false);
   const [logsLoaded, setLogsLoaded] = useState(false);
   const [overviewLoading, setOverviewLoading] = useState(false);
+  const [activationLoading, setActivationLoading] = useState(false);
+  const [funnelLoading, setFunnelLoading] = useState(false);
   const [templatesLoading, setTemplatesLoading] = useState(false);
   const [flowsLoading, setFlowsLoading] = useState(false);
   const [logsLoading, setLogsLoading] = useState(false);
@@ -149,6 +159,7 @@ export default function OpsDashboard() {
   const [savingTemplate, setSavingTemplate] = useState(false);
   const [publishingTemplate, setPublishingTemplate] = useState(false);
   const [sendingTest, setSendingTest] = useState(false);
+  const [funnelDays, setFunnelDays] = useState("30");
 
   const selectedFlowNames = useMemo(
     () => new Map(flows.map((flow) => [flow.slug, flow.name])),
@@ -162,6 +173,18 @@ export default function OpsDashboard() {
   useEffect(() => {
     void loadTabData(activeTab);
   }, [activeTab]);
+
+  useEffect(() => {
+    if (activeTab === "activation") {
+      setActivationLoaded(false);
+      void loadActivationFunnelData();
+    }
+
+    if (activeTab === "funnel") {
+      setFunnelLoaded(false);
+      void loadFunnelData();
+    }
+  }, [funnelDays]);
 
   useEffect(() => {
     if (!selectedTemplate) {
@@ -185,9 +208,19 @@ export default function OpsDashboard() {
     setBootstrapping(false);
   };
 
-  const loadTabData = async (tab: "overview" | "templates" | "flows" | "logs") => {
+  const loadTabData = async (tab: "overview" | "activation" | "funnel" | "templates" | "flows" | "logs") => {
     if (tab === "overview" && !overviewLoaded && !overviewLoading) {
       await loadOverviewData();
+      return;
+    }
+
+    if (tab === "activation" && !activationLoaded && !activationLoading) {
+      await loadActivationFunnelData();
+      return;
+    }
+
+    if (tab === "funnel" && !funnelLoaded && !funnelLoading) {
+      await loadFunnelData();
       return;
     }
 
@@ -253,6 +286,44 @@ export default function OpsDashboard() {
     }
   };
 
+  const loadFunnelData = async () => {
+    setFunnelLoading(true);
+    try {
+      const accessToken = await getAccessToken();
+      if (!accessToken) return;
+      const data = await api.getOpsEmailFunnel(accessToken, Number(funnelDays));
+      setEmailFunnel(data);
+      setFunnelLoaded(true);
+    } catch (error: any) {
+      toast({
+        title: "Erreur funnel",
+        description: error.message || "Impossible de charger le funnel email.",
+        variant: "destructive",
+      });
+    } finally {
+      setFunnelLoading(false);
+    }
+  };
+
+  const loadActivationFunnelData = async () => {
+    setActivationLoading(true);
+    try {
+      const accessToken = await getAccessToken();
+      if (!accessToken) return;
+      const data = await api.getOpsActivationFunnel(accessToken, Number(funnelDays));
+      setActivationFunnel(data);
+      setActivationLoaded(true);
+    } catch (error: any) {
+      toast({
+        title: "Erreur activation",
+        description: error.message || "Impossible de charger le funnel activation.",
+        variant: "destructive",
+      });
+    } finally {
+      setActivationLoading(false);
+    }
+  };
+
   const loadFlowsData = async () => {
     setFlowsLoading(true);
     try {
@@ -294,6 +365,16 @@ export default function OpsDashboard() {
   const refreshActiveTab = async () => {
     if (activeTab === "overview") {
       await loadOverviewData();
+      return;
+    }
+
+    if (activeTab === "activation") {
+      await loadActivationFunnelData();
+      return;
+    }
+
+    if (activeTab === "funnel") {
+      await loadFunnelData();
       return;
     }
 
@@ -452,8 +533,10 @@ export default function OpsDashboard() {
       </div>
 
       <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as typeof activeTab)} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-6">
           <TabsTrigger value="overview">Vue globale</TabsTrigger>
+          <TabsTrigger value="activation">Activation</TabsTrigger>
+          <TabsTrigger value="funnel">Funnel</TabsTrigger>
           <TabsTrigger value="templates">Emails</TabsTrigger>
           <TabsTrigger value="flows">Flows</TabsTrigger>
           <TabsTrigger value="logs">Logs</TabsTrigger>
@@ -537,6 +620,217 @@ export default function OpsDashboard() {
                   ))}
                 </TableBody>
               </Table>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="activation" className="space-y-6">
+          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+            <div>
+              <h2 className="text-2xl font-bold tracking-tight text-zinc-950">Funnel activation produit</h2>
+              <p className="text-sm text-muted-foreground">
+                Essai, premier deck, export/partage, checkout et achat confirmÃ©.
+              </p>
+            </div>
+            <Select value={funnelDays} onValueChange={setFunnelDays}>
+              <SelectTrigger className="w-full md:w-[180px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="7">7 derniers jours</SelectItem>
+                <SelectItem value="30">30 derniers jours</SelectItem>
+                <SelectItem value="90">90 derniers jours</SelectItem>
+                <SelectItem value="180">180 derniers jours</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {activationLoading && !activationFunnel ? (
+            <Card>
+              <CardContent className="py-12 text-center text-muted-foreground">
+                Chargement du funnel activation...
+              </CardContent>
+            </Card>
+          ) : null}
+
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+            <MetricCard icon={Rocket} label="Essais dÃ©marrÃ©s" value={activationFunnel?.totals?.trialStarted ?? 0} />
+            <MetricCard icon={Target} label="ActivÃ©s" value={activationFunnel?.totals?.activated ?? 0} />
+            <MetricCard icon={TrendingUp} label="Trial -> paid" value={formatPercent(activationFunnel?.totals?.trialToPaidRate)} />
+            <MetricCard
+              icon={BarChart3}
+              label="Revenu attribuÃ©"
+              value={formatCurrency(activationFunnel?.totals?.revenueCents, activationFunnel?.totals?.currency)}
+            />
+          </div>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Etapes du funnel</CardTitle>
+              <CardDescription>
+                Les taux sont calculÃ©s en utilisateurs uniques sur la pÃ©riode choisie.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Etape</TableHead>
+                    <TableHead>Users</TableHead>
+                    <TableHead>Events</TableHead>
+                    <TableHead>Depuis Ã©tape prÃ©c.</TableHead>
+                    <TableHead>Depuis essai</TableHead>
+                    <TableHead>Drop-off</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {(activationFunnel?.stages || []).map((stage: any) => (
+                    <TableRow key={stage.eventName}>
+                      <TableCell>
+                        <div className="font-medium">{stage.label}</div>
+                        <div className="text-xs text-muted-foreground">{stage.eventName}</div>
+                      </TableCell>
+                      <TableCell>{stage.users}</TableCell>
+                      <TableCell>{stage.events}</TableCell>
+                      <TableCell>{formatPercent(stage.fromPrevious)}</TableCell>
+                      <TableCell>{formatPercent(stage.fromStart)}</TableCell>
+                      <TableCell>{formatPercent(stage.dropoffFromPrevious)}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Cas d'usage onboarding</CardTitle>
+              <CardDescription>Ce tableau montre quels raccourcis crÃ©ent vraiment de l'activation.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Cas d'usage</TableHead>
+                    <TableHead>SÃ©lectionnÃ©</TableHead>
+                    <TableHead>GÃ©nÃ©ration lancÃ©e</TableHead>
+                    <TableHead>Activation complÃ©tÃ©e</TableHead>
+                    <TableHead>Taux activation</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {(activationFunnel?.useCases || []).map((row: any) => (
+                    <TableRow key={row.useCase}>
+                      <TableCell className="font-medium">{row.useCase}</TableCell>
+                      <TableCell>{row.selected}</TableCell>
+                      <TableCell>{row.created}</TableCell>
+                      <TableCell>{row.completed}</TableCell>
+                      <TableCell>{formatPercent(row.selected ? (row.completed / row.selected) * 100 : 0)}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+              {activationFunnel?.useCases?.length === 0 ? (
+                <div className="py-10 text-center text-sm text-muted-foreground">
+                  Aucun cas d'usage trackÃ© sur cette fenÃªtre.
+                </div>
+              ) : null}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="funnel" className="space-y-6">
+          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+            <div>
+              <h2 className="text-2xl font-bold tracking-tight text-zinc-950">Funnel lifecycle email</h2>
+              <p className="text-sm text-muted-foreground">
+                Envoi, clic, conversion Stripe et revenu attribué depuis les liens email.
+              </p>
+            </div>
+            <Select value={funnelDays} onValueChange={setFunnelDays}>
+              <SelectTrigger className="w-full md:w-[180px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="7">7 derniers jours</SelectItem>
+                <SelectItem value="30">30 derniers jours</SelectItem>
+                <SelectItem value="90">90 derniers jours</SelectItem>
+                <SelectItem value="180">180 derniers jours</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {funnelLoading && !emailFunnel ? (
+            <Card>
+              <CardContent className="py-12 text-center text-muted-foreground">
+                Chargement du funnel email...
+              </CardContent>
+            </Card>
+          ) : null}
+
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+            <MetricCard icon={Mail} label="Emails envoyés" value={emailFunnel?.totals?.sent ?? 0} />
+            <MetricCard icon={MousePointerClick} label="Clics email" value={emailFunnel?.totals?.clicked ?? 0} />
+            <MetricCard icon={TrendingUp} label="Conversions" value={emailFunnel?.totals?.converted ?? 0} />
+            <MetricCard
+              icon={BarChart3}
+              label="Revenu attribué"
+              value={formatCurrency(emailFunnel?.totals?.revenueCents, emailFunnel?.totals?.currency)}
+            />
+          </div>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Performance par email</CardTitle>
+              <CardDescription>
+                Un clic ou une conversion est compté une seule fois par log email.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Email</TableHead>
+                    <TableHead>Flow</TableHead>
+                    <TableHead>Scheduled</TableHead>
+                    <TableHead>Sent</TableHead>
+                    <TableHead>Click rate</TableHead>
+                    <TableHead>Conv.</TableHead>
+                    <TableHead>Conv. rate</TableHead>
+                    <TableHead>Revenue</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {(emailFunnel?.items || []).map((row: any) => (
+                    <TableRow key={row.emailType}>
+                      <TableCell className="font-medium">{row.emailType}</TableCell>
+                      <TableCell>{selectedFlowNames.get(row.flowSlug) || row.flowSlug}</TableCell>
+                      <TableCell>{row.scheduled}</TableCell>
+                      <TableCell>
+                        <div className="font-medium">{row.sent}</div>
+                        <div className="text-xs text-muted-foreground">{formatPercent(row.sendRate)}</div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="font-medium">{row.clicked}</div>
+                        <div className="text-xs text-muted-foreground">{formatPercent(row.clickRate)}</div>
+                      </TableCell>
+                      <TableCell>{row.converted}</TableCell>
+                      <TableCell>{formatPercent(row.conversionRate)}</TableCell>
+                      <TableCell>
+                        <div className="font-medium">{formatCurrency(row.revenueCents, row.currency)}</div>
+                        <div className="text-xs text-muted-foreground">
+                          {formatCurrency(row.revenuePerSentCents, row.currency)} / envoyé
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+              {emailFunnel?.items?.length === 0 ? (
+                <div className="py-10 text-center text-sm text-muted-foreground">
+                  Aucun email lifecycle dans cette fenêtre.
+                </div>
+              ) : null}
             </CardContent>
           </Card>
         </TabsContent>

@@ -501,6 +501,7 @@ function buildTrialEmailContent(params: {
 }) {
   const appUrl = process.env.FRONTEND_URL || 'https://slideai.fr';
   const pricingUrl = `${appUrl.replace(/\/$/, '')}/pricing`;
+  const proIntroUrl = `${pricingUrl}?checkout=pro_intro`;
   const createUrl = `${appUrl.replace(/\/$/, '')}/create`;
   const daysLeft = Math.max(0, Math.ceil((new Date(params.trialEndsAt).getTime() - Date.now()) / DAY_MS));
 
@@ -517,13 +518,13 @@ function buildTrialEmailContent(params: {
       };
     case 'trial_value_day4':
       return {
-        subject: 'Continuez à profiter de votre essai Pro',
-        html: `<p>Vous avez déjà créé ${params.presentationCount} présentation(s) pendant l'essai.</p><p>Profitez du reste de votre accès Pro pour générer, exporter et livrer plus vite.</p><p><a href="${pricingUrl}">Voir l'offre Pro</a></p>`,
+        subject: 'Continuez avec Pro à 9,90 € le premier mois',
+        html: `<p>Vous avez déjà créé ${params.presentationCount} présentation(s) pendant l'essai.</p><p>Si SlideAI vous fait gagner du temps, gardez Pro à 9,90 € le premier mois, puis 19,90 €/mois.</p><p><a href="${proIntroUrl}">Garder Pro à 9,90 €</a></p>`,
       };
     case 'trial_ending_day6':
       return {
         subject: 'Votre essai SlideAI se termine demain',
-        html: `<p>Il vous reste environ ${daysLeft} jour avant la fin de votre essai Pro.</p><p>Si vous voulez garder l'accès complet, passez au plan Pro maintenant.</p><p><a href="${pricingUrl}">Passer à Pro</a></p>`,
+        html: `<p>Il vous reste environ ${daysLeft} jour avant la fin de votre essai Pro.</p><p>Pour garder l'accès complet sans coupure, passez à Pro à 9,90 € le premier mois. Si votre besoin est ponctuel, les packs restent disponibles.</p><p><a href="${proIntroUrl}">Garder Pro à 9,90 €</a></p>`,
       };
     case 'trial_expired':
       return {
@@ -531,13 +532,13 @@ function buildTrialEmailContent(params: {
           ? 'Votre essai Pro est terminé'
           : 'Votre essai Pro SlideAI est terminé',
         html: params.legacyFree
-          ? `<p>Votre essai Pro est terminé. Votre compte revient maintenant sur votre accès gratuit historique.</p><p>Pour retrouver toutes les fonctionnalités Pro, activez un abonnement.</p><p><a href="${pricingUrl}">Voir l'offre Pro</a></p>`
-          : `<p>Votre essai Pro est terminé et les nouvelles créations sont maintenant bloquées.</p><p>Activez l'abonnement Pro pour continuer à utiliser SlideAI.</p><p><a href="${pricingUrl}">Débloquer SlideAI</a></p>`,
+          ? `<p>Votre essai Pro est terminé. Votre compte reste accessible avec vos présentations existantes.</p><p>Pour générer et exporter sans interruption, choisissez Pro à 9,90 € le premier mois ou un pack ponctuel.</p><p><a href="${pricingUrl}">Voir les packs et Pro</a></p>`
+          : `<p>Votre essai Pro est terminé et les nouvelles créations sont maintenant bloquées.</p><p>Choisissez Pro à 9,90 € le premier mois ou un pack ponctuel pour continuer à utiliser SlideAI.</p><p><a href="${pricingUrl}">Débloquer SlideAI</a></p>`,
       };
     case 'trial_winback_day2':
       return {
-        subject: 'Offre de relance: -20% sur votre premier mois',
-        html: `<p>Vous pouvez reprendre SlideAI maintenant avec -20% sur votre premier mois.</p><p>Utilisez le code <strong>TRIAL20</strong> au checkout dans les prochaines 72 heures.</p><p><a href="${pricingUrl}">Activer mon offre</a></p>`,
+        subject: 'Reprenez SlideAI: Pro à 9,90 € ou Pack Mission',
+        html: `<p>Vous pouvez reprendre SlideAI maintenant avec Pro à 9,90 € le premier mois, puis 19,90 €/mois.</p><p>Si votre besoin est ponctuel, prenez plutôt un Pack Mission à 19 €.</p><p><a href="${pricingUrl}">Voir les options</a></p>`,
       };
     default:
       return null;
@@ -1714,6 +1715,7 @@ const lifecycleEmailWorker = new Worker(
         flowVersion,
         footerReason,
         firstName,
+        emailTrackingId,
       } = job.data as {
         userId: string;
         email: string;
@@ -1734,6 +1736,7 @@ const lifecycleEmailWorker = new Worker(
         flowSlug?: string;
         flowVersion?: number;
         footerReason?: string;
+        emailTrackingId?: string;
       };
 
     console.log(`\n========== LIFECYCLE EMAIL JOB: ${dedupeKey} ==========`);
@@ -1857,6 +1860,7 @@ const lifecycleEmailWorker = new Worker(
         legacyFree: Boolean(legacyFree),
         trialEndsAt: trialEndsAt || subscription.trialEndsAt || new Date().toISOString(),
         presentationCount,
+        emailTrackingId,
         winbackOffer,
         contentPatch: templatePatch,
         unsubscribeUrl,

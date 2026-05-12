@@ -53,7 +53,7 @@ export const isLegacySubscription = (
 
 export const getPlanDisplayKey = (
   subscription: SubscriptionSnapshot | null | undefined,
-): "starter" | "pro" | "business" | null => {
+): "pro" | "business" | null => {
   if (!subscription) {
     return null;
   }
@@ -70,10 +70,6 @@ export const getPlanDisplayKey = (
     return "pro";
   }
 
-  if (subscription.plan === "starter") {
-    return "starter";
-  }
-
   return null;
 };
 
@@ -85,8 +81,6 @@ export const getPlanRank = (
       return 3;
     case "pro":
       return 2;
-    case "starter":
-      return 1;
     default:
       return 0;
   }

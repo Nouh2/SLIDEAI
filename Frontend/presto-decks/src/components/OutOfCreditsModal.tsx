@@ -1,4 +1,4 @@
-import React from 'react';
+import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from "react-i18next";
 import {
@@ -10,7 +10,8 @@ import {
     DialogFooter,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Sparkles, CreditCard } from 'lucide-react';
+import { ArrowRight, CreditCard, Sparkles } from 'lucide-react';
+import { Analytics } from '@/lib/analytics';
 
 interface OutOfCreditsModalProps {
     isOpen: boolean;
@@ -21,13 +22,48 @@ export function OutOfCreditsModal({ isOpen, onClose }: OutOfCreditsModalProps) {
     const navigate = useNavigate();
     const { t } = useTranslation();
 
-    const handleGoToPricing = () => {
+    useEffect(() => {
+        if (!isOpen) return;
+        Analytics.trackPaywallViewed({
+            surface: 'out_of_credits_modal',
+            reason: 'generation_limit',
+            feature: 'ai_generation',
+        });
+    }, [isOpen]);
+
+    const handleStartPro = () => {
+        Analytics.trackPaywallCtaClicked({
+            surface: 'out_of_credits_modal',
+            reason: 'generation_limit',
+            feature: 'ai_generation',
+            plan: 'pro_intro',
+        });
+        onClose();
+        navigate('/pricing?checkout=pro_intro');
+    };
+
+    const handleViewPacks = () => {
+        Analytics.trackPaywallCtaClicked({
+            surface: 'out_of_credits_modal',
+            reason: 'generation_limit',
+            feature: 'ai_generation',
+            plan: 'pack',
+        });
         onClose();
         navigate('/pricing');
     };
 
+    const handleDismiss = () => {
+        Analytics.trackPaywallDismissed({
+            surface: 'out_of_credits_modal',
+            reason: 'generation_limit',
+            feature: 'ai_generation',
+        });
+        onClose();
+    };
+
     return (
-        <Dialog open={isOpen} onOpenChange={onClose}>
+        <Dialog open={isOpen} onOpenChange={(open) => { if (!open) handleDismiss(); }}>
             <DialogContent className="sm:max-w-md">
                 <DialogHeader className="text-center sm:text-center">
                     <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-primary/10">
@@ -64,14 +100,22 @@ export function OutOfCreditsModal({ isOpen, onClose }: OutOfCreditsModalProps) {
                     <Button
                         variant="solid"
                         className="w-full font-bold shadow-lg shadow-primary/20"
-                        onClick={handleGoToPricing}
+                        onClick={handleStartPro}
                     >
-                        {t('outOfCredits.seeOptions')}
+                        {t('outOfCredits.startPro')}
+                        <ArrowRight className="ml-2 h-4 w-4" />
+                    </Button>
+                    <Button
+                        variant="outline"
+                        className="w-full font-semibold"
+                        onClick={handleViewPacks}
+                    >
+                        {t('outOfCredits.seePacks')}
                     </Button>
                     <Button
                         variant="ghost"
                         className="w-full text-muted-foreground"
-                        onClick={onClose}
+                        onClick={handleDismiss}
                     >
                         {t('outOfCredits.later')}
                     </Button>

@@ -1,7 +1,9 @@
 // apps/api/src/subscription/subscription.controller.ts
-import { Controller, Get, Post, UseGuards, Req, Body, RawBodyRequest, Headers, ForbiddenException } from '@nestjs/common';
+import { Controller, Get, Post, UseGuards, Req, Body, Headers, ForbiddenException, Param } from '@nestjs/common';
 import { SubscriptionService } from './subscription.service.js';
 import { StripeService } from './stripe.service.js';
+import type { CheckoutAttribution } from './stripe.service.js';
+import { LifecycleEmailService } from './lifecycle-email.service.js';
 import { SupabaseGuard } from '../auth/supabase.guard.js';
 
 @Controller('/v1/subscription')
@@ -9,6 +11,7 @@ export class SubscriptionController {
     constructor(
         private readonly subscriptionService: SubscriptionService,
         private readonly stripeService: StripeService,
+        private readonly lifecycleEmailService: LifecycleEmailService,
     ) { }
 
     /**
@@ -23,6 +26,64 @@ export class SubscriptionController {
         return subscription;
     }
 
+    @Get('checkout-session/:sessionId')
+    @UseGuards(SupabaseGuard)
+    async getCheckoutSession(@Req() req: any, @Param('sessionId') sessionId: string) {
+        const session = await this.stripeService.getCheckoutSession(sessionId);
+
+        if (session.client_reference_id !== req.user.sub) {
+            throw new ForbiddenException('Session Stripe inaccessible pour cet utilisateur.');
+        }
+
+        const lineItem = session.line_items?.data?.[0];
+        const price = lineItem?.price;
+        const product = price?.product && typeof price.product !== 'string' && !price.product.deleted
+            ? price.product
+            : null;
+
+        return {
+            id: session.id,
+            mode: session.mode,
+            status: session.status,
+            paymentStatus: session.payment_status,
+            amountTotal: session.amount_total,
+            currency: session.currency,
+            clientReferenceId: session.client_reference_id,
+            plan: session.metadata?.plan || null,
+            packType: session.metadata?.packType || null,
+            introOffer: session.metadata?.introOffer || null,
+            attribution: {
+                source: session.metadata?.utm_source || null,
+                medium: session.metadata?.utm_medium || null,
+                campaign: session.metadata?.utm_campaign || null,
+                content: session.metadata?.utm_content || null,
+                term: session.metadata?.utm_term || null,
+                emailId: session.metadata?.email_id || null,
+                emailType: session.metadata?.email_type || null,
+            },
+            priceId: price?.id || null,
+            productName: product?.name || null,
+        };
+    }
+
+    @Post('email-click')
+    async recordEmailClick(
+        @Body() body: {
+            emailTrackingId?: string;
+            emailType?: string;
+            landingPath?: string;
+            attribution?: Record<string, string | undefined>;
+        },
+    ) {
+        const payload = body || {};
+        return this.lifecycleEmailService.recordEmailClick({
+            emailTrackingId: payload.emailTrackingId || '',
+            emailType: payload.emailType,
+            landingPath: payload.landingPath,
+            attribution: payload.attribution,
+        });
+    }
+
     /**
      * POST /subscription/checkout
      * Crée une session de paiement Stripe.
@@ -31,7 +92,7 @@ export class SubscriptionController {
     @UseGuards(SupabaseGuard)
     async createCheckout(
         @Req() req: any,
-        @Body() body: { priceId: string; plan: string; promotionCode?: string; introOffer?: boolean },
+        @Body() body: { priceId: string; plan: string; promotionCode?: string; introOffer?: boolean; attribution?: CheckoutAttribution },
         @Headers('origin') origin: string,
     ) {
         const userId = req.user.sub;
@@ -50,6 +111,7 @@ export class SubscriptionController {
             stripeCustomerId,
             body.promotionCode,
             body.introOffer,
+            body.attribution,
         );
     }
 
@@ -67,14 +129,14 @@ export class SubscriptionController {
      */
     @Post('checkout-pack')
     @UseGuards(SupabaseGuard)
-    async createPackCheckout(@Req() req: any, @Body() body: { priceId: string; packType: string }, @Headers('origin') origin: string) {
+    async createPackCheckout(@Req() req: any, @Body() body: { priceId: string; packType: string; attribution?: CheckoutAttribution }, @Headers('origin') origin: string) {
         const userId = req.user.sub;
         const userEmail = req.user.email;
 
         if (!body.priceId) throw new ForbiddenException('priceId is required');
         if (!body.packType) throw new ForbiddenException('packType is required');
 
-        return this.stripeService.createCreditPackCheckout(userId, userEmail, body.priceId, body.packType, origin);
+        return this.stripeService.createCreditPackCheckout(userId, userEmail, body.priceId, body.packType, origin, body.attribution);
     }
 
     /**

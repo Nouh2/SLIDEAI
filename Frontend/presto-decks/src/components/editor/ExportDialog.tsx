@@ -38,6 +38,7 @@ interface ExportDialogProps {
     onOpenChange: (open: boolean) => void;
     accessToken: string | null;
     subscription?: SubscriptionSnapshot | null;
+    activationUseCase?: string | null;
     presentation: {
         id?: string;
         title: string;
@@ -50,7 +51,7 @@ interface ExportDialogProps {
     };
 }
 
-export function ExportDialog({ open, onOpenChange, presentation, accessToken, subscription }: ExportDialogProps) {
+export function ExportDialog({ open, onOpenChange, presentation, accessToken, subscription, activationUseCase }: ExportDialogProps) {
     const [exportProgress, setExportProgress] = useState<ExportProgress | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [targetLanguage, setTargetLanguage] = useState<string>("original");
@@ -107,6 +108,31 @@ export function ExportDialog({ open, onOpenChange, presentation, accessToken, su
         }
     }, [open]);
 
+    const trackSuccessfulExport = useCallback((format: string) => {
+        Analytics.trackActivationStep({
+            step: "deck_exported",
+            surface: "export_dialog",
+            useCase: activationUseCase,
+            presentationId: presentation.id,
+            slideCount: presentation.slides.length,
+            format,
+        });
+
+        if (!presentation.id) return;
+        const activationKey = `slideai-activation-export-${presentation.id}`;
+        if (localStorage.getItem(activationKey)) return;
+        localStorage.setItem(activationKey, "tracked");
+
+        Analytics.trackActivationStep({
+            step: "activation_completed",
+            surface: "export_dialog",
+            useCase: activationUseCase,
+            presentationId: presentation.id,
+            slideCount: presentation.slides.length,
+            format,
+        });
+    }, [activationUseCase, presentation.id, presentation.slides.length]);
+
     const handlePDFExport = useCallback(async () => {
         if (!presentation || !hiddenSlidesRef.current) return;
 
@@ -159,6 +185,7 @@ export function ExportDialog({ open, onOpenChange, presentation, accessToken, su
             );
 
             Analytics.trackEvent(ANALYTICS_EVENTS.PRESENTATION.CATEGORY, ANALYTICS_EVENTS.PRESENTATION.EXPORT, 'PDF');
+            trackSuccessfulExport("pdf");
 
             // Keep success state visible briefly
             setTimeout(() => {
@@ -171,7 +198,7 @@ export function ExportDialog({ open, onOpenChange, presentation, accessToken, su
             setError(err.message || t('export.genericError'));
             setExportProgress(null);
         }
-    }, [presentation, onOpenChange]);
+    }, [presentation, onOpenChange, targetLanguage, accessToken, t, trackSuccessfulExport]);
 
     const handlePPTXExport = useCallback(async () => {
         if (!presentation || !hiddenSlidesRef.current) return;
@@ -230,6 +257,7 @@ export function ExportDialog({ open, onOpenChange, presentation, accessToken, su
             }
 
             // Analytics.trackEvent(ANALYTICS_EVENTS.PRESENTATION.CATEGORY, ANALYTICS_EVENTS.PRESENTATION.EXPORT, 'PPTX');
+            trackSuccessfulExport(`pptx_${pptxMode}`);
 
             // Keep success state visible briefly
             setTimeout(() => {
@@ -242,7 +270,7 @@ export function ExportDialog({ open, onOpenChange, presentation, accessToken, su
             setError(err.message || t('export.pptxError'));
             setExportProgress(null);
         }
-    }, [presentation, onOpenChange, targetLanguage, accessToken, pptxMode, t]);
+    }, [presentation, onOpenChange, targetLanguage, accessToken, pptxMode, t, trackSuccessfulExport]);
 
     const handleTranslateAndDuplicate = useCallback(async () => {
         if (!presentation || !accessToken || targetLanguage === 'original') return;
@@ -378,6 +406,12 @@ export function ExportDialog({ open, onOpenChange, presentation, accessToken, su
                                     title={exportUpgradeTitle}
                                     description={exportUpgradeDescription}
                                     cta={i18n.language.startsWith('fr') ? 'Voir les abonnements' : 'View plans'}
+                                    analyticsContext={{
+                                        surface: 'export_dialog',
+                                        reason: isExpiredTrialSubscription(subscription) ? 'trial_expired' : 'feature_locked',
+                                        feature: 'export',
+                                        plan: 'pack_or_pro',
+                                    }}
                                     onUpgrade={() => {
                                         onOpenChange(false);
                                         navigate('/pricing');

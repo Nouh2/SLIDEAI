@@ -51,6 +51,12 @@
     <priority>0.9</priority>
   </url>
   <url>
+    <loc>https://www.slideai.fr/blog/agence-communication-industrialiser-presentations-clients-ia</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <lastmod>2026-05-09</lastmod>
+  </url>
+  <url>
     <loc>https://www.slideai.fr/blog/alternatives-beautiful-ai</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
@@ -225,6 +231,12 @@
     <lastmod>2025-06-15</lastmod>
   </url>
   <url>
+    <loc>https://www.slideai.fr/blog/presentation-codir-comite-direction-ia</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <lastmod>2026-05-09</lastmod>
+  </url>
+  <url>
     <loc>https://www.slideai.fr/blog/presentation-commerciale-ia</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
@@ -267,6 +279,12 @@
     <lastmod>2026-04-06</lastmod>
   </url>
   <url>
+    <loc>https://www.slideai.fr/blog/slideai-vs-gamma</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <lastmod>2026-05-09</lastmod>
+  </url>
+  <url>
     <loc>https://www.slideai.fr/blog/structure-pitch-deck-parfait</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
@@ -289,6 +307,11 @@
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
     <lastmod>2026-05-04</lastmod>
+  </url>
+  <url>
+    <loc>https://www.slideai.fr/blog/c/marketing</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.slideai.fr/blog/c/alternatives-et-comparatifs</loc>
@@ -317,11 +340,6 @@
   </url>
   <url>
     <loc>https://www.slideai.fr/blog/c/sales</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.slideai.fr/blog/c/marketing</loc>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>

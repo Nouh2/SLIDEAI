@@ -2,6 +2,8 @@
 import { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 import ReactGA from "react-ga4";
+import { api } from "@/lib/api";
+import { Analytics, getAcquisitionAttribution } from "@/lib/analytics";
 
 export const GoogleAnalytics = () => {
     const location = useLocation();
@@ -50,6 +52,51 @@ export const GoogleAnalytics = () => {
             ReactGA.send({ hitType: "pageview", page: location.pathname + location.search });
         }
     }, [initialized, location]);
+
+    useEffect(() => {
+        const params = new URLSearchParams(location.search);
+        const attribution = getAcquisitionAttribution(params);
+        if (!attribution?.emailId) return;
+
+        const storageKey = `slideai-email-click-db-${attribution.emailId}`;
+        if (localStorage.getItem(storageKey)) return;
+        localStorage.setItem(storageKey, "pending");
+
+        api.recordLifecycleEmailClick({
+            emailTrackingId: attribution.emailId,
+            emailType: attribution.emailType,
+            landingPath: `${location.pathname}${location.search}`,
+            attribution: {
+                source: attribution.source,
+                medium: attribution.medium,
+                campaign: attribution.campaign,
+                content: attribution.content,
+                term: attribution.term,
+            },
+        }).then(() => {
+            localStorage.setItem(storageKey, "tracked");
+        }).catch((error) => {
+            localStorage.removeItem(storageKey);
+            console.error("[Analytics] Unable to record lifecycle email click", error);
+        });
+    }, [location.pathname, location.search]);
+
+    useEffect(() => {
+        if (!initialized) return;
+
+        const params = new URLSearchParams(location.search);
+        const attribution = getAcquisitionAttribution(params);
+        if (!attribution?.emailId) return;
+
+        const storageKey = `slideai-email-click-ga-${attribution.emailId}`;
+        if (localStorage.getItem(storageKey)) return;
+        localStorage.setItem(storageKey, "tracked");
+
+        Analytics.trackEmailClick({
+            attribution,
+            landingPath: `${location.pathname}${location.search}`,
+        });
+    }, [initialized, location.pathname, location.search]);
 
     return null;
 };

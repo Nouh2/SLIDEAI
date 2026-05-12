@@ -22,6 +22,17 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 
 type TemplateMode = 'draft' | 'live';
 
+const PRODUCT_FUNNEL_STAGES = [
+  { eventName: 'trial_started', label: 'Essai demarre' },
+  { eventName: 'activation_use_case_selected', label: 'Cas usage choisi' },
+  { eventName: 'create_started', label: 'Generation lancee' },
+  { eventName: 'deck_generated', label: 'Deck genere' },
+  { eventName: 'deck_opened', label: 'Deck ouvert' },
+  { eventName: 'activation_completed', label: 'Export ou partage' },
+  { eventName: 'begin_checkout', label: 'Checkout lance' },
+  { eventName: 'purchase', label: 'Achat confirme' },
+];
+
 @Injectable()
 export class OpsService {
   private readonly stripe: Stripe | null;
@@ -328,6 +339,224 @@ export class OpsService {
       ...log,
       userEmail: log.User.email,
     }));
+  }
+
+  async getEmailFunnel(days = 30) {
+    await this.ensureCatalog();
+    const clampedDays = Math.min(Math.max(Number.isFinite(days) ? days : 30, 1), 180);
+    const since = new Date(Date.now() - clampedDays * DAY_MS);
+
+    const logs = await this.prisma.lifecycleEmailLog.findMany({
+      where: {
+        createdAt: { gte: since },
+      },
+      select: {
+        emailType: true,
+        flowSlug: true,
+        status: true,
+        payload: true,
+      },
+    });
+
+    type FunnelRow = {
+      emailType: string;
+      flowSlug: string;
+      scheduled: number;
+      sent: number;
+      skipped: number;
+      pending: number;
+      clicked: number;
+      converted: number;
+      revenueCents: number;
+      currency: string;
+    };
+
+    const rows = new Map<string, FunnelRow>();
+
+    for (const log of logs) {
+      const key = log.emailType;
+      const payload = log.payload && typeof log.payload === 'object' ? (log.payload as Record<string, any>) : {};
+      const current = rows.get(key) || {
+        emailType: key,
+        flowSlug: log.flowSlug || 'unclassified',
+        scheduled: 0,
+        sent: 0,
+        skipped: 0,
+        pending: 0,
+        clicked: 0,
+        converted: 0,
+        revenueCents: 0,
+        currency: 'eur',
+      };
+
+      current.scheduled += 1;
+      if (log.status === 'sent') current.sent += 1;
+      if (log.status === 'skipped') current.skipped += 1;
+      if (log.status === 'pending') current.pending += 1;
+
+      if (payload.emailClickedAt || Number(payload.emailClickCount || 0) > 0) {
+        current.clicked += 1;
+      }
+
+      if (payload.emailConvertedAt || payload.emailConversion) {
+        current.converted += 1;
+        const conversion = payload.emailConversion || {};
+        current.revenueCents += Number(conversion.amountTotal || 0);
+        current.currency = conversion.currency || current.currency;
+      }
+
+      rows.set(key, current);
+    }
+
+    const items = Array.from(rows.values())
+      .map((row) => ({
+        ...row,
+        sendRate: this.toPercent(row.sent, row.scheduled),
+        clickRate: this.toPercent(row.clicked, row.sent),
+        conversionRate: this.toPercent(row.converted, row.clicked || row.sent),
+        revenuePerSentCents: row.sent > 0 ? Math.round(row.revenueCents / row.sent) : 0,
+      }))
+      .sort((a, b) => b.converted - a.converted || b.clicked - a.clicked || b.sent - a.sent);
+
+    const totals = items.reduce(
+      (acc, row) => {
+        acc.scheduled += row.scheduled;
+        acc.sent += row.sent;
+        acc.skipped += row.skipped;
+        acc.pending += row.pending;
+        acc.clicked += row.clicked;
+        acc.converted += row.converted;
+        acc.revenueCents += row.revenueCents;
+        acc.currency = row.currency || acc.currency;
+        return acc;
+      },
+      {
+        scheduled: 0,
+        sent: 0,
+        skipped: 0,
+        pending: 0,
+        clicked: 0,
+        converted: 0,
+        revenueCents: 0,
+        currency: 'eur',
+      },
+    );
+
+    return {
+      days: clampedDays,
+      totals: {
+        ...totals,
+        sendRate: this.toPercent(totals.sent, totals.scheduled),
+        clickRate: this.toPercent(totals.clicked, totals.sent),
+        conversionRate: this.toPercent(totals.converted, totals.clicked || totals.sent),
+        revenuePerSentCents: totals.sent > 0 ? Math.round(totals.revenueCents / totals.sent) : 0,
+      },
+      items,
+    };
+  }
+
+  async getProductActivationFunnel(days = 30) {
+    const clampedDays = Math.min(Math.max(Number.isFinite(days) ? days : 30, 1), 180);
+    const since = new Date(Date.now() - clampedDays * DAY_MS);
+
+    const events = await this.prisma.productEvent.findMany({
+      where: {
+        occurredAt: { gte: since },
+        eventName: { in: PRODUCT_FUNNEL_STAGES.map((stage) => stage.eventName) },
+      },
+      select: {
+        userId: true,
+        eventName: true,
+        properties: true,
+        occurredAt: true,
+      },
+      orderBy: { occurredAt: 'asc' },
+    });
+
+    const usersByStage = new Map<string, Set<string>>();
+    const eventCountByStage = new Map<string, number>();
+    const useCases = new Map<string, { useCase: string; selected: number; created: number; completed: number }>();
+    const firstSeen = new Map<string, Date>();
+    let revenueCents = 0;
+    let revenueCurrency = 'eur';
+
+    for (const event of events) {
+      const stageUsers = usersByStage.get(event.eventName) || new Set<string>();
+      stageUsers.add(event.userId);
+      usersByStage.set(event.eventName, stageUsers);
+      eventCountByStage.set(event.eventName, (eventCountByStage.get(event.eventName) || 0) + 1);
+
+      const previousFirstSeen = firstSeen.get(event.userId);
+      if (!previousFirstSeen || event.occurredAt < previousFirstSeen) {
+        firstSeen.set(event.userId, event.occurredAt);
+      }
+
+      const properties = event.properties && typeof event.properties === 'object'
+        ? (event.properties as Record<string, any>)
+        : {};
+      const useCase = typeof properties.use_case === 'string' ? properties.use_case : undefined;
+
+      if (useCase) {
+        const row = useCases.get(useCase) || { useCase, selected: 0, created: 0, completed: 0 };
+        if (event.eventName === 'activation_use_case_selected') row.selected += 1;
+        if (event.eventName === 'create_started') row.created += 1;
+        if (event.eventName === 'activation_completed') row.completed += 1;
+        useCases.set(useCase, row);
+      }
+
+      if (event.eventName === 'purchase') {
+        const value = Number(properties.value || 0);
+        if (Number.isFinite(value) && value > 0) {
+          revenueCents += Math.round(value * 100);
+        }
+        if (typeof properties.currency === 'string') {
+          revenueCurrency = properties.currency.toLowerCase();
+        }
+      }
+    }
+
+    const firstStageUsers = usersByStage.get(PRODUCT_FUNNEL_STAGES[0].eventName)?.size || 0;
+    let previousUsers = firstStageUsers;
+
+    const stages = PRODUCT_FUNNEL_STAGES.map((stage, index) => {
+      const users = usersByStage.get(stage.eventName)?.size || 0;
+      const eventsCount = eventCountByStage.get(stage.eventName) || 0;
+      const fromPrevious = index === 0 ? 100 : this.toPercent(users, previousUsers);
+      const fromStart = index === 0 ? 100 : this.toPercent(users, firstStageUsers);
+      const dropoffFromPrevious = index === 0 ? 0 : Math.max(0, 100 - fromPrevious);
+      previousUsers = users;
+
+      return {
+        ...stage,
+        users,
+        events: eventsCount,
+        fromPrevious,
+        fromStart,
+        dropoffFromPrevious: Math.round(dropoffFromPrevious * 10) / 10,
+      };
+    });
+
+    return {
+      days: clampedDays,
+      totals: {
+        users: firstSeen.size,
+        trialStarted: usersByStage.get('trial_started')?.size || 0,
+        activated: usersByStage.get('activation_completed')?.size || 0,
+        checkouts: usersByStage.get('begin_checkout')?.size || 0,
+        purchases: usersByStage.get('purchase')?.size || 0,
+        activationRate: this.toPercent(usersByStage.get('activation_completed')?.size || 0, firstStageUsers),
+        trialToPaidRate: this.toPercent(usersByStage.get('purchase')?.size || 0, firstStageUsers),
+        revenueCents,
+        currency: revenueCurrency,
+      },
+      stages,
+      useCases: Array.from(useCases.values()).sort((a, b) => b.selected - a.selected || b.completed - a.completed),
+    };
+  }
+
+  private toPercent(numerator: number, denominator: number) {
+    if (!denominator) return 0;
+    return Math.round((numerator / denominator) * 1000) / 10;
   }
 
   async unsubscribeByToken(token: string) {

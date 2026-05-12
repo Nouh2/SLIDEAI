@@ -98,6 +98,7 @@ import { TemplateOverlay } from "@/components/slides/TemplateOverlay";
 import { ToastAction } from "@/components/ui/toast";
 import { parseClipboardData, createSlideFromTable } from "@/lib/smartPaste";
 import { hasFeature, isExpiredTrialSubscription } from "@/lib/subscription";
+import { Analytics } from "@/lib/analytics";
 
 const isPlainObject = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value);
@@ -215,6 +216,7 @@ export default function Editor() {
   const { traceId } = useParams();
   const [searchParams] = useSearchParams();
   const presentationId = searchParams.get("id"); // Get ?id=UUID from URL
+  const activationUseCase = searchParams.get("activation");
   const { toast } = useToast();
   const { t } = useTranslation();
 
@@ -672,6 +674,7 @@ export default function Editor() {
 
           if (res.status === "succeeded" && res.deck) {
             const realId = (res.deck as any).id;
+            const deck = adaptDeck(res.deck);
 
             // Update URL without reloading
             if (realId && realId !== "generated") {
@@ -681,7 +684,20 @@ export default function Editor() {
               window.history.replaceState({}, "", newUrl.toString());
             }
 
-            setCurrentProject(adaptDeck(res.deck));
+            const generatedKey = `slideai-deck-generated-${traceId}`;
+            if (!localStorage.getItem(generatedKey)) {
+              localStorage.setItem(generatedKey, "tracked");
+              Analytics.trackActivationStep({
+                step: "deck_generated",
+                surface: "editor_poll",
+                useCase: activationUseCase,
+                presentationId: realId,
+                traceId,
+                slideCount: deck.slides?.length,
+              });
+            }
+
+            setCurrentProject(deck);
             setIsLoading(false);
             return true; // Stop polling
           } else if (res.status === "failed") {
@@ -744,7 +760,24 @@ export default function Editor() {
     };
 
     fetchLatest();
-  }, [traceId, presentationId, toast]);
+  }, [traceId, presentationId, toast, activationUseCase]);
+
+  useEffect(() => {
+    if (isLoading || !currentProject?.id) return;
+
+    const storageKey = `slideai-deck-opened-${currentProject.id}`;
+    if (localStorage.getItem(storageKey)) return;
+    localStorage.setItem(storageKey, "tracked");
+
+    Analytics.trackActivationStep({
+      step: "deck_opened",
+      surface: presentationId ? "dashboard_existing" : traceId ? "editor_generation" : "editor_latest",
+      useCase: activationUseCase,
+      presentationId: currentProject.id,
+      traceId,
+      slideCount: currentProject.slides?.length,
+    });
+  }, [isLoading, currentProject?.id, currentProject?.slides?.length, presentationId, traceId, activationUseCase]);
 
   const toggleFullscreen = () => {
     if (!editorContainerRef.current) return;
@@ -1313,6 +1346,7 @@ export default function Editor() {
                     accessToken={accessToken}
                     canShareByLink={canShareByLink}
                     canShareCollaborative={canShareCollaborative}
+                    activationUseCase={activationUseCase}
                     showPulse={showSharePulse && canShareByLink}
                     onPulseSeen={() => {
                       setShowSharePulse(false);
@@ -1405,7 +1439,17 @@ export default function Editor() {
 
                 <Button
                   variant="ghost"
-                  onClick={() => setIsExportDialogOpen(true)}
+                  onClick={() => {
+                    Analytics.trackActivationStep({
+                      step: "export_clicked",
+                      surface: "editor_toolbar",
+                      useCase: activationUseCase,
+                      presentationId: currentProject?.id,
+                      traceId,
+                      slideCount: currentProject?.slides?.length,
+                    });
+                    setIsExportDialogOpen(true);
+                  }}
                   disabled={!canExportAnything}
                   title={exportDisabledReason}
                   className="h-9 w-9 md:w-auto px-0 md:px-4 rounded-lg hover:text-primary hover:bg-primary/5 transition-all duration-300 hover:scale-105 hover:-translate-y-0.5"
@@ -1964,6 +2008,7 @@ export default function Editor() {
           presentation={currentProject}
           accessToken={accessToken}
           subscription={subscription}
+          activationUseCase={activationUseCase}
         />
 
         {/* Image Replacement Modal */}

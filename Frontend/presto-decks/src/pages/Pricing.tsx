@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 import { supabase, useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
-import { Analytics, ANALYTICS_EVENTS } from "@/lib/analytics";
+import { Analytics, ANALYTICS_EVENTS, getAcquisitionAttribution } from "@/lib/analytics";
 import { api } from "@/lib/api";
 import { SEO } from "@/components/common/SEO";
 import {
@@ -50,6 +50,16 @@ const PACK_PRICE_IDS: Record<string, { priceId: string; packType: string }> = {
 };
 // ──────────────────────────────────────────────────────────────────────────────
 
+const PRO_CHECKOUT_VALUE_BY_CYCLE: Record<"monthly" | "yearly", number> = {
+  monthly: 9.9,
+  yearly: 168,
+};
+
+const PACK_CHECKOUT_VALUE_BY_KEY: Record<string, number> = {
+  "Pack Mission": 19,
+  "Pack Trimestre": 39,
+};
+
 export default function Pricing() {
   const { t } = useTranslation();
   const [billingCycle, setBillingCycle] = useState<"monthly" | "yearly">("monthly");
@@ -65,13 +75,21 @@ export default function Pricing() {
   const promotionCode = searchParams.get("promo")?.trim() || "";
   const shouldAutoStartTrial = searchParams.get("startTrial") === "1";
   const shouldAutoStartIntroCheckout = searchParams.get("checkout") === "pro_intro";
+  const attribution = getAcquisitionAttribution(searchParams);
 
   const isPackActive = isPackSubscription(subscription);
   const packCreditsRemaining = subscription?.packCreditsRemaining ?? 0;
 
-  const redirectToAuth = () => navigate(`/auth?returnTo=${encodeURIComponent("/pricing")}`);
-  const redirectToAuthForTrial = () => navigate(`/auth?returnTo=${encodeURIComponent("/pricing?startTrial=1")}`);
-  const redirectToAuthForIntroCheckout = () => navigate(`/auth?returnTo=${encodeURIComponent("/pricing?checkout=pro_intro")}`);
+  const buildPricingReturnPath = (updates: Record<string, string>) => {
+    const params = new URLSearchParams(searchParams);
+    Object.entries(updates).forEach(([key, value]) => params.set(key, value));
+    const query = params.toString();
+    return `/pricing${query ? `?${query}` : ""}`;
+  };
+
+  const redirectToAuth = () => navigate(`/auth?returnTo=${encodeURIComponent(buildPricingReturnPath({}))}`);
+  const redirectToAuthForTrial = () => navigate(`/auth?returnTo=${encodeURIComponent(buildPricingReturnPath({ startTrial: "1" }))}`);
+  const redirectToAuthForIntroCheckout = () => navigate(`/auth?returnTo=${encodeURIComponent(buildPricingReturnPath({ checkout: "pro_intro" }))}`);
 
   const refreshSubscription = async (accessToken: string) => {
     const response = await fetch(`${import.meta.env.VITE_API_URL}/subscription`, {
@@ -145,10 +163,21 @@ export default function Pricing() {
           plan: planKey,
           promotionCode: promotionCode || undefined,
           introOffer: planKey === "pro" && billingCycle === "monthly" && !promotionCode,
+          attribution: attribution || undefined,
         }),
       });
       const data = await response.json();
-      if (data.url) window.location.href = data.url;
+      if (data.url) {
+        Analytics.trackCheckoutStarted({
+          checkoutType: "subscription",
+          plan: planKey,
+          billingCycle,
+          value: planKey === "pro" ? PRO_CHECKOUT_VALUE_BY_CYCLE[billingCycle] : undefined,
+          currency: "EUR",
+          attribution,
+        });
+        window.location.href = data.url;
+      }
       else throw new Error(t("pricing.errors.checkout"));
     } catch (error) {
       console.error(error);
@@ -170,9 +199,10 @@ export default function Pricing() {
       if (!session) { redirectToAuthForTrial(); return; }
 
       await api.startTrial(session.access_token);
+      Analytics.trackTrialStarted({ plan: "pro" });
       await refreshSubscription(session.access_token);
       toast.success(t("pricing.trialStarted", { defaultValue: "Your 7-day Pro trial is now active." }));
-      navigate("/create");
+      navigate("/create?onboarding=1");
     } catch (error: any) {
       toast.error(error.message || t("pricing.errors.generic"));
     } finally {
@@ -215,10 +245,19 @@ export default function Pricing() {
       const response = await fetch(`${import.meta.env.VITE_API_URL}/subscription/checkout-pack`, {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${session.access_token}` },
-        body: JSON.stringify({ priceId: packInfo.priceId, packType: packInfo.packType }),
+          body: JSON.stringify({ priceId: packInfo.priceId, packType: packInfo.packType, attribution: attribution || undefined }),
       });
       const data = await response.json();
-      if (data.url) window.location.href = data.url;
+      if (data.url) {
+        Analytics.trackCheckoutStarted({
+          checkoutType: "pack",
+          packType: packInfo.packType,
+          value: PACK_CHECKOUT_VALUE_BY_KEY[lookupKey],
+          currency: "EUR",
+          attribution,
+        });
+        window.location.href = data.url;
+      }
       else throw new Error(t("pricing.errors.checkout"));
     } catch (error) {
       toast.error(t("pricing.errors.generic"));
@@ -675,7 +714,7 @@ export default function Pricing() {
         </section>
 
         {/* ══════════════════════════════════════════════
-            SECTION 3 — ACCÈS GRATUIT (reassurance)
+            SECTION 3 — ESSAI PRO (reassurance)
         ══════════════════════════════════════════════ */}
         <section>
           <div className="text-center mb-8 space-y-2">

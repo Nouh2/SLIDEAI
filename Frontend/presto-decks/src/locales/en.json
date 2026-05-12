@@ -195,16 +195,26 @@
     "plan": "Plan",
     "proTrial": "Pro trial",
     "trialExpired": "Trial expired",
-    "freeLegacy": "Legacy access",
+    "freeLegacy": "Historical access",
     "generations": "generation(s)",
-    "paymentRequired": "Subscription required to continue",
+    "paymentRequired": "Pack or subscription required to continue",
     "unlimitedPresentations": "Unlimited Presentations",
     "presentations": "presentations",
     "packActive": "Active pack",
     "packRemaining": "{{count}} one-shot generation(s) left",
     "packNote": "Your pack adds one-shot generations and PDF/PPTX export. Advanced features remain reserved for Pro.",
+    "trialActivationBadge": "Pro trial: {{count}} day(s) left",
+    "trialActivationTitle": "Turn your trial into a real proof of value",
+    "trialActivationSubtitle": "The best test: create a deck for a real use case, export it, then keep Pro with the €9.90 first-month offer.",
+    "trialActivationSteps": {
+      "create": "Create a real deck",
+      "export": "Test PPTX/PDF export",
+      "keepPro": "Keep Pro for €9.90"
+    },
+    "trialActivationCreateCta": "Create a deck",
+    "trialActivationProCta": "Keep Pro for €9.90",
     "paymentSuccess": "Payment successful! 🎉",
-    "paymentSuccessMsg": "Your subscription is activated. Thank you for your trust!",
+    "paymentSuccessMsg": "Your payment is confirmed. Your pack or subscription is active.",
     "duplicate": "Duplicate",
     "duplicateSuccess": "Presentation duplicated",
     "duplicateSuccessMsg": "The copy is available in your presentations.",
@@ -437,7 +447,7 @@
     "trialEndsIn_one": "Trial ends in {{count}} day.",
     "trialEndsIn_other": "Trial ends in {{count}} days.",
     "creditsAvailable": "Credits available",
-    "upgradeNote": "Upgrade to a higher plan for more credits.",
+    "upgradeNote": "Choose a pack or upgrade to Pro to keep creating.",
     "unlimitedAccess": "Unlimited Access",
     "unlimitedNote": "You have maximum SlideAI power.",
     "upgradeToPro": "Upgrade to Pro",
@@ -448,7 +458,7 @@
     "packActiveNote": "Your pack adds one-shot generations and PDF/PPTX export. Advanced features remain reserved for Pro.",
     "packActiveTitle": "One-shot generations available",
     "packActiveDetail": "This pack lets you generate occasionally and export to PDF/PPTX without unlocking Pro's advanced features.",
-    "legacyAccess": "Legacy access",
+    "legacyAccess": "Historical access",
     "buyAnotherPack": "Buy another pack",
     "packFooter": "Packs are one-shot purchases. Pro remains the best fit for regular usage.",
     "recentPresentations": "Recent presentations",
@@ -986,10 +996,12 @@
       "desc": "5 generations valid for 3 months, no subscription. Perfect for occasional needs."
     },
     "subscriptions": {
-      "title": "Pro — €14/month",
-      "desc": "Unlimited generations, brand kits, editable PPTX export. For regular usage."
+      "title": "Pro — €9.90 first month",
+      "desc": "Unlimited generations, brand kits, editable PPTX export. Then €19.90/mo, cancel anytime."
     },
-    "seeOptions": "See packs",
+    "startPro": "Start for €9.90",
+    "seePacks": "See one-shot packs",
+    "seeOptions": "See options",
     "later": "Later"
   },
   "templateSelector": {
@@ -1302,8 +1314,8 @@
     },
     "plans": {
       "free": {
-        "name": "Free",
-        "description": "Perfect for trying SlideAI.",
+        "name": "Pro trial",
+        "description": "The 7-day Pro trial lets users test SlideAI without a card.",
         "features": {
           "presentations": "3 presentations / month",
           "pdfImport": "PDF Import (Basic)",
@@ -1319,9 +1331,9 @@
         }
       },
       "starter": {
-        "name": "Starter",
-        "description": "For consultants and freelancers delivering regularly.",
-        "cta": "Start Starter trial",
+        "name": "Pro",
+        "description": "This retired offer has been replaced by the Pro subscription.",
+        "cta": "Upgrade to Pro",
         "features": {
           "generations": "15 generations per month",
           "pdfImport": "PDF Import (Advanced)",

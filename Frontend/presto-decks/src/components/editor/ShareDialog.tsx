@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslation, Trans } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -15,19 +15,21 @@ import {
 import { Share2, Copy, Check, Loader2, Edit3, Eye, Lock, Sparkles } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { api } from "@/lib/api";
+import { Analytics } from "@/lib/analytics";
 
 interface ShareDialogProps {
     presentationId: string;
     accessToken: string;
     canShareByLink?: boolean;
     canShareCollaborative?: boolean;
+    activationUseCase?: string | null;
     showPulse?: boolean;
     onPulseSeen?: () => void;
 }
 
 type ShareMode = "edit" | "view";
 
-export function ShareDialog({ presentationId, accessToken, canShareByLink = true, canShareCollaborative = true, showPulse = false, onPulseSeen }: ShareDialogProps) {
+export function ShareDialog({ presentationId, accessToken, canShareByLink = true, canShareCollaborative = true, activationUseCase, showPulse = false, onPulseSeen }: ShareDialogProps) {
     const navigate = useNavigate();
     const [isOpen, setIsOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
@@ -39,6 +41,26 @@ export function ShareDialog({ presentationId, accessToken, canShareByLink = true
     const { t } = useTranslation();
 
     const currentShareUrl = shareMode === "edit" ? editShareUrl : viewShareUrl;
+
+    useEffect(() => {
+        if (!isOpen || canShareByLink) return;
+        Analytics.trackPaywallViewed({
+            surface: "share_dialog",
+            reason: "feature_locked",
+            feature: "public_link",
+            plan: "pack_or_pro",
+        });
+    }, [isOpen, canShareByLink]);
+
+    useEffect(() => {
+        if (!isOpen || !canShareByLink || canShareCollaborative) return;
+        Analytics.trackPaywallViewed({
+            surface: "share_dialog",
+            reason: "feature_locked",
+            feature: "collaborative_share",
+            plan: "pro",
+        });
+    }, [isOpen, canShareByLink, canShareCollaborative]);
 
     const handleGenerateLink = async (mode: ShareMode) => {
         setIsLoading(true);
@@ -76,6 +98,26 @@ export function ShareDialog({ presentationId, accessToken, canShareByLink = true
         try {
             await navigator.clipboard.writeText(currentShareUrl);
             setCopied(true);
+            Analytics.trackActivationStep({
+                step: "deck_shared",
+                surface: "share_dialog",
+                useCase: activationUseCase,
+                presentationId,
+                format: shareMode,
+            });
+
+            const activationKey = `slideai-activation-share-${presentationId}`;
+            if (!localStorage.getItem(activationKey)) {
+                localStorage.setItem(activationKey, "tracked");
+                Analytics.trackActivationStep({
+                    step: "activation_completed",
+                    surface: "share_dialog",
+                    useCase: activationUseCase,
+                    presentationId,
+                    format: shareMode,
+                });
+            }
+
             toast({ title: t('share.copied'), description: t('share.copiedMsg') });
             setTimeout(() => setCopied(false), 2000);
         } catch {
@@ -85,6 +127,14 @@ export function ShareDialog({ presentationId, accessToken, canShareByLink = true
 
     const handleOpenChange = (open: boolean) => {
         setIsOpen(open);
+        if (open) {
+            Analytics.trackActivationStep({
+                step: "share_clicked",
+                surface: "editor_toolbar",
+                useCase: activationUseCase,
+                presentationId,
+            });
+        }
         if (open && canShareByLink && !viewShareUrl) {
             handleGenerateLink("view");
         }
@@ -114,7 +164,7 @@ export function ShareDialog({ presentationId, accessToken, canShareByLink = true
                 </DialogHeader>
 
                 {!canShareByLink ? (
-                    /* Upgrade gate — free users */
+                    /* Upgrade gate — trial-expired or unpaid users */
                     <div className="flex flex-col items-center gap-4 py-4 text-center">
                         <div className="flex items-center justify-center w-12 h-12 rounded-full bg-primary/10">
                             <Lock className="h-6 w-6 text-primary" />
@@ -123,7 +173,18 @@ export function ShareDialog({ presentationId, accessToken, canShareByLink = true
                             <p className="font-medium text-sm">Le partage de lien est disponible avec un pack ou un abonnement</p>
                             <p className="text-xs text-muted-foreground mt-1">Achetez un pack ou passez à Pro pour partager vos présentations avec un lien public.</p>
                         </div>
-                        <Button onClick={() => navigate("/pricing")} className="w-full sm:w-auto">
+                        <Button
+                            onClick={() => {
+                                Analytics.trackPaywallCtaClicked({
+                                    surface: "share_dialog",
+                                    reason: "feature_locked",
+                                    feature: "public_link",
+                                    plan: "pack_or_pro",
+                                });
+                                navigate("/pricing");
+                            }}
+                            className="w-full sm:w-auto"
+                        >
                             <Sparkles className="mr-2 h-4 w-4" />
                             Voir les offres
                         </Button>
@@ -133,7 +194,19 @@ export function ShareDialog({ presentationId, accessToken, canShareByLink = true
                         {/* Mode Selection */}
                         <div className="flex gap-2 p-1 bg-muted/50 rounded-lg">
                             <button
-                                onClick={() => canShareCollaborative ? handleModeChange("edit") : navigate("/pricing")}
+                                onClick={() => {
+                                    if (canShareCollaborative) {
+                                        handleModeChange("edit");
+                                        return;
+                                    }
+                                    Analytics.trackPaywallCtaClicked({
+                                        surface: "share_dialog",
+                                        reason: "feature_locked",
+                                        feature: "collaborative_share",
+                                        plan: "pro",
+                                    });
+                                    navigate("/pricing");
+                                }}
                                 className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-md text-sm font-medium transition-all ${
                                     !canShareCollaborative
                                         ? "text-muted-foreground/60 cursor-pointer hover:bg-muted"

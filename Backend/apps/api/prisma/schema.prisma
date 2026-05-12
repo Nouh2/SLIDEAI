@@ -510,7 +510,22 @@ model User {
   Subscription Subscription?
   LifecycleEmailLog LifecycleEmailLog[]
   OpsEmailPreference OpsEmailPreference?
+  ProductEvent ProductEvent[]
 
+  @@schema("public")
+}
+
+model ProductEvent {
+  id         String   @id @default(uuid())
+  userId     String
+  eventName  String
+  properties Json     @default("{}")
+  occurredAt DateTime @default(now())
+  createdAt  DateTime @default(now())
+  User       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([eventName, occurredAt])
+  @@index([userId, eventName, occurredAt])
   @@schema("public")
 }
 

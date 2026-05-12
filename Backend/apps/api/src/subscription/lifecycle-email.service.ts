@@ -1,4 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { randomUUID } from 'node:crypto';
 import { PrismaService } from '../prisma.service.js';
 import { QueueService } from '../queues/queue.service.js';
 import { OpsService } from '../ops/ops.service.js';
@@ -257,6 +258,54 @@ export class LifecycleEmailService {
     });
   }
 
+  async recordEmailClick(params: {
+    emailTrackingId: string;
+    emailType?: string;
+    landingPath?: string;
+    attribution?: Record<string, string | undefined>;
+  }) {
+    const trackingId = params.emailTrackingId?.trim();
+    if (!trackingId) {
+      return { tracked: false };
+    }
+
+    const rows = await this.prisma.$queryRaw<Array<{ id: string; payload: any }>>`
+      SELECT "id", "payload"
+      FROM "LifecycleEmailLog"
+      WHERE "payload"->>'emailTrackingId' = ${trackingId}
+      LIMIT 1
+    `;
+
+    const row = rows[0];
+    if (!row) {
+      return { tracked: false };
+    }
+
+    const now = new Date().toISOString();
+    const currentPayload = row.payload && typeof row.payload === 'object' ? row.payload : {};
+    const clickCount = Number(currentPayload.emailClickCount || 0) + 1;
+
+    await this.prisma.lifecycleEmailLog.update({
+      where: { id: row.id },
+      data: {
+        payload: {
+          ...currentPayload,
+          emailClickedAt: currentPayload.emailClickedAt || now,
+          emailLastClickedAt: now,
+          emailClickCount: clickCount,
+          emailClickLandingPath: params.landingPath,
+          emailClickAttribution: {
+            ...(currentPayload.emailClickAttribution || {}),
+            ...(params.attribution || {}),
+            emailType: params.emailType,
+          },
+        } as any,
+      },
+    });
+
+    return { tracked: true };
+  }
+
   private async scheduleSequence(params: {
     userId: string;
     email: string;
@@ -332,9 +381,11 @@ export class LifecycleEmailService {
       return;
     }
 
+    const emailTrackingId = randomUUID();
     const payload = {
       ...params.payload,
       email: params.email,
+      emailTrackingId,
       scopeKey: params.scopeKey,
       unsubscribeUrl,
       templateSlug: templateRuntime?.slug,

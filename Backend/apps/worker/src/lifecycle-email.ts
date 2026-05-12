@@ -73,6 +73,21 @@ export type WinbackOffer = {
   expiresInHours: number;
 };
 
+function addEmailAttribution(url: string, emailType: string, emailTrackingId?: string, content?: string) {
+  const target = new URL(url);
+  target.searchParams.set('utm_source', 'lifecycle_email');
+  target.searchParams.set('utm_medium', 'email');
+  target.searchParams.set('utm_campaign', emailType);
+  target.searchParams.set('utm_content', content || emailType);
+  target.searchParams.set('email_type', emailType);
+
+  if (emailTrackingId) {
+    target.searchParams.set('email_id', emailTrackingId);
+  }
+
+  return target.toString();
+}
+
 function getSpotlightColors(tone: Tone) {
   if (tone === 'warning') {
     return {
@@ -780,7 +795,7 @@ function buildSignupDay5ActivatedEmail(createUrl: string, presentationCount: num
   };
 }
 
-function buildValueDay4Email(pricingUrl: string, presentationCount: number): EmailContent {
+function buildValueDay4Email(proIntroUrl: string, presentationCount: number): EmailContent {
   const isStrongUsage = presentationCount >= 3;
   const usageLabel = formatPresentationCount(presentationCount);
 
@@ -799,7 +814,7 @@ function buildValueDay4Email(pricingUrl: string, presentationCount: number): Ema
     stats: [
       { value: usageLabel, label: 'Cr\u00e9\u00e9es pendant l\u2019essai' },
       { value: 'Acc\u00e8s Pro', label: 'Toujours actif' },
-      { value: '3 jours', label: 'Avant la fin de l\u2019essai' },
+      { value: '9,90\u20ac', label: '1er mois Pro si vous gardez le rythme' },
     ],
     spotlight: {
       tone: 'success',
@@ -808,15 +823,15 @@ function buildValueDay4Email(pricingUrl: string, presentationCount: number): Ema
     },
     body: [
       'La vraie question maintenant n\u2019est pas \u00ab\u00a0est-ce que SlideAI marche\u00a0?\u00bb. Vous le savez d\u00e9j\u00e0.',
-      'C\u2019est : est-ce que vous voulez continuer \u00e0 produire \u00e0 cette vitesse apr\u00e8s l\u2019essai\u00a0?',
+      'C\u2019est : est-ce que vous voulez continuer \u00e0 produire \u00e0 cette vitesse apr\u00e8s l\u2019essai\u00a0? Pro d\u00e9marre \u00e0 9,90\u20ac le premier mois, puis 19,90\u20ac/mois.',
     ],
     bullets: [
       'Conservez la vitesse de production que vous avez trouv\u00e9e',
       'Continuez les exports PDF/PPTX sans interruption',
       'Gardez SlideAI dans votre workflow au-del\u00e0 de l\u2019essai',
     ],
-    ctaLabel: 'Continuer avec Pro',
-    ctaUrl: pricingUrl,
+    ctaLabel: 'Garder Pro \u00e0 9,90\u20ac',
+    ctaUrl: proIntroUrl,
   };
 }
 
@@ -1102,7 +1117,7 @@ function buildFailedPaymentEmail(pricingUrl: string): EmailContent {
   };
 }
 
-function buildEndingDay6Email(createUrl: string, pricingUrl: string, presentationCount: number, daysLeft: number): EmailContent {
+function buildEndingDay6Email(createUrl: string, pricingUrl: string, proIntroUrl: string, presentationCount: number, daysLeft: number): EmailContent {
   if (presentationCount === 0) {
     return {
       subject: 'Votre essai se termine demain',
@@ -1146,24 +1161,24 @@ function buildEndingDay6Email(createUrl: string, pricingUrl: string, presentatio
     stats: [
       { value: usageLabel, label: 'D\u00e9j\u00e0 produites' },
       { value: 'PDF/PPTX', label: 'Exports \u00e0 garder sans coupure' },
-      { value: 'Demain', label: 'Fin de l\u2019acc\u00e8s Pro actuel' },
+      { value: '9,90\u20ac', label: '1er mois Pro' },
     ],
     spotlight: {
       tone: 'warning',
       title: 'Ce qui change demain si vous ne faites rien',
-      body: 'La g\u00e9n\u00e9ration de nouveaux decks sera limit\u00e9e. Vos pr\u00e9sentations existantes restent consultables et exportables en PDF avec filigrane.',
+      body: 'La g\u00e9n\u00e9ration de nouveaux decks et les exports complets n\u00e9cessiteront un pack ou Pro. Vos pr\u00e9sentations existantes restent dans votre compte.',
     },
     body: [
       'Si SlideAI vous a d\u00e9j\u00e0 aid\u00e9 \u00e0 produire plus vite, le plus logique est d\u2019\u00e9viter une coupure.',
-      'Deux options selon votre rythme : Pro \u00e0 14\u20ac/mois pour une production r\u00e9guli\u00e8re, ou Pack Mission \u00e0 19\u20ac pour un usage plus ponctuel.',
+      'Deux options selon votre rythme : Pro \u00e0 9,90\u20ac le premier mois puis 19,90\u20ac/mois pour une production r\u00e9guli\u00e8re, ou Pack Mission \u00e0 19\u20ac pour un usage plus ponctuel.',
     ],
     bullets: [
-      'Pro (14\u20ac/mois) \u2014 acc\u00e8s illimit\u00e9, id\u00e9al si vous produisez r\u00e9guli\u00e8rement',
+      'Pro (9,90\u20ac le premier mois, puis 19,90\u20ac/mois) \u2014 acc\u00e8s illimit\u00e9, id\u00e9al si vous produisez r\u00e9guli\u00e8rement',
       'Pack Mission (19\u20ac, 5 g\u00e9n\u00e9rations, 3 mois) \u2014 si votre besoin est ponctuel',
       'Vos pr\u00e9sentations et exports restent accessibles apr\u00e8s l\u2019essai',
     ],
-    ctaLabel: 'Choisir ma suite',
-    ctaUrl: pricingUrl,
+    ctaLabel: 'Garder Pro \u00e0 9,90\u20ac',
+    ctaUrl: proIntroUrl,
     note: 'Le but ici est simple: garder l\u2019\u00e9lan, pas repartir \u00e0 z\u00e9ro demain.',
   };
 }
@@ -1194,7 +1209,7 @@ function buildExpiredEmail(pricingUrl: string, legacyFree: boolean, presentation
       ],
       bullets: [
         'Pack Mission (19\u20ac, 5 g\u00e9n\u00e9rations) pour un besoin ponctuel',
-        'Pro (14\u20ac/mois) si vous produisez r\u00e9guli\u00e8rement',
+        'Pro (9,90\u20ac le premier mois, puis 19,90\u20ac/mois) si vous produisez r\u00e9guli\u00e8rement',
         'Aucune carte enregistr\u00e9e sans votre accord',
       ],
       ctaLabel: 'Voir les packs et abonnements',
@@ -1256,7 +1271,7 @@ function buildExpiredEmail(pricingUrl: string, legacyFree: boolean, presentation
     bullets: [
       'Pack Mission (19\u20ac, 5 g\u00e9n\u00e9rations, 3 mois) pour un besoin ponctuel',
       'Pack Trimestre (39\u20ac, 15 g\u00e9n\u00e9rations, 6 mois) pour plusieurs missions',
-      'Pro (14\u20ac/mois) si vous produisez chaque semaine',
+      'Pro (9,90\u20ac le premier mois, puis 19,90\u20ac/mois) si vous produisez chaque semaine',
     ],
     ctaLabel: 'Voir les packs et abonnements',
     ctaUrl: pricingUrl,
@@ -1266,14 +1281,12 @@ function buildExpiredEmail(pricingUrl: string, legacyFree: boolean, presentation
 
 function buildWinbackEmail(pricingUrl: string, presentationCount: number, offer?: WinbackOffer): EmailContent {
   const activated = presentationCount > 0;
-  const promoCode = offer?.code || 'TRIAL20';
-  const percentOff = offer?.percentOff ?? 20;
   const expiresInHours = offer?.expiresInHours ?? 72;
-  const ctaUrl = `${pricingUrl}${pricingUrl.includes('?') ? '&' : '?'}promo=${encodeURIComponent(promoCode)}`;
+  const ctaUrl = pricingUrl;
 
   return {
     subject: activated
-      ? `Reprenez SlideAI \u2014 Pack Mission 19\u20ac ou -${percentOff}% sur Pro`
+      ? `Reprenez SlideAI \u2014 Pro \u00e0 9,90\u20ac ou Pack Mission 19\u20ac`
       : `Testez vraiment SlideAI \u2014 Pack Mission 19\u20ac, sans abonnement`,
     preview: activated
       ? `Vous avez d\u00e9j\u00e0 vu la valeur. Voici deux fa\u00e7ons simples de reprendre.`
@@ -1283,36 +1296,36 @@ function buildWinbackEmail(pricingUrl: string, presentationCount: number, offer?
       ? 'Vous avez d\u00e9j\u00e0 vu la valeur. Voici deux fa\u00e7ons de reprendre.'
       : 'Le vrai test n\u2019a pas encore eu lieu.',
     intro: activated
-      ? `Vous avez d\u00e9j\u00e0 test\u00e9 SlideAI sur de vraies pr\u00e9sentations. Deux options pour reprendre : un Pack Mission ponctuel \u00e0 19\u20ac, ou Pro avec -${percentOff}% sur le premier mois.`
+      ? `Vous avez d\u00e9j\u00e0 test\u00e9 SlideAI sur de vraies pr\u00e9sentations. Deux options pour reprendre : Pro \u00e0 9,90\u20ac le premier mois, ou un Pack Mission ponctuel \u00e0 19\u20ac.`
       : `Votre essai s\u2019est termin\u00e9 sans que vous ayez eu le temps de tester SlideAI sur un vrai document. Le Pack Mission \u00e0 19\u20ac vous donne 5 g\u00e9n\u00e9rations valables 3 mois \u2014 sans aucun abonnement.`,
     stats: [
       { value: '19\u20ac', label: 'Pack Mission \u2014 5 g\u00e9n\u00e9rations, 3 mois' },
-      { value: `-${percentOff}%`, label: `Pro avec le code ${promoCode}` },
+      { value: '9,90\u20ac', label: 'Pro le premier mois' },
       { value: `${expiresInHours}h`, label: 'Fen\u00eatre limit\u00e9e' },
     ],
     spotlight: {
       tone: 'success',
       title: activated ? 'Deux options, selon votre rythme' : 'Commencez sans engagement',
       body: activated
-        ? `Pack Mission (19\u20ac, 5 g\u00e9n\u00e9rations) si votre besoin est ponctuel. Pro avec le code <strong>${promoCode}</strong> (-${percentOff}% sur le premier mois) si vous produisez r\u00e9guli\u00e8rement.`
-        : `Le Pack Mission \u00e0 19\u20ac vous donne 5 g\u00e9n\u00e9rations valables 3 mois pour faire un vrai test \u2014 sans abonnement, sans engagement. Si vous trouvez la valeur, vous pouvez passer \u00e0 Pro avec le code <strong>${promoCode}</strong> (-${percentOff}%).`,
+        ? `Pack Mission (19\u20ac, 5 g\u00e9n\u00e9rations) si votre besoin est ponctuel. Pro \u00e0 9,90\u20ac le premier mois si vous produisez r\u00e9guli\u00e8rement.`
+        : `Le Pack Mission \u00e0 19\u20ac vous donne 5 g\u00e9n\u00e9rations valables 3 mois pour faire un vrai test \u2014 sans abonnement, sans engagement. Si vous trouvez la valeur, vous pouvez passer \u00e0 Pro \u00e0 9,90\u20ac le premier mois.`,
     },
     body: [
       activated
         ? 'Vous savez d\u00e9j\u00e0 ce que SlideAI peut vous faire gagner. La bonne question est juste votre fr\u00e9quence d\u2019usage : ponctuel ou r\u00e9gulier.'
         : 'Il n\u2019y a pas de jugement possible sans une vraie pr\u00e9sentation. Un pack ponctuel est le moyen le plus simple de le valider sans pression.',
-      `L\u2019offre promo sur Pro expire dans ${expiresInHours}\u00a0heures. Le Pack Mission, lui, est disponible en permanence.`,
+      `L\u2019offre de relance expire dans ${expiresInHours}\u00a0heures. Le Pack Mission, lui, est disponible en permanence.`,
     ],
     bullets: [
       'Pack Mission (19\u20ac, 5 g\u00e9n\u00e9rations, 3 mois) \u2014 sans abonnement',
       activated
-        ? `Pro avec le code ${promoCode} \u2014 -${percentOff}% sur le premier mois`
-        : `Pro avec le code ${promoCode} apr\u00e8s avoir valid\u00e9 la valeur`,
+        ? 'Pro \u00e0 9,90\u20ac le premier mois, puis 19,90\u20ac/mois'
+        : 'Pro \u00e0 9,90\u20ac le premier mois apr\u00e8s avoir valid\u00e9 la valeur',
       'Votre compte et vos donn\u00e9es restent disponibles',
     ],
     ctaLabel: 'Voir les packs et abonnements',
     ctaUrl,
-    note: `Code ${promoCode} valable sur Pro uniquement, pendant ${expiresInHours}\u00a0heures. Le Pack Mission est sans code.`,
+    note: `Offre Pro \u00e0 9,90\u20ac le premier mois pendant ${expiresInHours}\u00a0heures. Le Pack Mission est sans code.`,
   };
 }
 
@@ -1321,6 +1334,7 @@ export function buildLifecycleEmailModel(params: {
   legacyFree: boolean;
   trialEndsAt: string;
   presentationCount: number;
+  emailTrackingId?: string;
   winbackOffer?: WinbackOffer;
   contentPatch?: EmailContentPatch;
   unsubscribeUrl?: string;
@@ -1328,9 +1342,11 @@ export function buildLifecycleEmailModel(params: {
   firstName?: string;
 }) {
   const appUrl = process.env.FRONTEND_URL || 'https://slideai.fr';
-  const pricingUrl = `${appUrl.replace(/\/$/, '')}/pricing`;
-  const createUrl = `${appUrl.replace(/\/$/, '')}/create`;
-  const examplesUrl = `${appUrl.replace(/\/$/, '')}/examples`;
+  const baseUrl = appUrl.replace(/\/$/, '');
+  const pricingUrl = addEmailAttribution(`${baseUrl}/pricing`, params.emailType, params.emailTrackingId, 'pricing');
+  const proIntroUrl = addEmailAttribution(`${baseUrl}/pricing?checkout=pro_intro`, params.emailType, params.emailTrackingId, 'pro_intro');
+  const createUrl = addEmailAttribution(`${baseUrl}/create`, params.emailType, params.emailTrackingId, 'create');
+  const examplesUrl = addEmailAttribution(`${baseUrl}/examples`, params.emailType, params.emailTrackingId, 'examples');
   const daysLeft = Math.max(0, Math.ceil((new Date(params.trialEndsAt).getTime() - Date.now()) / DAY_MS));
 
   let content: EmailContent | null = null;
@@ -1355,10 +1371,10 @@ export function buildLifecycleEmailModel(params: {
       content = buildInactiveDay1Email(createUrl);
       break;
     case 'trial_value_day4':
-      content = buildValueDay4Email(pricingUrl, params.presentationCount);
+      content = buildValueDay4Email(proIntroUrl, params.presentationCount);
       break;
     case 'trial_ending_day6':
-      content = buildEndingDay6Email(createUrl, pricingUrl, params.presentationCount, daysLeft);
+      content = buildEndingDay6Email(createUrl, pricingUrl, proIntroUrl, params.presentationCount, daysLeft);
       break;
     case 'trial_expired':
       content = buildExpiredEmail(pricingUrl, params.legacyFree, params.presentationCount);
@@ -1412,6 +1428,7 @@ export function buildTrialEmailContent(params: {
   legacyFree: boolean;
   trialEndsAt: string;
   presentationCount: number;
+  emailTrackingId?: string;
   winbackOffer?: WinbackOffer;
   contentPatch?: EmailContentPatch;
   unsubscribeUrl?: string;
@@ -1426,9 +1443,10 @@ export function buildTrialEmailContent(params: {
   const appUrl = process.env.FRONTEND_URL || 'https://slideai.fr';
   const baseUrl = appUrl.replace(/\/$/, '');
   const bundled = buildBundledCampaignEmail(params.emailType, {
-    createUrl: `${baseUrl}/create`,
-    pricingUrl: `${baseUrl}/pricing`,
-    examplesUrl: `${baseUrl}/examples`,
+    createUrl: addEmailAttribution(`${baseUrl}/create`, params.emailType, params.emailTrackingId, 'create'),
+    pricingUrl: addEmailAttribution(`${baseUrl}/pricing`, params.emailType, params.emailTrackingId, 'pricing'),
+    proIntroUrl: addEmailAttribution(`${baseUrl}/pricing?checkout=pro_intro`, params.emailType, params.emailTrackingId, 'pro_intro'),
+    examplesUrl: addEmailAttribution(`${baseUrl}/examples`, params.emailType, params.emailTrackingId, 'examples'),
     unsubscribeUrl: params.unsubscribeUrl || `${baseUrl}/unsubscribe`,
     privacyUrl: `${baseUrl}/privacy`,
     prefsUrl: `${baseUrl}/preferences`,
@@ -1450,6 +1468,7 @@ export function buildTrialEmailContent(params: {
 type BundledUrls = {
   createUrl: string;
   pricingUrl: string;
+  proIntroUrl: string;
   examplesUrl: string;
   unsubscribeUrl: string;
   privacyUrl: string;
@@ -1489,19 +1508,20 @@ function buildBundledCampaignEmail(
   const templatePath = candidates.find((candidate) => existsSync(candidate));
   if (!templatePath) return null;
 
-  // CTA destination depends on the funnel stage: conversion-oriented emails
-  // point at /pricing (the launch offer), the rest send people back to /create.
+  // CTA destination depends on the funnel stage.
   const ctaUrl =
-    emailType === 'trial_ending_day6' ||
-    emailType === 'trial_expired' ||
-    emailType === 'inactive_21d_offer' ||
-    emailType === 'trial_winback_day2'
-      ? urls.pricingUrl
-      : urls.createUrl;
+    emailType === 'trial_ending_day6'
+      ? urls.proIntroUrl
+      : emailType === 'trial_expired' ||
+          emailType === 'inactive_21d_offer' ||
+          emailType === 'trial_winback_day2'
+        ? urls.pricingUrl
+        : urls.createUrl;
 
   const replacements: Record<string, string> = {
     '{{CTA_URL}}': ctaUrl,
     '{{PRICING_URL}}': urls.pricingUrl,
+    '{{PRO_INTRO_URL}}': urls.proIntroUrl,
     '{{UNSUBSCRIBE_URL}}': urls.unsubscribeUrl,
     '{{PRIVACY_URL}}': urls.privacyUrl,
     '{{PREFS_URL}}': urls.prefsUrl,

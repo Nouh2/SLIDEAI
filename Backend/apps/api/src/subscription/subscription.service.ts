@@ -266,6 +266,7 @@ export class SubscriptionService {
         }
 
         const user = await this.ensureLocalUser(userId, session.customer_email);
+        await this.recordLifecycleEmailConversion(session);
 
         if (!stripeSubscriptionId && session.metadata?.packType) {
           await this.handleCreditPackPurchase(userId, user.email, session.metadata.packType);
@@ -386,6 +387,45 @@ export class SubscriptionService {
         break;
       }
     }
+  }
+
+  private async recordLifecycleEmailConversion(session: any) {
+    const emailTrackingId = session.metadata?.email_id;
+    if (!emailTrackingId) {
+      return;
+    }
+
+    const rows = await this.prisma.$queryRaw<Array<{ id: string; payload: any }>>`
+      SELECT "id", "payload"
+      FROM "LifecycleEmailLog"
+      WHERE "payload"->>'emailTrackingId' = ${emailTrackingId}
+      LIMIT 1
+    `;
+
+    const row = rows[0];
+    if (!row) {
+      return;
+    }
+
+    const currentPayload = row.payload && typeof row.payload === 'object' ? row.payload : {};
+    await this.prisma.lifecycleEmailLog.update({
+      where: { id: row.id },
+      data: {
+        payload: {
+          ...currentPayload,
+          emailConvertedAt: currentPayload.emailConvertedAt || new Date().toISOString(),
+          emailConversion: {
+            checkoutSessionId: session.id,
+            checkoutMode: session.mode,
+            paymentStatus: session.payment_status,
+            plan: session.metadata?.plan || null,
+            packType: session.metadata?.packType || null,
+            amountTotal: session.amount_total ?? null,
+            currency: session.currency ?? null,
+          },
+        } as any,
+      },
+    });
   }
 
   async getUserIdByStripeCustomerId(customerId: string): Promise<string | null> {

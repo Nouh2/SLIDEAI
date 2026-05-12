@@ -104,6 +104,18 @@ export class OpsController {
     return this.opsService.listLogs(limit ? Number(limit) : 120);
   }
 
+  @Get('/email-funnel')
+  @UseGuards(SupabaseGuard, OpsAdminGuard)
+  getEmailFunnel(@Query('days') days?: string) {
+    return this.opsService.getEmailFunnel(days ? Number(days) : 30);
+  }
+
+  @Get('/activation-funnel')
+  @UseGuards(SupabaseGuard, OpsAdminGuard)
+  getActivationFunnel(@Query('days') days?: string) {
+    return this.opsService.getProductActivationFunnel(days ? Number(days) : 30);
+  }
+
   @Get('/broadcast/users')
   @UseGuards(SupabaseGuard, OpsAdminGuard)
   broadcastGetUsers(@Query('segment') segment: string) {

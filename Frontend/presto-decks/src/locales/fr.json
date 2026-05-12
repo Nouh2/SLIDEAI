@@ -221,16 +221,26 @@
     "plan": "Plan",
     "proTrial": "Essai Pro",
     "trialExpired": "Essai expiré",
-    "freeLegacy": "Accès hérité",
+    "freeLegacy": "Accès historique",
     "generations": "génération(s)",
-    "paymentRequired": "Abonnement requis pour continuer",
+    "paymentRequired": "Pack ou abonnement requis pour continuer",
     "unlimitedPresentations": "Présentations illimitées",
     "presentations": "présentations",
     "packActive": "Pack actif",
     "packRemaining": "{{count}} génération(s) ponctuelle(s) restante(s)",
     "packNote": "Votre pack ajoute des générations ponctuelles et l'export PDF/PPTX. Les fonctionnalités avancées restent réservées à Pro.",
+    "trialActivationBadge": "Essai Pro : {{count}} jour(s) restant(s)",
+    "trialActivationTitle": "Transformez votre essai en vraie preuve de valeur",
+    "trialActivationSubtitle": "Le meilleur test : créez un deck sur un cas réel, exportez-le, puis gardez Pro avec l'offre à 9,90 € le premier mois.",
+    "trialActivationSteps": {
+      "create": "Créer un deck réel",
+      "export": "Tester l'export PPTX/PDF",
+      "keepPro": "Garder Pro à 9,90 €"
+    },
+    "trialActivationCreateCta": "Créer un deck",
+    "trialActivationProCta": "Garder Pro à 9,90 €",
     "paymentSuccess": "Paiement réussi ! 🎉",
-    "paymentSuccessMsg": "Votre abonnement est activé. Merci de votre confiance !",
+    "paymentSuccessMsg": "Votre paiement est confirmé. Votre pack ou abonnement est actif.",
     "duplicate": "Dupliquer",
     "duplicateSuccess": "Présentation dupliquée",
     "duplicateSuccessMsg": "La copie est disponible dans vos présentations.",
@@ -464,7 +474,7 @@
     "trialEndsIn_one": "L'essai se termine dans {{count}} jour.",
     "trialEndsIn_other": "L'essai se termine dans {{count}} jours.",
     "creditsAvailable": "Crédits disponibles",
-    "upgradeNote": "Passez à un plan supérieur pour plus de crédits.",
+    "upgradeNote": "Choisissez un pack ou passez à Pro pour continuer à créer.",
     "unlimitedAccess": "Accès Illimité",
     "unlimitedNote": "Vous avez toute la puissance de SlideAI.",
     "upgradeToPro": "Passer Pro",
@@ -475,7 +485,7 @@
     "packActiveNote": "Votre pack ajoute des générations ponctuelles et l'export PDF/PPTX. Les fonctionnalités avancées restent réservées à Pro.",
     "packActiveTitle": "Générations ponctuelles disponibles",
     "packActiveDetail": "Ce pack vous permet de générer ponctuellement et d'exporter en PDF/PPTX, sans débloquer les fonctionnalités avancées de Pro.",
-    "legacyAccess": "Accès hérité",
+    "legacyAccess": "Accès historique",
     "buyAnotherPack": "Acheter un autre pack",
     "packFooter": "Les packs sont des achats one-shot. L'abonnement Pro reste recommandé pour un usage régulier.",
     "recentPresentations": "Présentations récentes",
@@ -943,10 +953,12 @@
       "desc": "5 générations valables 3 mois, sans abonnement. Idéal pour un besoin ponctuel."
     },
     "subscriptions": {
-      "title": "Pro — 14 €/mois",
-      "desc": "Générations illimitées, brand kits, export PPTX éditable. Pour un usage régulier."
+      "title": "Pro — 9,90 € le premier mois",
+      "desc": "Générations illimitées, brand kits, export PPTX éditable. Puis 19,90 €/mois, annulable à tout moment."
     },
-    "seeOptions": "Voir les packs",
+    "startPro": "Commencer à 9,90 €",
+    "seePacks": "Voir les packs ponctuels",
+    "seeOptions": "Voir les options",
     "later": "Plus tard"
   },
   "templateSelector": {
@@ -1280,8 +1292,8 @@
     },
     "plans": {
       "free": {
-        "name": "Gratuit",
-        "description": "Parfait pour essayer SlideAI.",
+        "name": "Essai Pro",
+        "description": "L'essai Pro 7 jours permet de tester SlideAI sans carte bancaire.",
         "features": {
           "presentations": "3 présentations / mois",
           "pdfImport": "Import PDF (Basique)",
@@ -1297,9 +1309,9 @@
         }
       },
       "starter": {
-        "name": "Starter",
-        "description": "Pour consultants et freelances qui livrent régulièrement.",
-        "cta": "Demarrer essai Starter",
+        "name": "Pro",
+        "description": "Cette ancienne offre est remplacée par l'abonnement Pro.",
+        "cta": "Passer à Pro",
         "features": {
           "generations": "15 générations par mois",
           "pdfImport": "Import PDF (Avancé)",

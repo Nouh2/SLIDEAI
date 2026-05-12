@@ -55,7 +55,7 @@ export function PaymentSuccess({ onContinue }: PaymentSuccessProps) {
                         transition={{ delay: 0.4 }}
                         className="text-3xl md:text-4xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-foreground to-foreground/70"
                     >
-                        {t('payment.successTitle', 'Payment Successful!')}
+                        {t('dashboard.paymentSuccess', 'Payment successful!')}
                     </motion.h2>
 
                     <motion.p
@@ -64,7 +64,7 @@ export function PaymentSuccess({ onContinue }: PaymentSuccessProps) {
                         transition={{ delay: 0.6 }}
                         className="text-muted-foreground text-lg mb-8 max-w-sm mx-auto"
                     >
-                        {t('payment.successMessage', 'Thank you for your purchase. Your account has been upgraded and credits have been added.')}
+                        {t('dashboard.paymentSuccessMsg', 'Your payment is confirmed. Your pack or subscription is active.')}
                     </motion.p>
 
                     <motion.div
@@ -77,7 +77,7 @@ export function PaymentSuccess({ onContinue }: PaymentSuccessProps) {
                             className="bg-gradient-to-r from-primary to-secondary text-white font-bold h-14 px-8 rounded-full shadow-xl shadow-primary/20 hover:scale-105 transition-all text-lg"
                             onClick={onContinue}
                         >
-                            <span>{t('payment.continueToDashboard', 'Access Dashboard')}</span>
+                            <span>{t('header.dashboard', 'Dashboard')}</span>
                             <ArrowRight className="ml-2 w-5 h-5" />
                         </Button>
                     </motion.div>

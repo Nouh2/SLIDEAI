@@ -66,7 +66,7 @@ let StripeService = class StripeService {
                 ...(introCouponId ? { introOffer: 'first_month_990' } : {}),
                 ...this.buildAttributionMetadata(attribution),
             },
-            allow_promotion_codes: !appliedPromotionCodeId && !introCouponId,
+            ...(!appliedPromotionCodeId && !introCouponId ? { allow_promotion_codes: true } : {}),
             ...(appliedPromotionCodeId ? { discounts: [{ promotion_code: appliedPromotionCodeId }] } : {}),
             ...(introCouponId ? { discounts: [{ coupon: introCouponId }] } : {}),
         });

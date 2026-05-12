@@ -1,7 +1,7 @@
 import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { AnimatePresence } from "framer-motion";
 import { PageTransition } from "@/components/layout/PageTransition";
-import { Suspense, lazy } from "react";
+import { Component, Suspense, lazy, type ReactNode } from "react";
 import { Loader2 } from "lucide-react";
 import { ProtectedRoute, GuestRoute, OpsRoute } from "@/components/auth/RouteGuards";
 
@@ -44,13 +44,48 @@ const PageLoader = () => (
     </div>
 );
 
+const isStaleChunkError = (error: unknown) => {
+    const message = error instanceof Error ? error.message : String(error);
+    return /dynamically imported module|module script|MIME type|ChunkLoadError|Failed to fetch/i.test(message);
+};
+
+class ChunkReloadBoundary extends Component<{ children: ReactNode }, { failed: boolean }> {
+    state = { failed: false };
+
+    static getDerivedStateFromError() {
+        return { failed: true };
+    }
+
+    componentDidCatch(error: unknown) {
+        if (!isStaleChunkError(error)) return;
+
+        const key = "slideai:chunk-reload";
+        if (sessionStorage.getItem(key) === "1") {
+            sessionStorage.removeItem(key);
+            return;
+        }
+
+        sessionStorage.setItem(key, "1");
+        window.location.reload();
+    }
+
+    render() {
+        if (this.state.failed) {
+            return <PageLoader />;
+        }
+
+        return this.props.children;
+    }
+}
+
 export const AnimatedRoutes = () => {
     const location = useLocation();
 
     return (
         <AnimatePresence mode="wait">
-            <Suspense fallback={<PageLoader />}>
-                <Routes location={location} key={location.pathname}>
+            <ChunkReloadBoundary>
+                <Suspense fallback={<PageLoader />}>
+                    <Routes location={location} key={location.pathname}>
                     {/* PUBLIC ROUTES - Accessible to everyone */}
                     <Route path="/pricing" element={<PageTransition><Pricing /></PageTransition>} />
                     <Route path="/en/pricing" element={<PageTransition><Pricing /></PageTransition>} />
@@ -180,8 +215,9 @@ export const AnimatedRoutes = () => {
 
                     {/* 404 */}
                     <Route path="*" element={<PageTransition><NotFound /></PageTransition>} />
-                </Routes>
-            </Suspense>
+                    </Routes>
+                </Suspense>
+            </ChunkReloadBoundary>
         </AnimatePresence>
     );
 };

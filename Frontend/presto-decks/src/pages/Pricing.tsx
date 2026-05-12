@@ -217,6 +217,16 @@ export default function Pricing() {
   };
 
   const handleCancelSubscription = async () => {
+    if (!isPaidProSubscription) {
+      if (isTrialingSubscription(subscription)) {
+        await handleSubscribe("pro");
+        return;
+      }
+
+      navigate("/pricing?checkout=pro_intro");
+      return;
+    }
+
     if (!window.confirm(t("pricing.errors.cancelConfirm"))) return;
     setLoadingPlan("cancel");
     try {

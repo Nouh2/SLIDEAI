@@ -135,7 +135,8 @@ export default function Account() {
   const isTrialing = isTrialingSubscription(subscription);
   const isExpiredTrial = subscription?.accessState === "trial_expired";
   const isRetiredAccess = isLegacySubscription(subscription) || subscription?.plan === "starter";
-  const shouldShowPaidOptions = !subscription || (isRetiredAccess && !isPackActive);
+  const shouldShowPaidOptions = !subscription || isTrialing || isExpiredTrial || (isRetiredAccess && !isPackActive);
+  const paidProCtaPath = "/pricing?checkout=pro_intro";
   const isUnlimited = subscription?.creditsRemaining === -1;
   const canUseBrandKit = hasFeature(subscription, "brand_kit");
   const displayPlanKey = getPlanDisplayKey(subscription);
@@ -164,11 +165,13 @@ export default function Account() {
           </div>
           {(shouldShowPaidOptions || isPackActive) && (
             <Button
-              onClick={() => navigate("/pricing")}
+              onClick={() => navigate(isTrialing ? paidProCtaPath : "/pricing")}
               className="hidden md:flex bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 text-white shadow-lg hover:shadow-xl transition-all duration-300"
             >
               <Sparkles className="mr-2 h-4 w-4" />
-              {t("account.upgradeToProBtn")}
+              {isTrialing
+                ? t("pricing.keepProIntro", { defaultValue: "Garder Pro à 9,90 €" })
+                : t("account.upgradeToProBtn")}
             </Button>
           )}
         </div>
@@ -390,6 +393,10 @@ export default function Account() {
                         {t("account.buyAnotherPack", { defaultValue: "Buy another pack" })}
                       </Button>
                     </>
+                  ) : isTrialing ? (
+                    <Button onClick={() => navigate(paidProCtaPath)} className="w-full h-12 text-lg font-bold bg-gradient-to-r from-primary to-purple-600 hover:opacity-90 transition-opacity">
+                      {t("pricing.keepProIntro", { defaultValue: "Garder Pro à 9,90 €" })} <Sparkles className="ml-2 h-5 w-5" />
+                    </Button>
                   ) : shouldShowPaidOptions ? (
                     <Button onClick={() => navigate("/pricing")} className="w-full h-12 text-lg font-bold bg-gradient-to-r from-primary to-purple-600 hover:opacity-90 transition-opacity">
                       {t("account.upgradeToPro")} <Sparkles className="ml-2 h-5 w-5" />

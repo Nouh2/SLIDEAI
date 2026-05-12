@@ -79,6 +79,12 @@ export default function Pricing() {
 
   const isPackActive = isPackSubscription(subscription);
   const packCreditsRemaining = subscription?.packCreditsRemaining ?? 0;
+  const isPaidProSubscription = Boolean(
+    subscription?.plan === "pro" &&
+    subscription?.stripeSubscriptionId &&
+    !isTrialingSubscription(subscription) &&
+    !isExpiredTrialSubscription(subscription)
+  );
 
   const buildPricingReturnPath = (updates: Record<string, string>) => {
     const params = new URLSearchParams(searchParams);
@@ -127,13 +133,13 @@ export default function Pricing() {
   }, [shouldAutoStartTrial, user, autoTrialStarted, subscription?.canStartTrial]);
 
   useEffect(() => {
-    if (!shouldAutoStartIntroCheckout || !user || autoCheckoutStarted || isTrialingSubscription(subscription) || subscription?.plan === "pro") {
+    if (!shouldAutoStartIntroCheckout || !user || autoCheckoutStarted || isPaidProSubscription) {
       return;
     }
 
     setAutoCheckoutStarted(true);
     handleSubscribe("pro");
-  }, [shouldAutoStartIntroCheckout, user, autoCheckoutStarted, subscription?.plan, subscription?.accessState]);
+  }, [shouldAutoStartIntroCheckout, user, autoCheckoutStarted, isPaidProSubscription]);
 
   const handleSubscribe = async (planKey: "pro" | "business") => {
     Analytics.trackEvent(ANALYTICS_EVENTS.ECOMMERCE.CATEGORY, ANALYTICS_EVENTS.ECOMMERCE.SELECT_PLAN, planKey);
@@ -268,8 +274,8 @@ export default function Pricing() {
 
   const isTrialing = isTrialingSubscription(subscription);
   const isExpired = isExpiredTrialSubscription(subscription);
-  const isCurrentPro = subscription?.plan === "pro" && !isTrialing && !isExpired;
-  const isCurrentBusiness = subscription?.plan === "business" && !isExpired;
+  const isCurrentPro = isPaidProSubscription;
+  const isCurrentBusiness = Boolean(subscription?.plan === "business" && subscription?.stripeSubscriptionId && !isExpired);
   const canShowTrialCta = !user || Boolean(subscription?.canStartTrial);
 
   const proPrice = billingCycle === "yearly" ? "14€" : "9,90€";
@@ -348,7 +354,7 @@ export default function Pricing() {
   const proCtaLabel = isCurrentPro
       ? t("pricing.unsubscribe")
       : isTrialing
-        ? t("pricing.continueTrial", { defaultValue: "Continue trial" })
+        ? t("pricing.keepProIntro", { defaultValue: "Garder Pro à 9,90 €" })
         : billingCycle === "monthly"
           ? t("pricing.startIntroOffer", { defaultValue: "Start for 9.90€" })
           : t("pricing.choosePro", { defaultValue: "Choose Pro" });
@@ -610,8 +616,12 @@ export default function Pricing() {
               </CardHeader>
               <CardContent className="flex flex-col gap-5 pb-7">
                 {isTrialing ? (
-                  <Button variant="outline" className="w-full rounded-xl font-bold" onClick={() => navigate("/create")}>
-                    {t("pricing.continueTrial", { defaultValue: "Continue trial" })}
+                  <Button
+                    className="w-full rounded-xl font-bold h-12 shadow-lg shadow-primary/20"
+                    onClick={() => handleSubscribe("pro")}
+                    disabled={loadingPlan === "pro"}
+                  >
+                    {loadingPlan === "pro" ? <Loader2 className="h-4 w-4 animate-spin" /> : proCtaLabel}
                   </Button>
                 ) : isCurrentPro ? (
                   <Button

@@ -36,9 +36,9 @@ export declare class SubscriptionController {
         hearAboutAnswered: boolean;
         packFeaturesMode: string | null;
         id: string;
-        status: string;
         userId: string;
         plan: string;
+        status: string;
         creditsRemaining: number;
         creditsResetAt: Date | null;
         trialStartedAt: Date | null;
@@ -120,9 +120,9 @@ export declare class SubscriptionController {
         hearAboutAnswered: boolean;
         packFeaturesMode: string | null;
         id: string;
-        status: string;
         userId: string;
         plan: string;
+        status: string;
         creditsRemaining: number;
         creditsResetAt: Date | null;
         trialStartedAt: Date | null;

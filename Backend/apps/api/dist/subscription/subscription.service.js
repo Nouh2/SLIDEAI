@@ -498,7 +498,7 @@ let SubscriptionService = SubscriptionService_1 = class SubscriptionService {
             return false;
         }
         if (subscription.plan === 'starter' || subscription.plan === 'pro' || subscription.plan === 'business') {
-            return subscription.status !== 'active' && subscription.status !== 'trialing';
+            return subscription.status !== 'trialing';
         }
         return true;
     }
@@ -610,7 +610,7 @@ let SubscriptionService = SubscriptionService_1 = class SubscriptionService {
     }
     async repairMisclassifiedTrialSubscription(user, subscription) {
         const launchAt = this.getFreeTrialLaunchAt();
-        const looksMisclassified = subscription.legacyFree &&
+        const looksMisclassifiedTrial = subscription.legacyFree &&
             subscription.plan === 'free' &&
             subscription.status === 'active' &&
             !subscription.trialConsumedAt &&
@@ -618,7 +618,13 @@ let SubscriptionService = SubscriptionService_1 = class SubscriptionService {
             !subscription.stripeCustomerId &&
             user.createdAt.getTime() >= launchAt.getTime() &&
             subscription.createdAt.getTime() >= launchAt.getTime();
-        if (!looksMisclassified) {
+        const looksLikeUnpaidActivePlan = ['starter', 'pro', 'business'].includes(subscription.plan) &&
+            subscription.status === 'active' &&
+            !subscription.trialStartedAt &&
+            !subscription.trialConsumedAt &&
+            !subscription.stripeSubscriptionId &&
+            !subscription.stripeCustomerId;
+        if (!looksMisclassifiedTrial && !looksLikeUnpaidActivePlan) {
             return subscription;
         }
         this.logger.warn(`Repairing misclassified free-trial account for user ${user.id} (${user.email})`);

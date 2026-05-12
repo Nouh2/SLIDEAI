@@ -605,7 +605,7 @@ export class SubscriptionService {
     }
 
     if (subscription.plan === 'starter' || subscription.plan === 'pro' || subscription.plan === 'business') {
-      return subscription.status !== 'active' && subscription.status !== 'trialing';
+      return subscription.status !== 'trialing';
     }
 
     return true;
@@ -750,7 +750,7 @@ export class SubscriptionService {
 
   private async repairMisclassifiedTrialSubscription(user: PrismaUser, subscription: PrismaSubscription) {
     const launchAt = this.getFreeTrialLaunchAt();
-    const looksMisclassified =
+    const looksMisclassifiedTrial =
       subscription.legacyFree &&
       subscription.plan === 'free' &&
       subscription.status === 'active' &&
@@ -759,8 +759,15 @@ export class SubscriptionService {
       !subscription.stripeCustomerId &&
       user.createdAt.getTime() >= launchAt.getTime() &&
       subscription.createdAt.getTime() >= launchAt.getTime();
+    const looksLikeUnpaidActivePlan =
+      ['starter', 'pro', 'business'].includes(subscription.plan) &&
+      subscription.status === 'active' &&
+      !subscription.trialStartedAt &&
+      !subscription.trialConsumedAt &&
+      !subscription.stripeSubscriptionId &&
+      !subscription.stripeCustomerId;
 
-    if (!looksMisclassified) {
+    if (!looksMisclassifiedTrial && !looksLikeUnpaidActivePlan) {
       return subscription;
     }
 

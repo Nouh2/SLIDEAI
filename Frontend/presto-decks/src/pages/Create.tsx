@@ -21,7 +21,38 @@ import { Analytics, ANALYTICS_EVENTS } from "@/lib/analytics";
 import { hasFeature } from "@/lib/subscription";
 import { ACTIVATION_USE_CASES, ActivationUseCaseId, getActivationUseCase } from "@/lib/activation";
 
+const TEMPLATE_STARTER_PROMPTS: Record<string, string> = {
+    "business-review":
+        "Cree une business review / QBR pour presenter la performance du trimestre, les KPI cles, les faits marquants, les ecarts vs objectifs, les risques, les opportunites et les priorites du prochain trimestre.",
+    "corporate-report":
+        "Cree un rapport corporate clair avec synthese executive, indicateurs cles, analyse des resultats, enseignements, risques et prochaines actions.",
+    "consulting":
+        "Cree une presentation de conseil structuree avec contexte, diagnostic, enjeux, recommandations, plan d'action, impacts attendus et prochaines etapes.",
+    "sales-proposal":
+        "Cree une proposition commerciale client avec contexte, probleme, solution recommandee, perimetre, livrables, planning, prix et prochaines etapes.",
+    "seo-audit":
+        "Cree un audit SEO client avec synthese executive, constats techniques, opportunites contenu, priorites, quick wins et roadmap d'actions.",
+    "financial-audit":
+        "Cree une presentation d'audit financier avec synthese, chiffres cles, analyse des ecarts, risques, recommandations et plan de suivi.",
+    "product-roadmap":
+        "Cree une roadmap produit avec vision, objectifs, priorites, initiatives, calendrier, dependances, risques et criteres de succes.",
+    "cybersecurity-audit":
+        "Cree un audit cybersecurite avec niveau de risque, vulnerabilites principales, impacts business, recommandations et roadmap de remediation.",
+    "board-deck":
+        "Cree un board deck pour comite de direction avec synthese executive, performance, decisions attendues, risques, finances et prochaines priorites.",
+    "startup-pitch":
+        "Cree un pitch deck startup avec probleme, solution, marche, produit, traction, business model, go-to-market, equipe et levee de fonds.",
+    "educational":
+        "Cree un support de cours clair avec objectifs pedagogiques, notions cles, exemples, exercices, recapitulatif et conclusion.",
+};
 
+const getTemplateStarterPrompt = (templateId: string) => {
+    const template = getTemplateById(templateId);
+    if (!template) return "";
+
+    return TEMPLATE_STARTER_PROMPTS[templateId] ||
+        `Cree une presentation ${template.name} professionnelle sur mon sujet, avec une structure claire, des messages actionnables et un rendu adapte a ce type de livrable.`;
+};
 
 
 export default function Create() {
@@ -601,6 +632,7 @@ export default function Create() {
                                             });
                                             return;
                                         }
+                                        setVision((current) => current.trim() ? current : getTemplateStarterPrompt(selectedTemplate));
                                         setStep('customize');
                                     }}
                                     className="bg-gradient-to-r from-primary to-secondary text-white gap-2 w-full sm:w-auto"

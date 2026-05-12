@@ -2,7 +2,7 @@
  * Script one-shot : renvoie les emails de confirmation Supabase
  * aux utilisateurs qui n'ont pas reçu le leur (problème DMARC résolu).
  *
- * Usage : tsx resend-confirmation-emails.ts
+ * Usage : tsx resend-confirmation-emails.ts email@example.com
  */
 
 import { createClient } from '@supabase/supabase-js';
@@ -11,6 +11,7 @@ import { join } from 'node:path';
 
 const SUPABASE_URL = 'https://dntcdhabtctfbylynlcr.supabase.co';
 const EMAIL_FROM = 'SlideAI <noreply@slideai.fr>';
+const CONFIRMATION_SUBJECT = 'Connectez-vous à votre compte SlideAI';
 
 function requireEnv(name: 'SUPABASE_SERVICE_ROLE_KEY' | 'RESEND_API_KEY') {
   const value = process.env[name];
@@ -25,11 +26,24 @@ function requireEnv(name: 'SUPABASE_SERVICE_ROLE_KEY' | 'RESEND_API_KEY') {
 const SUPABASE_SERVICE_ROLE_KEY = requireEnv('SUPABASE_SERVICE_ROLE_KEY');
 const RESEND_API_KEY = requireEnv('RESEND_API_KEY');
 
-const TARGETS = [
-  'karlaelong@yahoo.com',
-  'dialloidrissa042@gmail.com',
-  'etoile.filante241217@gmail.com',
-];
+function getTargets(): string[] {
+  const rawTargets = process.argv.slice(2).length
+    ? process.argv.slice(2)
+    : (process.env.CONFIRMATION_EMAIL_TARGETS ?? '')
+        .split(',')
+        .map((email) => email.trim())
+        .filter(Boolean);
+
+  if (!rawTargets.length) {
+    throw new Error(
+      'Missing target email. Usage: tsx resend-confirmation-emails.ts email@example.com',
+    );
+  }
+
+  return rawTargets;
+}
+
+const TARGETS = getTargets();
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
   auth: { persistSession: false, autoRefreshToken: false },
@@ -101,7 +115,7 @@ async function processUser(email: string) {
     const html = buildConfirmationEmail(url);
     const result = await sendViaResend(
       email,
-      'Connectez-vous à votre compte SlideAI',
+      CONFIRMATION_SUBJECT,
       html,
     );
     console.log(`  ✓ Magic link envoyé — id: ${result.id}`);
@@ -118,7 +132,7 @@ async function processUser(email: string) {
   const html = buildConfirmationEmail(url);
   const result = await sendViaResend(
     email,
-    'Confirmez votre compte SlideAI',
+    CONFIRMATION_SUBJECT,
     html,
   );
   console.log(`  ✓ Email envoyé — id: ${result.id}`);

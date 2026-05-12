@@ -1,8 +1,8 @@
 ---
-title: "How to Create a PowerPoint Presentation with ChatGPT (2026 Guide)"
+title: "ChatGPT for PowerPoint: Turn Text into Slides in 40 Seconds"
 date: "2026-04-20"
 author: "SlideAI Team"
-excerpt: "Learn how to turn ChatGPT output into an editable PowerPoint presentation. Compare manual copy-paste, VBA, and the fastest AI workflow."
+excerpt: "ChatGPT writes the content, SlideAI turns it into a ready-to-download PowerPoint in 40 seconds. No copy-paste, no formatting. Try it free."
 language: "en"
 coverImage: "https://images.unsplash.com/photo-1677442136019-21780ecad995?q=80&w=2832&auto=format&fit=crop"
 ---

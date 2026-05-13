@@ -474,6 +474,7 @@ export declare class OpsService {
     private getStripeRevenueSnapshot;
     private fetchGaOverview;
     private fetchGaMoneyFunnel;
+    private getGoogleAnalyticsCredentials;
     private buildMoneyFunnelRecommendation;
     private getGoogleAccessToken;
 }

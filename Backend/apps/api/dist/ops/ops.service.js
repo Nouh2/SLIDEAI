@@ -1080,17 +1080,15 @@ let OpsService = class OpsService {
         return { mrrCents, currency };
     }
     async fetchGaOverview() {
-        const propertyId = process.env.GA4_PROPERTY_ID;
-        const clientEmail = process.env.GOOGLE_SERVICE_ACCOUNT_CLIENT_EMAIL;
-        const privateKey = process.env.GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY?.replace(/\\n/g, '\n');
-        if (!propertyId || !clientEmail || !privateKey) {
+        const credentials = this.getGoogleAnalyticsCredentials();
+        if (!credentials) {
             return {
                 configured: false,
                 source: 'ga4',
             };
         }
-        const accessToken = await this.getGoogleAccessToken(clientEmail, privateKey);
-        const response = await fetch(`https://analyticsdata.googleapis.com/v1beta/properties/${propertyId}:runReport`, {
+        const accessToken = await this.getGoogleAccessToken(credentials.clientEmail, credentials.privateKey);
+        const response = await fetch(`https://analyticsdata.googleapis.com/v1beta/properties/${credentials.propertyId}:runReport`, {
             method: 'POST',
             headers: {
                 Authorization: `Bearer ${accessToken}`,
@@ -1121,10 +1119,8 @@ let OpsService = class OpsService {
         };
     }
     async fetchGaMoneyFunnel(days) {
-        const propertyId = process.env.GA4_PROPERTY_ID;
-        const clientEmail = process.env.GOOGLE_SERVICE_ACCOUNT_CLIENT_EMAIL;
-        const privateKey = process.env.GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY?.replace(/\\n/g, '\n');
-        if (!propertyId || !clientEmail || !privateKey) {
+        const credentials = this.getGoogleAnalyticsCredentials();
+        if (!credentials) {
             return {
                 configured: false,
                 source: 'ga4',
@@ -1134,14 +1130,14 @@ let OpsService = class OpsService {
                 events: {},
             };
         }
-        const accessToken = await this.getGoogleAccessToken(clientEmail, privateKey);
+        const accessToken = await this.getGoogleAccessToken(credentials.clientEmail, credentials.privateKey);
         const dateRanges = [{ startDate: `${days}daysAgo`, endDate: 'today' }];
         const headers = {
             Authorization: `Bearer ${accessToken}`,
             'Content-Type': 'application/json',
         };
         const runReport = async (body) => {
-            const response = await fetch(`https://analyticsdata.googleapis.com/v1beta/properties/${propertyId}:runReport`, {
+            const response = await fetch(`https://analyticsdata.googleapis.com/v1beta/properties/${credentials.propertyId}:runReport`, {
                 method: 'POST',
                 headers,
                 body: JSON.stringify(body),
@@ -1188,6 +1184,39 @@ let OpsService = class OpsService {
             sessions: Number(overviewMetrics[1]?.value || 0),
             pageViews: Number(overviewMetrics[2]?.value || 0),
             events: eventMap,
+        };
+    }
+    getGoogleAnalyticsCredentials() {
+        const propertyId = process.env.GA4_PROPERTY_ID || process.env.GOOGLE_ANALYTICS_PROPERTY_ID;
+        const credentialsJson = process.env.GA4_SERVICE_ACCOUNT_JSON ||
+            process.env.GOOGLE_SERVICE_ACCOUNT_JSON ||
+            process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON;
+        if (propertyId && credentialsJson) {
+            try {
+                const parsed = JSON.parse(credentialsJson);
+                const clientEmail = parsed.client_email || parsed.clientEmail;
+                const privateKey = parsed.private_key || parsed.privateKey;
+                if (clientEmail && privateKey) {
+                    return {
+                        propertyId,
+                        clientEmail,
+                        privateKey: String(privateKey).replace(/\\n/g, '\n'),
+                    };
+                }
+            }
+            catch {
+                return null;
+            }
+        }
+        const clientEmail = process.env.GOOGLE_SERVICE_ACCOUNT_CLIENT_EMAIL;
+        const privateKey = process.env.GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY?.replace(/\\n/g, '\n');
+        if (!propertyId || !clientEmail || !privateKey) {
+            return null;
+        }
+        return {
+            propertyId,
+            clientEmail,
+            privateKey,
         };
     }
     buildMoneyFunnelRecommendation(stageKey) {

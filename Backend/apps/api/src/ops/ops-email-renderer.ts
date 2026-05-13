@@ -1,5 +1,4 @@
-import { existsSync, readFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { EMAIL_SAFE_TEMPLATES } from './email-safe-templates.generated.js';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -1483,15 +1482,9 @@ function buildBundledCampaignEmail(
   const fileName = fileByType[emailType];
   if (!fileName) return null;
 
-  const candidates = [
-    join(process.cwd(), 'SlideAIemail', 'emails', 'email-safe', fileName),
-    join(process.cwd(), '..', '..', '..', 'SlideAIemail', 'emails', 'email-safe', fileName),
-    join(process.cwd(), '..', '..', 'SlideAIemail', 'emails', 'email-safe', fileName),
-  ];
-  const templatePath = candidates.find((candidate) => existsSync(candidate));
-  if (!templatePath) return null;
+  let html = EMAIL_SAFE_TEMPLATES[fileName];
+  if (!html) return null;
 
-  // CTA destination depends on the funnel stage.
   const ctaUrl =
     emailType === 'trial_ending_day6'
       ? urls.proIntroUrl
@@ -1510,16 +1503,11 @@ function buildBundledCampaignEmail(
     '{{PREFS_URL}}': urls.prefsUrl,
   };
 
-  try {
-    let html = readFileSync(templatePath, 'utf8');
-    for (const [token, value] of Object.entries(replacements)) {
-      html = html.split(token).join(value);
-    }
-    const subject = html.match(/<title>([\s\S]*?)<\/title>/i)?.[1]?.trim() || 'SlideAI';
-    return { subject, html };
-  } catch {
-    return null;
+  for (const [token, value] of Object.entries(replacements)) {
+    html = html.split(token).join(value);
   }
+  const subject = html.match(/<title>([\s\S]*?)<\/title>/i)?.[1]?.trim() || 'SlideAI';
+  return { subject, html };
 }
 
 export type BroadcastEmailParams = {

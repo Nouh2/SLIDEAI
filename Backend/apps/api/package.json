@@ -5,7 +5,8 @@
   "license": "MIT",
   "main": "dist/main.js",
   "scripts": {
-    "prebuild": "prisma generate --schema prisma/schema.prisma",
+    "prebuild": "node ../../scripts/generate-email-templates.mjs && prisma generate --schema prisma/schema.prisma",
+    "prestart:dev": "node ../../scripts/generate-email-templates.mjs",
     "start": "node dist/main.js",
     "start:dev": "cross-env NODE_ENV=development nest start --watch",
     "build": "nest build",

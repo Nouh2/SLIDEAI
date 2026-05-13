@@ -54,6 +54,14 @@ const getTemplateStarterPrompt = (templateId: string) => {
         `Cree une presentation ${template.name} professionnelle sur mon sujet, avec une structure claire, des messages actionnables et un rendu adapte a ce type de livrable.`;
 };
 
+const buildEditorGenerationUrl = (traceId: string, slideCount: number, activationUseCase: ActivationUseCaseId | null) => {
+    const params = new URLSearchParams({ slides: String(slideCount) });
+    if (activationUseCase) {
+        params.set("activation", activationUseCase);
+    }
+    return `/editor/${traceId}?${params.toString()}`;
+};
+
 
 export default function Create() {
     const initialParams = new URLSearchParams(window.location.search);
@@ -311,7 +319,7 @@ export default function Create() {
                 description: t('create.redirecting'),
             });
 
-            navigate(`/editor/${traceId}${activationUseCase ? `?activation=${activationUseCase}` : ""}`);
+            navigate(buildEditorGenerationUrl(traceId, selection.totalSlides, activationUseCase));
             Analytics.trackEvent(ANALYTICS_EVENTS.PRESENTATION.CATEGORY, ANALYTICS_EVENTS.PRESENTATION.GENERATE_COMPLETE);
         } catch (e: any) {
             const errorMessage = e?.message ?? t('create.errorGenerating');
@@ -427,7 +435,7 @@ export default function Create() {
                 description: t('create.redirecting'),
             });
 
-            navigate(`/editor/${traceId}${activationUseCase ? `?activation=${activationUseCase}` : ""}`);
+            navigate(buildEditorGenerationUrl(traceId, finalSlideCount, activationUseCase));
             Analytics.trackEvent(ANALYTICS_EVENTS.PRESENTATION.CATEGORY, ANALYTICS_EVENTS.PRESENTATION.GENERATE_COMPLETE);
         } catch (e: any) {
             // Check if this is a credit limit error

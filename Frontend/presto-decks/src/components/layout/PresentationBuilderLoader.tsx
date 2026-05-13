@@ -4,12 +4,14 @@ import { Sparkles, Wand2, Layout, Type, Image as ImageIcon, CheckCircle2 } from 
 
 interface PresentationBuilderLoaderProps {
     status?: string; // e.g., "Designing slides...", "Writing content..."
+    slideCount?: number;
 }
 
-export function PresentationBuilderLoader({ status }: PresentationBuilderLoaderProps) {
+export function PresentationBuilderLoader({ status, slideCount }: PresentationBuilderLoaderProps) {
     const [currentStep, setCurrentStep] = useState(0);
     const [builtElements, setBuiltElements] = useState<string[]>([]);
     const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
+    const totalSlides = Math.max(1, Math.floor(slideCount || 3));
 
     // Simulation steps for a single slide building process
     const buildSteps = [
@@ -41,15 +43,16 @@ export function PresentationBuilderLoader({ status }: PresentationBuilderLoaderP
     useEffect(() => {
         if (currentStep === buildSteps.length - 1) {
             const timeout = setTimeout(() => {
-                setCurrentSlideIndex((prev) => (prev + 1) % slideTypologies.length);
+                setCurrentSlideIndex((prev) => Math.min(prev + 1, totalSlides - 1));
                 setCurrentStep(0);
                 setBuiltElements([]); // Reset built elements
             }, 1000);
             return () => clearTimeout(timeout);
         }
-    }, [currentStep]);
+    }, [currentStep, totalSlides]);
 
     const activeStep = buildSteps[currentStep];
+    const currentSlideTypology = slideTypologies[currentSlideIndex % slideTypologies.length];
 
     return (
         <div className="flex flex-col items-center justify-center w-full max-w-lg mx-auto p-8 relative">
@@ -64,7 +67,7 @@ export function PresentationBuilderLoader({ status }: PresentationBuilderLoaderP
                 {/* Animated Slide Content */}
                 <div className="absolute inset-8 flex flex-col gap-4">
                     <AnimatePresence mode="wait">
-                        {slideTypologies[currentSlideIndex] === "title" && (
+                        {currentSlideTypology === "title" && (
                             <motion.div
                                 key="title-slide"
                                 className="flex-1 flex flex-col items-center justify-center gap-6"
@@ -88,7 +91,7 @@ export function PresentationBuilderLoader({ status }: PresentationBuilderLoaderP
                             </motion.div>
                         )}
 
-                        {slideTypologies[currentSlideIndex] === "content" && (
+                        {currentSlideTypology === "content" && (
                             <motion.div
                                 key="content-slide"
                                 className="flex-1 flex flex-col gap-4"
@@ -130,7 +133,7 @@ export function PresentationBuilderLoader({ status }: PresentationBuilderLoaderP
                             </motion.div>
                         )}
 
-                        {slideTypologies[currentSlideIndex] === "split" && (
+                        {currentSlideTypology === "split" && (
                             <motion.div
                                 key="split-slide"
                                 className="flex-1 flex gap-6"

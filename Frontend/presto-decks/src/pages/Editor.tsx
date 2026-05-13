@@ -219,6 +219,12 @@ export default function Editor() {
   const [searchParams] = useSearchParams();
   const presentationId = searchParams.get("id"); // Get ?id=UUID from URL
   const activationUseCase = searchParams.get("activation");
+  const requestedSlideCount = (() => {
+    const raw = searchParams.get("slides");
+    if (!raw) return undefined;
+    const parsed = Number.parseInt(raw, 10);
+    return Number.isFinite(parsed) && parsed > 0 ? parsed : undefined;
+  })();
   const { toast } = useToast();
   const { t } = useTranslation();
 
@@ -726,6 +732,7 @@ export default function Editor() {
             if (realId && realId !== "generated") {
               const newUrl = new URL(window.location.href);
               newUrl.searchParams.delete("traceId");
+              newUrl.searchParams.delete("slides");
               newUrl.searchParams.set("id", realId);
               window.history.replaceState({}, "", newUrl.toString());
             }
@@ -1239,7 +1246,7 @@ export default function Editor() {
 
     return (
       <div className="min-h-screen flex items-center justify-center bg-background overflow-hidden">
-        <PresentationBuilderLoader status={status} />
+        <PresentationBuilderLoader status={status} slideCount={requestedSlideCount} />
       </div>
     );
   }

@@ -29,6 +29,9 @@ let OpsController = class OpsController {
     getOverview() {
         return this.opsService.getOverview();
     }
+    getMoneyFunnel(days) {
+        return this.opsService.getMoneyFunnel(days ? Number(days) : 30);
+    }
     listTemplates() {
         return this.opsService.listTemplates();
     }
@@ -100,6 +103,14 @@ __decorate([
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", void 0)
 ], OpsController.prototype, "getOverview", null);
+__decorate([
+    Get('/money-funnel'),
+    UseGuards(SupabaseGuard, OpsAdminGuard),
+    __param(0, Query('days')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", void 0)
+], OpsController.prototype, "getMoneyFunnel", null);
 __decorate([
     Get('/email-templates'),
     UseGuards(SupabaseGuard, OpsAdminGuard),

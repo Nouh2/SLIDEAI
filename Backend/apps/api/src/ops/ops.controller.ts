@@ -38,6 +38,12 @@ export class OpsController {
     return this.opsService.getOverview();
   }
 
+  @Get('/money-funnel')
+  @UseGuards(SupabaseGuard, OpsAdminGuard)
+  getMoneyFunnel(@Query('days') days?: string) {
+    return this.opsService.getMoneyFunnel(days ? Number(days) : 30);
+  }
+
   @Get('/email-templates')
   @UseGuards(SupabaseGuard, OpsAdminGuard)
   listTemplates() {

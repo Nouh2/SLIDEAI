@@ -24,6 +24,7 @@ const PRODUCT_FUNNEL_STAGES = [
     { eventName: 'begin_checkout', label: 'Checkout lance' },
     { eventName: 'purchase', label: 'Achat confirme' },
 ];
+const MONEY_FUNNEL_GA_EVENTS = ['View Pricing', 'Select Plan', 'begin_checkout', 'purchase'];
 let OpsService = class OpsService {
     prisma;
     stripe;
@@ -157,6 +158,240 @@ let OpsService = class OpsService {
             },
             acquisition: gaOverview,
             flows: await this.getFlowPerformanceSnapshot(since30d),
+        };
+    }
+    async getMoneyFunnel(days = 30) {
+        const clampedDays = Math.min(Math.max(Number.isFinite(days) ? days : 30, 1), 180);
+        const since = new Date(Date.now() - clampedDays * DAY_MS);
+        const authRows = await this.prisma.$queryRaw `
+      SELECT
+        COUNT(*) FILTER (WHERE created_at >= ${since}) AS signups,
+        COUNT(*) FILTER (
+          WHERE created_at >= ${since}
+          AND COALESCE(email_confirmed_at, confirmed_at) IS NOT NULL
+        ) AS confirmed
+      FROM auth.users
+    `;
+        const auth = authRows[0] || { signups: 0, confirmed: 0 };
+        const [trialUsers, firstDeckUsers, paidStripeUsers, manualProUsers, packUsers, productEvents, ga,] = await Promise.all([
+            this.prisma.subscription.findMany({
+                where: { trialStartedAt: { gte: since } },
+                select: { userId: true },
+                distinct: ['userId'],
+            }),
+            this.prisma.presentations.findMany({
+                where: { created_at: { gte: since } },
+                select: { user_id: true },
+                distinct: ['user_id'],
+            }),
+            this.prisma.subscription.findMany({
+                where: {
+                    stripeSubscriptionId: { not: null },
+                    status: { in: ['active', 'trialing', 'past_due'] },
+                },
+                select: { userId: true },
+            }),
+            this.prisma.subscription.count({
+                where: {
+                    plan: 'pro',
+                    status: 'active',
+                    stripeSubscriptionId: null,
+                },
+            }),
+            this.prisma.subscription.count({
+                where: {
+                    plan: 'free',
+                    legacyFree: false,
+                    stripeSubscriptionId: null,
+                    creditsRemaining: { gt: 0 },
+                },
+            }),
+            this.prisma.productEvent.findMany({
+                where: {
+                    occurredAt: { gte: since },
+                    eventName: {
+                        in: [
+                            'activation_completed',
+                            'deck_exported',
+                            'export_clicked',
+                            'begin_checkout',
+                            'purchase',
+                        ],
+                    },
+                },
+                select: {
+                    eventName: true,
+                    userId: true,
+                    properties: true,
+                },
+            }),
+            this.fetchGaMoneyFunnel(clampedDays).catch((error) => ({
+                configured: false,
+                source: 'ga4',
+                error: error instanceof Error ? error.message : 'ga_fetch_failed',
+                activeUsers: 0,
+                sessions: 0,
+                pageViews: 0,
+                events: {},
+            })),
+        ]);
+        const usersByEvent = new Map();
+        let revenueCents = 0;
+        let currency = 'eur';
+        for (const event of productEvents) {
+            const set = usersByEvent.get(event.eventName) || new Set();
+            set.add(event.userId);
+            usersByEvent.set(event.eventName, set);
+            if (event.eventName === 'purchase') {
+                const properties = event.properties && typeof event.properties === 'object'
+                    ? event.properties
+                    : {};
+                const value = Number(properties.value || 0);
+                if (Number.isFinite(value) && value > 0) {
+                    revenueCents += Math.round(value * 100);
+                }
+                if (typeof properties.currency === 'string') {
+                    currency = properties.currency.toLowerCase();
+                }
+            }
+        }
+        const getEventUsers = (eventName) => usersByEvent.get(eventName)?.size || 0;
+        const exportUsers = new Set();
+        for (const eventName of ['activation_completed', 'deck_exported', 'export_clicked']) {
+            for (const userId of usersByEvent.get(eventName) || []) {
+                exportUsers.add(userId);
+            }
+        }
+        const gaEvents = ga.events;
+        const pricingUsers = gaEvents?.['View Pricing']?.activeUsers || 0;
+        const selectPlanUsers = gaEvents?.['Select Plan']?.activeUsers || 0;
+        const checkoutUsers = Math.max(getEventUsers('begin_checkout'), gaEvents?.begin_checkout?.activeUsers || 0);
+        const purchaseUsers = Math.max(getEventUsers('purchase'), gaEvents?.purchase?.activeUsers || 0);
+        const rawStages = [
+            {
+                key: 'visitors',
+                label: 'Visiteurs site',
+                description: 'Utilisateurs actifs GA4 sur la période.',
+                value: Number(ga.activeUsers || 0),
+                source: ga.configured ? 'GA4' : 'GA4 non configuré',
+            },
+            {
+                key: 'signups',
+                label: 'Comptes créés',
+                description: 'Nouveaux comptes Supabase.',
+                value: Number(auth.signups || 0),
+                source: 'Supabase Auth',
+            },
+            {
+                key: 'confirmed',
+                label: 'Emails confirmés',
+                description: 'Comptes avec email confirmé.',
+                value: Number(auth.confirmed || 0),
+                source: 'Supabase Auth',
+            },
+            {
+                key: 'trials',
+                label: 'Essais activés',
+                description: 'Utilisateurs qui ont démarré le trial.',
+                value: trialUsers.length,
+                source: 'Subscription',
+            },
+            {
+                key: 'first_deck',
+                label: '1er deck créé',
+                description: 'Utilisateurs ayant créé au moins une présentation.',
+                value: firstDeckUsers.length,
+                source: 'Presentations',
+            },
+            {
+                key: 'export_or_share',
+                label: 'Export / partage',
+                description: 'Signal fort de valeur perçue.',
+                value: exportUsers.size,
+                source: 'Product events',
+            },
+            {
+                key: 'pricing_view',
+                label: 'Tarifs vus',
+                description: 'Utilisateurs exposés à la page pricing.',
+                value: pricingUsers,
+                source: 'GA4 event',
+            },
+            {
+                key: 'plan_selected',
+                label: 'Plan cliqué',
+                description: 'Intention de payer.',
+                value: selectPlanUsers,
+                source: 'GA4 event',
+            },
+            {
+                key: 'checkout',
+                label: 'Checkout lancé',
+                description: 'Redirection Stripe ouverte.',
+                value: checkoutUsers,
+                source: 'Product event + GA4',
+            },
+            {
+                key: 'paid',
+                label: 'Paiement réussi',
+                description: 'Achat ou retour Stripe tracké.',
+                value: purchaseUsers,
+                source: 'Product event + GA4',
+            },
+        ];
+        const firstValue = rawStages[0]?.value || 0;
+        let previousValue = firstValue;
+        const stages = rawStages.map((stage, index) => {
+            const fromPrevious = index === 0 ? 100 : this.toPercent(stage.value, previousValue);
+            const fromStart = index === 0 ? 100 : this.toPercent(stage.value, firstValue);
+            const dropoff = index === 0 ? 0 : Math.max(0, 100 - fromPrevious);
+            const previous = previousValue;
+            previousValue = stage.value;
+            return {
+                ...stage,
+                previous,
+                fromPrevious,
+                fromStart,
+                dropoff: Math.round(dropoff * 10) / 10,
+            };
+        });
+        const bottleneck = stages
+            .slice(1)
+            .filter((stage) => stage.previous > 0)
+            .sort((a, b) => b.dropoff - a.dropoff)[0] || null;
+        return {
+            days: clampedDays,
+            generatedAt: new Date().toISOString(),
+            acquisition: ga,
+            summary: {
+                visitors: stages[0]?.value || 0,
+                signups: Number(auth.signups || 0),
+                confirmed: Number(auth.confirmed || 0),
+                trials: trialUsers.length,
+                firstDecks: firstDeckUsers.length,
+                exports: exportUsers.size,
+                pricingViews: pricingUsers,
+                planClicks: selectPlanUsers,
+                checkouts: checkoutUsers,
+                purchases: purchaseUsers,
+                currentPaidStripe: paidStripeUsers.length,
+                currentManualPro: manualProUsers,
+                currentPackUsers: packUsers,
+                revenueCents,
+                currency,
+            },
+            bottleneck: bottleneck
+                ? {
+                    key: bottleneck.key,
+                    label: bottleneck.label,
+                    dropoff: bottleneck.dropoff,
+                    fromPrevious: bottleneck.fromPrevious,
+                    previous: bottleneck.previous,
+                    value: bottleneck.value,
+                }
+                : null,
+            recommendation: this.buildMoneyFunnelRecommendation(bottleneck?.key),
+            stages,
         };
     }
     async listTemplates() {
@@ -884,6 +1119,100 @@ let OpsService = class OpsService {
             pageViews30d: Number(metrics[2]?.value || 0),
             vercelClientEnabled: true,
         };
+    }
+    async fetchGaMoneyFunnel(days) {
+        const propertyId = process.env.GA4_PROPERTY_ID;
+        const clientEmail = process.env.GOOGLE_SERVICE_ACCOUNT_CLIENT_EMAIL;
+        const privateKey = process.env.GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY?.replace(/\\n/g, '\n');
+        if (!propertyId || !clientEmail || !privateKey) {
+            return {
+                configured: false,
+                source: 'ga4',
+                activeUsers: 0,
+                sessions: 0,
+                pageViews: 0,
+                events: {},
+            };
+        }
+        const accessToken = await this.getGoogleAccessToken(clientEmail, privateKey);
+        const dateRanges = [{ startDate: `${days}daysAgo`, endDate: 'today' }];
+        const headers = {
+            Authorization: `Bearer ${accessToken}`,
+            'Content-Type': 'application/json',
+        };
+        const runReport = async (body) => {
+            const response = await fetch(`https://analyticsdata.googleapis.com/v1beta/properties/${propertyId}:runReport`, {
+                method: 'POST',
+                headers,
+                body: JSON.stringify(body),
+            });
+            if (!response.ok) {
+                throw new Error(`GA4 report error: ${await response.text()}`);
+            }
+            return response.json();
+        };
+        const [overview, events] = await Promise.all([
+            runReport({
+                dateRanges,
+                metrics: [{ name: 'activeUsers' }, { name: 'sessions' }, { name: 'screenPageViews' }],
+            }),
+            runReport({
+                dateRanges,
+                dimensions: [{ name: 'eventName' }],
+                metrics: [{ name: 'eventCount' }, { name: 'activeUsers' }],
+                dimensionFilter: {
+                    filter: {
+                        fieldName: 'eventName',
+                        inListFilter: {
+                            values: MONEY_FUNNEL_GA_EVENTS,
+                        },
+                    },
+                },
+            }),
+        ]);
+        const overviewMetrics = overview.rows?.[0]?.metricValues || [];
+        const eventMap = {};
+        for (const row of events.rows || []) {
+            const eventName = row.dimensionValues?.[0]?.value;
+            if (!eventName)
+                continue;
+            eventMap[eventName] = {
+                eventCount: Number(row.metricValues?.[0]?.value || 0),
+                activeUsers: Number(row.metricValues?.[1]?.value || 0),
+            };
+        }
+        return {
+            configured: true,
+            source: 'ga4',
+            activeUsers: Number(overviewMetrics[0]?.value || 0),
+            sessions: Number(overviewMetrics[1]?.value || 0),
+            pageViews: Number(overviewMetrics[2]?.value || 0),
+            events: eventMap,
+        };
+    }
+    buildMoneyFunnelRecommendation(stageKey) {
+        switch (stageKey) {
+            case 'signups':
+                return 'Le trafic ne crée pas assez de comptes. Priorité: CTA landing plus direct, promesse trial au-dessus de la ligne de flottaison, et pages SEO orientées intention forte.';
+            case 'confirmed':
+                return 'Les comptes ne confirment pas assez leur email. Priorité: délivrabilité, template transactionnel simple, et relance confirmation.';
+            case 'trials':
+                return 'Les inscrits ne démarrent pas assez le trial. Priorité: activer automatiquement le trial au premier usage et clarifier le bénéfice sans carte bancaire.';
+            case 'first_deck':
+                return 'Les trials ne créent pas leur premier deck. Priorité: pré-remplir le prompt, proposer 3 cas d’usage, et réduire les choix avant génération.';
+            case 'export_or_share':
+                return 'Les utilisateurs créent mais ne vont pas jusqu’au moment de valeur. Priorité: améliorer l’éditeur, rendre l’export visible, et afficher un CTA export dès la génération terminée.';
+            case 'pricing_view':
+                return 'Les utilisateurs activés ne voient pas assez l’offre. Priorité: CTA Pro après génération, dashboard trial banner, et rappel dans l’export.';
+            case 'plan_selected':
+                return 'La page pricing ne donne pas assez envie de cliquer. Priorité: simplifier l’offre Pro, renforcer le 9,90€ premier mois, et rassurer sur l’annulation.';
+            case 'checkout':
+                return 'Les clics plan ne lancent pas assez Stripe. Priorité: corriger les états de compte, erreurs checkout, et rendre les boutons non ambigus.';
+            case 'paid':
+                return 'Les checkouts ne paient pas. Priorité: vérifier Stripe, coupon, moyens de paiement, et relance abandon checkout.';
+            default:
+                return 'Commence par suivre ce funnel chaque semaine. Le meilleur chantier est l’étape avec la plus grosse chute entre deux lignes.';
+        }
     }
     async getGoogleAccessToken(clientEmail, privateKey) {
         const now = Math.floor(Date.now() / 1000);

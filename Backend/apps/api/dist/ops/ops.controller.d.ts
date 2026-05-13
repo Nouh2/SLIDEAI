@@ -65,6 +65,66 @@ export declare class OpsController {
             pending: number;
         }[];
     }>;
+    getMoneyFunnel(days?: string): Promise<{
+        days: number;
+        generatedAt: string;
+        acquisition: {
+            configured: boolean;
+            source: string;
+            activeUsers: number;
+            sessions: number;
+            pageViews: number;
+            events: Record<string, {
+                eventCount: number;
+                activeUsers: number;
+            }>;
+        } | {
+            configured: boolean;
+            source: string;
+            error: string;
+            activeUsers: number;
+            sessions: number;
+            pageViews: number;
+            events: {};
+        };
+        summary: {
+            visitors: number;
+            signups: number;
+            confirmed: number;
+            trials: number;
+            firstDecks: number;
+            exports: number;
+            pricingViews: number;
+            planClicks: number;
+            checkouts: number;
+            purchases: number;
+            currentPaidStripe: number;
+            currentManualPro: number;
+            currentPackUsers: number;
+            revenueCents: number;
+            currency: string;
+        };
+        bottleneck: {
+            key: string;
+            label: string;
+            dropoff: number;
+            fromPrevious: number;
+            previous: number;
+            value: number;
+        } | null;
+        recommendation: string;
+        stages: {
+            previous: number;
+            fromPrevious: number;
+            fromStart: number;
+            dropoff: number;
+            key: string;
+            label: string;
+            description: string;
+            value: number;
+            source: string;
+        }[];
+    }>;
     listTemplates(): Promise<{
         flowSlug: string;
         id: string;
@@ -354,7 +414,7 @@ export declare class OpsController {
     }>;
     broadcastSend(body: any, req: any): Promise<{
         broadcastId: string;
-        segment: "trialing" | "trial_expired" | "all" | "legacy_free" | "paid";
+        segment: "trialing" | "trial_expired" | "paid" | "all" | "legacy_free";
         total: number;
         sent: number;
         skipped: number;

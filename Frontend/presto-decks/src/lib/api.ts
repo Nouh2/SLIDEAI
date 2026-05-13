@@ -928,6 +928,14 @@ export const api = {
     return response.json();
   },
 
+  async getOpsMoneyFunnel(accessToken: string, days = 30): Promise<any> {
+    const response = await fetch(`${API_BASE_URL}/ops/money-funnel?days=${days}`, {
+      headers: buildHeaders(accessToken),
+    });
+    if (!response.ok) throw new Error('Impossible de charger le funnel argent');
+    return response.json();
+  },
+
   async getOpsTemplates(accessToken: string): Promise<any[]> {
     const response = await fetch(`${API_BASE_URL}/ops/email-templates`, {
       headers: buildHeaders(accessToken),

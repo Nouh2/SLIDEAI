@@ -12,7 +12,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { BarChart3, Mail, MousePointerClick, RefreshCcw, Rocket, Send, ShieldCheck, Sparkles, Target, TrendingUp } from "lucide-react";
+import { AlertTriangle, BarChart3, CheckCircle2, CreditCard, Mail, MousePointerClick, RefreshCcw, Rocket, Send, ShieldCheck, Sparkles, Target, TrendingUp, Users } from "lucide-react";
 
 type TemplateFormState = {
   subject: string;
@@ -127,22 +127,29 @@ function formatPercent(value?: number) {
   return `${Number(value || 0).toLocaleString("fr-FR", { maximumFractionDigits: 1 })}%`;
 }
 
+function formatCompactNumber(value?: number) {
+  return Number(value || 0).toLocaleString("fr-FR", { maximumFractionDigits: 0 });
+}
+
 export default function OpsDashboard() {
   const { toast } = useToast();
   const [bootstrapping, setBootstrapping] = useState(true);
-  const [activeTab, setActiveTab] = useState<"overview" | "activation" | "funnel" | "templates" | "flows" | "logs">("overview");
+  const [activeTab, setActiveTab] = useState<"money" | "overview" | "activation" | "funnel" | "templates" | "flows" | "logs">("money");
+  const [moneyFunnel, setMoneyFunnel] = useState<any>(null);
   const [overview, setOverview] = useState<any>(null);
   const [activationFunnel, setActivationFunnel] = useState<any>(null);
   const [emailFunnel, setEmailFunnel] = useState<any>(null);
   const [templates, setTemplates] = useState<any[]>([]);
   const [flows, setFlows] = useState<any[]>([]);
   const [logs, setLogs] = useState<any[]>([]);
+  const [moneyLoaded, setMoneyLoaded] = useState(false);
   const [overviewLoaded, setOverviewLoaded] = useState(false);
   const [activationLoaded, setActivationLoaded] = useState(false);
   const [funnelLoaded, setFunnelLoaded] = useState(false);
   const [templatesLoaded, setTemplatesLoaded] = useState(false);
   const [flowsLoaded, setFlowsLoaded] = useState(false);
   const [logsLoaded, setLogsLoaded] = useState(false);
+  const [moneyLoading, setMoneyLoading] = useState(false);
   const [overviewLoading, setOverviewLoading] = useState(false);
   const [activationLoading, setActivationLoading] = useState(false);
   const [funnelLoading, setFunnelLoading] = useState(false);
@@ -175,6 +182,11 @@ export default function OpsDashboard() {
   }, [activeTab]);
 
   useEffect(() => {
+    if (activeTab === "money" && moneyLoaded) {
+      setMoneyLoaded(false);
+      void loadMoneyFunnelData();
+    }
+
     if (activeTab === "activation") {
       setActivationLoaded(false);
       void loadActivationFunnelData();
@@ -208,7 +220,12 @@ export default function OpsDashboard() {
     setBootstrapping(false);
   };
 
-  const loadTabData = async (tab: "overview" | "activation" | "funnel" | "templates" | "flows" | "logs") => {
+  const loadTabData = async (tab: "money" | "overview" | "activation" | "funnel" | "templates" | "flows" | "logs") => {
+    if (tab === "money" && !moneyLoaded && !moneyLoading) {
+      await loadMoneyFunnelData();
+      return;
+    }
+
     if (tab === "overview" && !overviewLoaded && !overviewLoading) {
       await loadOverviewData();
       return;
@@ -255,6 +272,25 @@ export default function OpsDashboard() {
       });
     } finally {
       setOverviewLoading(false);
+    }
+  };
+
+  const loadMoneyFunnelData = async () => {
+    setMoneyLoading(true);
+    try {
+      const accessToken = await getAccessToken();
+      if (!accessToken) return;
+      const data = await api.getOpsMoneyFunnel(accessToken, Number(funnelDays));
+      setMoneyFunnel(data);
+      setMoneyLoaded(true);
+    } catch (error: any) {
+      toast({
+        title: "Erreur funnel argent",
+        description: error.message || "Impossible de charger le funnel argent.",
+        variant: "destructive",
+      });
+    } finally {
+      setMoneyLoading(false);
     }
   };
 
@@ -363,6 +399,11 @@ export default function OpsDashboard() {
   };
 
   const refreshActiveTab = async () => {
+    if (activeTab === "money") {
+      await loadMoneyFunnelData();
+      return;
+    }
+
     if (activeTab === "overview") {
       await loadOverviewData();
       return;
@@ -533,7 +574,8 @@ export default function OpsDashboard() {
       </div>
 
       <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as typeof activeTab)} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-6">
+        <TabsList className="grid w-full grid-cols-7">
+          <TabsTrigger value="money">Argent</TabsTrigger>
           <TabsTrigger value="overview">Vue globale</TabsTrigger>
           <TabsTrigger value="activation">Activation</TabsTrigger>
           <TabsTrigger value="funnel">Funnel</TabsTrigger>
@@ -541,6 +583,145 @@ export default function OpsDashboard() {
           <TabsTrigger value="flows">Flows</TabsTrigger>
           <TabsTrigger value="logs">Logs</TabsTrigger>
         </TabsList>
+
+        <TabsContent value="money" className="space-y-6">
+          <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+            <div>
+              <h2 className="text-2xl font-bold tracking-tight text-zinc-950">Funnel argent</h2>
+              <p className="text-sm text-muted-foreground">
+                La lecture simple du business : trafic, inscription, activation produit, intention de payer, Stripe.
+              </p>
+            </div>
+            <Select value={funnelDays} onValueChange={setFunnelDays}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="7">7 derniers jours</SelectItem>
+                <SelectItem value="30">30 derniers jours</SelectItem>
+                <SelectItem value="90">90 derniers jours</SelectItem>
+                <SelectItem value="180">180 derniers jours</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {moneyLoading && !moneyFunnel ? (
+            <Card>
+              <CardContent className="py-12 text-center text-muted-foreground">
+                Chargement du funnel argent...
+              </CardContent>
+            </Card>
+          ) : null}
+
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+            <MetricCard icon={Users} label="Visiteurs" value={formatCompactNumber(moneyFunnel?.summary?.visitors)} />
+            <MetricCard icon={Rocket} label="Trials" value={formatCompactNumber(moneyFunnel?.summary?.trials)} />
+            <MetricCard icon={Sparkles} label="1er deck" value={formatCompactNumber(moneyFunnel?.summary?.firstDecks)} />
+            <MetricCard icon={CreditCard} label="Paiements" value={formatCompactNumber(moneyFunnel?.summary?.purchases)} />
+          </div>
+
+          <div className="grid gap-4 lg:grid-cols-[1.4fr_0.8fr]">
+            <Card>
+              <CardHeader>
+                <CardTitle>Etapes de conversion</CardTitle>
+                <CardDescription>
+                  Chaque ligne montre le volume, la conversion depuis l'étape précédente et la conversion depuis les visiteurs.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {(moneyFunnel?.stages || []).map((stage: any, index: number) => (
+                  <div key={stage.key} className="rounded-xl border border-zinc-200 bg-white p-4">
+                    <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                      <div className="flex min-w-0 items-start gap-3">
+                        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#eef8ff] text-sm font-black text-[#1fb6ff]">
+                          {index + 1}
+                        </div>
+                        <div className="min-w-0">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <div className="font-bold text-zinc-950">{stage.label}</div>
+                            <Badge variant="secondary">{stage.source}</Badge>
+                          </div>
+                          <div className="mt-1 text-sm text-muted-foreground">{stage.description}</div>
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-3 gap-3 text-right md:min-w-[280px]">
+                        <div>
+                          <div className="text-xl font-black text-zinc-950">{formatCompactNumber(stage.value)}</div>
+                          <div className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Volume</div>
+                        </div>
+                        <div>
+                          <div className="text-xl font-black text-zinc-950">{formatPercent(stage.fromPrevious)}</div>
+                          <div className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Depuis avant</div>
+                        </div>
+                        <div>
+                          <div className="text-xl font-black text-zinc-950">{formatPercent(stage.fromStart)}</div>
+                          <div className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Depuis trafic</div>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="mt-4 h-2 overflow-hidden rounded-full bg-zinc-100">
+                      <div
+                        className="h-full rounded-full bg-[#1fb6ff]"
+                        style={{ width: `${Math.max(2, Math.min(100, stage.fromStart || 0))}%` }}
+                      />
+                    </div>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+
+            <div className="space-y-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Diagnostic</CardTitle>
+                  <CardDescription>Le point qui bloque le plus la transformation en revenu.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4">
+                    <div className="flex items-center gap-2 text-sm font-bold text-amber-800">
+                      <AlertTriangle className="h-4 w-4" />
+                      Plus grosse chute
+                    </div>
+                    <div className="mt-2 text-2xl font-black text-zinc-950">
+                      {moneyFunnel?.bottleneck?.label || "Pas encore assez de données"}
+                    </div>
+                    <div className="mt-1 text-sm text-amber-800">
+                      {moneyFunnel?.bottleneck
+                        ? `${formatPercent(moneyFunnel.bottleneck.fromPrevious)} passent cette étape. ${formatPercent(moneyFunnel.bottleneck.dropoff)} décrochent.`
+                        : "Le funnel se remplira avec les prochains utilisateurs."}
+                    </div>
+                  </div>
+
+                  <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4">
+                    <div className="flex items-center gap-2 text-sm font-bold text-zinc-950">
+                      <CheckCircle2 className="h-4 w-4 text-[#1fb6ff]" />
+                      Action conseillée
+                    </div>
+                    <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                      {moneyFunnel?.recommendation || "Charge le funnel pour obtenir une recommandation."}
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Lecture revenu</CardTitle>
+                  <CardDescription>Sépare les vrais paiements Stripe des accès Pro manuels.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <InfoPair label="Pro Stripe actifs" value={formatCompactNumber(moneyFunnel?.summary?.currentPaidStripe)} />
+                  <InfoPair label="Pro manuels" value={formatCompactNumber(moneyFunnel?.summary?.currentManualPro)} />
+                  <InfoPair label="Packs actifs" value={formatCompactNumber(moneyFunnel?.summary?.currentPackUsers)} />
+                  <InfoPair
+                    label="Revenu tracké période"
+                    value={formatCurrency(moneyFunnel?.summary?.revenueCents, moneyFunnel?.summary?.currency)}
+                  />
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        </TabsContent>
 
         <TabsContent value="overview" className="space-y-6">
           {overviewLoading && !overview ? (

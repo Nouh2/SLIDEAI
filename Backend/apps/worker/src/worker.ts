@@ -1705,6 +1705,7 @@ const lifecycleEmailWorker = new Worker(
         legacyFree,
         canceledAt,
         invoiceId,
+        checkoutStartedAt,
         packType,
         forceSend,
         unsubscribeUrl,
@@ -1727,6 +1728,7 @@ const lifecycleEmailWorker = new Worker(
         legacyFree?: boolean;
         canceledAt?: string;
         invoiceId?: string;
+        checkoutStartedAt?: string;
         packType?: string;
         forceSend?: boolean;
         unsubscribeUrl?: string;
@@ -1832,6 +1834,9 @@ const lifecycleEmailWorker = new Worker(
         break;
       case 'failed_payment_day0':
         shouldSend = Boolean(invoiceId);
+        break;
+      case 'checkout_abandoned_30m':
+        shouldSend = Boolean(checkoutStartedAt) && !hasPaidAccess(subscription);
         break;
         default:
           shouldSend = false;

@@ -986,6 +986,36 @@ function buildFailedPaymentEmail(pricingUrl) {
         ctaUrl: pricingUrl,
     };
 }
+function buildCheckoutAbandonedEmail(pricingUrl) {
+    return {
+        subject: 'Votre presentation est presque prete a partir',
+        preview: 'Reprenez le checkout SlideAI et gardez Pro a 9,90 EUR le premier mois.',
+        badge: 'Derniere etape',
+        title: 'Il vous reste une seule etape',
+        intro: 'Vous avez ouvert le paiement mais vous ne l avez pas finalise. Si SlideAI vous a deja fait gagner du temps, gardez Pro maintenant.',
+        stats: [
+            { value: '9,90 EUR', label: 'Premier mois' },
+            { value: '1 clic', label: 'Pour reprendre' },
+            { value: 'Annulable', label: 'A tout moment' },
+        ],
+        spotlight: {
+            tone: 'info',
+            title: 'Ce que Pro debloque',
+            body: 'Exports PowerPoint, generations illimitees, brand kit et support prioritaire pour produire vos presentations sans repartir de zero.',
+        },
+        body: [
+            'Le plus important est deja fait: vous avez vu ce que SlideAI peut produire.',
+            'Reprenez l offre Pro et gardez votre workflow sans coupure.',
+        ],
+        bullets: [
+            'Premier mois a 9,90 EUR',
+            'Puis 19,90 EUR/mois',
+            'Annulation possible a tout moment',
+        ],
+        ctaLabel: 'Reprendre mon acces Pro',
+        ctaUrl: `${pricingUrl}${pricingUrl.includes('?') ? '&' : '?'}checkout=pro_intro`,
+    };
+}
 function buildEndingDay6Email(createUrl, pricingUrl, presentationCount, daysLeft) {
     if (presentationCount === 0) {
         return {
@@ -1255,6 +1285,9 @@ export function buildLifecycleEmailModel(params) {
             break;
         case 'failed_payment_day0':
             content = buildFailedPaymentEmail(pricingUrl);
+            break;
+        case 'checkout_abandoned_30m':
+            content = buildCheckoutAbandonedEmail(pricingUrl);
             break;
         default:
             return null;

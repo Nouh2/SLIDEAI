@@ -89,7 +89,15 @@ let SubscriptionController = class SubscriptionController {
         if (!body.plan)
             throw new ForbiddenException('plan is required');
         const stripeCustomerId = await this.subscriptionService.getStripeCustomerIdForCheckout(userId, userEmail);
-        return this.stripeService.createCheckoutSession(userId, userEmail, body.priceId, body.plan, origin, stripeCustomerId, body.promotionCode, body.introOffer, body.attribution);
+        const checkout = await this.stripeService.createCheckoutSession(userId, userEmail, body.priceId, body.plan, origin, stripeCustomerId, body.promotionCode, body.introOffer, body.attribution);
+        this.lifecycleEmailService.scheduleCheckoutAbandonEmail({
+            userId,
+            email: userEmail,
+            checkoutStartedAt: new Date(),
+            checkoutType: 'subscription',
+            plan: body.plan,
+        }).catch((error) => console.warn('[Subscription] Failed to schedule checkout abandon email:', error?.message || error));
+        return checkout;
     }
     async startTrial(req) {
         const userId = req.user.sub;
@@ -107,7 +115,15 @@ let SubscriptionController = class SubscriptionController {
             throw new ForbiddenException('priceId is required');
         if (!body.packType)
             throw new ForbiddenException('packType is required');
-        return this.stripeService.createCreditPackCheckout(userId, userEmail, body.priceId, body.packType, origin, body.attribution);
+        const checkout = await this.stripeService.createCreditPackCheckout(userId, userEmail, body.priceId, body.packType, origin, body.attribution);
+        this.lifecycleEmailService.scheduleCheckoutAbandonEmail({
+            userId,
+            email: userEmail,
+            checkoutStartedAt: new Date(),
+            checkoutType: 'pack',
+            packType: body.packType,
+        }).catch((error) => console.warn('[Subscription] Failed to schedule pack checkout abandon email:', error?.message || error));
+        return checkout;
     }
     /**
      * POST /subscription/webhook

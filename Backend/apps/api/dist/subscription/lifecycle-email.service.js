@@ -15,6 +15,7 @@ import { QueueService } from '../queues/queue.service.js';
 import { OpsService } from '../ops/ops.service.js';
 import { getTemplateDefinition } from '../ops/ops-email-catalog.js';
 const DAY_MS = 24 * 60 * 60 * 1000;
+const CHECKOUT_ABANDON_DELAY_MS = 30 * 60 * 1000;
 function extractFirstNameFromEmail(email) {
     const local = email.split('@')[0];
     const firstPart = local.split('.')[0].split('_')[0].split('+')[0];
@@ -31,8 +32,9 @@ const TRIAL_EMAIL_SCHEDULE = [
     { emailType: 'trial_expired', offsetMs: 7 * DAY_MS },
     { emailType: 'trial_winback_day2', offsetMs: 9 * DAY_MS },
 ];
+// signup_welcome was a duplicate of trial_welcome (same template, same offset).
+// trial_welcome covers the welcome for every new user, the steps below handle nudges.
 const SIGNUP_ONBOARDING_SCHEDULE = [
-    { emailType: 'signup_welcome', offsetMs: 0, bypassSendWindow: true },
     { emailType: 'signup_day1_no_presentation', offsetMs: 1 * DAY_MS },
     { emailType: 'signup_day3_no_presentation', offsetMs: 3 * DAY_MS },
     { emailType: 'signup_day5_activated', offsetMs: 5 * DAY_MS },
@@ -193,6 +195,27 @@ let LifecycleEmailService = LifecycleEmailService_1 = class LifecycleEmailServic
                 invoiceId: params.invoiceId,
                 amountDue: params.amountDue,
                 currency: params.currency,
+            },
+        });
+    }
+    async scheduleCheckoutAbandonEmail(params) {
+        if (!params.email) {
+            this.logger.warn(`Skipping checkout abandon email for ${params.userId}: no email available`);
+            return;
+        }
+        const scopeKey = `checkout_${this.toScopeStamp(params.checkoutStartedAt)}_${params.checkoutType}_${params.plan || params.packType || 'unknown'}`;
+        await this.scheduleSingleEmail({
+            userId: params.userId,
+            email: params.email,
+            emailType: 'checkout_abandoned_30m',
+            scheduledFor: new Date(params.checkoutStartedAt.getTime() + CHECKOUT_ABANDON_DELAY_MS),
+            scopeKey,
+            payload: {
+                email: params.email,
+                checkoutStartedAt: params.checkoutStartedAt.toISOString(),
+                checkoutType: params.checkoutType,
+                plan: params.plan,
+                packType: params.packType,
             },
         });
     }

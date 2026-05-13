@@ -456,7 +456,7 @@ export declare class OpsService {
         segment: 'all' | 'trialing' | 'trial_expired' | 'legacy_free' | 'paid';
     }, adminEmail: string): Promise<{
         broadcastId: string;
-        segment: "trialing" | "trial_expired" | "paid" | "all" | "legacy_free";
+        segment: "trial_expired" | "trialing" | "paid" | "all" | "legacy_free";
         total: number;
         sent: number;
         skipped: number;

@@ -258,6 +258,8 @@ export class OpsService {
               'activation_completed',
               'deck_exported',
               'export_clicked',
+              'paywall_view',
+              'paywall_cta_click',
               'begin_checkout',
               'purchase',
             ],
@@ -310,6 +312,8 @@ export class OpsService {
         exportUsers.add(userId);
       }
     }
+    const paywallViewUsers = getEventUsers('paywall_view');
+    const paywallClickUsers = getEventUsers('paywall_cta_click');
 
     const gaEvents = ga.events as Record<string, { activeUsers: number; eventCount: number }> | undefined;
     const pricingUsers = gaEvents?.['View Pricing']?.activeUsers || 0;
@@ -358,6 +362,20 @@ export class OpsService {
         label: 'Export / partage',
         description: 'Signal fort de valeur perçue.',
         value: exportUsers.size,
+        source: 'Product events',
+      },
+      {
+        key: 'upgrade_prompt',
+        label: 'Upsell Pro vu',
+        description: 'Utilisateurs exposes au bandeau ou callout Pro apres valeur.',
+        value: paywallViewUsers,
+        source: 'Product events',
+      },
+      {
+        key: 'upgrade_clicked',
+        label: 'Upsell Pro clique',
+        description: 'Clic sur une proposition Pro in-app.',
+        value: paywallClickUsers,
         source: 'Product events',
       },
       {
@@ -1445,6 +1463,10 @@ export class OpsService {
         return 'Les trials ne créent pas leur premier deck. Priorité: pré-remplir le prompt, proposer 3 cas d’usage, et réduire les choix avant génération.';
       case 'export_or_share':
         return 'Les utilisateurs créent mais ne vont pas jusqu’au moment de valeur. Priorité: améliorer l’éditeur, rendre l’export visible, et afficher un CTA export dès la génération terminée.';
+      case 'upgrade_prompt':
+        return 'Les utilisateurs activés ne voient pas assez la proposition Pro. Priorité: bandeau post-génération, callout dans l’export, et rappel dashboard pendant le trial.';
+      case 'upgrade_clicked':
+        return 'L’upsell est vu mais ne déclenche pas assez de clics. Priorité: clarifier le bénéfice PowerPoint/brand kit, rendre le 9,90€ plus visible, et proposer un CTA direct Stripe.';
       case 'pricing_view':
         return 'Les utilisateurs activés ne voient pas assez l’offre. Priorité: CTA Pro après génération, dashboard trial banner, et rappel dans l’export.';
       case 'plan_selected':

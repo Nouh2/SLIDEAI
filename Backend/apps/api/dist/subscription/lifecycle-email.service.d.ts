@@ -50,6 +50,14 @@ export declare class LifecycleEmailService {
         amountDue?: number | null;
         currency?: string | null;
     }): Promise<void>;
+    scheduleCheckoutAbandonEmail(params: {
+        userId: string;
+        email?: string;
+        checkoutStartedAt: Date;
+        checkoutType: 'subscription' | 'pack';
+        plan?: string;
+        packType?: string;
+    }): Promise<void>;
     recordEmailClick(params: {
         emailTrackingId: string;
         emailType?: string;

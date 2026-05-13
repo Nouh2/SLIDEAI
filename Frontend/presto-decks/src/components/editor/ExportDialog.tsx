@@ -13,7 +13,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { FileText, FileSpreadsheet, Loader2, CheckCircle, AlertCircle, Globe, Copy } from 'lucide-react';
+import { ArrowRight, FileText, FileSpreadsheet, Loader2, CheckCircle, AlertCircle, Globe, Copy, Sparkles } from 'lucide-react';
 import { exportToPDF, normalizeExportDeck } from '@/lib/export';
 import { exportToPPTX, exportToPPTXWithImages } from '@/lib/export/pptx';
 import {
@@ -26,7 +26,7 @@ import {
 import { Label } from '@/components/ui/label';
 import { api, TemplateOverlay as TemplateOverlayType } from '@/lib/api';
 import { UpgradeGate } from '@/components/common/UpgradeGate';
-import { SubscriptionSnapshot, hasFeature, isExpiredTrialSubscription } from '@/lib/subscription';
+import { SubscriptionSnapshot, hasFeature, isExpiredTrialSubscription, isTrialingSubscription } from '@/lib/subscription';
 
 import { ModernSlideRenderer } from '@/components/slides/ModernSlideRenderer';
 import { TemplateOverlay } from '@/components/slides/TemplateOverlay';
@@ -67,6 +67,7 @@ export function ExportDialog({ open, onOpenChange, presentation, accessToken, su
     const canExportPptx = hasFeature(subscription, 'export_pptx');
     const canExportEditablePptx = hasFeature(subscription, 'export_editable_pptx');
     const exportLocked = !canExportPdf && !canExportPptx;
+    const shouldShowTrialUpsell = isTrialingSubscription(subscription);
     const exportUpgradeTitle = i18n.language.startsWith('fr')
         ? 'Export reserve a un abonnement actif'
         : 'Export requires an active plan';
@@ -107,6 +108,29 @@ export function ExportDialog({ open, onOpenChange, presentation, accessToken, su
             setError(null);
         }
     }, [open]);
+
+    useEffect(() => {
+        if (!open || !shouldShowTrialUpsell) return;
+
+        Analytics.trackPaywallViewed({
+            surface: 'export_dialog_value_moment',
+            reason: 'trial_export_intent',
+            feature: 'export',
+            plan: 'pro',
+        });
+    }, [open, shouldShowTrialUpsell]);
+
+    const handleTrialUpgradeClick = () => {
+        Analytics.trackPaywallCtaClicked({
+            surface: 'export_dialog_value_moment',
+            reason: 'trial_export_intent',
+            feature: 'export',
+            plan: 'pro',
+        });
+        Analytics.trackEvent(ANALYTICS_EVENTS.ECOMMERCE.CATEGORY, ANALYTICS_EVENTS.ECOMMERCE.SELECT_PLAN, 'Export Dialog Pro CTA');
+        onOpenChange(false);
+        navigate('/pricing?checkout=pro_intro&utm_source=product&utm_medium=export_dialog&utm_campaign=post_generation_revenue_push&utm_content=export_callout');
+    };
 
     const trackSuccessfulExport = useCallback((format: string) => {
         Analytics.trackActivationStep({
@@ -326,6 +350,39 @@ export function ExportDialog({ open, onOpenChange, presentation, accessToken, su
                 {/* Language Selection */}
                 {!isExporting && !isComplete && (
                     <div className="space-y-3 py-2">
+                        {shouldShowTrialUpsell && (
+                            <div className="rounded-xl border border-primary/25 bg-primary/5 p-4">
+                                <div className="flex items-start gap-3">
+                                    <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                                        <Sparkles className="h-4 w-4" />
+                                    </div>
+                                    <div className="min-w-0 flex-1 space-y-3">
+                                        <div>
+                                            <p className="text-sm font-bold text-foreground">
+                                                {i18n.language.startsWith('fr')
+                                                    ? 'Votre deck est pret a partir.'
+                                                    : 'Your deck is ready to send.'}
+                                            </p>
+                                            <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+                                                {i18n.language.startsWith('fr')
+                                                    ? 'Gardez les exports PowerPoint, le brand kit et les generations illimitees avec Pro. Premier mois a 9,90 EUR.'
+                                                    : 'Keep PowerPoint exports, brand kits and unlimited generations with Pro. First month for 9.90 EUR.'}
+                                            </p>
+                                        </div>
+                                        <Button
+                                            type="button"
+                                            size="sm"
+                                            className="h-9 w-full gap-2"
+                                            onClick={handleTrialUpgradeClick}
+                                        >
+                                            {i18n.language.startsWith('fr') ? 'Garder Pro a 9,90 EUR' : 'Keep Pro for 9.90 EUR'}
+                                            <ArrowRight className="h-4 w-4" />
+                                        </Button>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
                         <Label htmlFor="language-select" className="text-sm font-medium flex items-center gap-2">
                             <Globe className="w-4 h-4 text-primary" />
                             {t('export.targetLanguage', { defaultValue: 'Export Language' })}
@@ -414,7 +471,7 @@ export function ExportDialog({ open, onOpenChange, presentation, accessToken, su
                                     }}
                                     onUpgrade={() => {
                                         onOpenChange(false);
-                                        navigate('/pricing');
+                                        navigate('/pricing?checkout=pro_intro&utm_source=product&utm_medium=export_dialog&utm_campaign=post_generation_revenue_push&utm_content=locked_export');
                                     }}
                                 />
                             </div>

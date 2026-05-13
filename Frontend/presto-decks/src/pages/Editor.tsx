@@ -59,7 +59,9 @@ import {
   Bookmark,
   MessageSquare,
   TableProperties,
-  FileText
+  FileText,
+  CreditCard,
+  X
 } from "lucide-react";
 import {
   Sheet,
@@ -97,8 +99,8 @@ import { ExportDialog } from "@/components/editor/ExportDialog";
 import { TemplateOverlay } from "@/components/slides/TemplateOverlay";
 import { ToastAction } from "@/components/ui/toast";
 import { parseClipboardData, createSlideFromTable } from "@/lib/smartPaste";
-import { hasFeature, isExpiredTrialSubscription } from "@/lib/subscription";
-import { Analytics } from "@/lib/analytics";
+import { hasFeature, isExpiredTrialSubscription, isPackSubscription, isTrialingSubscription } from "@/lib/subscription";
+import { Analytics, ANALYTICS_EVENTS } from "@/lib/analytics";
 
 const isPlainObject = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value);
@@ -237,6 +239,7 @@ export default function Editor() {
   const [isExportDialogOpen, setIsExportDialogOpen] = useState(false);
   const [accessToken, setAccessToken] = useState<string | null>(null);
   const [subscription, setSubscription] = useState<any>(null);
+  const [subscriptionLoaded, setSubscriptionLoaded] = useState(false);
   const [showWatermark, setShowWatermark] = useState(false);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
   const [isImageModalOpen, setIsImageModalOpen] = useState(false);
@@ -247,6 +250,7 @@ export default function Editor() {
   const [currentUserEmail, setCurrentUserEmail] = useState<string | null>(null);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [showSharePulse, setShowSharePulse] = useState(false);
+  const [isRevenueBannerDismissed, setIsRevenueBannerDismissed] = useState(false);
 
   // D&D Sensors
   const sensors = useSensors(
@@ -326,9 +330,25 @@ export default function Editor() {
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const pendingSaveRef = useRef<any>(null);
   const projectRef = useRef<any>(null); // Ref to access latest project state in event listeners
+  const revenueBannerSeenRef = useRef<Set<string>>(new Set());
   const canShareByLink = hasFeature(subscription, "public_link");
   const canShareCollaborative = hasFeature(subscription, "brand_kit"); // brand_kit = Pro+
   const canExportAnything = hasFeature(subscription, "export_pdf") || hasFeature(subscription, "export_pptx");
+  const isTrialingAccess = isTrialingSubscription(subscription);
+  const isPackAccess = isPackSubscription(subscription);
+  const isPaidPlan = Boolean(
+    subscription?.accessState === "active_paid" ||
+      (subscription?.stripeSubscriptionId && !isTrialingAccess && !isExpiredTrialSubscription(subscription))
+  );
+  const canShowRevenueBanner = Boolean(
+    subscriptionLoaded &&
+      currentProject?.id &&
+      !isFullscreen &&
+      !isRevenueBannerDismissed &&
+      !isPaidPlan &&
+      !isExpiredTrialSubscription(subscription) &&
+      (isTrialingAccess || isPackAccess || subscription?.accessState === "free")
+  );
   const hasEvidenceSources = Boolean(currentProject?.slides?.some((slide: any) => slide.sourceRef));
   const shareDisabledReason = canShareByLink
     ? undefined
@@ -353,6 +373,8 @@ export default function Editor() {
         setCurrentUserId(session.user.id);
         const pulseKey = `slideai-share-pulse-seen-${session.user.id}`;
         if (!localStorage.getItem(pulseKey)) setShowSharePulse(true);
+      } else {
+        setSubscriptionLoaded(true);
       }
     };
     getToken();
@@ -365,8 +387,32 @@ export default function Editor() {
 
     api.getMySubscription(accessToken)
       .then((data) => setSubscription(data))
-      .catch((error) => console.error("Failed to load subscription", error));
+      .catch((error) => console.error("Failed to load subscription", error))
+      .finally(() => setSubscriptionLoaded(true));
   }, [accessToken]);
+
+  useEffect(() => {
+    if (!currentProject?.id) return;
+
+    setIsRevenueBannerDismissed(
+      localStorage.getItem(`slideai-pro-banner-dismissed-${currentProject.id}`) === "1"
+    );
+  }, [currentProject?.id]);
+
+  useEffect(() => {
+    if (!canShowRevenueBanner || !currentProject?.id) return;
+
+    const key = `${currentProject.id}:post_generation`;
+    if (revenueBannerSeenRef.current.has(key)) return;
+    revenueBannerSeenRef.current.add(key);
+
+    Analytics.trackPaywallViewed({
+      surface: 'editor_post_generation_banner',
+      reason: isTrialingAccess ? 'trial_value_moment' : isPackAccess ? 'pack_value_moment' : 'free_value_moment',
+      feature: 'pro_subscription',
+      plan: 'pro',
+    });
+  }, [canShowRevenueBanner, currentProject?.id, isTrialingAccess, isPackAccess]);
 
   // Keyboard navigation
   useEffect(() => {
@@ -1046,6 +1092,31 @@ export default function Editor() {
     }
   };
 
+  const handleRevenueUpgradeClick = () => {
+    Analytics.trackPaywallCtaClicked({
+      surface: 'editor_post_generation_banner',
+      reason: isTrialingAccess ? 'trial_value_moment' : isPackAccess ? 'pack_value_moment' : 'free_value_moment',
+      feature: 'pro_subscription',
+      plan: 'pro',
+    });
+    Analytics.trackEvent(ANALYTICS_EVENTS.ECOMMERCE.CATEGORY, ANALYTICS_EVENTS.ECOMMERCE.SELECT_PLAN, 'Editor Post Generation Pro CTA');
+    navigate('/pricing?checkout=pro_intro&utm_source=product&utm_medium=editor&utm_campaign=post_generation_revenue_push&utm_content=value_banner');
+  };
+
+  const handleRevenueBannerDismiss = () => {
+    if (currentProject?.id) {
+      localStorage.setItem(`slideai-pro-banner-dismissed-${currentProject.id}`, "1");
+    }
+
+    Analytics.trackPaywallDismissed({
+      surface: 'editor_post_generation_banner',
+      reason: isTrialingAccess ? 'trial_value_moment' : isPackAccess ? 'pack_value_moment' : 'free_value_moment',
+      feature: 'pro_subscription',
+      plan: 'pro',
+    });
+    setIsRevenueBannerDismissed(true);
+  };
+
 
 
   const handleNotesChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -1456,6 +1527,54 @@ export default function Editor() {
                 >
                   <Download className="w-4 h-4 md:mr-2" />
                   <span className="hidden md:inline font-semibold">{t('editorPage.actions.export')}</span>
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {canShowRevenueBanner && (
+          <div className="shrink-0 border-b border-primary/20 bg-primary/5 px-4 py-3">
+            <div className="mx-auto flex max-w-7xl flex-col gap-3 md:flex-row md:items-center md:justify-between">
+              <div className="flex min-w-0 items-start gap-3">
+                <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary text-white">
+                  <CreditCard className="h-4 w-4" />
+                </div>
+                <div className="min-w-0">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <p className="text-sm font-bold text-foreground">
+                      {isTrialingAccess
+                        ? "Votre presentation est prete. Gardez l'acces Pro."
+                        : "Votre deck a de la valeur. Transformez-le en usage regulier."}
+                    </p>
+                    <span className="rounded-full bg-white px-2 py-0.5 text-[11px] font-bold text-primary shadow-sm">
+                      9,90 EUR le premier mois
+                    </span>
+                  </div>
+                  <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+                    Export PowerPoint, brand kit, generations illimitees et support prioritaire. Annulable a tout moment.
+                  </p>
+                </div>
+              </div>
+              <div className="flex shrink-0 items-center gap-2">
+                <Button
+                  type="button"
+                  size="sm"
+                  className="h-9 gap-2"
+                  onClick={handleRevenueUpgradeClick}
+                >
+                  Garder Pro
+                  <Sparkles className="h-4 w-4" />
+                </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="h-9 w-9 p-0"
+                  onClick={handleRevenueBannerDismiss}
+                  title="Masquer"
+                >
+                  <X className="h-4 w-4" />
                 </Button>
               </div>
             </div>

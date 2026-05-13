@@ -6,6 +6,7 @@ import { OpsService } from '../ops/ops.service.js';
 import { getTemplateDefinition } from '../ops/ops-email-catalog.js';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
+const CHECKOUT_ABANDON_DELAY_MS = 30 * 60 * 1000;
 
 function extractFirstNameFromEmail(email: string): string {
   const local = email.split('@')[0];
@@ -255,6 +256,36 @@ export class LifecycleEmailService {
         invoiceId: params.invoiceId,
         amountDue: params.amountDue,
         currency: params.currency,
+      },
+    });
+  }
+
+  async scheduleCheckoutAbandonEmail(params: {
+    userId: string;
+    email?: string;
+    checkoutStartedAt: Date;
+    checkoutType: 'subscription' | 'pack';
+    plan?: string;
+    packType?: string;
+  }) {
+    if (!params.email) {
+      this.logger.warn(`Skipping checkout abandon email for ${params.userId}: no email available`);
+      return;
+    }
+
+    const scopeKey = `checkout_${this.toScopeStamp(params.checkoutStartedAt)}_${params.checkoutType}_${params.plan || params.packType || 'unknown'}`;
+    await this.scheduleSingleEmail({
+      userId: params.userId,
+      email: params.email,
+      emailType: 'checkout_abandoned_30m',
+      scheduledFor: new Date(params.checkoutStartedAt.getTime() + CHECKOUT_ABANDON_DELAY_MS),
+      scopeKey,
+      payload: {
+        email: params.email,
+        checkoutStartedAt: params.checkoutStartedAt.toISOString(),
+        checkoutType: params.checkoutType,
+        plan: params.plan,
+        packType: params.packType,
       },
     });
   }

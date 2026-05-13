@@ -46,6 +46,7 @@ export const OPS_EMAIL_TEMPLATE_DEFINITIONS: OpsEmailTemplateDefinition[] = [
   { slug: 'cancel_confirmation', name: 'Cancel confirmation', category: 'churn', kind: 'transactional', flowSlug: 'cancel', sample: { presentationCount: 4, trialEndsAtOffsetDays: 7 } },
   { slug: 'cancel_day3_winback', name: 'Cancel day 3 winback', category: 'churn', kind: 'marketing', flowSlug: 'cancel', sample: { presentationCount: 4, trialEndsAtOffsetDays: 7 } },
   { slug: 'failed_payment_day0', name: 'Failed payment day 0', category: 'billing', kind: 'transactional', flowSlug: 'billing', sample: { presentationCount: 4, trialEndsAtOffsetDays: 7 } },
+  { slug: 'checkout_abandoned_30m', name: 'Checkout abandoned 30m', category: 'billing', kind: 'marketing', flowSlug: 'checkout_abandonment', sample: { presentationCount: 2, trialEndsAtOffsetDays: 5 } },
 ];
 
 export const OPS_EMAIL_FLOW_DEFINITIONS: OpsEmailFlowDefinition[] = [
@@ -96,6 +97,14 @@ export const OPS_EMAIL_FLOW_DEFINITIONS: OpsEmailFlowDefinition[] = [
     kind: 'transactional',
     emailTypes: ['failed_payment_day0'],
     defaultConfig: { timezone: 'Europe/Paris', sendWindowStart: '09:00', sendWindowEnd: '18:00', weekdaysOnly: false, enabled: true },
+  },
+  {
+    slug: 'checkout_abandonment',
+    name: 'Checkout abandonment',
+    category: 'billing',
+    kind: 'marketing',
+    emailTypes: ['checkout_abandoned_30m'],
+    defaultConfig: { timezone: 'Europe/Paris', sendWindowStart: '09:00', sendWindowEnd: '18:00', weekdaysOnly: true, enabled: true },
   },
 ];
 

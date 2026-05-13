@@ -71,6 +71,9 @@ const PRODUCT_EVENT_NAMES = new Set([
     "share_clicked",
     "deck_shared",
     "activation_completed",
+    "paywall_view",
+    "paywall_cta_click",
+    "paywall_dismiss",
     "begin_checkout",
     "purchase",
 ]);

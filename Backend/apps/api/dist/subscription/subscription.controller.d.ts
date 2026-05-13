@@ -12,7 +12,7 @@ export declare class SubscriptionController {
      * Retourne l'abonnement de l'utilisateur connecté.
      */
     getMySubscription(req: any): Promise<{
-        accessState: "trialing" | "trial_expired" | "legacy_free" | "pack_active" | "active_paid";
+        accessState: "trial_expired" | "trialing" | "legacy_free" | "pack_active" | "active_paid";
         effectivePlan: string;
         features: string[];
         creditsTotal: number;
@@ -36,9 +36,9 @@ export declare class SubscriptionController {
         hearAboutAnswered: boolean;
         packFeaturesMode: string | null;
         id: string;
+        status: string;
         userId: string;
         plan: string;
-        status: string;
         creditsRemaining: number;
         creditsResetAt: Date | null;
         trialStartedAt: Date | null;
@@ -96,7 +96,7 @@ export declare class SubscriptionController {
         url: string | null;
     }>;
     startTrial(req: any): Promise<{
-        accessState: "trialing" | "trial_expired" | "legacy_free" | "pack_active" | "active_paid";
+        accessState: "trial_expired" | "trialing" | "legacy_free" | "pack_active" | "active_paid";
         effectivePlan: string;
         features: string[];
         creditsTotal: number;
@@ -120,9 +120,9 @@ export declare class SubscriptionController {
         hearAboutAnswered: boolean;
         packFeaturesMode: string | null;
         id: string;
+        status: string;
         userId: string;
         plan: string;
-        status: string;
         creditsRemaining: number;
         creditsResetAt: Date | null;
         trialStartedAt: Date | null;

@@ -1767,6 +1767,9 @@ const lifecycleEmailWorker = new Worker(
     let shouldSend = false;
 
       switch (emailType) {
+      case 'signup_welcome':
+        shouldSend = true;
+        break;
       case 'signup_day1_no_presentation':
         shouldSend = presentationCount === 0;
         break;

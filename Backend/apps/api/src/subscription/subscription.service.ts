@@ -668,6 +668,49 @@ export class SubscriptionService {
   }
 
   private async claimExistingUserByEmail(existingByEmail: PrismaUser, userId: string, userEmail: string) {
+    const isPlaceholderReconciliation = existingByEmail.email.endsWith('@placeholder.local');
+    const isReSignup = !isPlaceholderReconciliation && existingByEmail.id !== userId;
+
+    if (isReSignup) {
+      this.logger.warn(
+        `Detected re-signup for ${userEmail}: wiping lifecycle state (old=${existingByEmail.id}, new=${userId})`,
+      );
+
+      return this.prisma.$transaction(async (tx) => {
+        // Reassign data we keep across re-signups
+        await tx.project.updateMany({
+          where: { ownerId: existingByEmail.id },
+          data: { ownerId: userId },
+        });
+        await tx.membership.updateMany({
+          where: { userId: existingByEmail.id },
+          data: { userId },
+        });
+
+        // Wipe lifecycle/billing state so the new account gets a fresh trial
+        await tx.opsEmailPreference.deleteMany({
+          where: { userId: existingByEmail.id },
+        });
+        await tx.productEvent.deleteMany({
+          where: { userId: existingByEmail.id },
+        });
+        await tx.lifecycleEmailLog.deleteMany({
+          where: { userId: existingByEmail.id },
+        });
+        await tx.subscription.deleteMany({
+          where: { userId: existingByEmail.id },
+        });
+
+        return tx.user.update({
+          where: { email: userEmail },
+          data: {
+            id: userId,
+            createdAt: new Date(),
+          },
+        });
+      });
+    }
+
     this.logger.warn(
       `Reconciling local user by email for ${userEmail}: moving ${existingByEmail.id} to ${userId}`,
     );

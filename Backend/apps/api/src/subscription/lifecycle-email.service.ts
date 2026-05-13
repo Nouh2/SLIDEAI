@@ -36,8 +36,9 @@ const TRIAL_EMAIL_SCHEDULE: TrialEmailStep[] = [
   { emailType: 'trial_winback_day2', offsetMs: 9 * DAY_MS },
 ];
 
+// signup_welcome was a duplicate of trial_welcome (same template, same offset).
+// trial_welcome covers the welcome for every new user, the steps below handle nudges.
 const SIGNUP_ONBOARDING_SCHEDULE: ScheduledEmailStep[] = [
-  { emailType: 'signup_welcome', offsetMs: 0, bypassSendWindow: true },
   { emailType: 'signup_day1_no_presentation', offsetMs: 1 * DAY_MS },
   { emailType: 'signup_day3_no_presentation', offsetMs: 3 * DAY_MS },
   { emailType: 'signup_day5_activated', offsetMs: 5 * DAY_MS },

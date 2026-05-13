@@ -3,7 +3,7 @@
 // constant. Run by npm `prebuild` (and `prestart`) hooks. See WORKER_PATCH for
 // rationale (Railway root-directory deploys do not include SlideAIemail/).
 
-import { readFileSync, writeFileSync, readdirSync, mkdirSync } from 'node:fs';
+import { existsSync, readFileSync, writeFileSync, readdirSync, mkdirSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -15,6 +15,13 @@ const outputs = [
   join(repoRoot, 'Backend', 'apps', 'worker', 'src', 'email-safe-templates.generated.ts'),
   join(repoRoot, 'Backend', 'apps', 'api', 'src', 'ops', 'email-safe-templates.generated.ts'),
 ];
+
+// Railway deploys from Backend/, so SlideAIemail/ is not in the build context.
+// In that case the committed .generated.ts files are the source of truth.
+if (!existsSync(srcDir)) {
+  console.warn(`[generate-email-templates] Source dir not found at ${srcDir}; using committed .generated.ts files`);
+  process.exit(0);
+}
 
 const files = readdirSync(srcDir)
   .filter((file) => file.endsWith('.html'))

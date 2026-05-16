@@ -20,6 +20,15 @@ import { OutOfCreditsModal } from "@/components/OutOfCreditsModal";
 import { Analytics, ANALYTICS_EVENTS } from "@/lib/analytics";
 import { hasFeature } from "@/lib/subscription";
 import { ACTIVATION_USE_CASES, ActivationUseCaseId, getActivationUseCase } from "@/lib/activation";
+import {
+    BlogAttribution,
+    getBlogAttributionEventParams,
+    getBlogAttributionFromSearch,
+    getStoredBlogAttribution,
+    markBlogCtaReplayed,
+    rememberBlogAttribution,
+    shouldReplayBlogCta,
+} from "@/lib/blogAttribution";
 
 const TEMPLATE_STARTER_PROMPTS: Record<string, string> = {
     "business-review":
@@ -65,18 +74,24 @@ const buildEditorGenerationUrl = (traceId: string, slideCount: number, activatio
 
 export default function Create() {
     const initialParams = new URLSearchParams(window.location.search);
+    const initialBlogAttribution = getBlogAttributionFromSearch(initialParams);
     const [step, setStep] = useState<'activation' | 'template' | 'customize' | 'storyboard' | 'document-structure'>(
-        initialParams.get("onboarding") === "1" && !initialParams.get("activation") ? "activation" : "template"
+        initialBlogAttribution
+            ? "customize"
+            : initialParams.get("onboarding") === "1" && !initialParams.get("activation")
+                ? "activation"
+                : "template"
     );
-    const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
-    const [vision, setVision] = useState("");
+    const [selectedTemplate, setSelectedTemplate] = useState<string | null>(initialBlogAttribution?.templateId || null);
+    const [vision, setVision] = useState(initialBlogAttribution?.prompt || "");
+    const [blogAttribution, setBlogAttribution] = useState<BlogAttribution | null>(initialBlogAttribution);
     const [activationUseCase, setActivationUseCase] = useState<ActivationUseCaseId | null>(null);
     const { t, i18n } = useTranslation();
     const [searchParams, setSearchParams] = useSearchParams();
 
     const [contentLanguage, setContentLanguage] = useState<string>(i18n.language === 'fr' ? 'fr' : i18n.language === 'es' ? 'es' : 'en');
 
-    const [slides, setSlides] = useState([10]);
+    const [slides, setSlides] = useState([initialBlogAttribution?.slideCount || 10]);
     const [isGenerating, setIsGenerating] = useState(false);
     const [isUploading, setIsUploading] = useState(false);
     const [isParsing, setIsParsing] = useState(false);
@@ -91,9 +106,12 @@ export default function Create() {
     const [selectedBrandKit, setSelectedBrandKit] = useState<BrandKit | null>(null);
     const [subscription, setSubscription] = useState<any>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const appliedBlogAttributionRef = useRef<string | null>(initialBlogAttribution?.content || null);
     const navigate = useNavigate();
     const { toast } = useToast();
     const canUseBrandKit = hasFeature(subscription, "brand_kit");
+    const blogEventParams = getBlogAttributionEventParams(blogAttribution);
+    const authReturnTo = `/auth?returnTo=${encodeURIComponent(`${window.location.pathname}${window.location.search}`)}`;
 
     const applyActivationUseCase = (id: ActivationUseCaseId, surface: string) => {
         const useCase = getActivationUseCase(id);
@@ -136,6 +154,45 @@ export default function Create() {
 
         loadSubscription();
     }, []);
+
+    useEffect(() => {
+        const fromUrl = getBlogAttributionFromSearch(searchParams);
+        const stored = getStoredBlogAttribution();
+        const attribution = fromUrl
+            ? {
+                ...fromUrl,
+                wasAuthenticated: stored?.content === fromUrl.content ? stored.wasAuthenticated : fromUrl.wasAuthenticated,
+            }
+            : stored;
+        if (!attribution) return;
+
+        rememberBlogAttribution(attribution);
+        setBlogAttribution(attribution);
+
+        if (appliedBlogAttributionRef.current !== attribution.content) {
+            appliedBlogAttributionRef.current = attribution.content;
+            setVision((current) => current.trim() ? current : attribution.prompt);
+            setSelectedTemplate((current) => current || attribution.templateId);
+            setSlides([attribution.slideCount]);
+            setStep("customize");
+        }
+
+        const replayAnonymousClick = async () => {
+            if (!shouldReplayBlogCta(attribution)) return;
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!session?.access_token) return;
+
+            Analytics.trackProductEvent("blog_cta_click", {
+                ...getBlogAttributionEventParams(attribution),
+                cta_variant: "replayed_after_auth",
+                destination: "create",
+                replayed_after_auth: true,
+            });
+            markBlogCtaReplayed(attribution);
+        };
+
+        void replayAnonymousClick();
+    }, [searchParams]);
 
     useEffect(() => {
         const requestedUseCase = getActivationUseCase(searchParams.get("activation"));
@@ -183,6 +240,7 @@ export default function Create() {
                 const { data: { session } } = await supabase.auth.getSession();
                 if (!session) {
                     toast({ title: t('create.sessionExpired'), variant: "destructive" });
+                    navigate(authReturnTo);
                     return;
                 }
 
@@ -267,12 +325,13 @@ export default function Create() {
                 templateId: selectedTemplate,
                 slideCount: selection.totalSlides,
                 hasFile: true,
+                extra: blogEventParams,
             });
 
             const { data: { session } } = await supabase.auth.getSession();
             if (!session) {
                 toast({ title: t('create.sessionExpired'), variant: "destructive" });
-                navigate("/auth");
+                navigate(authReturnTo);
                 return;
             }
 
@@ -371,6 +430,7 @@ export default function Create() {
                 templateId: selectedTemplate,
                 slideCount: storyboard?.totalSlides || slides[0],
                 hasFile: Boolean(attachedFile),
+                extra: blogEventParams,
             });
 
             // Get current session for auth token
@@ -381,7 +441,7 @@ export default function Create() {
                     description: t('create.sessionExpiredMsg'),
                     variant: "destructive",
                 });
-                navigate("/auth");
+                navigate(authReturnTo);
                 return;
             }
 
@@ -677,6 +737,13 @@ export default function Create() {
                                 <div className="text-center space-y-2">
                                     <p className="text-sm text-muted-foreground">{t('create.selectedTemplate')}</p>
                                     <h3 className="text-xl font-semibold">{getTemplateById(selectedTemplate)?.name}</h3>
+                                </div>
+                            )}
+
+                            {blogAttribution && (
+                                <div className="mx-auto max-w-3xl rounded-xl border border-primary/20 bg-primary/5 px-4 py-3 text-sm text-foreground/80">
+                                    <span className="font-semibold text-primary">Brief pre-rempli depuis le blog : </span>
+                                    {blogAttribution.postTitle}
                                 </div>
                             )}
 

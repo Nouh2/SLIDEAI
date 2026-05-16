@@ -4,36 +4,40 @@ import { Button } from "@/components/ui/button";
 import { Analytics } from "@/lib/analytics";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLocalePath } from "@/hooks/use-locale-path";
+import {
+  BlogCtaPlacement,
+  buildBlogCreatePath,
+  createBlogAttribution,
+  getBlogAttributionEventParams,
+  rememberBlogAttribution,
+} from "@/lib/blogAttribution";
 
 type BlogProductCtaProps = {
   postSlug: string;
   postTitle: string;
-  placement: "inline" | "bottom";
+  postCategory?: string | null;
+  placement: Extract<BlogCtaPlacement, "top" | "inline" | "bottom">;
 };
 
-const buildCreatePath = (postSlug: string, placement: BlogProductCtaProps["placement"]) => {
-  const params = new URLSearchParams({
-    utm_source: "blog",
-    utm_medium: "seo",
-    utm_campaign: "blog_article_cta",
-    utm_content: `${postSlug}_${placement}`,
-  });
-
-  return `/create?${params.toString()}`;
-};
-
-export function BlogProductCta({ postSlug, postTitle, placement }: BlogProductCtaProps) {
+export function BlogProductCta({ postSlug, postTitle, postCategory, placement }: BlogProductCtaProps) {
   const { user } = useAuth();
   const { locale, localize } = useLocalePath();
   const isFr = locale === "fr";
-  const createPath = buildCreatePath(postSlug, placement);
+  const attribution = createBlogAttribution({
+    postSlug,
+    postTitle,
+    placement,
+    category: postCategory,
+    wasAuthenticated: Boolean(user),
+  });
+  const createPath = buildBlogCreatePath(attribution);
   const ctaPath = user ? createPath : `/auth?returnTo=${encodeURIComponent(createPath)}`;
-  const variant = placement === "inline" ? "article_midpoint" : "article_bottom";
+  const variant = placement === "top" ? "article_top" : placement === "inline" ? "article_midpoint" : "article_bottom";
 
   const handleClick = () => {
+    rememberBlogAttribution(attribution);
     Analytics.trackGaEvent("blog_cta_click", {
-      post_slug: postSlug,
-      post_title: postTitle,
+      ...getBlogAttributionEventParams(attribution),
       placement,
       cta_variant: variant,
       destination: user ? "create" : "auth",
@@ -49,7 +53,13 @@ export function BlogProductCta({ postSlug, postTitle, placement }: BlogProductCt
             {isFr ? "Essai gratuit 7 jours" : "7-day free trial"}
           </div>
           <h3 className="text-xl font-extrabold leading-tight">
-            {isFr ? "Transformez ce guide en presentation" : "Turn this guide into a presentation"}
+            {placement === "top"
+              ? isFr
+                ? "Generez une presentation a partir de cet article"
+                : "Generate a presentation from this article"
+              : isFr
+                ? "Transformez ce guide en presentation"
+                : "Turn this guide into a presentation"}
           </h3>
           <p className="max-w-xl text-sm leading-6 text-foreground/70">
             {isFr

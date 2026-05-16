@@ -10,6 +10,12 @@ import { SEO } from "@/components/common/SEO";
 import { BlogProductCta } from "@/components/blog/BlogProductCta";
 import { useAuth } from "@/contexts/AuthContext";
 import { Analytics } from "@/lib/analytics";
+import {
+    buildBlogCreatePath,
+    createBlogAttribution,
+    getBlogAttributionEventParams,
+    rememberBlogAttribution,
+} from "@/lib/blogAttribution";
 import type { Components } from "react-markdown";
 import {
     Breadcrumb,
@@ -45,17 +51,6 @@ const splitContentForProductCta = (content: string) => {
     };
 };
 
-const buildBlogCreatePath = (postSlug: string, placement: string) => {
-    const params = new URLSearchParams({
-        utm_source: "blog",
-        utm_medium: "seo",
-        utm_campaign: "blog_article_cta",
-        utm_content: `${postSlug}_${placement}`,
-    });
-
-    return `/create?${params.toString()}`;
-};
-
 export default function BlogPostPage() {
     const { t, i18n } = useTranslation();
     const { locale, localize } = useLocalePath();
@@ -80,7 +75,14 @@ export default function BlogPostPage() {
         a: ({ href = "", children }) => {
             const isSlideAiCta = href.includes("/create") || href.includes("slideai.fr/create");
             const isInternalLink = href.startsWith("/");
-            const markdownCreatePath = post ? buildBlogCreatePath(post.slug, "inline_markdown") : "/create";
+            const markdownAttribution = post ? createBlogAttribution({
+                postSlug: post.slug,
+                postTitle: post.title,
+                placement: "inline_markdown",
+                category: post.category,
+                wasAuthenticated: Boolean(user),
+            }) : null;
+            const markdownCreatePath = markdownAttribution ? buildBlogCreatePath(markdownAttribution) : "/create";
             const resolvedHref = isSlideAiCta
                 ? user
                     ? markdownCreatePath
@@ -92,10 +94,10 @@ export default function BlogPostPage() {
                     <a
                         href={resolvedHref}
                         onClick={() => {
-                            if (post) {
+                            if (post && markdownAttribution) {
+                                rememberBlogAttribution(markdownAttribution);
                                 Analytics.trackGaEvent("blog_cta_click", {
-                                    post_slug: post.slug,
-                                    post_title: post.title,
+                                    ...getBlogAttributionEventParams(markdownAttribution),
                                     placement: "inline_markdown",
                                     cta_variant: "markdown_create_link",
                                     destination: user ? "create" : "auth",
@@ -330,8 +332,9 @@ export default function BlogPostPage() {
                 </header>
 
                 <div className="max-w-none">
+                    <BlogProductCta postSlug={post.slug} postTitle={post.title} postCategory={post.category} placement="top" />
                     <ReactMarkdown components={markdownComponents}>{splitContent.beforeCta}</ReactMarkdown>
-                    <BlogProductCta postSlug={post.slug} postTitle={post.title} placement="inline" />
+                    <BlogProductCta postSlug={post.slug} postTitle={post.title} postCategory={post.category} placement="inline" />
                     {splitContent.afterCta && (
                         <ReactMarkdown components={markdownComponents}>{splitContent.afterCta}</ReactMarkdown>
                     )}
@@ -352,7 +355,7 @@ export default function BlogPostPage() {
                     </div>
                 </div>
 
-                <BlogProductCta postSlug={post.slug} postTitle={post.title} placement="bottom" />
+                <BlogProductCta postSlug={post.slug} postTitle={post.title} postCategory={post.category} placement="bottom" />
             </div>
         </article>
     );

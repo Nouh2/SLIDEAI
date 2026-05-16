@@ -41,6 +41,7 @@ type ActivationParams = {
     slideCount?: number | null;
     hasFile?: boolean | null;
     format?: string | null;
+    extra?: Record<string, any> | null;
 };
 
 export type AcquisitionAttribution = {
@@ -181,6 +182,10 @@ export const Analytics = {
         }
     },
 
+    trackProductEvent: (name: string, params: Record<string, any> = {}) => {
+        void recordProductEvent(name, params);
+    },
+
     trackEmailClick: ({ attribution, landingPath }: { attribution: AcquisitionAttribution; landingPath: string }) => {
         Analytics.trackGaEvent("lifecycle_email_click", {
             ...attributionEventParams(attribution),
@@ -198,6 +203,7 @@ export const Analytics = {
         slideCount,
         hasFile,
         format,
+        extra,
     }: ActivationParams) => {
         Analytics.trackGaEvent(step, {
             surface: surface || undefined,
@@ -208,6 +214,7 @@ export const Analytics = {
             slide_count: slideCount ?? undefined,
             has_file: typeof hasFile === "boolean" ? hasFile : undefined,
             format: format || undefined,
+            ...(extra || {}),
         });
     },
 

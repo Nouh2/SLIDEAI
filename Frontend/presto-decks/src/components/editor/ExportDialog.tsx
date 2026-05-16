@@ -32,6 +32,7 @@ import { ModernSlideRenderer } from '@/components/slides/ModernSlideRenderer';
 import { TemplateOverlay } from '@/components/slides/TemplateOverlay';
 import type { ExportProgress } from '@/lib/export';
 import { Analytics, ANALYTICS_EVENTS } from '@/lib/analytics';
+import { getBlogAttributionEventParams, getStoredBlogAttribution } from '@/lib/blogAttribution';
 
 interface ExportDialogProps {
     open: boolean;
@@ -68,6 +69,7 @@ export function ExportDialog({ open, onOpenChange, presentation, accessToken, su
     const canExportEditablePptx = hasFeature(subscription, 'export_editable_pptx');
     const exportLocked = !canExportPdf && !canExportPptx;
     const shouldShowTrialUpsell = isTrialingSubscription(subscription);
+    const blogEventParams = getBlogAttributionEventParams(getStoredBlogAttribution());
     const exportUpgradeTitle = i18n.language.startsWith('fr')
         ? 'Export reserve a un abonnement actif'
         : 'Export requires an active plan';
@@ -140,6 +142,7 @@ export function ExportDialog({ open, onOpenChange, presentation, accessToken, su
             presentationId: presentation.id,
             slideCount: presentation.slides.length,
             format,
+            extra: blogEventParams,
         });
 
         if (!presentation.id) return;
@@ -154,8 +157,9 @@ export function ExportDialog({ open, onOpenChange, presentation, accessToken, su
             presentationId: presentation.id,
             slideCount: presentation.slides.length,
             format,
+            extra: blogEventParams,
         });
-    }, [activationUseCase, presentation.id, presentation.slides.length]);
+    }, [activationUseCase, presentation.id, presentation.slides.length, blogEventParams]);
 
     const handlePDFExport = useCallback(async () => {
         if (!presentation || !hiddenSlidesRef.current) return;

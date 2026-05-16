@@ -16,6 +16,7 @@ import { Share2, Copy, Check, Loader2, Edit3, Eye, Lock, Sparkles } from "lucide
 import { useToast } from "@/hooks/use-toast";
 import { api } from "@/lib/api";
 import { Analytics } from "@/lib/analytics";
+import { getBlogAttributionEventParams, getStoredBlogAttribution } from "@/lib/blogAttribution";
 
 interface ShareDialogProps {
     presentationId: string;
@@ -39,6 +40,7 @@ export function ShareDialog({ presentationId, accessToken, canShareByLink = true
     const [copied, setCopied] = useState(false);
     const { toast } = useToast();
     const { t } = useTranslation();
+    const blogEventParams = getBlogAttributionEventParams(getStoredBlogAttribution());
 
     const currentShareUrl = shareMode === "edit" ? editShareUrl : viewShareUrl;
 
@@ -104,6 +106,7 @@ export function ShareDialog({ presentationId, accessToken, canShareByLink = true
                 useCase: activationUseCase,
                 presentationId,
                 format: shareMode,
+                extra: blogEventParams,
             });
 
             const activationKey = `slideai-activation-share-${presentationId}`;
@@ -115,6 +118,7 @@ export function ShareDialog({ presentationId, accessToken, canShareByLink = true
                     useCase: activationUseCase,
                     presentationId,
                     format: shareMode,
+                    extra: blogEventParams,
                 });
             }
 
@@ -133,6 +137,7 @@ export function ShareDialog({ presentationId, accessToken, canShareByLink = true
                 surface: "editor_toolbar",
                 useCase: activationUseCase,
                 presentationId,
+                extra: blogEventParams,
             });
         }
         if (open && canShareByLink && !viewShareUrl) {

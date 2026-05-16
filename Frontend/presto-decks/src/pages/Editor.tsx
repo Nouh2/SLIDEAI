@@ -101,6 +101,7 @@ import { ToastAction } from "@/components/ui/toast";
 import { parseClipboardData, createSlideFromTable } from "@/lib/smartPaste";
 import { hasFeature, isExpiredTrialSubscription, isPackSubscription, isTrialingSubscription } from "@/lib/subscription";
 import { Analytics, ANALYTICS_EVENTS } from "@/lib/analytics";
+import { getBlogAttributionEventParams, getStoredBlogAttribution } from "@/lib/blogAttribution";
 
 const isPlainObject = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value);
@@ -219,6 +220,7 @@ export default function Editor() {
   const [searchParams] = useSearchParams();
   const presentationId = searchParams.get("id"); // Get ?id=UUID from URL
   const activationUseCase = searchParams.get("activation");
+  const blogEventParams = getBlogAttributionEventParams(getStoredBlogAttribution());
   const requestedSlideCount = (() => {
     const raw = searchParams.get("slides");
     if (!raw) return undefined;
@@ -747,6 +749,7 @@ export default function Editor() {
                 presentationId: realId,
                 traceId,
                 slideCount: deck.slides?.length,
+                extra: blogEventParams,
               });
             }
 
@@ -829,8 +832,9 @@ export default function Editor() {
       presentationId: currentProject.id,
       traceId,
       slideCount: currentProject.slides?.length,
+      extra: blogEventParams,
     });
-  }, [isLoading, currentProject?.id, currentProject?.slides?.length, presentationId, traceId, activationUseCase]);
+  }, [isLoading, currentProject?.id, currentProject?.slides?.length, presentationId, traceId, activationUseCase, blogEventParams]);
 
   const toggleFullscreen = () => {
     if (!editorContainerRef.current) return;
@@ -1525,6 +1529,7 @@ export default function Editor() {
                       presentationId: currentProject?.id,
                       traceId,
                       slideCount: currentProject?.slides?.length,
+                      extra: blogEventParams,
                     });
                     setIsExportDialogOpen(true);
                   }}

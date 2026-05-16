@@ -13,6 +13,23 @@ export default function Blog() {
     const [categories, setCategories] = useState<BlogCategorySummary[]>([]);
     const [personas, setPersonas] = useState<BlogPersonaSummary[]>([]);
     const [loading, setLoading] = useState(true);
+    const priorityGuides = [
+        {
+            title: "Exemples de presentation IA",
+            description: "7 cas concrets pour choisir le bon type de presentation a generer.",
+            href: "/blog/exemples-presentation-ia",
+        },
+        {
+            title: "Prompts PowerPoint IA",
+            description: "15 prompts prets a copier pour mieux cadrer votre deck.",
+            href: "/blog/prompts-powerpoint-ia",
+        },
+        {
+            title: "Creer des slides professionnelles avec l'IA",
+            description: "Une methode simple pour obtenir des slides plus claires.",
+            href: "/blog/creer-slides-professionnelles-ia",
+        },
+    ];
 
     useEffect(() => {
         const loadPosts = async () => {
@@ -53,6 +70,29 @@ export default function Blog() {
                         {t('blog.subtitle')}
                     </p>
                 </div>
+
+                {!loading && locale === "fr" && (
+                    <section className="rounded-lg border border-primary/20 bg-primary/5 p-5 md:p-7">
+                        <div className="mb-5">
+                            <h2 className="text-2xl md:text-3xl font-bold">Guides prioritaires</h2>
+                            <p className="text-muted-foreground">
+                                Les meilleurs points d'entree pour creer une presentation IA plus vite.
+                            </p>
+                        </div>
+                        <div className="grid gap-4 md:grid-cols-3">
+                            {priorityGuides.map((guide) => (
+                                <Link
+                                    key={guide.href}
+                                    to={localize(guide.href)}
+                                    className="rounded-lg border border-border/50 bg-background/80 p-5 transition-all hover:border-primary/40 hover:-translate-y-1"
+                                >
+                                    <h3 className="text-lg font-bold">{guide.title}</h3>
+                                    <p className="mt-3 text-sm leading-6 text-muted-foreground">{guide.description}</p>
+                                </Link>
+                            ))}
+                        </div>
+                    </section>
+                )}
 
                 {!loading && personas.length > 0 && (
                     <section className="space-y-5">

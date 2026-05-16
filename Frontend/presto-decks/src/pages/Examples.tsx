@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Card, CardContent } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -10,6 +11,7 @@ import { ModernSlideRenderer } from "@/components/slides/ModernSlideRenderer";
 import { SlideThumbnail } from "@/components/slides/SlideThumbnail";
 import { ScalableSlidePreview } from "@/components/slides/ScalableSlidePreview";
 import { SEO } from "@/components/common/SEO";
+import { useLocalePath } from "@/hooks/use-locale-path";
 
 export default function Examples() {
   const [selectedExample, setSelectedExample] = useState<Example | null>(null);
@@ -17,7 +19,26 @@ export default function Examples() {
   const [currentTheme, setCurrentTheme] = useState<string>("");
   const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
   const { toast } = useToast();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const { localize } = useLocalePath();
+  const isFr = i18n.language.startsWith("fr");
+  const guideLinks = [
+    {
+      title: "Exemples de presentation IA",
+      description: "Comprendre quel format choisir selon votre cas d'usage.",
+      href: "/blog/exemples-presentation-ia",
+    },
+    {
+      title: "Prompts PowerPoint IA",
+      description: "Copier des prompts pour generer un meilleur premier jet.",
+      href: "/blog/prompts-powerpoint-ia",
+    },
+    {
+      title: "Creer des slides professionnelles",
+      description: "Structurer des slides plus claires avant l'export.",
+      href: "/blog/creer-slides-professionnelles-ia",
+    },
+  ];
 
   const handleCopyPrompt = () => {
     if (selectedExample) {
@@ -100,6 +121,29 @@ export default function Examples() {
               </Card>
             ))}
           </div>
+
+          {isFr && (
+            <section className="mt-12 md:mt-16 rounded-lg border border-border/60 bg-card/50 p-5 md:p-7">
+              <div className="mb-5">
+                <h2 className="text-2xl font-bold">Aller plus loin avec ces guides</h2>
+                <p className="mt-2 text-sm text-muted-foreground">
+                  Ces articles aident a transformer un exemple en prompt, puis en presentation exploitable.
+                </p>
+              </div>
+              <div className="grid gap-3 md:grid-cols-3">
+                {guideLinks.map((guide) => (
+                  <Link
+                    key={guide.href}
+                    to={localize(guide.href)}
+                    className="rounded-lg border border-border/50 bg-background/70 p-4 transition-colors hover:border-primary/40 hover:text-primary"
+                  >
+                    <h3 className="font-semibold">{guide.title}</h3>
+                    <p className="mt-2 text-sm leading-6 text-muted-foreground">{guide.description}</p>
+                  </Link>
+                ))}
+              </div>
+            </section>
+          )}
         </div>
       </section>
 

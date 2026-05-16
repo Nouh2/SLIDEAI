@@ -58,6 +58,8 @@ En quelques secondes, l'IA :
 *   **Applique un [design professionnel](/examples)** automatiquement.
 *   Ajoute des icônes et des images pertinentes.
 
+Si vous voulez partir d'une demande plus precise, utilisez ces [prompts PowerPoint IA](/blog/prompts-powerpoint-ia). Pour comparer les formats possibles, consultez aussi nos [exemples de presentation IA](/blog/exemples-presentation-ia).
+
 **Temps estimé :** 2 minutes.
 **Résultat :** Une présentation prête à être projetée.
 

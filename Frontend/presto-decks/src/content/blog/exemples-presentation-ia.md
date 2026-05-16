@@ -21,6 +21,8 @@ Voici 7 exemples de présentations IA que vous pouvez générer avec SlideAI, av
 
 [Voir des exemples de présentations IA](/examples)
 
+Si vous voulez directement copier des formulations, gardez aussi sous la main notre guide des [prompts PowerPoint IA](/blog/prompts-powerpoint-ia). Pour améliorer le rendu final, lisez ensuite la méthode pour [créer des slides professionnelles avec l'IA](/blog/creer-slides-professionnelles-ia).
+
 ## 1. Présentation commerciale pour un client
 
 C'est l'un des cas d'usage les plus directs. Vous avez un prospect, une offre, quelques notes, et vous devez transformer tout ça en support clair.

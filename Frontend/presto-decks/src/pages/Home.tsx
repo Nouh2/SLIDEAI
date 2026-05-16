@@ -1,4 +1,5 @@
 import { Helmet } from "react-helmet-async";
+import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Hero } from "@/components/home/Hero";
 import { DemoFlowSection } from "@/components/home/DemoFlowSection";
@@ -14,6 +15,7 @@ import { StickyTrialCta } from "@/components/home/StickyTrialCta";
 import { SEO } from "@/components/common/SEO";
 import { toAbsoluteUrl } from "@/lib/localeRouting";
 import { homePageContent } from "@/content/seo/marketingPages";
+import { useLocalePath } from "@/hooks/use-locale-path";
 
 /**
  * Compact 8-section landing flow (was 11 sections):
@@ -31,6 +33,7 @@ import { homePageContent } from "@/content/seo/marketingPages";
  */
 export default function Home() {
   const { t, i18n } = useTranslation();
+  const { localize } = useLocalePath();
   const isFr = i18n.language.startsWith("fr");
   const pageContent = isFr ? homePageContent.fr : homePageContent.en;
   const seoTitle = pageContent.title;
@@ -109,6 +112,23 @@ export default function Home() {
       url: "https://www.slideai.fr/logo.png",
     },
   };
+  const priorityGuides = [
+    {
+      title: "Exemples de presentation IA",
+      description: "7 cas concrets pour savoir quel type de deck generer avec SlideAI.",
+      href: "/blog/exemples-presentation-ia",
+    },
+    {
+      title: "Prompts PowerPoint IA",
+      description: "15 prompts prets a copier pour obtenir une meilleure premiere version.",
+      href: "/blog/prompts-powerpoint-ia",
+    },
+    {
+      title: "Slides professionnelles avec l'IA",
+      description: "La methode pour produire des slides claires, courtes et exploitables.",
+      href: "/blog/creer-slides-professionnelles-ia",
+    },
+  ];
 
   return (
     <div className="min-h-screen w-full relative pb-16 md:pb-0">
@@ -188,6 +208,33 @@ export default function Home() {
       <div id="pourquoi-outil-ia-presentation" className="lp-defer">
         <BusinessSeoSection />
       </div>
+
+      {isFr && (
+        <section className="relative z-10 px-4 pb-14 lp-defer" aria-labelledby="guides-powerpoint-ia">
+          <div className="mx-auto max-w-6xl">
+            <div className="mb-6">
+              <h2 id="guides-powerpoint-ia" className="text-2xl md:text-3xl font-bold">
+                Guides pour creer de meilleurs PowerPoint avec l'IA
+              </h2>
+              <p className="mt-2 max-w-2xl text-sm md:text-base text-foreground/60">
+                Des ressources courtes pour passer plus vite d'une idee brute a une presentation professionnelle.
+              </p>
+            </div>
+            <div className="grid gap-4 md:grid-cols-3">
+              {priorityGuides.map((guide) => (
+                <Link
+                  key={guide.href}
+                  to={localize(guide.href)}
+                  className="rounded-lg border border-border/60 bg-background/70 p-5 transition-all hover:border-primary/40 hover:text-primary"
+                >
+                  <h3 className="text-base font-bold">{guide.title}</h3>
+                  <p className="mt-2 text-sm leading-6 text-foreground/65">{guide.description}</p>
+                </Link>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
 
       <StickyTrialCta />
     </div>

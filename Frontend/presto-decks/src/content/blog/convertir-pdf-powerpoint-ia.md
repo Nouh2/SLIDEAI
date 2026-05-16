@@ -23,6 +23,8 @@ Contrairement aux outils basiques, SlideAI utilise le NLP (Natural Language Proc
 2. **Identifier les points clés** et les hiérarchiser (Titres, listes à puces, chiffres).
 3. **Générer un design** adapté au format d'une présentation.
 
+Si vous voulez mieux choisir le format final avant conversion, consultez aussi nos [exemples de présentations IA](/blog/exemples-presentation-ia). Pour obtenir un rendu plus lisible, notre guide sur les [slides professionnelles avec l'IA](/blog/creer-slides-professionnelles-ia) donne les bonnes contraintes a ajouter.
+
 [Essayer notre outil PDF to PowerPoint](/pdf-to-powerpoint)
 
 ## Comment faire étape par étape ?

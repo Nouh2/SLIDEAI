@@ -443,6 +443,13 @@ function getBusinessPages() {
       renderSectionList("Benefices", page.benefits.map((item) => ({ title: item, body: "Concu pour accelerer la creation du premier jet sans sacrifier la qualite du livrable." }))),
       renderSectionList("Comment ca marche", page.howItWorks.map((item, index) => ({ title: `Etape ${index + 1}`, body: item }))),
       renderFaqs("Questions frequentes", page.faqs),
+      renderLinkGrid("Pages et guides lies", seoLandingLinks
+        .filter((item) => item.href !== page.url)
+        .map((item) => ({
+          href: `${DOMAIN}${item.href}`,
+          title: item.title,
+          description: item.description,
+        }))),
     ].join("\n"),
     jsonLd: [
       buildWebPageJsonLd({ title: page.title, canonicalUrl: `${DOMAIN}${page.url}`, description: page.description }),
@@ -478,6 +485,13 @@ function getPdfPage() {
       renderSectionList("Comment ca marche", page.howItWorks.map((step, index) => ({ title: `Etape ${index + 1}`, body: step }))),
       renderSectionList("Cas d'usage", page.useCases.map((item) => ({ title: item.title, body: item.description }))),
       renderFaqs("Questions frequentes", page.faqs),
+      renderLinkGrid("Pages et guides lies", seoLandingLinks
+        .filter((item) => item.href !== page.url)
+        .map((item) => ({
+          href: `${DOMAIN}${item.href}`,
+          title: item.title,
+          description: item.description,
+        }))),
     ].join("\n"),
     jsonLd: [
       buildWebPageJsonLd({ title: page.title, canonicalUrl: `${DOMAIN}${page.url}`, description: page.description }),

@@ -25,6 +25,8 @@ Voici 15 prompts PowerPoint IA prêts à copier pour générer une première ver
 
 [Tester un prompt dans SlideAI](/create)
 
+Si vous cherchez d'abord le bon format de deck, commencez par nos [exemples de présentations IA](/blog/exemples-presentation-ia). Si votre priorité est la qualité visuelle et la lisibilité, consultez la méthode pour [créer des slides professionnelles avec l'IA](/blog/creer-slides-professionnelles-ia).
+
 ## La structure d'un bon prompt PowerPoint IA
 
 Un prompt efficace contient généralement cinq éléments :

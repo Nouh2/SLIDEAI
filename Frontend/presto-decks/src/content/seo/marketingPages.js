@@ -27,6 +27,27 @@ export const seoLandingLinks = [
     description: "Une page plus generique pour les recherches autour des outils IA de presentation.",
     shortLabel: "Outil IA",
   },
+  {
+    key: "exemples-presentation-ia",
+    href: "/blog/exemples-presentation-ia",
+    title: "Exemples de presentation IA",
+    description: "7 cas concrets pour choisir le bon type de deck a generer.",
+    shortLabel: "Exemples IA",
+  },
+  {
+    key: "prompts-powerpoint-ia",
+    href: "/blog/prompts-powerpoint-ia",
+    title: "Prompts PowerPoint IA",
+    description: "15 prompts prets a copier pour produire un meilleur premier jet.",
+    shortLabel: "Prompts IA",
+  },
+  {
+    key: "creer-slides-professionnelles-ia",
+    href: "/blog/creer-slides-professionnelles-ia",
+    title: "Slides professionnelles avec l'IA",
+    description: "La methode pour creer des slides plus claires et exploitables.",
+    shortLabel: "Slides pro IA",
+  },
 ];
 
 export const homePageContent = {

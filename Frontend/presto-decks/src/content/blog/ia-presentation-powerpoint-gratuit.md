@@ -75,6 +75,8 @@ Un [generateur PowerPoint IA](/generateur-powerpoint-ia) doit vous permettre de 
 
 C'est le terrain de SlideAI : transformer un texte, un brief, un document Word ou un PDF en presentation professionnelle beaucoup plus vite.
 
+Pour voir ce que cela donne concretement, vous pouvez parcourir nos [exemples de presentations IA](/blog/exemples-presentation-ia). Si votre blocage est plutot la formulation de depart, utilisez nos [prompts PowerPoint IA](/blog/prompts-powerpoint-ia).
+
 ## Gratuit : les limites a comprendre
 
 Le gratuit est utile pour tester. Mais il faut regarder ce qui est inclus.

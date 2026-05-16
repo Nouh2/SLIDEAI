@@ -21,6 +21,8 @@ L'IA peut accélérer ce travail, à condition de l'utiliser avec une méthode. 
 
 [Créer mes slides avec SlideAI](/create)
 
+Pour partir d'un cas concret, vous pouvez aussi consulter nos [exemples de présentations IA](/blog/exemples-presentation-ia). Pour mieux rédiger votre demande initiale, utilisez nos [prompts PowerPoint IA](/blog/prompts-powerpoint-ia).
+
 ## Pourquoi les slides prennent autant de temps
 
 La création de slides mélange plusieurs tâches différentes :

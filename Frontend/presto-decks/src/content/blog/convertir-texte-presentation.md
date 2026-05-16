@@ -40,6 +40,8 @@ Cette approche fonctionne tres bien pour :
 
 Si vous partez surtout d'un document PDF, regardez aussi notre page dediee pour [transformer un PDF en PowerPoint](/pdf-to-powerpoint). Et si vous partez d'un fichier Word, lisez aussi [comment convertir un document Word en PowerPoint avec l'IA](/blog/convertir-word-powerpoint-ia).
 
+Pour cadrer votre demande avant generation, vous pouvez aussi partir de nos [prompts PowerPoint IA](/blog/prompts-powerpoint-ia) ou consulter des [exemples de presentations IA](/blog/exemples-presentation-ia).
+
 ## Pourquoi convertir un texte en presentation est si difficile a la main
 
 Un bon deck ne consiste pas a coller du texte sur des diapositives. Il faut :

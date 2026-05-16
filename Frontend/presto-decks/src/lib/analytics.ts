@@ -64,6 +64,7 @@ const PRODUCT_EVENT_NAMES = new Set([
     "trial_activation_banner_view",
     "trial_activation_cta_click",
     "trial_conversion_cta_click",
+    "create_opened",
     "create_started",
     "deck_generated",
     "deck_opened",

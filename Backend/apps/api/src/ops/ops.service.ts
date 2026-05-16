@@ -36,6 +36,7 @@ const PRODUCT_FUNNEL_STAGES = [
 const MONEY_FUNNEL_GA_EVENTS = ['View Pricing', 'Select Plan', 'begin_checkout', 'purchase'];
 const SEO_FUNNEL_EVENTS = [
   'blog_cta_click',
+  'create_opened',
   'create_started',
   'deck_generated',
   'activation_completed',
@@ -887,6 +888,7 @@ export class OpsService {
       slug: string;
       ctaClicks: number;
       ctaUsers: Set<string>;
+      createOpened: Set<string>;
       createStarted: Set<string>;
       generated: Set<string>;
       activated: Set<string>;
@@ -908,6 +910,7 @@ export class OpsService {
         slug: safeSlug,
         ctaClicks: 0,
         ctaUsers: new Set<string>(),
+        createOpened: new Set<string>(),
         createStarted: new Set<string>(),
         generated: new Set<string>(),
         activated: new Set<string>(),
@@ -958,6 +961,7 @@ export class OpsService {
         placementRow.users.add(event.userId);
         placements.set(placement, placementRow);
       }
+      if (event.eventName === 'create_opened') row.createOpened.add(event.userId);
       if (event.eventName === 'create_started') row.createStarted.add(event.userId);
       if (event.eventName === 'deck_generated') row.generated.add(event.userId);
       if (event.eventName === 'activation_completed') row.activated.add(event.userId);
@@ -1001,10 +1005,10 @@ export class OpsService {
       {
         key: 'create_opened',
         label: '/create ouvert',
-        description: 'Page creation ouverte avec UTM blog.',
-        value: Number(ga.createFromBlog?.activeUsers || 0),
-        events: Number(ga.createFromBlog?.pageViews || 0),
-        source: ga.configured ? 'GA4 UTM' : 'GA4 non configure',
+        description: 'Page creation ouverte avec attribution blog.',
+        value: Math.max(Number(ga.createFromBlog?.activeUsers || 0), usersByStage.get('create_opened')?.size || 0),
+        events: Math.max(Number(ga.createFromBlog?.pageViews || 0), eventsByStage.get('create_opened') || 0),
+        source: ga.configured ? 'GA4 UTM + Product events' : 'Product events',
       },
       {
         key: 'create_started',
@@ -1099,6 +1103,7 @@ export class OpsService {
         ctaClicks,
         ctaUsers: row?.ctaUsers.size || 0,
         ctaRate: this.toPercent(row?.ctaUsers.size || 0, articleUsers),
+        createOpened: row?.createOpened.size || 0,
         createStarted: row?.createStarted.size || 0,
         generated: row?.generated.size || 0,
         activated: row?.activated.size || 0,

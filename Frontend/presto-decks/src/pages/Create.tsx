@@ -178,17 +178,30 @@ export default function Create() {
         }
 
         const replayAnonymousClick = async () => {
-            if (!shouldReplayBlogCta(attribution)) return;
             const { data: { session } } = await supabase.auth.getSession();
             if (!session?.access_token) return;
 
-            Analytics.trackProductEvent("blog_cta_click", {
-                ...getBlogAttributionEventParams(attribution),
-                cta_variant: "replayed_after_auth",
-                destination: "create",
-                replayed_after_auth: true,
-            });
-            markBlogCtaReplayed(attribution);
+            const eventParams = getBlogAttributionEventParams(attribution);
+            const createOpenedKey = `slideai-create-opened-${attribution.content}`;
+            if (!localStorage.getItem(createOpenedKey)) {
+                localStorage.setItem(createOpenedKey, "tracked");
+                Analytics.trackProductEvent("create_opened", {
+                    ...eventParams,
+                    surface: "create_page",
+                    template_id: attribution.templateId,
+                    slide_count: attribution.slideCount,
+                });
+            }
+
+            if (shouldReplayBlogCta(attribution)) {
+                Analytics.trackProductEvent("blog_cta_click", {
+                    ...eventParams,
+                    cta_variant: "replayed_after_auth",
+                    destination: "create",
+                    replayed_after_auth: true,
+                });
+                markBlogCtaReplayed(attribution);
+            }
         };
 
         void replayAnonymousClick();

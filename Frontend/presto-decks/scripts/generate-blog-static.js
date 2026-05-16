@@ -196,6 +196,54 @@ function renderMarkdown(content) {
   return renderToStaticMarkup(element);
 }
 
+function splitContentForProductCta(content) {
+  const headingMarker = "\n## ";
+  const firstHeadingIndex = content.indexOf(headingMarker);
+
+  if (firstHeadingIndex === -1) {
+    return { beforeCta: content, afterCta: "" };
+  }
+
+  const secondHeadingIndex = content.indexOf(headingMarker, firstHeadingIndex + headingMarker.length);
+  const splitIndex = secondHeadingIndex === -1 ? firstHeadingIndex : secondHeadingIndex;
+
+  return {
+    beforeCta: content.slice(0, splitIndex).trim(),
+    afterCta: content.slice(splitIndex).trim(),
+  };
+}
+
+function buildBlogCreateHref(postSlug, placement) {
+  const params = new URLSearchParams({
+    utm_source: "blog",
+    utm_medium: "seo",
+    utm_campaign: "blog_article_cta",
+    utm_content: `${postSlug}_${placement}`,
+  });
+
+  return `/create?${params.toString()}`;
+}
+
+function renderBlogProductCta(post, locale, placement) {
+  const isFr = locale === "fr";
+  const createHref = buildBlogCreateHref(post.slug, placement);
+  const examplesHref = localizePath("/examples", locale);
+
+  return `<aside class="product-cta" data-analytics-event="blog_cta_click" data-post-slug="${escapeHtml(post.slug)}" data-placement="${escapeHtml(placement)}">
+  <div>
+    <span class="cta-eyebrow">${isFr ? "Essai gratuit 7 jours" : "7-day free trial"}</span>
+    <h2>${isFr ? "Transformez ce guide en presentation" : "Turn this guide into a presentation"}</h2>
+    <p>${isFr
+      ? "Collez votre sujet ou importez un document. SlideAI structure les slides, applique un rendu professionnel et vous laisse exporter."
+      : "Paste your topic or import a document. SlideAI structures the slides, designs the deck, and lets you export it."}</p>
+  </div>
+  <div class="product-cta-actions">
+    <a class="product-cta-primary" href="${escapeHtml(createHref)}">${isFr ? "Tester avec mon sujet" : "Try with my topic"}</a>
+    <a class="product-cta-secondary" href="${escapeHtml(examplesHref)}">${isFr ? "Voir des exemples" : "See examples"}</a>
+  </div>
+</aside>`;
+}
+
 function buildJsonLd(value) {
   return `<script type="application/ld+json">${JSON.stringify(value)}</script>`;
 }
@@ -276,6 +324,14 @@ function buildDocument({
     .prose code { padding: 0.1rem 0.35rem; border-radius: 6px; background: #f1f5f9; font-size: 0.95em; }
     .prose pre { overflow-x: auto; padding: 16px; border-radius: 16px; background: #0f172a; color: #e2e8f0; }
     .prose blockquote { margin: 1.5rem 0; padding-left: 1rem; border-left: 4px solid #99f6e4; color: #334155; }
+    .product-cta { margin: 32px 0; padding: 22px; border: 1px solid #bae6fd; border-radius: 8px; background: #eff6ff; display: grid; gap: 18px; }
+    .product-cta h2 { margin: 10px 0 8px; font-size: 1.35rem; letter-spacing: -0.03em; color: #0f172a; }
+    .product-cta p { margin: 0; max-width: 660px; color: #334155; line-height: 1.7; }
+    .cta-eyebrow { display: inline-flex; padding: 6px 10px; border: 1px solid #bae6fd; border-radius: 999px; background: #ffffff; color: #0284c7; font-size: 0.78rem; font-weight: 800; }
+    .product-cta-actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+    .product-cta-primary, .product-cta-secondary { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 0 16px; border-radius: 8px; font-weight: 800; }
+    .product-cta-primary { background: #0f172a; color: #ffffff; }
+    .product-cta-secondary { border: 1px solid #cbd5e1; background: #ffffff; color: #0f172a; }
     .section-title { margin: 34px 0 14px; font-size: 1.5rem; letter-spacing: -0.03em; }
     .footer { margin-top: 34px; color: #64748b; font-size: 0.92rem; }
     @media (max-width: 640px) {
@@ -523,6 +579,7 @@ function renderPostPage(post, posts, locale, hasEnglishEquivalent) {
   ${renderPostCards(relatedPosts, locale)}
 </section>`
     : "";
+  const splitContent = splitContentForProductCta(post.content);
 
   const body = `<section class="hero">
   <h1>${escapeHtml(post.title)}</h1>
@@ -536,9 +593,12 @@ function renderPostPage(post, posts, locale, hasEnglishEquivalent) {
 </section>
 <section class="prose">
   ${coverImage}
-  ${renderMarkdown(post.content)}
+  ${renderMarkdown(splitContent.beforeCta)}
+  ${renderBlogProductCta(post, locale, "inline")}
+  ${splitContent.afterCta ? renderMarkdown(splitContent.afterCta) : ""}
 </section>
-${relatedSection}`;
+${relatedSection}
+${renderBlogProductCta(post, locale, "bottom")}`;
 
   return buildDocument({
     lang: locale,

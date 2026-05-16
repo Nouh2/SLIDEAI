@@ -7,7 +7,9 @@ import ReactMarkdown from "react-markdown";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, User, Calendar, Sparkles } from "lucide-react";
 import { SEO } from "@/components/common/SEO";
+import { BlogProductCta } from "@/components/blog/BlogProductCta";
 import { useAuth } from "@/contexts/AuthContext";
+import { Analytics } from "@/lib/analytics";
 import type { Components } from "react-markdown";
 import {
     Breadcrumb,
@@ -26,6 +28,34 @@ const businessPages = [
     { title: "Outil IA presentation", href: "/outil-ia-presentation" },
 ];
 
+const splitContentForProductCta = (content: string) => {
+    const headingMarker = "\n## ";
+    const firstHeadingIndex = content.indexOf(headingMarker);
+
+    if (firstHeadingIndex === -1) {
+        return { beforeCta: content, afterCta: "" };
+    }
+
+    const secondHeadingIndex = content.indexOf(headingMarker, firstHeadingIndex + headingMarker.length);
+    const splitIndex = secondHeadingIndex === -1 ? firstHeadingIndex : secondHeadingIndex;
+
+    return {
+        beforeCta: content.slice(0, splitIndex).trim(),
+        afterCta: content.slice(splitIndex).trim(),
+    };
+};
+
+const buildBlogCreatePath = (postSlug: string, placement: string) => {
+    const params = new URLSearchParams({
+        utm_source: "blog",
+        utm_medium: "seo",
+        utm_campaign: "blog_article_cta",
+        utm_content: `${postSlug}_${placement}`,
+    });
+
+    return `/create?${params.toString()}`;
+};
+
 export default function BlogPostPage() {
     const { t, i18n } = useTranslation();
     const { locale, localize } = useLocalePath();
@@ -34,7 +64,6 @@ export default function BlogPostPage() {
     const [post, setPost] = useState<BlogPost | null>(null);
     const [relatedPosts, setRelatedPosts] = useState<BlogPost[]>([]);
     const [loading, setLoading] = useState(true);
-    const ctaPath = user ? "/create" : `/auth?returnTo=${encodeURIComponent("/create")}`;
     const isFr = locale === "fr";
     const alternateLocale = locale === "fr" ? "en" : "fr";
     const hasAlternatePost = slug ? hasPostInLanguage(slug, alternateLocale) : false;
@@ -45,17 +74,34 @@ export default function BlogPostPage() {
         })),
         ...businessPages,
     ].slice(0, 4);
+    const splitContent = post ? splitContentForProductCta(post.content) : { beforeCta: "", afterCta: "" };
 
     const markdownComponents: Components = {
         a: ({ href = "", children }) => {
             const isSlideAiCta = href.includes("/create") || href.includes("slideai.fr/create");
             const isInternalLink = href.startsWith("/");
-            const resolvedHref = isSlideAiCta ? ctaPath : href;
+            const markdownCreatePath = post ? buildBlogCreatePath(post.slug, "inline_markdown") : "/create";
+            const resolvedHref = isSlideAiCta
+                ? user
+                    ? markdownCreatePath
+                    : `/auth?returnTo=${encodeURIComponent(markdownCreatePath)}`
+                : href;
 
             if (isSlideAiCta) {
                 return (
                     <a
                         href={resolvedHref}
+                        onClick={() => {
+                            if (post) {
+                                Analytics.trackGaEvent("blog_cta_click", {
+                                    post_slug: post.slug,
+                                    post_title: post.title,
+                                    placement: "inline_markdown",
+                                    cta_variant: "markdown_create_link",
+                                    destination: user ? "create" : "auth",
+                                });
+                            }
+                        }}
                         className="inline-flex items-center gap-2 rounded-xl bg-gradient-primary px-5 py-3 text-sm font-bold text-foreground no-underline shadow-lg shadow-primary/20 transition-all hover:shadow-primary/40"
                     >
                         <Sparkles className="h-4 w-4" />
@@ -284,7 +330,11 @@ export default function BlogPostPage() {
                 </header>
 
                 <div className="max-w-none">
-                    <ReactMarkdown components={markdownComponents}>{post.content}</ReactMarkdown>
+                    <ReactMarkdown components={markdownComponents}>{splitContent.beforeCta}</ReactMarkdown>
+                    <BlogProductCta postSlug={post.slug} postTitle={post.title} placement="inline" />
+                    {splitContent.afterCta && (
+                        <ReactMarkdown components={markdownComponents}>{splitContent.afterCta}</ReactMarkdown>
+                    )}
                 </div>
 
                 <div className="mt-16 rounded-2xl border border-border/60 bg-card/40 p-6 md:p-8">
@@ -302,19 +352,7 @@ export default function BlogPostPage() {
                     </div>
                 </div>
 
-                {/* Call to Action */}
-                <div className="mt-16 p-8 rounded-2xl bg-gradient-to-br from-primary/10 to-purple-500/10 border border-primary/20 text-center">
-                    <h3 className="text-2xl font-bold mb-4">{t('blog.cta.title')}</h3>
-                    <p className="text-muted-foreground mb-6 max-w-md mx-auto">
-                        {t('blog.cta.description')}
-                    </p>
-                    <Link to={ctaPath}>
-                        <Button size="lg" className="bg-gradient-primary">
-                            <Sparkles className="w-4 h-4 mr-2" />
-                            {t('blog.cta.button')}
-                        </Button>
-                    </Link>
-                </div>
+                <BlogProductCta postSlug={post.slug} postTitle={post.title} placement="bottom" />
             </div>
         </article>
     );

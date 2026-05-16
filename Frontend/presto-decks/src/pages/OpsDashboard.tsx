@@ -12,7 +12,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { AlertTriangle, BarChart3, CheckCircle2, CreditCard, Mail, MousePointerClick, RefreshCcw, Rocket, Send, ShieldCheck, Sparkles, Target, TrendingUp, Users } from "lucide-react";
+import { AlertTriangle, BarChart3, CheckCircle2, CreditCard, FileText, Mail, MousePointerClick, RefreshCcw, Rocket, Send, ShieldCheck, Sparkles, Target, TrendingUp, Users } from "lucide-react";
 
 type TemplateFormState = {
   subject: string;
@@ -30,6 +30,8 @@ type TemplateFormState = {
   spotlightBody: string;
   statsJson: string;
 };
+
+type OpsTab = "money" | "seo" | "overview" | "activation" | "funnel" | "templates" | "flows" | "logs";
 
 const EMPTY_FORM: TemplateFormState = {
   subject: "",
@@ -134,8 +136,9 @@ function formatCompactNumber(value?: number) {
 export default function OpsDashboard() {
   const { toast } = useToast();
   const [bootstrapping, setBootstrapping] = useState(true);
-  const [activeTab, setActiveTab] = useState<"money" | "overview" | "activation" | "funnel" | "templates" | "flows" | "logs">("money");
+  const [activeTab, setActiveTab] = useState<OpsTab>("money");
   const [moneyFunnel, setMoneyFunnel] = useState<any>(null);
+  const [seoFunnel, setSeoFunnel] = useState<any>(null);
   const [overview, setOverview] = useState<any>(null);
   const [activationFunnel, setActivationFunnel] = useState<any>(null);
   const [emailFunnel, setEmailFunnel] = useState<any>(null);
@@ -143,6 +146,7 @@ export default function OpsDashboard() {
   const [flows, setFlows] = useState<any[]>([]);
   const [logs, setLogs] = useState<any[]>([]);
   const [moneyLoaded, setMoneyLoaded] = useState(false);
+  const [seoLoaded, setSeoLoaded] = useState(false);
   const [overviewLoaded, setOverviewLoaded] = useState(false);
   const [activationLoaded, setActivationLoaded] = useState(false);
   const [funnelLoaded, setFunnelLoaded] = useState(false);
@@ -150,6 +154,7 @@ export default function OpsDashboard() {
   const [flowsLoaded, setFlowsLoaded] = useState(false);
   const [logsLoaded, setLogsLoaded] = useState(false);
   const [moneyLoading, setMoneyLoading] = useState(false);
+  const [seoLoading, setSeoLoading] = useState(false);
   const [overviewLoading, setOverviewLoading] = useState(false);
   const [activationLoading, setActivationLoading] = useState(false);
   const [funnelLoading, setFunnelLoading] = useState(false);
@@ -187,6 +192,11 @@ export default function OpsDashboard() {
       void loadMoneyFunnelData();
     }
 
+    if (activeTab === "seo" && seoLoaded) {
+      setSeoLoaded(false);
+      void loadSeoFunnelData();
+    }
+
     if (activeTab === "activation") {
       setActivationLoaded(false);
       void loadActivationFunnelData();
@@ -220,9 +230,14 @@ export default function OpsDashboard() {
     setBootstrapping(false);
   };
 
-  const loadTabData = async (tab: "money" | "overview" | "activation" | "funnel" | "templates" | "flows" | "logs") => {
+  const loadTabData = async (tab: OpsTab) => {
     if (tab === "money" && !moneyLoaded && !moneyLoading) {
       await loadMoneyFunnelData();
+      return;
+    }
+
+    if (tab === "seo" && !seoLoaded && !seoLoading) {
+      await loadSeoFunnelData();
       return;
     }
 
@@ -291,6 +306,25 @@ export default function OpsDashboard() {
       });
     } finally {
       setMoneyLoading(false);
+    }
+  };
+
+  const loadSeoFunnelData = async () => {
+    setSeoLoading(true);
+    try {
+      const accessToken = await getAccessToken();
+      if (!accessToken) return;
+      const data = await api.getOpsSeoFunnel(accessToken, Number(funnelDays));
+      setSeoFunnel(data);
+      setSeoLoaded(true);
+    } catch (error: any) {
+      toast({
+        title: "Erreur SEO blog",
+        description: error.message || "Impossible de charger le funnel SEO blog.",
+        variant: "destructive",
+      });
+    } finally {
+      setSeoLoading(false);
     }
   };
 
@@ -401,6 +435,11 @@ export default function OpsDashboard() {
   const refreshActiveTab = async () => {
     if (activeTab === "money") {
       await loadMoneyFunnelData();
+      return;
+    }
+
+    if (activeTab === "seo") {
+      await loadSeoFunnelData();
       return;
     }
 
@@ -574,8 +613,9 @@ export default function OpsDashboard() {
       </div>
 
       <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as typeof activeTab)} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-7">
+        <TabsList className="grid w-full grid-cols-8">
           <TabsTrigger value="money">Argent</TabsTrigger>
+          <TabsTrigger value="seo">SEO Blog</TabsTrigger>
           <TabsTrigger value="overview">Vue globale</TabsTrigger>
           <TabsTrigger value="activation">Activation</TabsTrigger>
           <TabsTrigger value="funnel">Funnel</TabsTrigger>
@@ -721,6 +761,221 @@ export default function OpsDashboard() {
               </Card>
             </div>
           </div>
+        </TabsContent>
+
+        <TabsContent value="seo" className="space-y-6">
+          <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+            <div>
+              <h2 className="text-2xl font-bold tracking-tight text-zinc-950">SEO blog vers revenu</h2>
+              <p className="text-sm text-muted-foreground">
+                La lecture article par article : vues, clic CTA, creation, generation, valeur et paiement.
+              </p>
+            </div>
+            <Select value={funnelDays} onValueChange={setFunnelDays}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="7">7 derniers jours</SelectItem>
+                <SelectItem value="30">30 derniers jours</SelectItem>
+                <SelectItem value="90">90 derniers jours</SelectItem>
+                <SelectItem value="180">180 derniers jours</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {seoLoading && !seoFunnel ? (
+            <Card>
+              <CardContent className="py-12 text-center text-muted-foreground">
+                Chargement du funnel SEO blog...
+              </CardContent>
+            </Card>
+          ) : null}
+
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+            <MetricCard icon={FileText} label="Lecteurs blog" value={formatCompactNumber(seoFunnel?.summary?.articleUsers)} />
+            <MetricCard icon={MousePointerClick} label="Clics CTA" value={formatCompactNumber(seoFunnel?.summary?.ctaClicks)} />
+            <MetricCard icon={Rocket} label="/create blog" value={formatCompactNumber(seoFunnel?.summary?.createFromBlogUsers)} />
+            <MetricCard icon={Sparkles} label="Decks generes" value={formatCompactNumber(seoFunnel?.summary?.generatedUsers)} />
+          </div>
+
+          <div className="grid gap-4 lg:grid-cols-[1.4fr_0.8fr]">
+            <Card>
+              <CardHeader>
+                <CardTitle>Tunnel blog - produit</CardTitle>
+                <CardDescription>
+                  Chaque ligne montre le volume, la conversion depuis l'etape precedente et la conversion depuis les lecteurs blog.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {(seoFunnel?.stages || []).map((stage: any, index: number) => (
+                  <div key={stage.key} className="rounded-xl border border-zinc-200 bg-white p-4">
+                    <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                      <div className="flex min-w-0 items-start gap-3">
+                        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#eef8ff] text-sm font-black text-[#1fb6ff]">
+                          {index + 1}
+                        </div>
+                        <div className="min-w-0">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <div className="font-bold text-zinc-950">{stage.label}</div>
+                            <Badge variant="secondary">{stage.source}</Badge>
+                          </div>
+                          <div className="mt-1 text-sm text-muted-foreground">{stage.description}</div>
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-3 gap-3 text-right md:min-w-[280px]">
+                        <div>
+                          <div className="text-xl font-black text-zinc-950">{formatCompactNumber(stage.value)}</div>
+                          <div className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Volume</div>
+                        </div>
+                        <div>
+                          <div className="text-xl font-black text-zinc-950">{formatPercent(stage.fromPrevious)}</div>
+                          <div className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Depuis avant</div>
+                        </div>
+                        <div>
+                          <div className="text-xl font-black text-zinc-950">{formatPercent(stage.fromStart)}</div>
+                          <div className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Depuis blog</div>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="mt-4 h-2 overflow-hidden rounded-full bg-zinc-100">
+                      <div
+                        className="h-full rounded-full bg-[#1fb6ff]"
+                        style={{ width: `${Math.max(2, Math.min(100, stage.fromStart || 0))}%` }}
+                      />
+                    </div>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+
+            <div className="space-y-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Diagnostic SEO</CardTitle>
+                  <CardDescription>Le point ou le contenu perd le plus de revenu potentiel.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4">
+                    <div className="flex items-center gap-2 text-sm font-bold text-amber-800">
+                      <AlertTriangle className="h-4 w-4" />
+                      Plus grosse chute
+                    </div>
+                    <div className="mt-2 text-2xl font-black text-zinc-950">
+                      {seoFunnel?.bottleneck?.label || "Pas encore assez de donnees"}
+                    </div>
+                    <div className="mt-1 text-sm text-amber-800">
+                      {seoFunnel?.bottleneck
+                        ? `${formatPercent(seoFunnel.bottleneck.fromPrevious)} passent cette etape. ${formatPercent(seoFunnel.bottleneck.dropoff)} decrochent.`
+                        : "Le funnel se remplira avec les prochains lecteurs et clics CTA."}
+                    </div>
+                  </div>
+
+                  <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4">
+                    <div className="flex items-center gap-2 text-sm font-bold text-zinc-950">
+                      <CheckCircle2 className="h-4 w-4 text-[#1fb6ff]" />
+                      Action conseillee
+                    </div>
+                    <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                      {seoFunnel?.recommendation || "Charge le funnel pour obtenir une recommandation."}
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Tracking</CardTitle>
+                  <CardDescription>GA4 couvre les vues et les clics anonymes, Product events couvre les utilisateurs connectes.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <InfoPair label="GA4 configure" value={seoFunnel?.ga?.configured ? "Oui" : "Non"} />
+                  <InfoPair label="Pages vues blog" value={formatCompactNumber(seoFunnel?.summary?.articleViews)} />
+                  <InfoPair label="Placements CTA" value={formatCompactNumber(seoFunnel?.placements?.length)} />
+                  <InfoPair label="Paiements blog" value={formatCompactNumber(seoFunnel?.summary?.purchaseUsers)} />
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Articles qui transforment</CardTitle>
+              <CardDescription>Classement par lecteurs, clics CTA et activations produit attribuees au blog.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Article</TableHead>
+                    <TableHead>Users</TableHead>
+                    <TableHead>Vues</TableHead>
+                    <TableHead>CTA</TableHead>
+                    <TableHead>Taux CTA</TableHead>
+                    <TableHead>Generation</TableHead>
+                    <TableHead>Export</TableHead>
+                    <TableHead>Checkout</TableHead>
+                    <TableHead>Paid</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {(seoFunnel?.articles || []).map((article: any) => (
+                    <TableRow key={article.slug}>
+                      <TableCell>
+                        <div className="font-medium text-zinc-950">{article.slug}</div>
+                        <div className="text-xs text-muted-foreground">{article.path}</div>
+                      </TableCell>
+                      <TableCell>{formatCompactNumber(article.users)}</TableCell>
+                      <TableCell>{formatCompactNumber(article.views)}</TableCell>
+                      <TableCell>{formatCompactNumber(article.ctaClicks)}</TableCell>
+                      <TableCell>{formatPercent(article.ctaRate)}</TableCell>
+                      <TableCell>{formatCompactNumber(article.generated)}</TableCell>
+                      <TableCell>{formatCompactNumber(article.exported)}</TableCell>
+                      <TableCell>{formatCompactNumber(article.checkout)}</TableCell>
+                      <TableCell>{formatCompactNumber(article.purchase)}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+              {seoFunnel?.articles?.length === 0 ? (
+                <div className="py-10 text-center text-sm text-muted-foreground">
+                  Aucun article tracke sur cette fenetre.
+                </div>
+              ) : null}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>CTA par placement</CardTitle>
+              <CardDescription>Permet de savoir ou placer les prochains CTA dans les articles SEO.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Placement</TableHead>
+                    <TableHead>Clics</TableHead>
+                    <TableHead>Users</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {(seoFunnel?.placements || []).map((placement: any) => (
+                    <TableRow key={placement.placement}>
+                      <TableCell className="font-medium">{placement.placement}</TableCell>
+                      <TableCell>{formatCompactNumber(placement.clicks)}</TableCell>
+                      <TableCell>{formatCompactNumber(placement.users)}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+              {seoFunnel?.placements?.length === 0 ? (
+                <div className="py-10 text-center text-sm text-muted-foreground">
+                  Aucun clic CTA tracke par placement pour le moment.
+                </div>
+              ) : null}
+            </CardContent>
+          </Card>
         </TabsContent>
 
         <TabsContent value="overview" className="space-y-6">

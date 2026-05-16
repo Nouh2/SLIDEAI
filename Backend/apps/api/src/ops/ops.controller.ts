@@ -122,6 +122,12 @@ export class OpsController {
     return this.opsService.getProductActivationFunnel(days ? Number(days) : 30);
   }
 
+  @Get('/seo-funnel')
+  @UseGuards(SupabaseGuard, OpsAdminGuard)
+  getSeoFunnel(@Query('days') days?: string) {
+    return this.opsService.getSeoBlogFunnel(days ? Number(days) : 30);
+  }
+
   @Get('/broadcast/users')
   @UseGuards(SupabaseGuard, OpsAdminGuard)
   broadcastGetUsers(@Query('segment') segment: string) {

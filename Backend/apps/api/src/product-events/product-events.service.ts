@@ -19,6 +19,7 @@ const ALLOWED_EVENTS = new Set([
   'paywall_view',
   'paywall_cta_click',
   'paywall_dismiss',
+  'blog_cta_click',
   'begin_checkout',
   'purchase',
 ]);

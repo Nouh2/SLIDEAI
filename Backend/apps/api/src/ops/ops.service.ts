@@ -34,6 +34,18 @@ const PRODUCT_FUNNEL_STAGES = [
 ];
 
 const MONEY_FUNNEL_GA_EVENTS = ['View Pricing', 'Select Plan', 'begin_checkout', 'purchase'];
+const SEO_FUNNEL_EVENTS = [
+  'blog_cta_click',
+  'create_started',
+  'deck_generated',
+  'activation_completed',
+  'deck_exported',
+  'export_clicked',
+  'paywall_view',
+  'paywall_cta_click',
+  'begin_checkout',
+  'purchase',
+];
 
 type GoogleAnalyticsCredentials = {
   propertyId: string;
@@ -838,6 +850,306 @@ export class OpsService {
     };
   }
 
+  async getSeoBlogFunnel(days = 30) {
+    const clampedDays = Math.min(Math.max(Number.isFinite(days) ? days : 30, 1), 180);
+    const since = new Date(Date.now() - clampedDays * DAY_MS);
+
+    const [events, ga] = await Promise.all([
+      this.prisma.productEvent.findMany({
+        where: {
+          occurredAt: { gte: since },
+          eventName: { in: SEO_FUNNEL_EVENTS },
+        },
+        select: {
+          userId: true,
+          eventName: true,
+          properties: true,
+          occurredAt: true,
+        },
+        orderBy: { occurredAt: 'asc' },
+      }),
+      this.fetchGaSeoBlogFunnel(clampedDays).catch((error) => ({
+        configured: false,
+        source: 'ga4',
+        error: error instanceof Error ? error.message : 'ga_fetch_failed',
+        articleUsers: 0,
+        articleViews: 0,
+        articleSessions: 0,
+        ctaClicks: { eventCount: 0, activeUsers: 0 },
+        createFromBlog: { activeUsers: 0, pageViews: 0 },
+        articles: [],
+      })),
+    ]);
+
+    const usersByStage = new Map<string, Set<string>>();
+    const eventsByStage = new Map<string, number>();
+    const articleRows = new Map<string, {
+      slug: string;
+      ctaClicks: number;
+      ctaUsers: Set<string>;
+      createStarted: Set<string>;
+      generated: Set<string>;
+      activated: Set<string>;
+      exported: Set<string>;
+      paywall: Set<string>;
+      checkout: Set<string>;
+      purchase: Set<string>;
+    }>();
+    const placements = new Map<string, { placement: string; clicks: number; users: Set<string> }>();
+    const blogTouchedUsers = new Set<string>();
+    const blogAttributionByUser = new Map<string, { slug: string; placement?: string }>();
+
+    const ensureArticle = (slug: string) => {
+      const safeSlug = slug || 'unknown';
+      const existing = articleRows.get(safeSlug);
+      if (existing) return existing;
+
+      const row = {
+        slug: safeSlug,
+        ctaClicks: 0,
+        ctaUsers: new Set<string>(),
+        createStarted: new Set<string>(),
+        generated: new Set<string>(),
+        activated: new Set<string>(),
+        exported: new Set<string>(),
+        paywall: new Set<string>(),
+        checkout: new Set<string>(),
+        purchase: new Set<string>(),
+      };
+      articleRows.set(safeSlug, row);
+      return row;
+    };
+
+    for (const event of events) {
+      const properties = event.properties && typeof event.properties === 'object'
+        ? (event.properties as Record<string, any>)
+        : {};
+      const attribution = this.extractBlogAttribution(properties);
+      const isBlogAttributed = Boolean(attribution.slug);
+      const knownAttribution = blogAttributionByUser.get(event.userId);
+      const isKnownBlogUser = blogTouchedUsers.has(event.userId);
+
+      if (event.eventName === 'blog_cta_click' && attribution.slug) {
+        blogTouchedUsers.add(event.userId);
+        blogAttributionByUser.set(event.userId, {
+          slug: attribution.slug,
+          placement: attribution.placement,
+        });
+      }
+
+      if (!isBlogAttributed && !isKnownBlogUser) {
+        continue;
+      }
+
+      const effectiveAttribution = attribution.slug ? attribution : knownAttribution;
+
+      const stageUsers = usersByStage.get(event.eventName) || new Set<string>();
+      stageUsers.add(event.userId);
+      usersByStage.set(event.eventName, stageUsers);
+      eventsByStage.set(event.eventName, (eventsByStage.get(event.eventName) || 0) + 1);
+
+      const row = ensureArticle(effectiveAttribution?.slug || 'post_not_captured');
+      if (event.eventName === 'blog_cta_click') {
+        row.ctaClicks += 1;
+        row.ctaUsers.add(event.userId);
+        const placement = effectiveAttribution?.placement || 'unknown';
+        const placementRow = placements.get(placement) || { placement, clicks: 0, users: new Set<string>() };
+        placementRow.clicks += 1;
+        placementRow.users.add(event.userId);
+        placements.set(placement, placementRow);
+      }
+      if (event.eventName === 'create_started') row.createStarted.add(event.userId);
+      if (event.eventName === 'deck_generated') row.generated.add(event.userId);
+      if (event.eventName === 'activation_completed') row.activated.add(event.userId);
+      if (event.eventName === 'deck_exported' || event.eventName === 'export_clicked') row.exported.add(event.userId);
+      if (event.eventName === 'paywall_view' || event.eventName === 'paywall_cta_click') row.paywall.add(event.userId);
+      if (event.eventName === 'begin_checkout') row.checkout.add(event.userId);
+      if (event.eventName === 'purchase') row.purchase.add(event.userId);
+    }
+
+    const exportUsers = new Set<string>();
+    for (const eventName of ['activation_completed', 'deck_exported', 'export_clicked']) {
+      for (const userId of usersByStage.get(eventName) || []) {
+        exportUsers.add(userId);
+      }
+    }
+
+    const paywallUsers = new Set<string>();
+    for (const eventName of ['paywall_view', 'paywall_cta_click']) {
+      for (const userId of usersByStage.get(eventName) || []) {
+        paywallUsers.add(userId);
+      }
+    }
+
+    const rawStages = [
+      {
+        key: 'article_view',
+        label: 'Articles vus',
+        description: 'Lecteurs organiques ou directs sur les articles du blog.',
+        value: Number(ga.articleUsers || 0),
+        events: Number(ga.articleViews || 0),
+        source: ga.configured ? 'GA4 pages' : 'GA4 non configure',
+      },
+      {
+        key: 'blog_cta_click',
+        label: 'CTA blog clique',
+        description: 'Clic sur le CTA article vers creation.',
+        value: Number(ga.ctaClicks?.activeUsers || 0) || (usersByStage.get('blog_cta_click')?.size || 0),
+        events: Number(ga.ctaClicks?.eventCount || 0) || (eventsByStage.get('blog_cta_click') || 0),
+        source: ga.configured ? 'GA4 event' : 'Product events',
+      },
+      {
+        key: 'create_opened',
+        label: '/create ouvert',
+        description: 'Page creation ouverte avec UTM blog.',
+        value: Number(ga.createFromBlog?.activeUsers || 0),
+        events: Number(ga.createFromBlog?.pageViews || 0),
+        source: ga.configured ? 'GA4 UTM' : 'GA4 non configure',
+      },
+      {
+        key: 'create_started',
+        label: 'Generation lancee',
+        description: 'Utilisateur blog qui lance une generation.',
+        value: usersByStage.get('create_started')?.size || 0,
+        events: eventsByStage.get('create_started') || 0,
+        source: 'Product events',
+      },
+      {
+        key: 'deck_generated',
+        label: 'Deck genere',
+        description: 'Presentation creee apres un passage blog.',
+        value: usersByStage.get('deck_generated')?.size || 0,
+        events: eventsByStage.get('deck_generated') || 0,
+        source: 'Product events',
+      },
+      {
+        key: 'export_or_value',
+        label: 'Export / valeur',
+        description: 'Export, partage ou activation complete.',
+        value: exportUsers.size,
+        events:
+          (eventsByStage.get('activation_completed') || 0) +
+          (eventsByStage.get('deck_exported') || 0) +
+          (eventsByStage.get('export_clicked') || 0),
+        source: 'Product events',
+      },
+      {
+        key: 'paywall',
+        label: 'Paywall / upsell',
+        description: 'Exposition ou clic vers une offre payante.',
+        value: paywallUsers.size,
+        events: (eventsByStage.get('paywall_view') || 0) + (eventsByStage.get('paywall_cta_click') || 0),
+        source: 'Product events',
+      },
+      {
+        key: 'checkout',
+        label: 'Checkout lance',
+        description: 'Stripe ouvert par un utilisateur touche par le blog.',
+        value: usersByStage.get('begin_checkout')?.size || 0,
+        events: eventsByStage.get('begin_checkout') || 0,
+        source: 'Product events',
+      },
+      {
+        key: 'purchase',
+        label: 'Paiement reussi',
+        description: 'Paiement attribuable a un utilisateur touche par le blog.',
+        value: usersByStage.get('purchase')?.size || 0,
+        events: eventsByStage.get('purchase') || 0,
+        source: 'Product events',
+      },
+    ];
+
+    const firstValue = rawStages[0]?.value || 0;
+    let previousValue = firstValue;
+    const stages = rawStages.map((stage, index) => {
+      const fromPrevious = index === 0 ? 100 : this.toPercent(stage.value, previousValue);
+      const fromStart = index === 0 ? 100 : this.toPercent(stage.value, firstValue);
+      const dropoff = index === 0 ? 0 : Math.max(0, 100 - fromPrevious);
+      const previous = previousValue;
+      previousValue = stage.value;
+
+      return {
+        ...stage,
+        previous,
+        fromPrevious,
+        fromStart,
+        dropoff: Math.round(dropoff * 10) / 10,
+      };
+    });
+
+    const gaArticleMap = new Map<string, any>(
+      (ga.articles || []).map((article: any) => [article.slug, article]),
+    );
+
+    const articles = Array.from(new Set([
+      ...Array.from(gaArticleMap.keys()),
+      ...Array.from(articleRows.keys()),
+    ])).map((slug) => {
+      const gaArticle = gaArticleMap.get(slug) || {};
+      const row = articleRows.get(slug);
+      const articleUsers = Number(gaArticle.activeUsers || 0);
+      const ctaClicks = row?.ctaClicks || 0;
+
+      return {
+        slug,
+        path: gaArticle.path || `/blog/${slug}`,
+        views: Number(gaArticle.views || 0),
+        users: articleUsers,
+        sessions: Number(gaArticle.sessions || 0),
+        ctaClicks,
+        ctaUsers: row?.ctaUsers.size || 0,
+        ctaRate: this.toPercent(row?.ctaUsers.size || 0, articleUsers),
+        createStarted: row?.createStarted.size || 0,
+        generated: row?.generated.size || 0,
+        activated: row?.activated.size || 0,
+        exported: row?.exported.size || 0,
+        paywall: row?.paywall.size || 0,
+        checkout: row?.checkout.size || 0,
+        purchase: row?.purchase.size || 0,
+      };
+    }).sort((a, b) => b.users - a.users || b.ctaClicks - a.ctaClicks || b.generated - a.generated);
+
+    const bottleneck = stages
+      .slice(1)
+      .filter((stage) => stage.previous > 0)
+      .sort((a, b) => b.dropoff - a.dropoff)[0] || null;
+
+    return {
+      days: clampedDays,
+      generatedAt: new Date().toISOString(),
+      ga,
+      summary: {
+        articleUsers: Number(ga.articleUsers || 0),
+        articleViews: Number(ga.articleViews || 0),
+        ctaUsers: stages[1]?.value || 0,
+        ctaClicks: stages[1]?.events || 0,
+        createFromBlogUsers: stages[2]?.value || 0,
+        createStartedUsers: stages[3]?.value || 0,
+        generatedUsers: stages[4]?.value || 0,
+        exportUsers: stages[5]?.value || 0,
+        paywallUsers: stages[6]?.value || 0,
+        checkoutUsers: stages[7]?.value || 0,
+        purchaseUsers: stages[8]?.value || 0,
+      },
+      stages,
+      articles: articles.slice(0, 20),
+      placements: Array.from(placements.values())
+        .map((row) => ({ placement: row.placement, clicks: row.clicks, users: row.users.size }))
+        .sort((a, b) => b.clicks - a.clicks),
+      bottleneck: bottleneck
+        ? {
+            key: bottleneck.key,
+            label: bottleneck.label,
+            dropoff: bottleneck.dropoff,
+            fromPrevious: bottleneck.fromPrevious,
+            previous: bottleneck.previous,
+            value: bottleneck.value,
+          }
+        : null,
+      recommendation: this.buildSeoFunnelRecommendation(bottleneck?.key),
+    };
+  }
+
   private toPercent(numerator: number, denominator: number) {
     if (!denominator) return 0;
     return Math.round((numerator / denominator) * 1000) / 10;
@@ -1412,6 +1724,193 @@ export class OpsService {
     };
   }
 
+  private async fetchGaSeoBlogFunnel(days: number) {
+    const credentials = this.getGoogleAnalyticsCredentials();
+
+    if (!credentials) {
+      return {
+        configured: false,
+        source: 'ga4',
+        articleUsers: 0,
+        articleViews: 0,
+        articleSessions: 0,
+        ctaClicks: { eventCount: 0, activeUsers: 0 },
+        createFromBlog: { activeUsers: 0, pageViews: 0 },
+        articles: [],
+      };
+    }
+
+    const accessToken = await this.getGoogleAccessToken(credentials.clientEmail, credentials.privateKey);
+    const dateRanges = [{ startDate: `${days}daysAgo`, endDate: 'today' }];
+    const headers = {
+      Authorization: `Bearer ${accessToken}`,
+      'Content-Type': 'application/json',
+    };
+
+    const runReport = async (body: Record<string, any>) => {
+      const response = await fetch(`https://analyticsdata.googleapis.com/v1beta/properties/${credentials.propertyId}:runReport`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify(body),
+      });
+
+      if (!response.ok) {
+        throw new Error(`GA4 report error: ${await response.text()}`);
+      }
+
+      return response.json();
+    };
+
+    const [articlesReport, ctaReport, createReport] = await Promise.all([
+      runReport({
+        dateRanges,
+        dimensions: [{ name: 'pagePath' }],
+        metrics: [{ name: 'screenPageViews' }, { name: 'activeUsers' }, { name: 'sessions' }],
+        limit: 50,
+        dimensionFilter: {
+          filter: {
+            fieldName: 'pagePath',
+            stringFilter: {
+              matchType: 'BEGINS_WITH',
+              value: '/blog/',
+            },
+          },
+        },
+      }),
+      runReport({
+        dateRanges,
+        dimensions: [{ name: 'eventName' }],
+        metrics: [{ name: 'eventCount' }, { name: 'activeUsers' }],
+        dimensionFilter: {
+          filter: {
+            fieldName: 'eventName',
+            stringFilter: {
+              matchType: 'EXACT',
+              value: 'blog_cta_click',
+            },
+          },
+        },
+      }),
+      runReport({
+        dateRanges,
+        dimensions: [{ name: 'pagePathPlusQueryString' }],
+        metrics: [{ name: 'screenPageViews' }, { name: 'activeUsers' }],
+        limit: 50,
+        dimensionFilter: {
+          andGroup: {
+            expressions: [
+              {
+                filter: {
+                  fieldName: 'pagePathPlusQueryString',
+                  stringFilter: {
+                    matchType: 'CONTAINS',
+                    value: '/create',
+                  },
+                },
+              },
+              {
+                filter: {
+                  fieldName: 'pagePathPlusQueryString',
+                  stringFilter: {
+                    matchType: 'CONTAINS',
+                    value: 'utm_source=blog',
+                  },
+                },
+              },
+            ],
+          },
+        },
+      }),
+    ]);
+
+    const articles = (articlesReport.rows || [])
+      .map((row: any) => {
+        const path = row.dimensionValues?.[0]?.value || '';
+        const slug = this.extractBlogSlugFromPath(path);
+
+        return {
+          path,
+          slug,
+          views: Number(row.metricValues?.[0]?.value || 0),
+          activeUsers: Number(row.metricValues?.[1]?.value || 0),
+          sessions: Number(row.metricValues?.[2]?.value || 0),
+        };
+      })
+      .filter((row: any) => row.slug)
+      .sort((a: any, b: any) => b.activeUsers - a.activeUsers || b.views - a.views);
+
+    const ctaMetrics = ctaReport.rows?.[0]?.metricValues || [];
+    const createTotals = (createReport.rows || []).reduce(
+      (acc: { pageViews: number; activeUsers: number }, row: any) => {
+        acc.pageViews += Number(row.metricValues?.[0]?.value || 0);
+        acc.activeUsers += Number(row.metricValues?.[1]?.value || 0);
+        return acc;
+      },
+      { pageViews: 0, activeUsers: 0 },
+    );
+
+    return {
+      configured: true,
+      source: 'ga4',
+      articleUsers: articles.reduce((sum: number, row: any) => sum + row.activeUsers, 0),
+      articleViews: articles.reduce((sum: number, row: any) => sum + row.views, 0),
+      articleSessions: articles.reduce((sum: number, row: any) => sum + row.sessions, 0),
+      ctaClicks: {
+        eventCount: Number(ctaMetrics[0]?.value || 0),
+        activeUsers: Number(ctaMetrics[1]?.value || 0),
+      },
+      createFromBlog: createTotals,
+      articles,
+    };
+  }
+
+  private extractBlogAttribution(properties: Record<string, any>) {
+    const explicitSlug = typeof properties.post_slug === 'string' ? properties.post_slug : '';
+    const explicitPlacement = typeof properties.placement === 'string' ? properties.placement : '';
+    const content =
+      this.getSearchParam(properties.search, 'utm_content') ||
+      this.getSearchParam(properties.page_location, 'utm_content') ||
+      this.getSearchParam(properties.location, 'utm_content') ||
+      (typeof properties.utm_content === 'string' ? properties.utm_content : '');
+    const parsed = this.parseBlogUtmContent(content);
+    const pathSlug = this.extractBlogSlugFromPath(typeof properties.path === 'string' ? properties.path : '');
+
+    return {
+      slug: explicitSlug || parsed.slug || pathSlug,
+      placement: explicitPlacement || parsed.placement,
+    };
+  }
+
+  private parseBlogUtmContent(value?: string | null) {
+    if (!value) return { slug: '', placement: '' };
+    const match = String(value).match(/^(.*)_(inline_markdown|inline|bottom)$/);
+    if (!match) return { slug: String(value), placement: '' };
+    return { slug: match[1], placement: match[2] };
+  }
+
+  private getSearchParam(value: any, key: string) {
+    if (typeof value !== 'string' || !value) return '';
+
+    try {
+      const search = value.startsWith('http')
+        ? new URL(value).search
+        : value.includes('?')
+          ? value.slice(value.indexOf('?'))
+          : value;
+      const params = new URLSearchParams(search.startsWith('?') ? search.slice(1) : search);
+      return params.get(key) || '';
+    } catch {
+      return '';
+    }
+  }
+
+  private extractBlogSlugFromPath(path: string) {
+    const match = String(path || '').match(/^\/(?:en\/)?blog\/([^/?#]+)$/);
+    const slug = match?.[1] || '';
+    if (!slug || slug === 'c' || slug === 'metier') return '';
+    return slug;
+  }
+
   private getGoogleAnalyticsCredentials(): GoogleAnalyticsCredentials | null {
     const propertyId = process.env.GA4_PROPERTY_ID || process.env.GOOGLE_ANALYTICS_PROPERTY_ID;
     const credentialsJson =
@@ -1477,6 +1976,29 @@ export class OpsService {
         return 'Les checkouts ne paient pas. Priorité: vérifier Stripe, coupon, moyens de paiement, et relance abandon checkout.';
       default:
         return 'Commence par suivre ce funnel chaque semaine. Le meilleur chantier est l’étape avec la plus grosse chute entre deux lignes.';
+    }
+  }
+
+  private buildSeoFunnelRecommendation(stageKey?: string) {
+    switch (stageKey) {
+      case 'blog_cta_click':
+        return 'Les articles sont lus mais ne cliquent pas assez. Priorite: CTA plus haut, copy plus directe, exemple de prompt dans l article.';
+      case 'create_opened':
+        return 'Les CTA sont cliques mais la page creation ne s ouvre pas assez. Priorite: verifier auth returnTo, liens UTM et temps de chargement.';
+      case 'create_started':
+        return 'Les lecteurs arrivent sur creation mais ne lancent pas de generation. Priorite: pre-remplir le sujet depuis l article et reduire la friction du premier prompt.';
+      case 'deck_generated':
+        return 'Les generations blog ne vont pas au bout. Priorite: verifier erreurs de generation, temps d attente et clarte du loader.';
+      case 'export_or_value':
+        return 'Les lecteurs generent mais ne percoivent pas assez la valeur. Priorite: ameliorer rendu, preview et appel export.';
+      case 'paywall':
+        return 'Les lecteurs actives ne voient pas assez l offre. Priorite: upsell apres generation et rappel export.';
+      case 'checkout':
+        return 'L intention payante ne lance pas assez Stripe. Priorite: CTA pricing plus clair et lien Pro 9,90 EUR.';
+      case 'purchase':
+        return 'Les checkouts issus du blog ne paient pas. Priorite: verifier Stripe, coupon et relance abandon checkout.';
+      default:
+        return 'Suivre ce funnel apres chaque publication: vues article, clic CTA, creation, generation, valeur percue et paiement.';
     }
   }
 

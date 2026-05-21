@@ -36,9 +36,22 @@ interface Presentation {
   theme: string;
   status: string;
   createdAt: string;
+  created_at?: string;
 }
 
 type TabType = "owned" | "shared";
+
+const normalizePresentation = (presentation: Presentation): Presentation => ({
+  ...presentation,
+  createdAt: presentation.createdAt || presentation.created_at || new Date().toISOString(),
+});
+
+const formatPresentationDate = (value: string | undefined, locale: string) => {
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  return date.toLocaleDateString(locale === "fr" ? "fr-FR" : "en-US");
+};
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -160,9 +173,9 @@ export default function Dashboard() {
           api.getMySubscription(session.access_token),
         ]);
 
-        setOwnedPresentations(result.owned || []);
-        setSharedPresentations(result.shared || []);
-        setViewOnlyPresentations(result.viewOnly || []);
+        setOwnedPresentations((result.owned || []).map(normalizePresentation));
+        setSharedPresentations((result.shared || []).map(normalizePresentation));
+        setViewOnlyPresentations((result.viewOnly || []).map(normalizePresentation));
         setSubscription(subResult);
         setCurrentUserId(session.user.id);
         setCurrentUserEmail(session.user.email ?? null);
@@ -601,7 +614,7 @@ export default function Dashboard() {
                 <div className="flex items-center justify-between text-xs text-muted-foreground">
                   <div className="flex items-center space-x-1.5">
                     <Calendar className="h-3.5 w-3.5" />
-                    <span>{new Date(presentation.createdAt).toLocaleDateString(i18n.language === "fr" ? "fr-FR" : "en-US")}</span>
+                    <span>{formatPresentationDate(presentation.createdAt, i18n.language)}</span>
                   </div>
                   <div className="px-2 py-1 rounded-full bg-green-500/10 text-green-500 text-xs font-medium">
                     {t(`dashboard.statuses.${presentation.status}`)}

@@ -34,6 +34,7 @@ const PRODUCT_FUNNEL_STAGES = [
 ];
 
 const MONEY_FUNNEL_GA_EVENTS = ['View Pricing', 'Select Plan', 'begin_checkout', 'purchase'];
+const DEPRECATED_LIFECYCLE_EMAIL_TYPES = ['signup_welcome'];
 const SEO_FUNNEL_EVENTS = [
   'blog_cta_click',
   'create_opened',
@@ -646,6 +647,7 @@ export class OpsService {
     const logs = await this.prisma.lifecycleEmailLog.findMany({
       where: {
         createdAt: { gte: since },
+        emailType: { notIn: DEPRECATED_LIFECYCLE_EMAIL_TYPES },
       },
       select: {
         emailType: true,

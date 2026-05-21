@@ -439,8 +439,8 @@ function getBusinessPages() {
         "/pricing",
         page.keyword
       ),
-      renderFeatureGrid(page.useCases.map((item) => ({ title: item, description: "Usage cible pour une intention de recherche professionnelle." })), "Pour qui"),
-      renderSectionList("Benefices", page.benefits.map((item) => ({ title: item, body: "Concu pour accelerer la creation du premier jet sans sacrifier la qualite du livrable." }))),
+      renderFeatureGrid(page.useCases.map((item, index) => ({ title: item, description: getUseCaseDescription(page, item, index) })), "Pour qui"),
+      renderSectionList("Benefices", page.benefits.map((item, index) => ({ title: item, body: getBenefitDescription(page, item, index) }))),
       renderSectionList("Comment ca marche", page.howItWorks.map((item, index) => ({ title: `Etape ${index + 1}`, body: item }))),
       renderFaqs("Questions frequentes", page.faqs),
       renderLinkGrid("Pages et guides lies", seoLandingLinks
@@ -456,6 +456,61 @@ function getBusinessPages() {
       buildFaqJsonLd(page.faqs),
     ],
   }));
+}
+
+function getUseCaseDescription(page, item, index) {
+  const pageKeyword = (page.keyword || "presentation").toLowerCase();
+  const templates = [
+    `Transformez vos notes, briefs ou documents en deck ${pageKeyword} pret a finaliser pour un client ou une equipe.`,
+    `Gagnez du temps sur la structuration et gardez la main sur les messages importants avant l'export.`,
+    `Produisez une premiere version plus claire quand le fond existe deja mais que la mise en slides bloque encore.`,
+    `Standardisez vos supports recurrents sans repartir d'une page blanche a chaque nouvelle mission.`,
+  ];
+
+  if (/consult|audit|strategie|seo|rh/i.test(item)) {
+    return "Passez plus vite du diagnostic ou du rapport client a une presentation exploitable pour une restitution.";
+  }
+
+  if (/marketing|growth|business|direction/i.test(item)) {
+    return "Structurez plus rapidement vos revues, plans d'action et supports de pilotage sans perdre le niveau de finition.";
+  }
+
+  if (/freelance|independant|recommandation/i.test(item)) {
+    return "Livrez un premier jet professionnel plus vite, puis personnalisez les slides avant l'envoi au client.";
+  }
+
+  if (/equipe|B2B|deck|semaine/i.test(item)) {
+    return "Gardez un rythme de production regulier avec des supports plus homogenes d'une semaine a l'autre.";
+  }
+
+  return templates[index % templates.length];
+}
+
+function getBenefitDescription(page, item, index) {
+  if (/heures|temps|PowerPoint/i.test(item)) {
+    return "SlideAI reduit le temps passe sur la structure initiale, le copier-coller et la mise en forme repetitive.";
+  }
+
+  if (/structure|message|depart|premier jet/i.test(item)) {
+    return "Vous obtenez une base organisee avec des titres, sections et points cles que vous pouvez ajuster ensuite.";
+  }
+
+  if (/qualite|homogene|uniformiser|professionnel/i.test(item)) {
+    return "Les decks gardent une logique de presentation claire, utile pour les livrables clients et les supports internes.";
+  }
+
+  if (/export|PPTX|PDF|PowerPoint/i.test(item)) {
+    return "Une fois les slides finalisees dans SlideAI, vous pouvez exporter un fichier PowerPoint ou PDF pret a partager.";
+  }
+
+  const templates = [
+    "La valeur vient du premier jet : une base claire a relire, enrichir et finaliser au lieu de partir de zero.",
+    "Le workflow aide a passer plus vite de la matiere brute a un support presentable.",
+    "Vous gardez le controle sur le fond tout en accelerant la mise en forme initiale.",
+    "L'objectif est de produire plus regulierement des presentations exploitables en contexte professionnel.",
+  ];
+
+  return templates[index % templates.length];
 }
 
 function getPdfPage() {

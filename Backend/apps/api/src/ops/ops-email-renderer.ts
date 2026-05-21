@@ -1544,6 +1544,174 @@ function buildBundledCampaignEmail(
   return { subject, html };
 }
 
+function escapeEmailHtml(value: string) {
+  return value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function renderBroadcastParagraphs(paragraphs: string[]) {
+  return paragraphs
+    .map((paragraph) => `<p class="em-text-body" style="margin:0 0 16px 0;padding:0;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;font-size:14.5px;color:#2A3545;line-height:1.75;">${escapeEmailHtml(paragraph)}</p>`)
+    .join('');
+}
+
+function renderBroadcastBullets(bullets?: string[]) {
+  if (!bullets?.length) return '';
+
+  const rows = bullets
+    .map((bullet) => `<tr>
+    <td class="em-step-num-cell" valign="top" width="42" style="padding:0 14px 14px 0;width:42px;">
+      <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="28" height="28" bgcolor="#2BB5FF" style="background:#2BB5FF;background-color:#2BB5FF;border-radius:14px;width:28px;height:28px;">
+        <tr><td align="center" valign="middle" width="28" height="28" style="font-family:'Inter',Arial,sans-serif;font-size:13px;font-weight:700;color:#FFFFFF;line-height:28px;">✓</td></tr>
+      </table>
+    </td>
+    <td valign="top" style="padding:0 0 14px 0;">
+      <span class="em-step-body em-text-muted" style="display:block;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;font-size:13.5px;color:#2A3545;line-height:1.6;">${escapeEmailHtml(bullet)}</span>
+    </td>
+  </tr>`)
+    .join('');
+
+  return `<tr>
+    <td class="em-pad em-bg-white" bgcolor="#FFFFFF" style="padding:0 36px;background-color:#FFFFFF;">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">${rows}</table>
+    </td>
+  </tr>
+<tr><td class="em-bg-white" bgcolor="#FFFFFF" style="height:8px;line-height:8px;font-size:0;background-color:#FFFFFF;">&nbsp;</td></tr>`;
+}
+
+function wrapBroadcastEmail(content: EmailContent) {
+  const paragraphs = renderBroadcastParagraphs(content.body);
+  const bullets = renderBroadcastBullets(content.bullets);
+  const note = content.note
+    ? `<tr>
+    <td class="em-pad em-bg-white em-text-muted" bgcolor="#FFFFFF" style="padding:16px 36px;background-color:#FFFFFF;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;font-size:13px;color:#6B7A90;line-height:1.65;font-style:italic;">${escapeEmailHtml(content.note)}</td>
+  </tr>`
+    : '';
+  const unsubscribeLink = content.unsubscribeUrl
+    ? ` · <a href="${escapeEmailHtml(content.unsubscribeUrl)}" style="color:#2BB5FF;text-decoration:none;">Se désabonner</a>`
+    : '';
+
+  return `<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="x-apple-disable-message-reformatting">
+<meta name="color-scheme" content="only light">
+<meta name="supported-color-schemes" content="only light">
+<title>${escapeEmailHtml(content.subject)}</title>
+<style>
+  :root { color-scheme: only light; supported-color-schemes: only light; }
+  body,table,td,a { -webkit-text-size-adjust:100%; -ms-text-size-adjust:100%; }
+  table,td { mso-table-lspace:0pt; mso-table-rspace:0pt; }
+  img { -ms-interpolation-mode:bicubic; border:0; outline:none; text-decoration:none; }
+  table { border-collapse:collapse !important; }
+  body { margin:0 !important; padding:0 !important; width:100% !important; height:100% !important; background:#F0F4F8; }
+  a { color:#2BB5FF; }
+  @media only screen and (max-width:620px) {
+    .em-shell { width:100% !important; max-width:100% !important; }
+    .em-pad { padding-left:20px !important; padding-right:20px !important; }
+    .em-hero-pad { padding:30px 20px 26px !important; }
+    .em-hero-h1 { font-size:23px !important; line-height:1.22 !important; letter-spacing:-0.5px !important; }
+    .em-hero-sub { font-size:15px !important; line-height:1.55 !important; }
+    .em-cta a { display:block !important; padding:15px 18px !important; font-size:15px !important; }
+    .em-text-body, .em-text-body * { font-size:15px !important; line-height:1.7 !important; }
+    .em-step-num-cell { width:38px !important; padding-right:12px !important; }
+    .em-step-body { font-size:14px !important; line-height:1.55 !important; }
+    .em-text-footer, .em-text-footer * { font-size:12px !important; line-height:1.6 !important; }
+    .em-badge { font-size:9.5px !important; padding:4px 9px !important; }
+  }
+  @media (prefers-color-scheme: dark) {
+    body, .em-shell { background:#F0F4F8 !important; background-color:#F0F4F8 !important; }
+    .em-shell, .em-bg-white { background:#FFFFFF !important; background-color:#FFFFFF !important; }
+    .em-bg-blue-pale { background:#EBF6FF !important; background-color:#EBF6FF !important; }
+    .em-bg-surface { background:#F8FAFC !important; background-color:#F8FAFC !important; }
+    .em-text-main, .em-text-main * { color:#0D1117 !important; }
+    .em-text-muted, .em-text-muted * { color:#6B7A90 !important; }
+    .em-text-body, .em-text-body * { color:#2A3545 !important; }
+    .em-text-blue, .em-text-blue * { color:#2BB5FF !important; }
+    .em-text-footer, .em-text-footer * { color:#A0AABB !important; }
+  }
+</style>
+</head>
+<body bgcolor="#F0F4F8" style="margin:0;padding:0;background:#F0F4F8;background-color:#F0F4F8;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;color:#0D1117;">
+<div style="display:none;max-height:0;overflow:hidden;opacity:0;mso-hide:all;">${escapeEmailHtml(content.preview)}</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#F0F4F8" style="background:#F0F4F8;background-color:#F0F4F8;">
+  <tr>
+    <td align="center" style="padding:0;">
+      <table role="presentation" class="em-shell em-bg-white" width="620" cellpadding="0" cellspacing="0" border="0" bgcolor="#FFFFFF" style="width:620px;max-width:620px;background:#FFFFFF;background-color:#FFFFFF;">
+<tr>
+    <td class="em-pad em-bg-white" bgcolor="#FFFFFF" style="padding:22px 36px 20px;background:#FFFFFF;background-color:#FFFFFF;border-bottom:1px solid #E4EAF0;">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td align="left" valign="middle" style="padding:0;">
+            <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+              <tr>
+                <td valign="middle" width="28" height="28" style="width:28px;height:28px;font-size:0;line-height:0;">
+                  <img src="https://www.slideai.fr/logo.png" width="28" height="28" alt="SlideAI" style="display:block;width:28px;height:28px;border:0;outline:none;text-decoration:none;">
+                </td>
+                <td valign="middle" class="em-text-main" style="padding:0 0 0 9px;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;font-size:16px;font-weight:700;color:#0D1117;letter-spacing:-0.3px;line-height:28px;white-space:nowrap;">
+                  Slide<span style="color:#2BB5FF;">AI</span>
+                </td>
+              </tr>
+            </table>
+          </td>
+          <td align="right" valign="middle" style="padding:0;">
+            <span class="em-badge" style="display:inline-block;padding:5px 11px;border-radius:999px;background:#EBF6FF;border:1px solid #C8E8FA;font-family:'Inter',Arial,sans-serif;font-size:10px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#6B7A90;">${escapeEmailHtml(content.badge)}</span>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+<tr>
+    <td class="em-pad em-hero-pad em-bg-blue-pale" bgcolor="#EBF6FF" style="padding:36px 36px 32px;background:#EBF6FF;background-color:#EBF6FF;background-image:linear-gradient(135deg,#EBF6FF 0%,#F5FBFF 60%,#FFFFFF 100%);border-bottom:2px solid #2BB5FF;">
+      <h1 class="em-hero-h1 em-text-main" style="margin:0;padding:0;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;font-size:26px;font-weight:800;color:#0D1117;line-height:1.2;letter-spacing:-0.7px;">${escapeEmailHtml(content.title)}</h1>
+      <p class="em-hero-sub em-text-muted" style="margin:10px 0 0;padding:0;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;font-size:14.5px;color:#6B7A90;line-height:1.65;">${escapeEmailHtml(content.intro)}</p>
+    </td>
+  </tr>
+<tr>
+    <td class="em-bg-white" bgcolor="#FFFFFF" style="padding:0;background-color:#FFFFFF;font-size:0;line-height:0;">
+      <img src="https://www.slideai.fr/email-assets/06-conversion-illustration.png" width="620" alt="Offre SlideAI Pro" style="display:block;width:100%;max-width:620px;height:auto;border:0;outline:none;text-decoration:none;">
+    </td>
+  </tr>
+<tr><td class="em-bg-white" bgcolor="#FFFFFF" style="height:24px;line-height:24px;font-size:0;background-color:#FFFFFF;">&nbsp;</td></tr>
+<tr>
+    <td class="em-pad em-bg-white" bgcolor="#FFFFFF" style="padding:0 36px;background-color:#FFFFFF;">${paragraphs}</td>
+  </tr>
+<tr><td class="em-bg-white" bgcolor="#FFFFFF" style="height:8px;line-height:8px;font-size:0;background-color:#FFFFFF;">&nbsp;</td></tr>
+${bullets}
+<tr>
+    <td class="em-cta em-pad em-bg-white" bgcolor="#FFFFFF" align="center" style="padding:0 36px 4px;background-color:#FFFFFF;">
+      <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:0 auto;">
+        <tr>
+          <td align="center" bgcolor="#2BB5FF" style="border-radius:8px;background:#2BB5FF;background-color:#2BB5FF;">
+            <a href="${escapeEmailHtml(content.ctaUrl)}" style="display:inline-block;padding:13px 32px;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;font-size:14px;font-weight:600;color:#FFFFFF;text-decoration:none;letter-spacing:-0.2px;border-radius:8px;mso-padding-alt:0;">${escapeEmailHtml(content.ctaLabel)}</a>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+<tr><td class="em-bg-white" bgcolor="#FFFFFF" style="height:14px;line-height:14px;font-size:0;background-color:#FFFFFF;">&nbsp;</td></tr>
+${note}
+<tr>
+    <td class="em-pad em-bg-surface" align="center" bgcolor="#F8FAFC" style="padding:22px 36px;background:#F8FAFC;background-color:#F8FAFC;border-top:1px solid #E4EAF0;text-align:center;">
+      <p class="em-text-footer" style="margin:0 0 5px;padding:0;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;font-size:11.5px;color:#A0AABB;line-height:1.65;">Noé · Fondateur SlideAI · <a href="mailto:noe@slideai.fr" style="color:#2BB5FF;text-decoration:none;">noe@slideai.fr</a> · <a href="https://www.slideai.fr" style="color:#2BB5FF;text-decoration:none;">slideai.fr</a></p>
+      <p class="em-text-footer" style="margin:0;padding:0;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;font-size:11.5px;color:#A0AABB;line-height:1.65;">${escapeEmailHtml(content.footerReason || 'Vous recevez cet email car vous utilisez SlideAI.')}${unsubscribeLink}</p>
+    </td>
+  </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+</body>
+</html>`;
+}
+
 export type BroadcastEmailParams = {
   subject: string;
   badge: string;
@@ -1576,7 +1744,7 @@ export function buildBroadcastEmailContent(params: BroadcastEmailParams): { subj
 
   return {
     subject: params.subject,
-    html: wrapEmail(content),
+    html: wrapBroadcastEmail(content),
   };
 }
 

@@ -27,10 +27,10 @@ import {
 import { Loader2, Eye, Send, Users, RefreshCw } from "lucide-react";
 
 const SEGMENTS = [
-  { value: "trial_expired_very_hot", label: "Very hot - essai expire + 5 decks" },
-  { value: "trial_expired_hot", label: "Hot - essai expire + 2-4 decks" },
-  { value: "trial_expired_warm", label: "Warm - essai expire + 1 deck" },
-  { value: "trial_expired_cold", label: "Cold - essai expire + 0 deck" },
+  { value: "trial_expired_very_hot", label: "Very hot - essai expiré + 5 decks" },
+  { value: "trial_expired_hot", label: "Hot - essai expiré + 2-4 decks" },
+  { value: "trial_expired_warm", label: "Warm - essai expiré + 1 deck" },
+  { value: "trial_expired_cold", label: "Cold - essai expiré + 0 deck" },
   { value: "all", label: "Tous les utilisateurs" },
   { value: "trialing", label: "En essai Pro (trialing)" },
   { value: "trial_expired", label: "Essai expiré (trial_expired)" },
@@ -56,48 +56,48 @@ const DEFAULT_FORM = {
 
 const SEGMENT_DEFAULTS: Record<string, Partial<typeof DEFAULT_FORM>> = {
   trial_expired_very_hot: {
-    badge: "Message de Noe",
-    title: "J'ai vu que vous utilisez SlideAI serieusement",
-    intro: "Vous avez cree plusieurs presentations. Je voulais vous ecrire directement.",
+    badge: "Message de Noé",
+    title: "J’ai vu que vous utilisez SlideAI sérieusement",
+    intro: "Vous avez créé plusieurs présentations. Je voulais vous écrire directement.",
     body:
-      "Bonjour,\n\nJe suis Noe, le fondateur de SlideAI.\n\nJ'ai vu que vous avez cree plusieurs presentations avec l'outil. Ce n'est pas anodin : la plupart des gens essaient une fois et s'arretent.\n\nVotre essai vient d'expirer. Avant de vous laisser partir, je voulais vous poser une question directe : qu'est-ce qui vous a bloque pour passer a l'abonnement ?\n\nSi c'est le prix, j'ai laisse l'offre de lancement active : le premier mois est a 9,90 EUR, puis 19,90 EUR/mois, sans engagement.\n\nSi c'est autre chose, repondez directement a cet email. Je lis tout.",
+      "Bonjour,\n\nJe suis Noé, le fondateur de SlideAI.\n\nJ’ai vu que vous avez créé plusieurs présentations avec l’outil. Ce n’est pas anodin : la plupart des gens essaient une fois puis s’arrêtent.\n\nVotre essai vient d’expirer. Avant de vous laisser partir, je voulais vous poser une question directe : qu’est-ce qui vous a bloqué pour passer à l’abonnement ?\n\nSi c’est le prix, j’ai laissé l’offre de lancement active : le premier mois est à 9,90 €, puis 19,90 €/mois, sans engagement.\n\nSi c’est autre chose, répondez directement à cet email. Je lis tout.",
     bullets: "",
-    ctaLabel: "Continuer avec SlideAI - 9,90 EUR",
+    ctaLabel: "Continuer avec SlideAI - 9,90 €",
     ctaUrl: PRO_INTRO_URL,
-    note: "Sans engagement. Annulation possible a tout moment.",
+    note: "Sans engagement. Annulation possible à tout moment.",
   },
   trial_expired_hot: {
     badge: "Votre essai SlideAI",
-    title: "Votre essai SlideAI est termine - une question",
-    intro: "Vous avez cree plusieurs presentations. J'aimerais comprendre ce qui vous a freine.",
+    title: "Votre essai SlideAI est terminé - une question",
+    intro: "Vous avez créé plusieurs présentations. J’aimerais comprendre ce qui vous a freiné.",
     body:
-      "Bonjour,\n\nVotre essai gratuit SlideAI est termine.\n\nVous avez cree des presentations pendant votre essai, donc le produit a fonctionne pour vous au moins une fois.\n\nJ'aimerais comprendre ce qui s'est passe ensuite. Est-ce que c'etait le prix, l'export PPTX, un besoin pas assez urgent, ou autre chose ?\n\nUne reponse directe m'aide a ameliorer le produit.\n\nEt si c'est le prix qui bloque : le premier mois est a 9,90 EUR, puis 19,90 EUR/mois, sans engagement.",
+      "Bonjour,\n\nVotre essai gratuit SlideAI est terminé.\n\nVous avez créé des présentations pendant votre essai, donc le produit a fonctionné pour vous au moins une fois.\n\nJ’aimerais comprendre ce qui s’est passé ensuite. Est-ce que c’était le prix, l’export PPTX, un besoin pas assez urgent, ou autre chose ?\n\nUne réponse directe m’aide à améliorer le produit.\n\nEt si c’est le prix qui bloque : le premier mois est à 9,90 €, puis 19,90 €/mois, sans engagement.",
     bullets: "",
-    ctaLabel: "Reprendre SlideAI a 9,90 EUR",
+    ctaLabel: "Reprendre SlideAI à 9,90 €",
     ctaUrl: PRO_INTRO_URL,
-    note: "Vous pouvez aussi repondre directement a cet email.",
+    note: "Vous pouvez aussi répondre directement à cet email.",
   },
   trial_expired_warm: {
     badge: "Votre deck SlideAI",
-    title: "Vous avez cree un deck avec SlideAI",
-    intro: "Si vous avez une presentation a faire cette semaine, vous pouvez reprendre la ou vous en etiez.",
+    title: "Vous avez créé un deck avec SlideAI",
+    intro: "Si vous avez une présentation à faire cette semaine, vous pouvez reprendre là où vous en étiez.",
     body:
-      "Bonjour,\n\nVous avez teste SlideAI et cree une premiere presentation.\n\nSi l'outil vous a aide a partir plus vite d'une page blanche, le plus simple est de le reutiliser sur un vrai livrable.\n\nL'offre de lancement est toujours disponible : 9,90 EUR le premier mois, puis 19,90 EUR/mois, sans engagement.",
-    bullets: "Generations illimitees\nExport PPTX et PDF\nBrand Kit et support prioritaire",
+      "Bonjour,\n\nVous avez testé SlideAI et créé une première présentation.\n\nSi l’outil vous a aidé à partir plus vite d’une page blanche, le plus simple est de le réutiliser sur un vrai livrable.\n\nL’offre de lancement est toujours disponible : 9,90 € le premier mois, puis 19,90 €/mois, sans engagement.",
+    bullets: "Générations illimitées\nExport PPTX et PDF\nBrand Kit et support prioritaire",
     ctaLabel: "Reprendre mon workflow",
     ctaUrl: PRO_INTRO_URL,
-    note: "Annulation possible a tout moment.",
+    note: "Annulation possible à tout moment.",
   },
   trial_expired_cold: {
     badge: "Essai SlideAI",
-    title: "Vous n'avez pas encore vraiment essaye SlideAI",
-    intro: "Votre compte existe, mais vous n'avez pas encore genere de presentation.",
+    title: "Vous n’avez pas encore vraiment essayé SlideAI",
+    intro: "Votre compte existe, mais vous n’avez pas encore généré de présentation.",
     body:
-      "Bonjour,\n\nVous avez cree un compte SlideAI, mais vous n'avez jamais lance de vraie generation.\n\nSi vous avez une presentation a produire cette semaine, le test le plus rapide est simple : ouvrez SlideAI, decrivez votre sujet en quelques lignes, puis laissez l'IA preparer une premiere base.\n\nPas besoin de preparer un prompt parfait.",
-    bullets: "Brief simple ou document importe\nPremiere structure en moins d'une minute\nExport une fois le deck finalise",
-    ctaLabel: "Generer ma premiere presentation",
+      "Bonjour,\n\nVous avez créé un compte SlideAI, mais vous n’avez jamais lancé de vraie génération.\n\nSi vous avez une présentation à produire cette semaine, le test le plus rapide est simple : ouvrez SlideAI, décrivez votre sujet en quelques lignes, puis laissez l’IA préparer une première base.\n\nPas besoin de préparer un prompt parfait.",
+    bullets: "Brief simple ou document importé\nPremière structure en moins d’une minute\nExport une fois le deck finalisé",
+    ctaLabel: "Générer ma première présentation",
     ctaUrl: CREATE_URL,
-    note: "Le meilleur test est un vrai livrable, pas une demo vide.",
+    note: "Le meilleur test est un vrai livrable, pas une démo vide.",
   },
 };
 
@@ -193,7 +193,7 @@ export default function AdminBroadcast() {
       const data = await api.broadcastSend(params, token);
       setSendResult(data);
       toast({
-        title: `Broadcast envoyé`,
+        title: "Broadcast envoyé",
         description: `${data.sent} envoyés, ${data.skipped} ignorés (opt-out).`,
       });
     } catch (err: any) {
@@ -209,20 +209,16 @@ export default function AdminBroadcast() {
         <div>
           <h1 className="text-2xl font-bold">Broadcast Email</h1>
           <p className="text-muted-foreground text-sm mt-1">
-            Envoyer un email à un segment d'utilisateurs. Seuls les users avec marketing opt-in recevront l'email.
+            Envoyer un email à un segment d’utilisateurs. Seuls les users avec marketing opt-in recevront l’email.
           </p>
         </div>
 
-        {/* Segment + audience */}
         <div className="rounded-lg border bg-card p-5 space-y-4">
           <h2 className="font-semibold">Destinataires</h2>
           <div className="space-y-2">
             <Label>Segment</Label>
             <div className="flex gap-2 items-center">
-              <Select
-                value={form.segment}
-                onValueChange={handleSegmentChange}
-              >
+              <Select value={form.segment} onValueChange={handleSegmentChange}>
                 <SelectTrigger className="w-64">
                   <SelectValue />
                 </SelectTrigger>
@@ -252,7 +248,7 @@ export default function AdminBroadcast() {
                 <span><strong>{audienceInfo.total}</strong> users dans ce segment</span>
               </div>
               <div className="text-green-600 font-medium">
-                <strong>{audienceInfo.eligible}</strong> recevront l'email (opt-in)
+                <strong>{audienceInfo.eligible}</strong> recevront l’email (opt-in)
               </div>
               {audienceInfo.total - audienceInfo.eligible > 0 && (
                 <div className="text-muted-foreground">
@@ -263,7 +259,6 @@ export default function AdminBroadcast() {
           )}
         </div>
 
-        {/* Email content */}
         <div className="rounded-lg border bg-card p-5 space-y-4">
           <h2 className="font-semibold">Contenu</h2>
 
@@ -271,7 +266,7 @@ export default function AdminBroadcast() {
             <div className="space-y-1.5">
               <Label>Badge <span className="text-muted-foreground">(optionnel)</span></Label>
               <Input
-                placeholder="ex: Nouvelle fonctionnalité"
+                placeholder="ex: Offre personnelle"
                 value={form.badge}
                 onChange={(e) => setForm((f) => ({ ...f, badge: e.target.value }))}
               />
@@ -279,7 +274,7 @@ export default function AdminBroadcast() {
             <div className="space-y-1.5">
               <Label>Sujet *</Label>
               <Input
-                placeholder="Sujet de l'email"
+                placeholder="Sujet de l’email"
                 value={form.title}
                 onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
               />
@@ -289,7 +284,7 @@ export default function AdminBroadcast() {
           <div className="space-y-1.5">
             <Label>Intro (hero sous-titre) *</Label>
             <Input
-              placeholder="Une phrase courte visible dans le header de l'email"
+              placeholder="Une phrase courte visible dans le header de l’email"
               value={form.intro}
               onChange={(e) => setForm((f) => ({ ...f, intro: e.target.value }))}
             />
@@ -342,7 +337,6 @@ export default function AdminBroadcast() {
           </div>
         </div>
 
-        {/* Actions */}
         <div className="flex gap-3">
           <Button variant="outline" onClick={handlePreview} disabled={previewLoading}>
             {previewLoading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Eye className="h-4 w-4 mr-2" />}
@@ -365,9 +359,9 @@ export default function AdminBroadcast() {
             </AlertDialogTrigger>
             <AlertDialogContent>
               <AlertDialogHeader>
-                <AlertDialogTitle>Confirmer l'envoi broadcast</AlertDialogTitle>
+                <AlertDialogTitle>Confirmer l’envoi broadcast</AlertDialogTitle>
                 <AlertDialogDescription>
-                  Vous êtes sur le point d'envoyer cet email à{" "}
+                  Vous êtes sur le point d’envoyer cet email à{" "}
                   <strong>{audienceInfo?.eligible}</strong> utilisateurs (segment :{" "}
                   <strong>{SEGMENTS.find((s) => s.value === form.segment)?.label}</strong>).
                   <br /><br />
@@ -384,7 +378,6 @@ export default function AdminBroadcast() {
           </AlertDialog>
         </div>
 
-        {/* Send result */}
         {sendResult && (
           <div className="rounded-lg border bg-card p-5 space-y-2">
             <h2 className="font-semibold text-green-600">Broadcast terminé</h2>
@@ -397,7 +390,7 @@ export default function AdminBroadcast() {
                 <p className="text-sm font-medium text-destructive">{sendResult.errors.length} erreurs :</p>
                 <ul className="text-xs text-muted-foreground mt-1 space-y-0.5">
                   {sendResult.errors.map((e) => (
-                    <li key={e.email}>{e.email} — {e.error}</li>
+                    <li key={e.email}>{e.email} - {e.error}</li>
                   ))}
                 </ul>
               </div>
@@ -405,11 +398,10 @@ export default function AdminBroadcast() {
           </div>
         )}
 
-        {/* Preview iframe */}
         {preview && (
           <div className="rounded-lg border overflow-hidden">
             <div className="bg-muted px-4 py-2 text-sm font-medium border-b">
-              Preview — {preview.subject}
+              Preview - {preview.subject}
             </div>
             <iframe
               srcDoc={preview.html}

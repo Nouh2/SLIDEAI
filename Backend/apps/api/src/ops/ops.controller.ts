@@ -131,7 +131,17 @@ export class OpsController {
   @Get('/broadcast/users')
   @UseGuards(SupabaseGuard, OpsAdminGuard)
   broadcastGetUsers(@Query('segment') segment: string) {
-    const validSegments = ['all', 'trialing', 'trial_expired', 'legacy_free', 'paid'];
+    const validSegments = [
+      'all',
+      'trialing',
+      'trial_expired',
+      'trial_expired_very_hot',
+      'trial_expired_hot',
+      'trial_expired_warm',
+      'trial_expired_cold',
+      'legacy_free',
+      'paid',
+    ];
     const seg = validSegments.includes(segment) ? segment : 'all';
     return this.opsService.broadcastGetUsers(seg as any);
   }

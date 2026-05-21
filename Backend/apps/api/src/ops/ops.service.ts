@@ -21,6 +21,18 @@ import Stripe from 'stripe';
 const DAY_MS = 24 * 60 * 60 * 1000;
 
 type TemplateMode = 'draft' | 'live';
+type BroadcastSegment =
+  | 'all'
+  | 'trialing'
+  | 'trial_expired'
+  | 'trial_expired_very_hot'
+  | 'trial_expired_hot'
+  | 'trial_expired_warm'
+  | 'trial_expired_cold'
+  | 'legacy_free'
+  | 'paid';
+
+type BroadcastUser = { id: string; email: string };
 
 const PRODUCT_FUNNEL_STAGES = [
   { eventName: 'trial_started', label: 'Essai demarre' },
@@ -1267,13 +1279,8 @@ export class OpsService {
     return `${baseUrl.replace(/\/$/, '')}/v1/ops/unsubscribe/${preference.unsubscribeToken}`;
   }
 
-  async broadcastGetUsers(segment: 'all' | 'trialing' | 'trial_expired' | 'legacy_free' | 'paid') {
-    const where = this.broadcastSegmentWhere(segment);
-    const users = await this.prisma.user.findMany({
-      where,
-      select: { id: true, email: true },
-      orderBy: { createdAt: 'asc' },
-    });
+  async broadcastGetUsers(segment: BroadcastSegment) {
+    const users = await this.findBroadcastUsers(segment);
 
     const optedIn = await Promise.all(
       users.map(async (user) => {
@@ -1300,17 +1307,12 @@ export class OpsService {
 
   async broadcastSend(
     params: Omit<BroadcastEmailParams, 'unsubscribeUrl' | 'footerReason'> & {
-      segment: 'all' | 'trialing' | 'trial_expired' | 'legacy_free' | 'paid';
+      segment: BroadcastSegment;
     },
     adminEmail: string,
   ) {
     const { segment, ...emailParams } = params;
-    const where = this.broadcastSegmentWhere(segment);
-
-    const users = await this.prisma.user.findMany({
-      where,
-      select: { id: true, email: true },
-    });
+    const users = await this.findBroadcastUsers(segment);
 
     const broadcastId = `broadcast_${Date.now()}`;
     const now = new Date();
@@ -1383,7 +1385,72 @@ export class OpsService {
     return { broadcastId, segment, total: users.length, sent, skipped, errors };
   }
 
-  private broadcastSegmentWhere(segment: 'all' | 'trialing' | 'trial_expired' | 'legacy_free' | 'paid') {
+  private async findBroadcastUsers(segment: BroadcastSegment): Promise<BroadcastUser[]> {
+    if (segment === 'trial_expired_very_hot') {
+      return this.prisma.$queryRaw<BroadcastUser[]>`
+        SELECT u.id, u.email
+        FROM "User" u
+        JOIN "Subscription" s ON s."userId" = u.id
+        LEFT JOIN presentations p ON p.user_id = u.id
+        WHERE s.status = 'trial_expired'
+          AND u.email NOT ILIKE 'noe%'
+        GROUP BY u.id, u.email
+        HAVING COUNT(p.id) >= 5
+        ORDER BY COUNT(p.id) DESC, MIN(u."createdAt") ASC
+      `;
+    }
+
+    if (segment === 'trial_expired_hot') {
+      return this.prisma.$queryRaw<BroadcastUser[]>`
+        SELECT u.id, u.email
+        FROM "User" u
+        JOIN "Subscription" s ON s."userId" = u.id
+        LEFT JOIN presentations p ON p.user_id = u.id
+        WHERE s.status = 'trial_expired'
+          AND u.email NOT ILIKE 'noe%'
+        GROUP BY u.id, u.email
+        HAVING COUNT(p.id) BETWEEN 2 AND 4
+        ORDER BY COUNT(p.id) DESC, MIN(u."createdAt") ASC
+      `;
+    }
+
+    if (segment === 'trial_expired_warm') {
+      return this.prisma.$queryRaw<BroadcastUser[]>`
+        SELECT u.id, u.email
+        FROM "User" u
+        JOIN "Subscription" s ON s."userId" = u.id
+        LEFT JOIN presentations p ON p.user_id = u.id
+        WHERE s.status = 'trial_expired'
+          AND u.email NOT ILIKE 'noe%'
+        GROUP BY u.id, u.email
+        HAVING COUNT(p.id) = 1
+        ORDER BY MIN(u."createdAt") ASC
+      `;
+    }
+
+    if (segment === 'trial_expired_cold') {
+      return this.prisma.$queryRaw<BroadcastUser[]>`
+        SELECT u.id, u.email
+        FROM "User" u
+        JOIN "Subscription" s ON s."userId" = u.id
+        LEFT JOIN presentations p ON p.user_id = u.id
+        WHERE s.status = 'trial_expired'
+          AND u.email NOT ILIKE 'noe%'
+        GROUP BY u.id, u.email
+        HAVING COUNT(p.id) = 0
+        ORDER BY MIN(u."createdAt") ASC
+      `;
+    }
+
+    const where = this.broadcastSegmentWhere(segment);
+    return this.prisma.user.findMany({
+      where,
+      select: { id: true, email: true },
+      orderBy: { createdAt: 'asc' },
+    });
+  }
+
+  private broadcastSegmentWhere(segment: BroadcastSegment) {
     if (segment === 'all') return {};
 
     if (segment === 'trialing') {

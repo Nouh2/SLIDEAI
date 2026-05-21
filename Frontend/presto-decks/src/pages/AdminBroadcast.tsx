@@ -27,6 +27,10 @@ import {
 import { Loader2, Eye, Send, Users, RefreshCw } from "lucide-react";
 
 const SEGMENTS = [
+  { value: "trial_expired_very_hot", label: "Very hot - essai expire + 5 decks" },
+  { value: "trial_expired_hot", label: "Hot - essai expire + 2-4 decks" },
+  { value: "trial_expired_warm", label: "Warm - essai expire + 1 deck" },
+  { value: "trial_expired_cold", label: "Cold - essai expire + 0 deck" },
   { value: "all", label: "Tous les utilisateurs" },
   { value: "trialing", label: "En essai Pro (trialing)" },
   { value: "trial_expired", label: "Essai expiré (trial_expired)" },
@@ -34,7 +38,9 @@ const SEGMENTS = [
   { value: "paid", label: "Abonnés payants" },
 ] as const;
 
-const APP_URL = import.meta.env.VITE_APP_URL || "https://app.slideai.fr";
+const APP_URL = import.meta.env.VITE_APP_URL || "https://www.slideai.fr";
+const PRO_INTRO_URL = `${APP_URL}/pricing?checkout=pro_intro&utm_source=email&utm_medium=lifecycle&utm_campaign=trial_expired_reactivation`;
+const CREATE_URL = `${APP_URL}/create?utm_source=email&utm_medium=lifecycle&utm_campaign=trial_expired_reactivation`;
 
 const DEFAULT_FORM = {
   segment: "all" as string,
@@ -46,6 +52,53 @@ const DEFAULT_FORM = {
   ctaLabel: "Ouvrir SlideAI",
   ctaUrl: APP_URL,
   note: "",
+};
+
+const SEGMENT_DEFAULTS: Record<string, Partial<typeof DEFAULT_FORM>> = {
+  trial_expired_very_hot: {
+    badge: "Message de Noe",
+    title: "J'ai vu que vous utilisez SlideAI serieusement",
+    intro: "Vous avez cree plusieurs presentations. Je voulais vous ecrire directement.",
+    body:
+      "Bonjour,\n\nJe suis Noe, le fondateur de SlideAI.\n\nJ'ai vu que vous avez cree plusieurs presentations avec l'outil. Ce n'est pas anodin : la plupart des gens essaient une fois et s'arretent.\n\nVotre essai vient d'expirer. Avant de vous laisser partir, je voulais vous poser une question directe : qu'est-ce qui vous a bloque pour passer a l'abonnement ?\n\nSi c'est le prix, j'ai laisse l'offre de lancement active : le premier mois est a 9,90 EUR, puis 19,90 EUR/mois, sans engagement.\n\nSi c'est autre chose, repondez directement a cet email. Je lis tout.",
+    bullets: "",
+    ctaLabel: "Continuer avec SlideAI - 9,90 EUR",
+    ctaUrl: PRO_INTRO_URL,
+    note: "Sans engagement. Annulation possible a tout moment.",
+  },
+  trial_expired_hot: {
+    badge: "Votre essai SlideAI",
+    title: "Votre essai SlideAI est termine - une question",
+    intro: "Vous avez cree plusieurs presentations. J'aimerais comprendre ce qui vous a freine.",
+    body:
+      "Bonjour,\n\nVotre essai gratuit SlideAI est termine.\n\nVous avez cree des presentations pendant votre essai, donc le produit a fonctionne pour vous au moins une fois.\n\nJ'aimerais comprendre ce qui s'est passe ensuite. Est-ce que c'etait le prix, l'export PPTX, un besoin pas assez urgent, ou autre chose ?\n\nUne reponse directe m'aide a ameliorer le produit.\n\nEt si c'est le prix qui bloque : le premier mois est a 9,90 EUR, puis 19,90 EUR/mois, sans engagement.",
+    bullets: "",
+    ctaLabel: "Reprendre SlideAI a 9,90 EUR",
+    ctaUrl: PRO_INTRO_URL,
+    note: "Vous pouvez aussi repondre directement a cet email.",
+  },
+  trial_expired_warm: {
+    badge: "Votre deck SlideAI",
+    title: "Vous avez cree un deck avec SlideAI",
+    intro: "Si vous avez une presentation a faire cette semaine, vous pouvez reprendre la ou vous en etiez.",
+    body:
+      "Bonjour,\n\nVous avez teste SlideAI et cree une premiere presentation.\n\nSi l'outil vous a aide a partir plus vite d'une page blanche, le plus simple est de le reutiliser sur un vrai livrable.\n\nL'offre de lancement est toujours disponible : 9,90 EUR le premier mois, puis 19,90 EUR/mois, sans engagement.",
+    bullets: "Generations illimitees\nExport PPTX et PDF\nBrand Kit et support prioritaire",
+    ctaLabel: "Reprendre mon workflow",
+    ctaUrl: PRO_INTRO_URL,
+    note: "Annulation possible a tout moment.",
+  },
+  trial_expired_cold: {
+    badge: "Essai SlideAI",
+    title: "Vous n'avez pas encore vraiment essaye SlideAI",
+    intro: "Votre compte existe, mais vous n'avez pas encore genere de presentation.",
+    body:
+      "Bonjour,\n\nVous avez cree un compte SlideAI, mais vous n'avez jamais lance de vraie generation.\n\nSi vous avez une presentation a produire cette semaine, le test le plus rapide est simple : ouvrez SlideAI, decrivez votre sujet en quelques lignes, puis laissez l'IA preparer une premiere base.\n\nPas besoin de preparer un prompt parfait.",
+    bullets: "Brief simple ou document importe\nPremiere structure en moins d'une minute\nExport une fois le deck finalise",
+    ctaLabel: "Generer ma premiere presentation",
+    ctaUrl: CREATE_URL,
+    note: "Le meilleur test est un vrai livrable, pas une demo vide.",
+  },
 };
 
 export default function AdminBroadcast() {
@@ -88,6 +141,15 @@ export default function AdminBroadcast() {
   useEffect(() => {
     loadAudience(form.segment);
   }, [form.segment]);
+
+  const handleSegmentChange = (segment: string) => {
+    const defaults = SEGMENT_DEFAULTS[segment] || {};
+    setForm((current) => ({
+      ...current,
+      segment,
+      ...defaults,
+    }));
+  };
 
   const buildParams = () => ({
     segment: form.segment,
@@ -159,7 +221,7 @@ export default function AdminBroadcast() {
             <div className="flex gap-2 items-center">
               <Select
                 value={form.segment}
-                onValueChange={(v) => setForm((f) => ({ ...f, segment: v }))}
+                onValueChange={handleSegmentChange}
               >
                 <SelectTrigger className="w-64">
                   <SelectValue />

@@ -484,7 +484,7 @@ export default function Pricing() {
         {/* ══════════════════════════════════════════════
             SECTION 1 — PACKS (primary, project-based)
         ══════════════════════════════════════════════ */}
-        <section>
+        <section id="packs">
           <div className="text-center mb-10 space-y-2">
             <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
               {t("pricing.packsSectionBadge")}
@@ -592,7 +592,7 @@ export default function Pricing() {
         {/* ══════════════════════════════════════════════
             SECTION 2 — ABONNEMENTS (Pro + Business)
         ══════════════════════════════════════════════ */}
-        <section>
+        <section id="abonnement">
           <div className="text-center mb-10 space-y-2">
             <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
               {t("pricing.subscriptionSectionBadge")}

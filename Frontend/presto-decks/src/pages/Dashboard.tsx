@@ -492,7 +492,7 @@ export default function Dashboard() {
       )}
 
       {isExpiredTrial && (
-        <div className="rounded-2xl border border-primary/30 bg-primary/5 px-5 py-4 flex flex-col sm:flex-row sm:items-center gap-4">
+        <div className="rounded-2xl border border-primary/30 bg-primary/5 px-5 py-5 flex flex-col lg:flex-row lg:items-center gap-4">
           <div className="flex-1 space-y-1">
             <p className="text-sm font-bold text-foreground">
               {i18n.language.startsWith("fr")
@@ -505,13 +505,22 @@ export default function Dashboard() {
                 : "To generate, export, or continue your workflow, get a Mission Pack for €19 or upgrade to Pro."}
             </p>
           </div>
-          <Button size="sm" variant="solid" asChild className="shrink-0">
-            <Link to="/pricing">
-              <Sparkles className="mr-1.5 h-4 w-4" />
-              {i18n.language.startsWith("fr") ? "Voir les packs" : "See packs"}
-              <ArrowRight className="ml-1.5 h-4 w-4" />
-            </Link>
-          </Button>
+          <div className="flex flex-col sm:flex-row gap-2 shrink-0">
+            <Button size="sm" variant="solid" asChild>
+              <Link to="/pricing?checkout=pro_intro">
+                <Sparkles className="mr-1.5 h-4 w-4" />
+                {i18n.language.startsWith("fr") ? "Continuer a 9,90 EUR" : "Continue for EUR9.90"}
+                <ArrowRight className="ml-1.5 h-4 w-4" />
+              </Link>
+            </Button>
+            <Button size="sm" variant="outline" asChild>
+              <Link to="/pricing#packs">
+                <Sparkles className="mr-1.5 h-4 w-4" />
+                {i18n.language.startsWith("fr") ? "Voir les packs" : "See packs"}
+                <ArrowRight className="ml-1.5 h-4 w-4" />
+              </Link>
+            </Button>
+          </div>
         </div>
       )}
 

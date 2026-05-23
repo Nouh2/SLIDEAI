@@ -77,6 +77,7 @@ const PRODUCT_EVENT_NAMES = new Set([
     "paywall_cta_click",
     "paywall_dismiss",
     "blog_cta_click",
+    "demo_requested",
     "begin_checkout",
     "purchase",
 ]);

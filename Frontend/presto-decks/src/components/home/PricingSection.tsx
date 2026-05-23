@@ -34,8 +34,8 @@ const TIERS: Tier[] = [
     id: "pro",
     name: { fr: "Pro", en: "Pro" },
     tagline: {
-      fr: "Pour les équipes qui veulent leur identité de marque et un livrable premium.",
-      en: "For teams who want their brand identity and a premium deliverable.",
+      fr: "Pour les consultants, freelances et solos qui livrent des présentations clients.",
+      en: "For consultants, freelancers and solo operators shipping client presentations.",
     },
     price: { display: "9,90€", period: { fr: "/mois", en: "/mo" } },
     priceNote: {
@@ -61,35 +61,38 @@ const TIERS: Tier[] = [
       ],
     },
     cta: { fr: "Commencer à 9,90€", en: "Start at 9.90€" },
-    highlight: true,
+    highlight: false,
   },
   {
     id: "team",
     name: { fr: "Team", en: "Team" },
     tagline: {
-      fr: "Pour cabinets, agences et équipes qui partagent un workspace.",
-      en: "For firms, agencies and teams sharing a workspace.",
+      fr: "Pour agences marketing et équipes qui produisent des decks clients chaque semaine.",
+      en: "For marketing agencies and teams shipping client decks every week.",
     },
-    price: { display: "29€", period: { fr: "/mois", en: "/mo" } },
+    price: { display: "89€", period: { fr: "/mois", en: "/mo" } },
     priceNote: {
-      fr: "Facturé mensuellement, minimum 3 sièges",
-      en: "Billed monthly, 3 seats minimum",
+      fr: "3 sièges inclus, puis 29€/siège",
+      en: "3 seats included, then 29€/seat",
     },
     features: {
       fr: [
         "Toutes les fonctionnalités Pro",
         "Workspace d'équipe partagé",
+        "Brand kits clients partagés",
         "Gestion des membres",
         "Facturation centralisée",
       ],
       en: [
         "Everything in Pro",
         "Shared team workspace",
+        "Shared client brand kits",
         "Member management",
         "Centralized billing",
       ],
     },
-    cta: { fr: "Contacter les ventes", en: "Contact sales" },
+    cta: { fr: "Réserver une démo", en: "Book a demo" },
+    highlight: true,
     contactSales: true,
   },
 ];
@@ -132,7 +135,18 @@ export function PricingSection() {
       `Landing Pricing - ${tier.id}`
     );
     if (tier.contactSales) {
-      navigate("/contact");
+      Analytics.trackGaEvent("demo_requested", {
+        plan: "team",
+        surface: "landing_pricing",
+        seats_included: 3,
+        value: 89,
+        currency: "EUR",
+      });
+      const subject = encodeURIComponent("Démo Team SlideAI");
+      const body = encodeURIComponent(
+        "Bonjour,\n\nJe souhaite réserver une démo de SlideAI Team pour mon agence / équipe.\n\nTaille de l'équipe :\nNombre de présentations par semaine :\n"
+      );
+      window.location.href = `mailto:contact@slideai.fr?subject=${subject}&body=${body}`;
       return;
     }
     navigate(`/pricing?plan=${tier.id}`);

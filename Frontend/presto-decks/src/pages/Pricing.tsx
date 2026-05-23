@@ -166,7 +166,20 @@ export default function Pricing() {
   const handleSubscribe = async (planKey: "pro" | "business") => {
     Analytics.trackEvent(ANALYTICS_EVENTS.ECOMMERCE.CATEGORY, ANALYTICS_EVENTS.ECOMMERCE.SELECT_PLAN, planKey);
     if (planKey === "business") {
-      window.location.href = "mailto:contact@slideai.fr";
+      Analytics.trackGaEvent("demo_requested", {
+        plan: "team",
+        surface: "pricing_card",
+        seats_included: 3,
+        value: billingCycle === "yearly" ? 864 : 89,
+        currency: "EUR",
+        billing_cycle: billingCycle,
+        attribution,
+      });
+      const subject = encodeURIComponent("Démo Team SlideAI");
+      const body = encodeURIComponent(
+        "Bonjour,\n\nJe souhaite réserver une démo de SlideAI Team pour mon agence / équipe.\n\nTaille de l'équipe :\nNombre de présentations par semaine :\n"
+      );
+      window.location.href = `mailto:contact@slideai.fr?subject=${subject}&body=${body}`;
       return;
     }
     setLoadingPlan(planKey);
@@ -330,7 +343,7 @@ export default function Pricing() {
   const canShowTrialCta = !authLoading && (!user || (!subscriptionLoading && Boolean(subscription?.canStartTrial)));
 
   const proPrice = billingCycle === "yearly" ? "14€" : "9,90€";
-  const businessPrice = billingCycle === "yearly" ? "24€" : "29€";
+  const businessPrice = billingCycle === "yearly" ? "72€" : "89€";
   const comparisonPlans = [
     { key: "trial", name: t("pricing.comparison.plans.trial.name"), detail: t("pricing.comparison.plans.trial.detail") },
     { key: "mission", name: t("pricing.packMission.name"), detail: "19€" },
@@ -638,11 +651,11 @@ export default function Pricing() {
 
           <div className="grid md:grid-cols-2 gap-6 max-w-3xl mx-auto">
             {/* Pro */}
-            <Card className="relative border-primary/50 rounded-2xl shadow-glow">
+            <Card className="relative border-border/50 rounded-2xl transition-all hover:border-primary/20">
               <div className="absolute -top-4 left-1/2 -translate-x-1/2 z-10">
-                <div className="flex items-center gap-1.5 rounded-full bg-gradient-to-r from-primary to-blue-500 px-4 py-1.5 text-xs font-bold text-white shadow-lg">
+                <div className="flex items-center gap-1.5 rounded-full bg-background border border-border px-4 py-1.5 text-xs font-bold text-muted-foreground shadow-sm">
                   <Sparkles className="h-3.5 w-3.5" />
-                  {t("pricing.mostPopular")}
+                  {t("pricing.soloBadge", { defaultValue: "Solo" })}
                 </div>
               </div>
               <CardHeader className="pb-2 pt-8 text-center">
@@ -732,10 +745,13 @@ export default function Pricing() {
             </Card>
 
             {/* Business / Team */}
-            <Card className="relative border-border/50 rounded-2xl hover:border-primary/20 transition-all">
+            <Card className="relative border-primary/60 rounded-2xl shadow-glow">
               <CardHeader className="pb-2 pt-8 text-center">
-                <div className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-2">
-                  {t("pricing.plans.business.badge")}
+                <div className="absolute -top-4 left-1/2 -translate-x-1/2 z-10">
+                  <div className="flex items-center gap-1.5 rounded-full bg-gradient-to-r from-primary to-blue-500 px-4 py-1.5 text-xs font-bold text-white shadow-lg">
+                    <Sparkles className="h-3.5 w-3.5" />
+                    {t("pricing.plans.business.badge")}
+                  </div>
                 </div>
                 <CardTitle className="text-2xl">{t("pricing.plans.business.name")}</CardTitle>
                 <p className="text-muted-foreground text-sm mt-1">{t("pricing.plans.business.description")}</p>
@@ -758,8 +774,7 @@ export default function Pricing() {
                   </Button>
                 ) : (
                   <Button
-                    variant="outline"
-                    className="w-full rounded-xl font-bold h-12"
+                    className="w-full rounded-xl font-bold h-12 shadow-lg shadow-primary/20"
                     onClick={() => handleSubscribe("business")}
                   >
                     {t("pricing.contactSales")}
@@ -770,6 +785,7 @@ export default function Pricing() {
                   {[
                     t("pricing.plans.business.features.allPro"),
                     t("pricing.plans.business.features.workspace"),
+                    t("pricing.plans.business.features.sharedBrandKits"),
                     t("pricing.plans.business.features.members"),
                     t("pricing.plans.business.features.billing"),
                   ].map((f, i) => (

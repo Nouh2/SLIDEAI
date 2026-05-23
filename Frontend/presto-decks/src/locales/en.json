@@ -1270,7 +1270,7 @@
     "tryFree": "Start launch offer",
     "startIntroOffer": "Start for 9.90€",
     "startTrialSecondary": "Try free for 7 days",
-    "contactSales": "Contact Sales",
+    "contactSales": "Book a demo",
     "unsubscribe": "Unsubscribe",
     "included": "Included",
     "creditUsage": "Credits are used to generate presentations with AI.",
@@ -1285,8 +1285,8 @@
     "introOrTrialLine": "Choose the 9.90€ offer now, or try free for 7 days with no card.",
     "introComparisonDetail": "9.90€ first month",
     "proYearlyComparisonDetail": "14€/mo",
-    "businessMonthlyComparisonDetail": "29€/mo",
-    "businessYearlyComparisonDetail": "24€/mo",
+    "businessMonthlyComparisonDetail": "89€/mo team",
+    "businessYearlyComparisonDetail": "72€/mo team",
     "trialStarted": "Your 7-day Pro trial is now active.",
     "continueTrial": "Continue trial",
     "choosePro": "Choose Pro",
@@ -1350,7 +1350,7 @@
       },
       "pro": {
         "name": "Pro",
-        "description": "For teams that need brand control and premium deliverables.",
+        "description": "For consultants, freelancers and solo operators shipping client deliverables.",
         "features": {
           "unlimitedGen": "Unlimited Generation",
           "pdfImport": "PDF to PowerPoint (Pro)",
@@ -1362,13 +1362,14 @@
       },
       "business": {
         "name": "Team",
-        "description": "For agencies and teams sharing one workspace.",
-        "badge": "Sales assisted",
-        "billingNote": "Billed yearly, 3-seat minimum",
-        "billingNoteMonthly": "Billed monthly, 3-seat minimum",
+        "description": "For marketing agencies and teams shipping multiple client presentations every week.",
+        "badge": "Agency offer",
+        "billingNote": "3 seats included • billed at 864€/year",
+        "billingNoteMonthly": "3 seats included • additional seats at 29€/mo",
         "features": {
           "allPro": "All Pro features",
           "workspace": "Shared team workspace",
+          "sharedBrandKits": "Shared client brand kits for the team",
           "members": "Member management",
           "billing": "Centralized billing"
         }
@@ -1433,9 +1434,9 @@
       "cta": "Buy this pack"
     },
     "packOneShot": "One-time payment • No subscription",
-    "subscriptionSectionBadge": "Regular usage",
-    "subscriptionTitle": "Subscriptions",
-    "subscriptionSubtitle": "Start at 9.90€ for the first month, then 19.90€/mo for regular usage.",
+    "subscriptionSectionBadge": "Client-ready offers",
+    "subscriptionTitle": "Pro for solo, Team for agencies.",
+    "subscriptionSubtitle": "Team includes 3 seats, a shared workspace and client brand kits for team presentation production.",
     "comparison": {
       "badge": "Comparison",
       "title": "Compare access",

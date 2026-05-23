@@ -167,24 +167,17 @@ export function BrandKitManager({ onSelect, selectedId, mode = 'manage' }: Brand
 
     const fetchBrandKits = async () => {
         try {
-            const { data: { user } } = await supabase.auth.getUser();
-            if (!user) return;
-
-            const { data, error } = await supabase
-                .from('brand_kits')
-                .select('*')
-                .eq('user_id', user.id)
-                .order('created_at', { ascending: false });
-
-            if (error) {
-                console.error('Error fetching brand kits:', error);
-                // Table might not exist yet - that's OK
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!session) {
                 setBrandKits([]);
-            } else {
-                setBrandKits(data || []);
+                return;
             }
+
+            const data = await api.listBrandKits(session.access_token);
+            setBrandKits(data || []);
         } catch (e) {
             console.error('Error:', e);
+            setBrandKits([]);
         } finally {
             setIsLoading(false);
         }
@@ -199,51 +192,15 @@ export function BrandKitManager({ onSelect, selectedId, mode = 'manage' }: Brand
         setIsSaving(true);
 
         try {
-            const { data: { user } } = await supabase.auth.getUser();
-            if (!user) throw new Error(t('brand.sessionExpired'));
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!session) throw new Error(t('brand.sessionExpired'));
 
             if (editingKit) {
-                // Update existing
-                const { error } = await supabase
-                    .from('brand_kits')
-                    .update({
-                        name: formData.name,
-                        colors: formData.colors,
-                        fonts: formData.fonts,
-                        logo_url: formData.logo_url,
-                        template_overlay: formData.template_overlay,
-                        is_default: formData.is_default,
-                        updated_at: new Date().toISOString(),
-                    })
-                    .eq('id', editingKit.id);
-
-                if (error) throw error;
+                await api.updateBrandKit(editingKit.id, formData, session.access_token);
                 toast({ title: t('brand.kitUpdated'), description: t('brand.saveSuccessUpdate') });
             } else {
-                // Create new
-                const { error } = await supabase
-                    .from('brand_kits')
-                    .insert({
-                        user_id: user.id,
-                        name: formData.name,
-                        colors: formData.colors,
-                        fonts: formData.fonts,
-                        logo_url: formData.logo_url,
-                        template_overlay: formData.template_overlay,
-                        is_default: formData.is_default,
-                    });
-
-                if (error) throw error;
+                await api.createBrandKit(formData, session.access_token);
                 toast({ title: t('brand.kitCreated'), description: t('brand.saveSuccessCreate') });
-            }
-
-            // If setting as default, unset others
-            if (formData.is_default) {
-                await supabase
-                    .from('brand_kits')
-                    .update({ is_default: false })
-                    .neq('id', editingKit?.id || '')
-                    .eq('user_id', user.id);
             }
 
             setIsDialogOpen(false);
@@ -262,12 +219,10 @@ export function BrandKitManager({ onSelect, selectedId, mode = 'manage' }: Brand
         if (!confirm(t('brand.deleteConfirm', { name: kit.name }))) return;
 
         try {
-            const { error } = await supabase
-                .from('brand_kits')
-                .delete()
-                .eq('id', kit.id);
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!session) throw new Error(t('brand.sessionExpired'));
 
-            if (error) throw error;
+            await api.deleteBrandKit(kit.id, session.access_token);
             toast({ title: t('brand.deleted'), description: t('brand.deleteSuccess') });
             fetchBrandKits();
         } catch (e: any) {

@@ -1,11 +1,109 @@
-import { Controller, Post, UseGuards, BadRequestException, Req } from '@nestjs/common';
+import {
+    BadRequestException,
+    Body,
+    Controller,
+    Delete,
+    ForbiddenException,
+    Get,
+    NotFoundException,
+    Param,
+    Post,
+    Put,
+    Req,
+    UseGuards,
+} from '@nestjs/common';
 import { SupabaseGuard } from '../auth/supabase.guard.js';
+import { PrismaService } from '../prisma.service.js';
 import AdmZip from 'adm-zip';
 import { FastifyRequest } from 'fastify';
+
+type BrandKitBody = {
+    name?: string;
+    colors?: Record<string, string>;
+    fonts?: Record<string, string>;
+    logo_url?: string | null;
+    template_overlay?: Record<string, any> | null;
+    is_default?: boolean;
+};
 
 @Controller('/v1/brand')
 @UseGuards(SupabaseGuard)
 export class BrandController {
+    constructor(private readonly prisma: PrismaService) {}
+
+    @Get('/kits')
+    async listBrandKits(@Req() req: FastifyRequest & { user: any }) {
+        return this.prisma.brand_kits.findMany({
+            where: this.buildScopeWhere(req.user),
+            orderBy: [
+                { is_default: 'desc' },
+                { created_at: 'desc' },
+            ],
+        });
+    }
+
+    @Post('/kits')
+    async createBrandKit(
+        @Req() req: FastifyRequest & { user: any },
+        @Body() body: BrandKitBody,
+    ) {
+        this.validateBrandKitBody(body);
+        const orgId = req.user.org_id ?? null;
+
+        if (body.is_default) {
+            await this.clearDefaultInScope(req.user);
+        }
+
+        return this.prisma.brand_kits.create({
+            data: {
+                user_id: req.user.sub,
+                org_id: orgId,
+                name: body.name!.trim(),
+                colors: body.colors!,
+                fonts: body.fonts!,
+                logo_url: body.logo_url || null,
+                template_overlay: body.template_overlay || {},
+                is_default: Boolean(body.is_default),
+            },
+        });
+    }
+
+    @Put('/kits/:id')
+    async updateBrandKit(
+        @Req() req: FastifyRequest & { user: any },
+        @Param('id') id: string,
+        @Body() body: BrandKitBody,
+    ) {
+        this.validateBrandKitBody(body);
+        await this.ensureBrandKitAccess(id, req.user);
+
+        if (body.is_default) {
+            await this.clearDefaultInScope(req.user, id);
+        }
+
+        return this.prisma.brand_kits.update({
+            where: { id },
+            data: {
+                name: body.name!.trim(),
+                colors: body.colors!,
+                fonts: body.fonts!,
+                logo_url: body.logo_url || null,
+                template_overlay: body.template_overlay || {},
+                is_default: Boolean(body.is_default),
+                updated_at: new Date(),
+            },
+        });
+    }
+
+    @Delete('/kits/:id')
+    async deleteBrandKit(
+        @Req() req: FastifyRequest & { user: any },
+        @Param('id') id: string,
+    ) {
+        await this.ensureBrandKitAccess(id, req.user);
+        await this.prisma.brand_kits.delete({ where: { id } });
+        return { success: true };
+    }
 
     @Post('/extract-theme')
     async extractTheme(@Req() req: FastifyRequest) {
@@ -267,5 +365,61 @@ export class BrandController {
         b = temp;
 
         return '#' + [r, g, b].map(c => c.toString(16).padStart(2, '0')).join('');
+    }
+
+    private buildScopeWhere(user: any) {
+        if (user.org_id) {
+            return { org_id: user.org_id };
+        }
+
+        return {
+            user_id: user.sub,
+            org_id: null,
+        };
+    }
+
+    private async clearDefaultInScope(user: any, exceptId?: string) {
+        await this.prisma.brand_kits.updateMany({
+            where: {
+                ...this.buildScopeWhere(user),
+                ...(exceptId ? { id: { not: exceptId } } : {}),
+            },
+            data: { is_default: false },
+        });
+    }
+
+    private async ensureBrandKitAccess(id: string, user: any) {
+        const kit = await this.prisma.brand_kits.findUnique({ where: { id } });
+
+        if (!kit) {
+            throw new NotFoundException('Brand kit introuvable');
+        }
+
+        if (kit.org_id) {
+            if (kit.org_id !== user.org_id) {
+                throw new ForbiddenException("Ce brand kit appartient a un autre workspace.");
+            }
+            return kit;
+        }
+
+        if (kit.user_id !== user.sub || user.org_id) {
+            throw new ForbiddenException("Vous ne pouvez pas modifier ce brand kit.");
+        }
+
+        return kit;
+    }
+
+    private validateBrandKitBody(body: BrandKitBody) {
+        if (!body?.name?.trim()) {
+            throw new BadRequestException('Le nom du brand kit est requis.');
+        }
+
+        if (!body.colors || typeof body.colors !== 'object') {
+            throw new BadRequestException('Les couleurs du brand kit sont requises.');
+        }
+
+        if (!body.fonts || typeof body.fonts !== 'object') {
+            throw new BadRequestException('Les polices du brand kit sont requises.');
+        }
     }
 }

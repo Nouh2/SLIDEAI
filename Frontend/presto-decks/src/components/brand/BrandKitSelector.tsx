@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Palette, ChevronDown, Check, Plus, Star, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { BrandKit } from '@/lib/api';
+import { api, BrandKit } from '@/lib/api';
 
 interface BrandKitSelectorProps {
     selectedKit: BrandKit | null;
@@ -26,25 +26,18 @@ export function BrandKitSelector({ selectedKit, onSelect, className, disabled = 
 
     const fetchBrandKits = async () => {
         try {
-            const { data: { user } } = await supabase.auth.getUser();
-            if (!user) {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!session) {
                 setIsLoading(false);
                 return;
             }
 
-            const { data, error } = await supabase
-                .from('brand_kits')
-                .select('*')
-                .eq('user_id', user.id)
-                .order('is_default', { ascending: false });
-
-            if (!error && data) {
-                setBrandKits(data);
-                // Auto-select default kit if none selected
-                const defaultKit = data.find(k => k.is_default);
-                if (defaultKit && !selectedKit) {
-                    onSelect(defaultKit);
-                }
+            const data = await api.listBrandKits(session.access_token);
+            setBrandKits(data);
+            // Auto-select default kit if none selected
+            const defaultKit = data.find(k => k.is_default);
+            if (defaultKit && !selectedKit) {
+                onSelect(defaultKit);
             }
         } catch (e) {
             console.error('Error fetching brand kits:', e);

@@ -1249,7 +1249,7 @@
     "tryFree": "Démarrer l'offre de lancement",
     "startIntroOffer": "Commencer à 9,90€",
     "startTrialSecondary": "Tester gratuitement 7 jours",
-    "contactSales": "Contacter les ventes",
+    "contactSales": "Réserver une démo",
     "unsubscribe": "Se désabonner",
     "included": "Inclus",
     "creditUsage": "Les crédits sont utilisés pour générer des présentations avec l'IA.",
@@ -1264,8 +1264,8 @@
     "introOrTrialLine": "Choisissez l'offre à 9,90€ maintenant, ou testez 7 jours gratuitement sans carte.",
     "introComparisonDetail": "9,90€ le 1er mois",
     "proYearlyComparisonDetail": "14€/mois",
-    "businessMonthlyComparisonDetail": "29€/mois",
-    "businessYearlyComparisonDetail": "24€/mois",
+    "businessMonthlyComparisonDetail": "89€/mois équipe",
+    "businessYearlyComparisonDetail": "72€/mois équipe",
     "trialStarted": "Votre essai Pro 7 jours est maintenant actif.",
     "continueTrial": "Continuer l'essai",
     "choosePro": "Choisir Pro",
@@ -1328,7 +1328,7 @@
       },
       "pro": {
         "name": "Pro",
-        "description": "Pour les équipes qui veulent leur identité de marque et un livrable premium.",
+        "description": "Pour un consultant, freelance ou solo qui produit des livrables clients.",
         "features": {
           "unlimitedGen": "Génération Illimitée",
           "pdfImport": "PDF vers PowerPoint (Pro)",
@@ -1340,13 +1340,14 @@
       },
       "business": {
         "name": "Team",
-        "description": "Pour cabinets, agences et équipes qui partagent un workspace.",
-        "badge": "Accompagnement",
-        "billingNote": "Facturé annuellement, minimum 3 sièges",
-        "billingNoteMonthly": "Facturé mensuellement, minimum 3 sièges",
+        "description": "Pour agences marketing et équipes qui produisent plusieurs présentations client par semaine.",
+        "badge": "Offre agences",
+        "billingNote": "3 sièges inclus • facturé 864€/an",
+        "billingNoteMonthly": "3 sièges inclus • sièges additionnels à 29€/mois",
         "features": {
           "allPro": "Toutes les fonctionnalités Pro",
           "workspace": "Workspace d'équipe partagé",
+          "sharedBrandKits": "Brand kits clients partagés par l'équipe",
           "members": "Gestion des membres",
           "billing": "Facturation centralisée"
         }
@@ -1412,9 +1413,9 @@
       "cta": "Acheter ce pack"
     },
     "packOneShot": "Paiement unique • Pas d'abonnement",
-    "subscriptionSectionBadge": "Usage régulier",
-    "subscriptionTitle": "Abonnements",
-    "subscriptionSubtitle": "Démarrez à 9,90€ le premier mois, puis 19,90€/mois pour un usage régulier.",
+    "subscriptionSectionBadge": "Offres client-ready",
+    "subscriptionTitle": "Pro pour solo, Team pour agences.",
+    "subscriptionSubtitle": "Team inclut 3 sièges, un workspace partagé et les brand kits clients pour produire des présentations en équipe.",
     "comparison": {
       "badge": "Comparaison",
       "title": "Comparez les accès",

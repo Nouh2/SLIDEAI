@@ -182,7 +182,7 @@ Hypothèse : agence de 10 personnes (consultants, directeurs de clientèle, DA),
 
 À 100 €/h facturé, c'est entre 10 000 € et 13 000 € de capacité supplémentaire par mois — pour une agence de 10 personnes.
 
-Un abonnement Team à 29 €/mois est dérisoire face à ce gain.
+Un abonnement Team à 89 €/mois pour 3 sièges est dérisoire face à ce gain.
 
 ## Les freins typiques à anticiper
 
@@ -210,7 +210,7 @@ SlideAI couvre les besoins spécifiques d'une agence :
 - **export PowerPoint natif éditable** pour la finalisation par le DA
 - **lien public partageable** pour les pré-reads clients
 - **workflow depuis un Word, un PDF, ou des notes** correspondant à la matière déjà produite par les équipes
-- **plan Team à 29 €/mois** pour les agences de plusieurs personnes
+- **plan Team à 89 €/mois** avec 3 sièges inclus pour les agences de plusieurs personnes
 - **rendu sobre et neutre** sans signature visuelle reconnaissable, qui s'adapte à toutes les chartes clients
 
 L'idée n'est pas de remplacer la créativité de l'agence. C'est de récupérer le temps perdu sur la fabrication des slides pour le réinvestir sur le conseil et la création.
@@ -235,7 +235,7 @@ Si l'outil produit un export PowerPoint éditable avec votre brand kit appliqué
 
 ### Quel plan SlideAI choisir pour une agence ?
 
-Pour un freelance ou un consultant indépendant : **Pro à 19,90 €/mois** (brand kit + lien public). Pour une agence avec plusieurs collaborateurs : **Team à 29 €/mois**, qui ajoute la gestion d'équipe.
+Pour un freelance ou un consultant indépendant : **Pro à 19,90 €/mois** (brand kit + lien public). Pour une agence avec plusieurs collaborateurs : **Team à 89 €/mois**, avec 3 sièges inclus, workspace partagé et gestion d'équipe.
 
 ### Que faire des présentations très créatives où l'IA n'apporte rien ?
 
@@ -247,9 +247,9 @@ Une agence de communication ne se distingue pas par la vitesse à laquelle elle 
 
 Le paradoxe est que la fabrication de slides — qui n'apporte aucune valeur différenciante — mange aujourd'hui jusqu'à un tiers du temps facturable. Un workflow IA bien intégré, avec gestion multi-charte et export PowerPoint éditable, libère cette capacité.
 
-Pour une agence de 10 personnes, c'est l'équivalent d'**un consultant à temps plein réaffecté à la valeur**. Pour le coût d'un abonnement à 29 €/mois.
+Pour une agence de 10 personnes, c'est l'équivalent d'**un consultant à temps plein réaffecté à la valeur**. Pour le coût d'un abonnement d'équipe à 89 €/mois.
 
-[Tester SlideAI Team avec mon agence](/create)
+[Réserver une démo SlideAI Team](/pricing)
 
 ## À lire aussi
 

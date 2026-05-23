@@ -120,7 +120,7 @@ Si votre cas d'usage principal est "envoyer un lien à quelqu'un qui consultera 
 | Outil | Plan gratuit | Plan payant FR |
 |---|---|---|
 | Gamma | Crédits limités, watermark, export restreint | À partir d'un tarif en USD, abonnement standard du marché |
-| SlideAI | Pack ponctuel "satisfait ou remboursé" + plan Pro à 19,90 €/mois | Pro : brand kit + lien public — Team : 29 €/mois pour les équipes |
+| SlideAI | Pack ponctuel "satisfait ou remboursé" + plan Pro à 19,90 €/mois | Pro : brand kit + lien public — Team : 89 €/mois avec 3 sièges inclus |
 
 SlideAI est aujourd'hui plus simple côté tarif francophone : pas de change USD, deux paliers clairs, pas de friction sur les crédits.
 
@@ -198,7 +198,7 @@ Pour une équipe qui produit plusieurs decks par semaine avec des chartes client
 
 ### Lequel est le moins cher en 2026 ?
 
-À usage équivalent, SlideAI est aujourd'hui mieux positionné côté francophone : Pro à 19,90 €/mois, Team à 29 €/mois, et un pack ponctuel pour les usages occasionnels. Gamma reste sur une logique de crédits et de tarif en dollars.
+À usage équivalent, SlideAI est aujourd'hui mieux positionné côté francophone : Pro à 19,90 €/mois, Team à 89 €/mois avec 3 sièges inclus, et un pack ponctuel pour les usages occasionnels. Gamma reste sur une logique de crédits et de tarif en dollars.
 
 ### SlideAI fonctionne-t-il en français ?
 

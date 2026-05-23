@@ -145,6 +145,7 @@ export interface TemplateOverlay {
 export interface BrandKit {
   id: string;
   user_id: string;
+  org_id?: string | null;
   name: string;
   colors: {
     primary: string;
@@ -524,6 +525,48 @@ export const api = {
       console.error("Theme Extraction Error:", error);
       throw error;
     }
+  },
+
+  async listBrandKits(accessToken: string): Promise<BrandKit[]> {
+    const response = await fetch(`${API_BASE_URL}/brand/kits`, {
+      headers: buildHeaders(accessToken),
+    });
+    if (!response.ok) throw new Error('Impossible de charger les brand kits');
+    return response.json();
+  },
+
+  async createBrandKit(input: BrandKitInput, accessToken: string): Promise<BrandKit> {
+    const response = await fetch(`${API_BASE_URL}/brand/kits`, {
+      method: 'POST',
+      headers: buildHeaders(accessToken, 'application/json'),
+      body: JSON.stringify(input),
+    });
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({ message: 'Impossible de creer le brand kit' }));
+      throw new Error(err.message || 'Impossible de creer le brand kit');
+    }
+    return response.json();
+  },
+
+  async updateBrandKit(id: string, input: BrandKitInput, accessToken: string): Promise<BrandKit> {
+    const response = await fetch(`${API_BASE_URL}/brand/kits/${id}`, {
+      method: 'PUT',
+      headers: buildHeaders(accessToken, 'application/json'),
+      body: JSON.stringify(input),
+    });
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({ message: 'Impossible de modifier le brand kit' }));
+      throw new Error(err.message || 'Impossible de modifier le brand kit');
+    }
+    return response.json();
+  },
+
+  async deleteBrandKit(id: string, accessToken: string): Promise<void> {
+    const response = await fetch(`${API_BASE_URL}/brand/kits/${id}`, {
+      method: 'DELETE',
+      headers: buildHeaders(accessToken),
+    });
+    if (!response.ok) throw new Error('Impossible de supprimer le brand kit');
   },
 
   /**
